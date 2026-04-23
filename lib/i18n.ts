@@ -27,6 +27,7 @@ if (!i18n.isInitialized) {
 
           tabs: {
             pricing: "Pricing",
+            business: "Business",
             content: "Content",
             dashboard: "Dashboard",
             ideas: "Ideas",
@@ -135,6 +136,7 @@ if (!i18n.isInitialized) {
 
           tabs: {
             pricing: "Pricing",
+            business: "Negocio",
             content: "Contenido",
             dashboard: "Dashboard",
             ideas: "Ideas",

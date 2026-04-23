@@ -5,11 +5,12 @@ import "@/lib/i18n";
 import {
   AudioWaveform,
   Camera,
-  Calculator,
+  Briefcase,
   Home,
   Newspaper,
   Settings,
 } from "lucide-react";
+import Dashboard from "@/components/dashboard/Dashboard";
 import { useTranslation } from "react-i18next";
 
 type FieldConfig = {
@@ -144,7 +145,7 @@ const moduleTabs: {
   labelKey: string;
   icon: React.ComponentType<{ className?: string }>;
 }[] = [
-  { id: "pricing", labelKey: "tabs.pricing", icon: Calculator },
+  { id: "pricing", labelKey: "tabs.business", icon: Briefcase },
   { id: "contenido", labelKey: "tabs.content", icon: Camera },
   { id: "dashboard", labelKey: "tabs.dashboard", icon: Home },
   { id: "ideas", labelKey: "tabs.ideas", icon: AudioWaveform },
@@ -535,6 +536,8 @@ export default function PricingCalculator() {
             </div>
           )}
         </section>
+      ) : activeTab === "dashboard" ? (
+        <Dashboard />
       ) : (
         <section className="mx-auto flex min-h-[70vh] w-full max-w-4xl items-center justify-center rounded-3xl border border-white/10 bg-white/5 p-10 text-center shadow-2xl shadow-black/40 backdrop-blur-sm">
           <div>
