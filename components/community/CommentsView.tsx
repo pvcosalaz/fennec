@@ -10,6 +10,7 @@ type Props = {
   post: Post;
   profile: Profile;
   onBack: () => void;
+  onOpenProfile: (userId: string) => void;
 };
 
 function timeAgo(dateStr: string) {
@@ -28,7 +29,7 @@ function avatarColor(username: string) {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
-export default function CommentsView({ post, profile, onBack }: Props) {
+export default function CommentsView({ post, profile, onBack, onOpenProfile }: Props) {
   const [comments, setComments]     = useState<Comment[]>([]);
   const [loading, setLoading]       = useState(true);
   const [text, setText]             = useState("");
@@ -78,7 +79,7 @@ export default function CommentsView({ post, profile, onBack }: Props) {
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
-        <PostCard post={post} currentProfile={profile} onOpenThread={() => {}} onLoop={() => {}} />
+        <PostCard post={post} currentProfile={profile} onOpenThread={() => {}} onLoop={() => {}} onOpenProfile={onOpenProfile} />
 
         {!loading && (
           <p className="text-xs text-zinc-600 px-1">

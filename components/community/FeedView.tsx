@@ -10,9 +10,10 @@ import ComposerSheet from "./ComposerSheet";
 type Props = {
   profile: Profile;
   onOpenThread: (post: Post) => void;
+  onOpenProfile: (userId: string) => void;
 };
 
-export default function FeedView({ profile, onOpenThread }: Props) {
+export default function FeedView({ profile, onOpenThread, onOpenProfile }: Props) {
   const [category, setCategory]         = useState<PostCategory | null>(null);
   const [posts, setPosts]               = useState<Post[]>([]);
   const [page, setPage]                 = useState(0);
@@ -113,6 +114,7 @@ export default function FeedView({ profile, onOpenThread }: Props) {
             currentProfile={profile}
             onOpenThread={onOpenThread}
             onLoop={handleLoop}
+            onOpenProfile={onOpenProfile}
           />
         ))}
 
