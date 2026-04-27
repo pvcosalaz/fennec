@@ -8,6 +8,11 @@ export type Profile = {
   is_pro: boolean;
   fennec_db_score: number;
   created_at: string;
+  // Extended profile fields
+  bio: string | null;
+  genres: string[];
+  worked_with: string | null;
+  worked_in: string | null;
 };
 
 export type Post = {
