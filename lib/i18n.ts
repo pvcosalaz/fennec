@@ -12,8 +12,9 @@ if (!i18n.isInitialized) {
     resources: {
       en: {
         translation: {
-          brand: "Fennec Pricing",
-          calculatorTitle: "Pricing Calculator",
+          brand: "Music Production Pricing",
+          calculatorTitle: "What should I charge?",
+          calculatorSubtitle: "Calculate your minimum price based on your real costs and capacity.",
           stepCounter: "Step {{step}} of 4",
           language: "Language",
           languageEnglish: "EN",
@@ -29,9 +30,10 @@ if (!i18n.isInitialized) {
             pricing: "Pricing",
             business: "Business",
             content: "Content",
-            dashboard: "Dashboard",
-            ideas: "Ideas",
+            dashboard: "Home",
+            ideas: "Melody Bank",
             news: "News",
+            community: "Fennec",
           },
 
           module: {
@@ -121,8 +123,9 @@ if (!i18n.isInitialized) {
       },
       es: {
         translation: {
-          brand: "Fennec Pricing",
-          calculatorTitle: "Calculadora de Pricing",
+          brand: "Pricing de Producción Musical",
+          calculatorTitle: "¿Cuánto debo cobrar?",
+          calculatorSubtitle: "Calcula tu precio mínimo basado en tus costos reales y capacidad.",
           stepCounter: "Paso {{step}} de 4",
           language: "Idioma",
           languageEnglish: "EN",
@@ -138,9 +141,10 @@ if (!i18n.isInitialized) {
             pricing: "Pricing",
             business: "Negocio",
             content: "Contenido",
-            dashboard: "Dashboard",
-            ideas: "Ideas",
+            dashboard: "Home",
+            ideas: "Melody Bank",
             news: "Noticias",
+            community: "Fennec",
           },
 
           module: {

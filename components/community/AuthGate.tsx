@@ -39,11 +39,21 @@ export default function AuthGate() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 gap-6">
-      <div className="flex flex-col items-center gap-2">
-        <img src="/fennec-logo.png" className="h-10 w-auto opacity-90" alt="Fennec" />
-        <h1 className="text-2xl font-bold text-white">Fennec Community</h1>
-        <p className="text-sm text-zinc-500 text-center">Conecta con otros productores musicales</p>
+    <div className="flex flex-col items-center justify-center min-h-screen px-6 gap-8">
+      {/* Logo + branding */}
+      <div className="flex flex-col items-center gap-3">
+        <img
+          src="/fennec-logo.png"
+          alt="Fennec"
+          className="w-16 h-auto"
+          style={{ filter: "invert(1)", opacity: 0.95 }}
+        />
+        <div className="text-center space-y-1">
+          <p className="text-xs font-semibold tracking-[0.35em] text-amber-500 uppercase">Fennec</p>
+          <h1 className="text-2xl font-bold text-white leading-tight">
+            Your music business<br />& community hub.
+          </h1>
+        </div>
       </div>
 
       <div className="w-full max-w-xs space-y-3">
