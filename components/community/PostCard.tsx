@@ -13,6 +13,7 @@ type Props = {
   currentProfile: Profile | null;
   onOpenThread: (post: Post) => void;
   onLoop: (post: Post) => void;
+  onOpenProfile: (userId: string) => void;
 };
 
 function timeAgo(dateStr: string): string {
@@ -35,7 +36,7 @@ function avatarColor(username: string) {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
-export default function PostCard({ post, currentProfile, onOpenThread, onLoop }: Props) {
+export default function PostCard({ post, currentProfile, onOpenThread, onLoop, onOpenProfile }: Props) {
   const [vibed, setVibed]           = useState(post.user_vibed);
   const [vibeCount, setVibeCount]   = useState(post.vibe_count);
   const [bookmarked, setBookmarked] = useState(post.user_bookmarked);
@@ -115,10 +116,13 @@ export default function PostCard({ post, currentProfile, onOpenThread, onLoop }:
         <WaveformDivider hasAudio={hasAudio || hasVideo} />
       </div>
 
-      {/* User info — centered */}
-      <div className="flex items-center justify-center gap-2 px-4 py-2.5">
+      {/* User info — centered, tappable */}
+      <button
+        onClick={() => onOpenProfile(post.user_id)}
+        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 hover:bg-white/5 transition"
+      >
         <div
-          className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0"
+          className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 overflow-hidden"
           style={{ backgroundColor: avatarColor(p.username) }}
         >
           {p.avatar_url
@@ -128,7 +132,7 @@ export default function PostCard({ post, currentProfile, onOpenThread, onLoop }:
         <span className="text-sm font-semibold text-zinc-200">@{p.username}</span>
         {p.is_pro && <ProBadge />}
         <span className="text-xs text-zinc-600">{p.fennec_db_score} dB</span>
-      </div>
+      </button>
 
       {/* Action bar */}
       <div className="border-t border-white/5 flex items-center justify-around px-4 py-2.5">
