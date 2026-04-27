@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import {
   Rss,
-  MessageCircle,
   ArrowUpRight,
   ChevronLeft,
   Globe,
@@ -12,11 +11,12 @@ import type { NewsItem } from "@/app/api/news/route";
 import type { Profile, Post } from "@/lib/communityTypes";
 import FeedView from "./FeedView";
 import CommentsView from "./CommentsView";
+import UserProfilePage from "./UserProfilePage";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type FennecTab = "news" | "community";
-type CommunityView = "feed" | "thread";
+type CommunityView = "feed" | "thread" | "profile";
 
 // ─── Category gradient fallback ───────────────────────────────────────────────
 
@@ -238,8 +238,26 @@ function NewsPanel({ onSelect }: { onSelect: (item: NewsItem) => void }) {
 // ─── Community panel (feed — auth already handled at app level) ───────────────
 
 function CommunityPanel({ profile }: { profile: Profile }) {
-  const [view, setView]             = useState<CommunityView>("feed");
-  const [activePost, setActivePost] = useState<Post | null>(null);
+  const [view, setView]                   = useState<CommunityView>("feed");
+  const [activePost, setActivePost]       = useState<Post | null>(null);
+  const [profileUserId, setProfileUserId] = useState<string | null>(null);
+
+  function openProfile(userId: string) {
+    setProfileUserId(userId);
+    setView("profile");
+  }
+
+  if (view === "profile" && profileUserId) {
+    return (
+      <UserProfilePage
+        userId={profileUserId}
+        currentProfile={profile}
+        onBack={() => { setProfileUserId(null); setView("feed"); }}
+        onOpenThread={(post) => { setActivePost(post); setView("thread"); }}
+        onOpenProfile={openProfile}
+      />
+    );
+  }
 
   if (view === "thread" && activePost) {
     return (
@@ -247,6 +265,7 @@ function CommunityPanel({ profile }: { profile: Profile }) {
         post={activePost}
         profile={profile}
         onBack={() => { setActivePost(null); setView("feed"); }}
+        onOpenProfile={openProfile}
       />
     );
   }
@@ -255,6 +274,7 @@ function CommunityPanel({ profile }: { profile: Profile }) {
     <FeedView
       profile={profile}
       onOpenThread={(post) => { setActivePost(post); setView("thread"); }}
+      onOpenProfile={openProfile}
     />
   );
 }
@@ -275,64 +295,49 @@ export default function Community({ profile }: { profile: Profile }) {
   }
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-6 px-2">
+    <div className="mx-auto w-full max-w-4xl">
 
-      {/* Header */}
-      <div className="flex items-center gap-4">
+      {/* ── Header — X-style ─────────────────────────────── */}
+      <div className="flex flex-col items-center pt-4 pb-0">
         <img
           src="/fennec-logo.png"
           alt="Fennec"
-          style={{ width: 80, height: "auto", filter: "invert(1)", opacity: 0.9 }}
-          className="shrink-0"
+          style={{ width: 48, height: "auto", filter: "invert(1)", opacity: 0.9 }}
         />
-        <div className="space-y-0.5">
-          <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">
-            Fennec
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight text-white">
-            Stay in the loop.
-          </h1>
-          <p className="text-sm text-zinc-400 leading-relaxed">
-            Industry news and community for music producers.
-          </p>
-        </div>
       </div>
 
-      {/* ── Tab switcher ──────────────────────────────────── */}
-      <div className="flex rounded-2xl bg-white/5 border border-white/10 p-1 gap-1">
-        {/* Fennec Community — left */}
+      {/* ── Tab switcher — X-style ────────────────────────── */}
+      <div className="flex border-b border-white/10 mt-3">
         <button
           onClick={() => setFennecTab("community")}
-          className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold transition-all ${
-            fennecTab === "community"
-              ? "bg-white/10 text-white shadow-sm"
-              : "text-zinc-500 hover:text-zinc-300"
+          className={`flex flex-1 items-center justify-center py-3.5 text-sm font-semibold transition-all relative ${
+            fennecTab === "community" ? "text-white" : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"
           }`}
         >
-          <MessageCircle className="h-3.5 w-3.5" />
-          <span>
-            <span className={fennecTab === "community" ? "text-accent" : ""}>Fennec</span>
-            {" Community"}
-          </span>
+          Feed
+          {fennecTab === "community" && (
+            <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-[3px] rounded-full bg-amber-500" />
+          )}
         </button>
 
-        {/* News — right */}
         <button
           onClick={() => setFennecTab("news")}
-          className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold transition-all ${
-            fennecTab === "news"
-              ? "bg-white/10 text-white shadow-sm"
-              : "text-zinc-500 hover:text-zinc-300"
+          className={`flex flex-1 items-center justify-center py-3.5 text-sm font-semibold transition-all relative ${
+            fennecTab === "news" ? "text-white" : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"
           }`}
         >
-          <Rss className="h-3.5 w-3.5" />
           News
+          {fennecTab === "news" && (
+            <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-[3px] rounded-full bg-amber-500" />
+          )}
         </button>
       </div>
 
       {/* ── Panels ───────────────────────────────────────── */}
-      {fennecTab === "news"      && <NewsPanel onSelect={setSelected} />}
-      {fennecTab === "community" && <CommunityPanel profile={profile} />}
+      <div className="px-2 pt-4">
+        {fennecTab === "news"      && <NewsPanel onSelect={setSelected} />}
+        {fennecTab === "community" && <CommunityPanel profile={profile} />}
+      </div>
 
     </div>
   );
