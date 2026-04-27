@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
+import FennecFox from "@/components/dashboard/FennecFox";
 
 export default function AuthGate() {
   const [email, setEmail]       = useState("");
@@ -42,12 +43,7 @@ export default function AuthGate() {
     <div className="flex flex-col items-center justify-center min-h-screen px-6 gap-8">
       {/* Logo + branding */}
       <div className="flex flex-col items-center gap-3">
-        <img
-          src="/fennec-logo.png"
-          alt="Fennec"
-          className="w-16 h-auto"
-          style={{ filter: "invert(1)", opacity: 0.95 }}
-        />
+        <FennecFox isActive size={100} />
         <div className="text-center space-y-1">
           <p className="text-xs font-semibold tracking-[0.35em] text-amber-500 uppercase">Fennec</p>
           <h1 className="text-2xl font-bold text-white leading-tight">
