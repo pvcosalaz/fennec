@@ -9,11 +9,7 @@ import {
   Globe,
 } from "lucide-react";
 import type { NewsItem } from "@/app/api/news/route";
-import { supabase } from "@/lib/supabase";
-import { getProfile, updateDbScore } from "@/lib/communityDb";
 import type { Profile, Post } from "@/lib/communityTypes";
-import AuthGate from "./AuthGate";
-import UsernameSetup from "./UsernameSetup";
 import FeedView from "./FeedView";
 import CommentsView from "./CommentsView";
 
@@ -239,53 +235,11 @@ function NewsPanel({ onSelect }: { onSelect: (item: NewsItem) => void }) {
   );
 }
 
-// ─── Community panel (authenticated feed) ─────────────────────────────────────
+// ─── Community panel (feed — auth already handled at app level) ───────────────
 
-function CommunityPanel() {
-  const [authUser, setAuthUser]       = useState<{ id: string; email?: string } | null>(null);
-  const [profile, setProfile]         = useState<Profile | null>(null);
-  const [authLoading, setAuthLoading] = useState(true);
-  const [view, setView]               = useState<CommunityView>("feed");
-  const [activePost, setActivePost]   = useState<Post | null>(null);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      const user = session?.user ?? null;
-      setAuthUser(user ? { id: user.id, email: user.email } : null);
-      if (user) loadProfile(user.id);
-      else setAuthLoading(false);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      const user = session?.user ?? null;
-      setAuthUser(user ? { id: user.id, email: user.email } : null);
-      if (user) loadProfile(user.id);
-      else { setProfile(null); setAuthLoading(false); }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  async function loadProfile(userId: string) {
-    const p = await getProfile(userId);
-    setProfile(p);
-    setAuthLoading(false);
-    if (p) {
-      const localScore = Number(localStorage.getItem("fennec-db-score") ?? 0);
-      if (localScore !== p.fennec_db_score) updateDbScore(userId, localScore);
-    }
-  }
-
-  if (authLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[40vh]">
-        <div className="h-6 w-6 rounded-full border-2 border-amber-500 border-t-transparent animate-spin" />
-      </div>
-    );
-  }
-
-  if (!authUser) return <AuthGate />;
-  if (!profile)  return <UsernameSetup userId={authUser.id} avatarUrl={null} onComplete={setProfile} />;
+function CommunityPanel({ profile }: { profile: Profile }) {
+  const [view, setView]             = useState<CommunityView>("feed");
+  const [activePost, setActivePost] = useState<Post | null>(null);
 
   if (view === "thread" && activePost) {
     return (
@@ -307,7 +261,7 @@ function CommunityPanel() {
 
 // ─── Root component ───────────────────────────────────────────────────────────
 
-export default function Community() {
+export default function Community({ profile }: { profile: Profile }) {
   const [fennecTab, setFennecTab] = useState<FennecTab>("community");
   const [selected, setSelected] = useState<NewsItem | null>(null);
 
@@ -378,7 +332,7 @@ export default function Community() {
 
       {/* ── Panels ───────────────────────────────────────── */}
       {fennecTab === "news"      && <NewsPanel onSelect={setSelected} />}
-      {fennecTab === "community" && <CommunityPanel />}
+      {fennecTab === "community" && <CommunityPanel profile={profile} />}
 
     </div>
   );

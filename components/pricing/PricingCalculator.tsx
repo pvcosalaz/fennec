@@ -7,11 +7,24 @@ import {
   Camera,
   Briefcase,
   Home,
-  Newspaper,
+  Globe,
   Settings,
 } from "lucide-react";
+import SettingsModule from "@/components/settings/SettingsModule";
 import Dashboard from "@/components/dashboard/Dashboard";
+import BusinessHub, { type BusinessView } from "@/components/business/BusinessHub";
+import ClientsLeads from "@/components/business/ClientsLeads";
+import QuoteGenerator from "@/components/business/QuoteGenerator";
+import ActiveProjects from "@/components/business/ActiveProjects";
+import Community from "@/components/community/Community";
+import ContentModule from "@/components/content/ContentModule";
+import IdeasModule from "@/components/ideas/IdeasModule";
 import { useTranslation } from "react-i18next";
+import { supabase } from "@/lib/supabase";
+import { getProfile, updateDbScore } from "@/lib/communityDb";
+import type { Profile } from "@/lib/communityTypes";
+import AuthGate from "@/components/community/AuthGate";
+import UsernameSetup from "@/components/community/UsernameSetup";
 
 type FieldConfig = {
   key: string;
@@ -149,7 +162,7 @@ const moduleTabs: {
   { id: "contenido", labelKey: "tabs.content", icon: Camera },
   { id: "dashboard", labelKey: "tabs.dashboard", icon: Home },
   { id: "ideas", labelKey: "tabs.ideas", icon: AudioWaveform },
-  { id: "noticias", labelKey: "tabs.news", icon: Newspaper },
+  { id: "noticias", labelKey: "tabs.community", icon: Globe },
 ];
 
 function CurrencyInput({
@@ -180,7 +193,44 @@ function CurrencyInput({
 export default function PricingCalculator() {
   const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState<ModuleTab>("dashboard");
+  const [showSettings, setShowSettings] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
+  const [businessView, setBusinessView] = useState<BusinessView>("hub");
+
+  // ── Auth gate ────────────────────────────────────────────────────
+  const [authUser, setAuthUser]       = useState<{ id: string } | null>(null);
+  const [profile, setProfile]         = useState<Profile | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const user = session?.user ?? null;
+      setAuthUser(user ? { id: user.id } : null);
+      if (user) loadProfile(user.id);
+      else setAuthLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const user = session?.user ?? null;
+      setAuthUser(user ? { id: user.id } : null);
+      if (user) loadProfile(user.id);
+      else { setProfile(null); setAuthLoading(false); }
+    });
+
+    return () => subscription.unsubscribe();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function loadProfile(userId: string) {
+    const p = await getProfile(userId);
+    setProfile(p);
+    setAuthLoading(false);
+    if (p) {
+      const localScore = Number(localStorage.getItem("fennec-db-score") ?? 0);
+      if (localScore !== p.fennec_db_score) updateDbScore(userId, localScore);
+    }
+  }
+  const [quantity, setQuantity] = useState<number | null>(null);
   const [state, setState] = useState<PricingState>(() => {
     if (typeof window === "undefined") {
       return defaultState;
@@ -249,24 +299,69 @@ export default function PricingCalculator() {
   const canGoBack = state.step > 1;
   const canGoNext = state.step < 4;
 
+  // ── Auth gate renders ────────────────────────────────────────────
+  if (authLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-black">
+        <div className="h-7 w-7 rounded-full border-2 border-amber-500 border-t-transparent animate-spin" />
+      </div>
+    );
+  }
+
+  if (!authUser) {
+    return (
+      <div className="flex h-screen flex-col bg-black">
+        <AuthGate />
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="flex h-screen flex-col bg-black">
+        <UsernameSetup userId={authUser.id} avatarUrl={null} onComplete={setProfile} />
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen flex-col">
     <main className="flex-1 overflow-y-auto px-6 pt-10 pb-6">
       <div className="mx-auto mb-4 flex w-full max-w-4xl justify-end">
-        <label className="flex items-center gap-2 text-xs text-zinc-300">
-          <span>{t("language")}</span>
-          <select
-            value={i18n.resolvedLanguage?.startsWith("es") ? "es" : "en"}
-            onChange={(e) => void i18n.changeLanguage(e.target.value)}
-            className="rounded-lg border border-white/15 bg-black/40 px-2 py-1 text-zinc-100 outline-none focus:border-accent"
-          >
-            <option value="en">{t("languageEnglish")}</option>
-            <option value="es">{t("languageSpanish")}</option>
-          </select>
-        </label>
+        <button
+          onClick={() => setShowSettings(true)}
+          className="flex items-center justify-center h-8 w-8 rounded-xl border border-white/10 bg-white/5 text-zinc-400 hover:text-accent hover:border-accent/30 transition"
+        >
+          <Settings className="h-4 w-4" />
+        </button>
       </div>
-      {activeTab === "pricing" ? (
+      {showSettings ? (
+        <SettingsModule
+          onBack={() => setShowSettings(false)}
+          language={i18n.resolvedLanguage ?? "en"}
+          onLanguageChange={(lang) => { void i18n.changeLanguage(lang); }}
+        />
+      ) : activeTab === "pricing" && businessView === "hub" ? (
+        <BusinessHub onOpenView={setBusinessView} />
+      ) : activeTab === "pricing" && businessView === "projects" ? (
+        <ActiveProjects onBack={() => setBusinessView("hub")} />
+      ) : activeTab === "pricing" && businessView === "clients" ? (
+        <ClientsLeads onBack={() => setBusinessView("hub")} />
+      ) : activeTab === "pricing" && businessView === "quotes" ? (
+        <QuoteGenerator
+          onBack={() => setBusinessView("hub")}
+          onGoToClients={() => setBusinessView("clients")}
+          onGoToCalculator={() => setBusinessView("calculator")}
+          onGoToProjects={() => setBusinessView("projects")}
+        />
+      ) : activeTab === "pricing" && businessView === "calculator" ? (
         <section className="mx-auto w-full max-w-4xl rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/40 backdrop-blur-sm sm:p-10">
+          <button
+            onClick={() => setBusinessView("hub")}
+            className="mb-6 flex items-center gap-1.5 text-xs text-zinc-400 hover:text-accent transition"
+          >
+            ← Back to Business
+          </button>
           <div className="mb-8 flex items-start justify-between gap-4">
             <div>
               <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">
@@ -275,13 +370,17 @@ export default function PricingCalculator() {
               <h1 className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">
                 {t("calculatorTitle")}
               </h1>
+              <p className="mt-2 text-sm text-zinc-400">{t("calculatorSubtitle")}</p>
             </div>
             <button
-              onClick={() => setShowSetup((prev) => !prev)}
+              onClick={() => {
+                setState((prev) => ({ ...prev, step: 1 }));
+                setShowSetup((prev) => !prev);
+              }}
               className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-zinc-200 transition hover:border-accent hover:text-white"
             >
               <Settings className="h-4 w-4" />
-              {t("settings")}
+              {showSetup ? "Close" : t("settings")}
             </button>
           </div>
           {showSetup ? (
@@ -487,9 +586,21 @@ export default function PricingCalculator() {
             </div>
           ) : (
             <div className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-semibold text-white">{t("quote.title")}</h2>
-                <p className="mt-2 text-zinc-300">{t("quote.subtitle")}</p>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-semibold text-white">{t("quote.title")}</h2>
+                  <p className="mt-1 text-zinc-400 text-sm">{t("quote.subtitle")}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setState((prev) => ({ ...prev, step: 1 }));
+                    setShowSetup(true);
+                  }}
+                  className="shrink-0 inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-xs text-zinc-400 transition hover:border-accent hover:text-white"
+                >
+                  <Settings className="h-3.5 w-3.5" />
+                  Edit setup
+                </button>
               </div>
 
               {!isSetupComplete ? (
@@ -502,66 +613,215 @@ export default function PricingCalculator() {
                     {t("openSetup")}
                   </button>
                 </div>
-              ) : (
-                <div className="space-y-5 rounded-2xl border border-white/10 bg-black/30 p-6">
-                  <label className="flex flex-col gap-2">
-                    <span className="text-sm text-zinc-300">{t("quote.selectProjectType")}</span>
-                    <select
-                      value={state.selectedProjectType}
-                      onChange={(e) =>
-                        setState((prev) => ({ ...prev, selectedProjectType: e.target.value }))
-                      }
-                      className="h-11 rounded-xl border border-white/15 bg-black/30 px-3 text-white outline-none focus:border-accent"
-                    >
-                      {projectTypes.map((project) => (
-                        <option key={project.id} value={project.id}>
-                          {t(project.nameKey)}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+              ) : (() => {
+                const effectiveQty = quantity ?? maxProjects;
+                const monthlyMin = minPricePerProject * effectiveQty;
+                const monthlyRec = recommendedPrice * effectiveQty;
+                const coveragePct = monthlyTotalCOP > 0
+                  ? Math.round((monthlyRec / monthlyTotalCOP) * 100)
+                  : 0;
+                const barWidth = Math.min(coveragePct, 100);
+                const isHealthy = coveragePct >= 100;
 
-                  <p className="text-zinc-200">
-                    {t("quote.minimumPrice")}{" "}
-                    <span className="font-semibold text-accent">
-                      {formatCOP(minPricePerProject)}
-                    </span>
-                  </p>
-                  <p className="text-xl text-zinc-100">
-                    {t("quote.recommendedPrice")}{" "}
-                    <span className="font-bold text-accent">{formatCOP(recommendedPrice)}</span>
-                  </p>
-                </div>
-              )}
+                return (
+                  <div className="space-y-4">
+                    {/* Project type */}
+                    <div className="rounded-2xl border border-white/10 bg-black/30 p-5 space-y-4">
+                      <label className="flex flex-col gap-2">
+                        <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+                          Project type
+                        </span>
+                        <select
+                          value={state.selectedProjectType}
+                          onChange={(e) =>
+                            setState((prev) => ({ ...prev, selectedProjectType: e.target.value }))
+                          }
+                          className="h-11 rounded-xl border border-white/15 bg-black/40 px-3 text-white outline-none focus:border-accent"
+                        >
+                          {projectTypes.map((project) => (
+                            <option key={project.id} value={project.id}>
+                              {t(project.nameKey)}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+
+                      {/* Quantity selector */}
+                      <div className="space-y-2">
+                        <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+                          Projects this month
+                        </span>
+                        <div className="flex gap-2 flex-wrap">
+                          {Array.from({ length: Math.min(maxProjects, 8) }, (_, i) => i + 1).map((n) => (
+                            <button
+                              key={n}
+                              onClick={() => setQuantity(n)}
+                              className={`h-9 w-9 rounded-xl text-sm font-semibold transition ${
+                                effectiveQty === n
+                                  ? "bg-accent text-black"
+                                  : "border border-white/15 bg-black/30 text-zinc-300 hover:border-accent/50 hover:text-white"
+                              }`}
+                            >
+                              {n}
+                            </button>
+                          ))}
+                        </div>
+                        <p className="text-xs text-zinc-500">
+                          Based on your setup, you can take up to {maxProjects} project{maxProjects !== 1 ? "s" : ""}/month.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Per project */}
+                    <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">
+                        Per project
+                      </p>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-xs text-zinc-500">Minimum</p>
+                          <p className="text-lg font-semibold text-zinc-200">{formatCOP(minPricePerProject)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-zinc-500">Recommended</p>
+                          <p className="text-lg font-bold text-accent">{formatCOP(recommendedPrice)}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Monthly projection */}
+                    <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">
+                        Monthly projection × {effectiveQty}
+                      </p>
+                      <div className="grid grid-cols-2 gap-4 mb-5">
+                        <div>
+                          <p className="text-xs text-zinc-500">Minimum total</p>
+                          <p className="text-lg font-semibold text-zinc-200">{formatCOP(monthlyMin)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-zinc-500">Recommended total</p>
+                          <p className="text-xl font-bold text-accent">{formatCOP(monthlyRec)}</p>
+                        </div>
+                      </div>
+
+                      {/* vs monthly target */}
+                      <div className="border-t border-white/10 pt-4 space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-zinc-400">Your monthly target</span>
+                          <span className="font-semibold text-zinc-200">{formatCOP(monthlyTotalCOP)}</span>
+                        </div>
+                        <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
+                          <div
+                            className={`h-full rounded-full transition-all ${isHealthy ? "bg-accent" : "bg-red-400"}`}
+                            style={{ width: `${barWidth}%` }}
+                          />
+                        </div>
+                        <p className={`text-xs font-medium ${isHealthy ? "text-accent" : "text-red-400"}`}>
+                          {isHealthy
+                            ? `✓ ${coveragePct}% of your target covered — you're good`
+                            : `⚠ Only ${coveragePct}% covered — consider more projects or higher rates`}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           )}
         </section>
       ) : activeTab === "dashboard" ? (
         <Dashboard />
-      ) : (
-        <section className="mx-auto flex min-h-[70vh] w-full max-w-4xl items-center justify-center rounded-3xl border border-white/10 bg-white/5 p-10 text-center shadow-2xl shadow-black/40 backdrop-blur-sm">
-          <div>
-            <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">
-              {t("module.title")}
-            </p>
-            <h2 className="mt-3 text-4xl font-bold tracking-tight text-white">
-              {t(moduleTabs.find((tab) => tab.id === activeTab)?.labelKey ?? "tabs.dashboard")}
-            </h2>
-          </div>
-        </section>
-      )}
+      ) : activeTab === "contenido" ? (
+        <ContentModule />
+      ) : activeTab === "ideas" ? (
+        <IdeasModule onBack={() => setActiveTab("dashboard")} />
+      ) : activeTab === "noticias" ? (
+        <Community profile={profile} />
+      ) : null}
 
     </main>
       <nav className="shrink-0 px-4 pb-4 pt-2">
-        <div className="mx-auto flex w-full max-w-2xl items-center justify-between rounded-2xl border border-white/10 bg-black/80 px-2 py-2 backdrop-blur-xl">
+        <div className="mx-auto flex w-full max-w-2xl items-center rounded-2xl border border-white/10 bg-black/80 px-2 py-1.5 backdrop-blur-xl">
           {moduleTabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
+            const isHome   = tab.id === "dashboard";
+            const isFennec = tab.id === "noticias";
 
+            /* ── Home button ────────────────────────────── */
+            if (isHome) {
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => { setActiveTab(tab.id); setBusinessView("hub"); }}
+                  className="flex flex-1 flex-col items-center gap-1 text-xs transition"
+                >
+                  <div className={`flex h-12 w-12 items-center justify-center rounded-full transition ${
+                    isActive
+                      ? "bg-accent shadow-md shadow-accent/40"
+                      : "bg-zinc-800 hover:bg-zinc-700"
+                  }`}>
+                    <Icon className={`h-6 w-6 ${isActive ? "text-black" : "text-zinc-400"}`} />
+                  </div>
+                  <span className={isActive ? "text-accent" : "text-zinc-500"}>
+                    {t(tab.labelKey)}
+                  </span>
+                </button>
+              );
+            }
+
+            /* ── Fennec tab — special pill ──────────────── */
+            if (isFennec) {
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => { setActiveTab(tab.id); setBusinessView("hub"); }}
+                  className="flex flex-1 flex-col items-center gap-1 text-xs transition"
+                >
+                  <div className={`relative flex h-12 w-12 items-center justify-center rounded-2xl transition ${
+                    isActive
+                      ? "bg-accent shadow-lg shadow-accent/50"
+                      : "bg-accent/10 ring-1 ring-accent/40 hover:bg-accent/20 hover:ring-accent/60"
+                  }`}>
+                    {/* Glow pulse when inactive */}
+                    {!isActive && (
+                      <span className="absolute inset-0 rounded-2xl animate-pulse bg-accent/5" />
+                    )}
+                    {/* Logo — landscape image, no crop needed */}
+                    <img
+                      src="/fennec-logo.png"
+                      alt="Fennec"
+                      style={{
+                        width: 40,
+                        height: "auto",
+                        transform: "scaleX(-1)",
+                        filter: isActive ? "none" : "invert(1)",
+                        mixBlendMode: isActive ? "multiply" : "normal",
+                        opacity: isActive ? 1 : 0.9,
+                      }}
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).style.display = "none";
+                        const fallback = e.currentTarget.nextElementSibling as HTMLElement | null;
+                        if (fallback) fallback.style.display = "block";
+                      }}
+                    />
+                    <Globe
+                      className={`h-5 w-5 hidden ${isActive ? "text-black" : "text-accent"}`}
+                    />
+                  </div>
+                  <span className={isActive ? "text-accent font-semibold" : "text-accent/60"}>
+                    {t(tab.labelKey)}
+                  </span>
+                </button>
+              );
+            }
+
+            /* ── Regular tabs ───────────────────────────── */
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => { setActiveTab(tab.id); setBusinessView("hub"); }}
                 className={`flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-2 py-2 text-xs transition ${
                   isActive
                     ? "text-accent"
@@ -569,7 +829,7 @@ export default function PricingCalculator() {
                 }`}
               >
                 <Icon className="h-5 w-5" />
-                <span>{t(tab.labelKey)}</span>
+                <span className="leading-tight text-center text-[10px]">{t(tab.labelKey)}</span>
               </button>
             );
           })}
