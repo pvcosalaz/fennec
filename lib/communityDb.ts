@@ -36,6 +36,23 @@ export async function isUsernameTaken(username: string): Promise<boolean> {
   return (count ?? 0) > 0;
 }
 
+export async function updateProfile(userId: string, updates: {
+  bio?: string | null;
+  genres?: string[];
+  worked_with?: string | null;
+  worked_in?: string | null;
+  avatar_url?: string | null;
+}): Promise<Profile> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .update(updates)
+    .eq("id", userId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
 // ── Posts ─────────────────────────────────────────────────────────
 
 export async function fetchPosts(
@@ -47,7 +64,7 @@ export async function fetchPosts(
     .from("posts")
     .select(`
       *,
-      profile:profiles(*),
+      profile:profiles!posts_user_id_fkey(*),
       vibe_count:vibes(count),
       comment_count:comments(count)
     `)
@@ -105,10 +122,46 @@ export async function createPost(params: {
       link_title: params.linkTitle ?? null,
       repost_of:  params.repostOf ?? null,
     })
-    .select(`*, profile:profiles(*)`)
+    .select(`*, profile:profiles!posts_user_id_fkey(*)`)
     .single();
   if (error) throw error;
   return { ...data, vibe_count: 0, comment_count: 0, user_vibed: false, user_bookmarked: false };
+}
+
+export async function fetchUserPosts(userId: string, currentUserId: string | null): Promise<Post[]> {
+  const { data, error } = await supabase
+    .from("posts")
+    .select(`
+      *,
+      profile:profiles!posts_user_id_fkey(*),
+      vibe_count:vibes(count),
+      comment_count:comments(count)
+    `)
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(30);
+  if (error) throw error;
+
+  const postIds = (data ?? []).map((p) => p.id);
+  let userVibes = new Set<string>();
+  let userBookmarks = new Set<string>();
+
+  if (currentUserId && postIds.length > 0) {
+    const [vibesRes, bookmarksRes] = await Promise.all([
+      supabase.from("vibes").select("post_id").eq("user_id", currentUserId).in("post_id", postIds),
+      supabase.from("bookmarks").select("post_id").eq("user_id", currentUserId).in("post_id", postIds),
+    ]);
+    userVibes = new Set((vibesRes.data ?? []).map((v) => v.post_id));
+    userBookmarks = new Set((bookmarksRes.data ?? []).map((b) => b.post_id));
+  }
+
+  return (data ?? []).map((p) => ({
+    ...p,
+    vibe_count: p.vibe_count?.[0]?.count ?? 0,
+    comment_count: p.comment_count?.[0]?.count ?? 0,
+    user_vibed: userVibes.has(p.id),
+    user_bookmarked: userBookmarks.has(p.id),
+  }));
 }
 
 // ── Vibes ─────────────────────────────────────────────────────────
@@ -136,7 +189,7 @@ export async function toggleBookmark(postId: string, userId: string, currentlyBo
 export async function fetchComments(postId: string, currentUserId: string | null): Promise<Comment[]> {
   const { data, error } = await supabase
     .from("comments")
-    .select(`*, profile:profiles(*), vibe_count:vibes(count)`)
+    .select(`*, profile:profiles!comments_user_id_fkey(*), vibe_count:vibes(count)`)
     .eq("post_id", postId)
     .order("created_at", { ascending: true });
   if (error) throw error;
@@ -152,7 +205,7 @@ export async function createComment(postId: string, userId: string, content: str
   const { data, error } = await supabase
     .from("comments")
     .insert({ post_id: postId, user_id: userId, content, gif_url: gifUrl ?? null })
-    .select(`*, profile:profiles(*)`)
+    .select(`*, profile:profiles!posts_user_id_fkey(*)`)
     .single();
   if (error) throw error;
   return { ...data, vibe_count: 0, user_vibed: false };
