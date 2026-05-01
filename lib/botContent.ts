@@ -4,13 +4,8 @@ import type { NewsItem } from "@/app/api/news/route";
 
 export type BotFormat = 1 | 2 | 3;
 
-function getClient(): Anthropic {
-  const apiKey = process.env.ANTHROPIC_API_KEY ?? process.env.FENNEC_ANTHROPIC_KEY;
-  if (!apiKey) {
-    throw new Error("ANTHROPIC_API_KEY environment variable is not set");
-  }
-  return new Anthropic({ apiKey });
-}
+// Uses the same key as other API routes in this project
+const ANTHROPIC_API_KEY = process.env.FENNEC_ANTHROPIC_KEY ?? process.env.ANTHROPIC_API_KEY;
 
 const FORMAT_INSTRUCTIONS: Record<BotFormat, string> = {
   1: `Escribe un resumen de 2-3 oraciones de la noticia. Tono: colega que te cuenta algo interesante, directo y sin ser formal. Sin preguntas al final. Termina con el link de la noticia en una línea separada.`,
@@ -40,7 +35,9 @@ Resumen: ${item.summary}
 
 Formato: ${FORMAT_INSTRUCTIONS[format]}`;
 
-  const message = await getClient().messages.create({
+  if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY environment variable is not set");
+  const client = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
+  const message = await client.messages.create({
     model: "claude-haiku-4-5",
     max_tokens: 300,
     messages: [{ role: "user", content: prompt }],
