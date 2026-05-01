@@ -23,6 +23,23 @@ function pickRandom<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+async function fetchOgImage(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; FennecBot/1.0)" },
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+    const match =
+      html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ??
+      html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+    return match?.[1] ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function POST(req: NextRequest) {
   // ── Auth check ────────────────────────────────────────────────
   const secret = process.env.CRON_SECRET;
@@ -54,8 +71,11 @@ export async function POST(req: NextRequest) {
     const item = pickRandom(fresh);
     const format = pickFormat();
 
-    // ── 4. Rewrite with Claude ────────────────────────────────
-    const rawContent = await rewriteWithClaude(item, format);
+    // ── 4. Rewrite with Claude + fetch og:image ───────────────
+    const [rawContent, ogImage] = await Promise.all([
+      rewriteWithClaude(item, format),
+      fetchOgImage(item.url),
+    ]);
     const content = `${rawContent}\n\nvía ${item.source}`;
 
     // ── 5. Insert post into Supabase ──────────────────────────
@@ -65,8 +85,8 @@ export async function POST(req: NextRequest) {
         user_id:    BOT_UUID,
         content,
         category:   mapCategory(item.category),
-        media_url:  null,
-        media_type: null,
+        media_url:  ogImage,
+        media_type: ogImage ? "image" : null,
         media_name: null,
         link_url:   item.url,
         link_title: item.headline,
