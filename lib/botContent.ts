@@ -4,11 +4,12 @@ import type { NewsItem } from "@/app/api/news/route";
 
 export type BotFormat = 1 | 2 | 3;
 
-if (!process.env.ANTHROPIC_API_KEY) {
-  throw new Error("ANTHROPIC_API_KEY environment variable is not set");
+function getClient(): Anthropic {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    throw new Error("ANTHROPIC_API_KEY environment variable is not set");
+  }
+  return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 }
-
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 const FORMAT_INSTRUCTIONS: Record<BotFormat, string> = {
   1: `Escribe un resumen de 2-3 oraciones de la noticia. Tono: colega que te cuenta algo interesante, directo y sin ser formal. Sin preguntas al final. Termina con el link de la noticia en una línea separada.`,
@@ -38,7 +39,7 @@ Resumen: ${item.summary}
 
 Formato: ${FORMAT_INSTRUCTIONS[format]}`;
 
-  const message = await client.messages.create({
+  const message = await getClient().messages.create({
     model: "claude-haiku-4-5",
     max_tokens: 300,
     messages: [{ role: "user", content: prompt }],
