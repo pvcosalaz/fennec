@@ -22,8 +22,7 @@ export async function hasBeenPosted(url: string): Promise<boolean> {
 export async function markAsPosted(url: string): Promise<void> {
   const { error } = await supabase
     .from("bot_posted_urls")
-    .insert({ url })
-    .single();
+    .insert({ url });
   if (error && error.code !== "23505") {
     // 23505 = unique_violation — already exists, that's fine
     console.error("[botDb] markAsPosted error:", error.message);
