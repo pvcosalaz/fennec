@@ -1,7 +1,7 @@
 // app/api/bot-post/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import { hasBeenPosted, markAsPosted } from "@/lib/botDb";
+import { markAsPosted } from "@/lib/botDb";
 import { rewriteWithClaude, pickFormat } from "@/lib/botContent";
 import type { NewsItem } from "@/app/api/news/route";
 import type { PostCategory } from "@/lib/communityTypes";
@@ -38,12 +38,13 @@ export async function POST(req: NextRequest) {
     if (!newsRes.ok) throw new Error(`News fetch failed: ${newsRes.status}`);
     const allItems: NewsItem[] = await newsRes.json();
 
-    // ── 2. Filter already-posted ──────────────────────────────
-    const fresh: NewsItem[] = [];
-    for (const item of allItems) {
-      const posted = await hasBeenPosted(item.url);
-      if (!posted) fresh.push(item);
-    }
+    // ── 2. Filter already-posted (single batch query) ────────
+    const { data: postedRows } = await supabase
+      .from("bot_posted_urls")
+      .select("url")
+      .in("url", allItems.map((i) => i.url));
+    const postedSet = new Set((postedRows ?? []).map((r) => r.url));
+    const fresh = allItems.filter((item) => !postedSet.has(item.url));
 
     if (fresh.length === 0) {
       return NextResponse.json({ skipped: true, reason: "No new news items" });
@@ -75,8 +76,15 @@ export async function POST(req: NextRequest) {
 
     if (error) throw new Error(`Supabase insert error: ${error.message}`);
 
-    // ── 6. Mark URL as posted ─────────────────────────────────
-    await markAsPosted(item.url);
+    // ── 6. Mark URL as posted (rollback post if marking fails) ─
+    const { error: markError } = await supabase
+      .from("bot_posted_urls")
+      .insert({ url: item.url });
+    if (markError && markError.code !== "23505") {
+      // Rollback the post so the cron doesn't leave dangling untracked posts
+      await supabase.from("posts").delete().eq("id", data.id);
+      throw new Error(`Failed to mark URL as posted (post rolled back): ${markError.message}`);
+    }
 
     return NextResponse.json({ ok: true, postId: data.id, format, headline: item.headline });
   } catch (err) {
