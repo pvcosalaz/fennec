@@ -8,9 +8,9 @@ export type BotFormat = 1 | 2 | 3;
 const ANTHROPIC_API_KEY = process.env.FENNEC_ANTHROPIC_KEY ?? process.env.ANTHROPIC_API_KEY;
 
 const FORMAT_INSTRUCTIONS: Record<BotFormat, string> = {
-  1: `Escribe un resumen de 2-3 oraciones de la noticia. Tono: colega que te cuenta algo interesante, directo y sin ser formal. Sin preguntas al final.`,
-  2: `Escribe un resumen de 2 oraciones de la noticia y cierra con una pregunta genuina a la comunidad (ej: "¿Ya lo están usando?", "¿Qué opinan?").`,
-  3: `Escribe un hot take u opinión corta inspirada en la noticia — no la resumas literalmente. Sé conversacional, como si lo dijera en un grupo de WhatsApp entre productores. Puede o no terminar en pregunta.`,
+  1: `Write a 2-3 sentence summary of the news. Tone: a creative colleague telling you something interesting — direct, casual, not formal. No question at the end.`,
+  2: `Write a 2-sentence summary of the news and close with a genuine question to the community (e.g. "Are you already using it?", "What do you think?").`,
+  3: `Write a hot take or short opinion inspired by the news — don't summarize it literally. Be conversational, like texting in a group chat with producers. May or may not end in a question.`,
 };
 
 /**
@@ -25,11 +25,11 @@ export function pickFormat(): BotFormat {
  * Returns the rewritten text (max ~300 chars of body + link).
  */
 export async function rewriteWithClaude(item: NewsItem, format: BotFormat): Promise<string> {
-  const prompt = `Eres el asistente oficial de Fennec, una app para productores musicales latinoamericanos.
-Tu tono es el de un colega creativo — directo, informado, sin ser formal. Escribe en español.
-Máximo 250 caracteres en total.
-IMPORTANTE: No uses markdown. Sin asteriscos, sin negritas, sin cursivas, sin símbolos de formato.
-No incluyas URLs ni links en el texto. No menciones la fuente al final.
+  const prompt = `You are the official assistant of Fennec, an app for music producers.
+Your tone is that of a creative colleague — direct, informed, not formal. Write in English.
+Maximum 250 characters total.
+IMPORTANT: No markdown. No asterisks, no bold, no italics, no formatting symbols.
+Do not include URLs or links in the text. Do not mention the source at the end.
 
 Noticia: ${item.headline}
 Fuente: ${item.source}
