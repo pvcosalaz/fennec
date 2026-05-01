@@ -6,6 +6,7 @@ export type Profile = {
   username: string;
   avatar_url: string | null;
   is_pro: boolean;
+  is_bot: boolean;
   fennec_db_score: number;
   created_at: string;
   // Extended profile fields
@@ -13,6 +14,7 @@ export type Profile = {
   genres: string[];
   worked_with: string | null;
   worked_in: string | null;
+  banner_url: string | null;
 };
 
 export type Post = {
