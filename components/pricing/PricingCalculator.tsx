@@ -9,6 +9,7 @@ import {
   Home,
   Globe,
   Settings,
+  SlidersHorizontal,
 } from "lucide-react";
 import SettingsModule from "@/components/settings/SettingsModule";
 import Dashboard from "@/components/dashboard/Dashboard";
@@ -21,7 +22,7 @@ import ContentModule from "@/components/content/ContentModule";
 import IdeasModule from "@/components/ideas/IdeasModule";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/lib/supabase";
-import { getProfile, updateDbScore } from "@/lib/communityDb";
+import { getProfile, updateDbScore, uploadAudio, createPost } from "@/lib/communityDb";
 import type { Profile } from "@/lib/communityTypes";
 import AuthGate from "@/components/community/AuthGate";
 import UsernameSetup from "@/components/community/UsernameSetup";
@@ -192,10 +193,32 @@ function CurrencyInput({
 
 export default function PricingCalculator() {
   const { t, i18n } = useTranslation();
-  const [activeTab, setActiveTab] = useState<ModuleTab>("dashboard");
+  const [activeTab, setActiveTab] = useState<ModuleTab>(() => {
+    if (typeof window === "undefined") return "dashboard";
+    const saved = localStorage.getItem("fennec_active_tab") as ModuleTab | null;
+    const valid: ModuleTab[] = ["pricing", "contenido", "dashboard", "ideas", "noticias"];
+    return saved && valid.includes(saved) ? saved : "dashboard";
+  });
+  useEffect(() => { localStorage.setItem("fennec_active_tab", activeTab); }, [activeTab]);
+
+  const [pendingAudio, setPendingAudio] = useState<{ url: string; name: string } | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
   const [businessView, setBusinessView] = useState<BusinessView>("hub");
+
+  // Auto-open setup when user enters calculator without financial data
+  useEffect(() => {
+    if (businessView === "calculator" && !showSetup) {
+      const saved = localStorage.getItem("fennec-pricing-v1");
+      const parsed = saved ? JSON.parse(saved) : null;
+      if (!parsed?.setupCompleted) {
+        setState((prev) => ({ ...prev, step: 1 }));
+        setShowSetup(true);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [businessView]);
 
   // ── Auth gate ────────────────────────────────────────────────────
   const [authUser, setAuthUser]       = useState<{ id: string } | null>(null);
@@ -223,11 +246,33 @@ export default function PricingCalculator() {
 
   async function loadProfile(userId: string) {
     const p = await getProfile(userId);
-    setProfile(p);
     setAuthLoading(false);
     if (p) {
-      const localScore = Number(localStorage.getItem("fennec-db-score") ?? 0);
-      if (localScore !== p.fennec_db_score) updateDbScore(userId, localScore);
+      // Calculate score directly from localStorage data (same formula as Dashboard)
+      // so we don't depend on Dashboard having run first
+      const computedScore = (() => {
+        try {
+          const projects: { status: string }[] = JSON.parse(localStorage.getItem("fennec-projects-v1") ?? "[]");
+          const quotes:   { status: string }[] = JSON.parse(localStorage.getItem("fennec-quotes-v1")   ?? "[]");
+          const clients:  unknown[]            = JSON.parse(localStorage.getItem("fennec-clients-v1")  ?? "[]");
+          const active  = projects.filter((pr) => pr.status !== "paid").length;
+          const closed  = projects.filter((pr) => pr.status === "paid").length;
+          const sent    = quotes.filter((q)  => q.status === "sent").length;
+          return Math.round(active * 150 + closed * 50 + clients.length * 75 + sent * 25);
+        } catch { return 0; }
+      })();
+
+      // Save computed score so Dashboard picks it up too
+      localStorage.setItem("fennec-db-score", String(computedScore));
+
+      if (computedScore !== p.fennec_db_score) {
+        updateDbScore(userId, computedScore);
+        setProfile({ ...p, fennec_db_score: computedScore });
+      } else {
+        setProfile(p);
+      }
+    } else {
+      setProfile(null);
     }
   }
   const [quantity, setQuantity] = useState<number | null>(null);
@@ -340,9 +385,10 @@ export default function PricingCalculator() {
           onBack={() => setShowSettings(false)}
           language={i18n.resolvedLanguage ?? "en"}
           onLanguageChange={(lang) => { void i18n.changeLanguage(lang); }}
+          avatarUrl={profile.avatar_url}
         />
       ) : activeTab === "pricing" && businessView === "hub" ? (
-        <BusinessHub onOpenView={setBusinessView} />
+        <BusinessHub onOpenView={setBusinessView} isPro={true} />
       ) : activeTab === "pricing" && businessView === "projects" ? (
         <ActiveProjects onBack={() => setBusinessView("hub")} />
       ) : activeTab === "pricing" && businessView === "clients" ? (
@@ -377,10 +423,10 @@ export default function PricingCalculator() {
                 setState((prev) => ({ ...prev, step: 1 }));
                 setShowSetup((prev) => !prev);
               }}
-              className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-zinc-200 transition hover:border-accent hover:text-white"
+              className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-zinc-200 transition hover:border-accent hover:text-white whitespace-nowrap"
             >
-              <Settings className="h-4 w-4" />
-              {showSetup ? "Close" : t("settings")}
+              <SlidersHorizontal className="h-4 w-4" />
+              {showSetup ? "Close" : "My expenses"}
             </button>
           </div>
           {showSetup ? (
@@ -591,16 +637,6 @@ export default function PricingCalculator() {
                   <h2 className="text-2xl font-semibold text-white">{t("quote.title")}</h2>
                   <p className="mt-1 text-zinc-400 text-sm">{t("quote.subtitle")}</p>
                 </div>
-                <button
-                  onClick={() => {
-                    setState((prev) => ({ ...prev, step: 1 }));
-                    setShowSetup(true);
-                  }}
-                  className="shrink-0 inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-xs text-zinc-400 transition hover:border-accent hover:text-white"
-                >
-                  <Settings className="h-3.5 w-3.5" />
-                  Edit setup
-                </button>
               </div>
 
               {!isSetupComplete ? (
@@ -624,7 +660,7 @@ export default function PricingCalculator() {
                 const isHealthy = coveragePct >= 100;
 
                 return (
-                  <div className="space-y-4">
+                  <div className="space-y-4 pb-2">
                     {/* Project type */}
                     <div className="rounded-2xl border border-white/10 bg-black/30 p-5 space-y-4">
                       <label className="flex flex-col gap-2">
@@ -724,20 +760,83 @@ export default function PricingCalculator() {
                         </p>
                       </div>
                     </div>
-                  </div>
-                );
+
+                  {/* ── Upsell CTA ───────────────────────────────── */}
+                  <button
+                    onClick={() => setShowUpgrade(true)}
+                    className="w-full rounded-2xl bg-gradient-to-r from-amber-500 to-amber-400 py-4 px-5 flex items-center justify-between shadow-lg shadow-amber-500/25 hover:brightness-110 transition active:scale-[0.98]"
+                  >
+                    <div className="text-left">
+                      <p className="text-sm font-black text-black">Send this quote to a client →</p>
+                      <p className="text-[11px] text-black/60 mt-0.5">Your price is set. Now get paid.</p>
+                    </div>
+                    <span className="text-xl">💸</span>
+                  </button>
+                </div>);
+
               })()}
             </div>
           )}
+
+          {/* ── Upgrade sheet ─────────────────────────────────────── */}
+          {showUpgrade && (
+            <>
+              <div className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm" onClick={() => setShowUpgrade(false)} />
+              <div className="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl bg-zinc-950 border-t border-white/10 p-6 space-y-5">
+                <div className="w-10 h-1 bg-white/20 rounded-full mx-auto" />
+
+                <div className="space-y-1">
+                  <p className="text-xl font-black text-white">Your price is set.</p>
+                  <p className="text-xl font-black text-accent">Now close the deal.</p>
+                  <p className="text-sm text-zinc-500 mt-2">Upgrade to Pro and turn your rate into real income.</p>
+                </div>
+
+                <div className="space-y-2.5">
+                  {[
+                    { emoji: "👥", label: "Clients & Leads",    desc: "Store contacts, track prospects" },
+                    { emoji: "📄", label: "Quote Generator",     desc: "Send pro quotes in seconds" },
+                    { emoji: "📁", label: "Active Projects",     desc: "Deadlines, status, deliverables" },
+                  ].map((item) => (
+                    <div key={item.label} className="flex items-center gap-3 rounded-xl bg-white/5 px-4 py-3">
+                      <span className="text-lg">{item.emoji}</span>
+                      <div>
+                        <p className="text-sm font-semibold text-white">{item.label}</p>
+                        <p className="text-[11px] text-zinc-500">{item.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <button className="w-full py-4 rounded-2xl bg-amber-500 hover:bg-amber-400 transition text-black font-black text-base shadow-lg shadow-amber-500/30">
+                  Start Pro — $9.99 / month
+                </button>
+
+                <button onClick={() => setShowUpgrade(false)} className="w-full text-xs text-zinc-600 hover:text-zinc-400 transition py-1">
+                  Maybe later
+                </button>
+              </div>
+            </>
+          )}
         </section>
       ) : activeTab === "dashboard" ? (
-        <Dashboard />
+        <Dashboard avatarUrl={profile.avatar_url} username={profile.username} isPro={profile.is_pro} />
       ) : activeTab === "contenido" ? (
         <ContentModule />
       ) : activeTab === "ideas" ? (
-        <IdeasModule onBack={() => setActiveTab("dashboard")} />
+        <IdeasModule
+          onBack={() => setActiveTab("dashboard")}
+          onShareToFeed={profile ? async (blob, title) => {
+            const url = await uploadAudio(blob, `${title}.webm`);
+            setPendingAudio({ url, name: title });
+            setActiveTab("noticias");
+          } : undefined}
+        />
       ) : activeTab === "noticias" ? (
-        <Community profile={profile} />
+        <Community
+          profile={profile}
+          openComposerWith={pendingAudio}
+          onComposerConsumed={() => setPendingAudio(null)}
+        />
       ) : null}
 
     </main>

@@ -1,6 +1,6 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
-import { Pencil } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Plus, Users } from "lucide-react";
 import { fetchPosts, createPost } from "@/lib/communityDb";
 import type { Post, Profile, PostCategory } from "@/lib/communityTypes";
 import { CATEGORIES } from "@/lib/communityTypes";
@@ -11,15 +11,37 @@ type Props = {
   profile: Profile;
   onOpenThread: (post: Post) => void;
   onOpenProfile: (userId: string) => void;
+  openComposerWith?: { url: string; name: string } | null;
+  onComposerConsumed?: () => void;
 };
 
-export default function FeedView({ profile, onOpenThread, onOpenProfile }: Props) {
+const AVATAR_COLORS = ["#6366f1","#f59e0b","#10b981","#ef4444","#8b5cf6","#3b82f6","#ec4899"];
+function avatarColor(username: string) {
+  let hash = 0;
+  for (const c of username) hash = (hash * 31 + c.charCodeAt(0)) % AVATAR_COLORS.length;
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+
+export default function FeedView({ profile, onOpenThread, onOpenProfile, openComposerWith, onComposerConsumed }: Props) {
   const [category, setCategory]         = useState<PostCategory | null>(null);
   const [posts, setPosts]               = useState<Post[]>([]);
   const [page, setPage]                 = useState(0);
   const [loading, setLoading]           = useState(true);
   const [hasMore, setHasMore]           = useState(true);
-  const [composerOpen, setComposerOpen] = useState(false);
+  const [composerOpen, setComposerOpen] = useState(!!openComposerWith);
+  const [pullY, setPullY]               = useState(0);
+  const [refreshing, setRefreshing]     = useState(false);
+  const consumedRef  = useRef(false);
+  const touchStartY  = useRef(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Notify parent that we consumed the pending audio (clear it so it won't re-open)
+  useEffect(() => {
+    if (openComposerWith && !consumedRef.current) {
+      consumedRef.current = true;
+      onComposerConsumed?.();
+    }
+  }, [openComposerWith, onComposerConsumed]);
 
   const loadPosts = useCallback(async (cat: PostCategory | null, p: number, reset: boolean) => {
     setLoading(true);
@@ -37,6 +59,42 @@ export default function FeedView({ profile, onOpenThread, onOpenProfile }: Props
     loadPosts(category, 0, true);
   }, [category, loadPosts]);
 
+  // ── Pull-to-refresh ────────────────────────────────────────
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    function onTouchStart(e: TouchEvent) {
+      touchStartY.current = e.touches[0].clientY;
+    }
+
+    function onTouchMove(e: TouchEvent) {
+      const scrollTop = el.scrollTop ?? 0;
+      if (scrollTop > 0) return;
+      const delta = e.touches[0].clientY - touchStartY.current;
+      if (delta > 0) setPullY(Math.min(delta * 0.4, 72));
+    }
+
+    function onTouchEnd() {
+      if (pullY >= 60 && !refreshing) {
+        setRefreshing(true);
+        setPullY(0);
+        loadPosts(category, 0, true).finally(() => setRefreshing(false));
+      } else {
+        setPullY(0);
+      }
+    }
+
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchmove",  onTouchMove,  { passive: true });
+    el.addEventListener("touchend",   onTouchEnd);
+    return () => {
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove",  onTouchMove);
+      el.removeEventListener("touchend",   onTouchEnd);
+    };
+  }, [pullY, refreshing, category, loadPosts]);
+
   async function handleLoop(post: Post) {
     await createPost({
       userId:   profile.id,
@@ -53,20 +111,52 @@ export default function FeedView({ profile, onOpenThread, onOpenProfile }: Props
   }
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-4 px-2 pb-24">
+    <div ref={containerRef} className="mx-auto w-full max-w-4xl space-y-4 px-2 pb-24 overflow-y-auto">
+
+      {/* Pull-to-refresh indicator */}
+      {(pullY > 0 || refreshing) && (
+        <div
+          className="flex items-center justify-center transition-all"
+          style={{ height: refreshing ? 40 : pullY, overflow: "hidden" }}
+        >
+          <svg
+            className={`h-5 w-5 text-amber-500 ${refreshing ? "animate-spin" : ""}`}
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}
+          >
+            <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
+      )}
 
       {/* Header */}
       <div className="flex items-center justify-between pt-2">
-        <div>
-          <p className="text-xs font-semibold tracking-[0.35em] text-amber-500 uppercase">Community</p>
-          <h1 className="text-2xl font-bold text-white">Feed</h1>
+        <div className="flex items-center gap-2">
+          <Users className="h-4 w-4 text-accent" />
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
+            Fennec Community
+          </h2>
         </div>
-        <button
-          onClick={() => setComposerOpen(true)}
-          className="w-10 h-10 rounded-2xl bg-amber-500 flex items-center justify-center hover:bg-amber-400 transition"
-        >
-          <Pencil className="h-4 w-4 text-black" />
-        </button>
+        <div className="flex items-center gap-2">
+          {/* My profile */}
+          <button
+            onClick={() => onOpenProfile(profile.id)}
+            className="w-9 h-9 rounded-full overflow-hidden border-2 border-white/10 hover:border-amber-500 transition shrink-0"
+            style={{ backgroundColor: avatarColor(profile.username) }}
+          >
+            {profile.avatar_url
+              ? <img src={profile.avatar_url} className="w-full h-full object-cover" alt="" />
+              : <span className="w-full h-full flex items-center justify-center text-xs font-bold text-white">
+                  {profile.username[0]?.toUpperCase()}
+                </span>}
+          </button>
+          {/* Compose */}
+          <button
+            onClick={() => setComposerOpen(true)}
+            className="w-10 h-10 rounded-2xl bg-amber-500 flex items-center justify-center hover:bg-amber-400 transition"
+          >
+            <Plus className="h-5 w-5 text-black" />
+          </button>
+        </div>
       </div>
 
       {/* Category chips */}
@@ -107,16 +197,23 @@ export default function FeedView({ profile, onOpenThread, onOpenProfile }: Props
           </div>
         )}
 
-        {posts.map((post) => (
+        {posts.map((post) => {
+          // Always show the live score for the current user's own posts
+          const livePost = post.user_id === profile.id
+            ? { ...post, profile: { ...post.profile, fennec_db_score: profile.fennec_db_score } }
+            : post;
+          return (
           <PostCard
             key={post.id}
-            post={post}
+            post={livePost}
             currentProfile={profile}
             onOpenThread={onOpenThread}
             onLoop={handleLoop}
             onOpenProfile={onOpenProfile}
+            onDelete={(id) => setPosts((prev) => prev.filter((p) => p.id !== id))}
           />
-        ))}
+          );
+        })}
 
         {hasMore && posts.length > 0 && (
           <button
@@ -138,6 +235,9 @@ export default function FeedView({ profile, onOpenThread, onOpenProfile }: Props
           profile={profile}
           onClose={() => setComposerOpen(false)}
           onPostCreated={handlePostCreated}
+          initialMediaUrl={openComposerWith?.url}
+          initialMediaType={openComposerWith ? "audio" : undefined}
+          initialMediaName={openComposerWith?.name}
         />
       )}
     </div>
