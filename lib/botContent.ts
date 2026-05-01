@@ -5,10 +5,11 @@ import type { NewsItem } from "@/app/api/news/route";
 export type BotFormat = 1 | 2 | 3;
 
 function getClient(): Anthropic {
-  if (!process.env.ANTHROPIC_API_KEY) {
+  const apiKey = process.env.ANTHROPIC_API_KEY ?? process.env.FENNEC_ANTHROPIC_KEY;
+  if (!apiKey) {
     throw new Error("ANTHROPIC_API_KEY environment variable is not set");
   }
-  return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  return new Anthropic({ apiKey });
 }
 
 const FORMAT_INSTRUCTIONS: Record<BotFormat, string> = {
