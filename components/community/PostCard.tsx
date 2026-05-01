@@ -107,7 +107,7 @@ export default function PostCard({ post, currentProfile, onOpenThread, onLoop, o
               : avatarInitial(p)}
           </div>
           <span className={`text-xs font-semibold truncate ${p.is_pro ? "text-amber-400" : "text-zinc-300"}`}>@{p.username}</span>
-          {p.is_pro && <ProBadge />}
+          {p.is_pro && !p.is_bot && <ProBadge />}
           <span className="text-[10px] text-zinc-600 shrink-0">{p.fennec_db_score} dB</span>
         </button>
 

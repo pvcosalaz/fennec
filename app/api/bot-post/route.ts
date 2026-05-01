@@ -55,7 +55,8 @@ export async function POST(req: NextRequest) {
     const format = pickFormat();
 
     // ── 4. Rewrite with Claude ────────────────────────────────
-    const content = await rewriteWithClaude(item, format);
+    const rawContent = await rewriteWithClaude(item, format);
+    const content = `${rawContent}\n\nvía ${item.source}`;
 
     // ── 5. Insert post into Supabase ──────────────────────────
     const { data, error } = await supabase

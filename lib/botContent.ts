@@ -8,9 +8,9 @@ export type BotFormat = 1 | 2 | 3;
 const ANTHROPIC_API_KEY = process.env.FENNEC_ANTHROPIC_KEY ?? process.env.ANTHROPIC_API_KEY;
 
 const FORMAT_INSTRUCTIONS: Record<BotFormat, string> = {
-  1: `Escribe un resumen de 2-3 oraciones de la noticia. Tono: colega que te cuenta algo interesante, directo y sin ser formal. Sin preguntas al final. Termina con el link de la noticia en una línea separada.`,
-  2: `Escribe un resumen de 2 oraciones de la noticia y cierra con una pregunta genuina a la comunidad (ej: "¿Ya lo están usando?", "¿Qué opinan?"). Termina con el link en una línea separada.`,
-  3: `Escribe un hot take u opinión corta inspirada en la noticia — no la resumas literalmente. Sé conversacional, como si lo dijera en un grupo de WhatsApp entre productores. Puede o no terminar en pregunta. Termina con el link en una línea separada.`,
+  1: `Escribe un resumen de 2-3 oraciones de la noticia. Tono: colega que te cuenta algo interesante, directo y sin ser formal. Sin preguntas al final.`,
+  2: `Escribe un resumen de 2 oraciones de la noticia y cierra con una pregunta genuina a la comunidad (ej: "¿Ya lo están usando?", "¿Qué opinan?").`,
+  3: `Escribe un hot take u opinión corta inspirada en la noticia — no la resumas literalmente. Sé conversacional, como si lo dijera en un grupo de WhatsApp entre productores. Puede o no terminar en pregunta.`,
 };
 
 /**
@@ -27,7 +27,9 @@ export function pickFormat(): BotFormat {
 export async function rewriteWithClaude(item: NewsItem, format: BotFormat): Promise<string> {
   const prompt = `Eres el asistente oficial de Fennec, una app para productores musicales latinoamericanos.
 Tu tono es el de un colega creativo — directo, informado, sin ser formal. Escribe en español.
-El cuerpo del mensaje debe tener máximo 250 caracteres (sin contar el link).
+Máximo 250 caracteres en total.
+IMPORTANTE: No uses markdown. Sin asteriscos, sin negritas, sin cursivas, sin símbolos de formato.
+No incluyas URLs ni links en el texto. No menciones la fuente al final.
 
 Noticia: ${item.headline}
 Fuente: ${item.source}
