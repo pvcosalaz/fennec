@@ -4,6 +4,10 @@ import type { NewsItem } from "@/app/api/news/route";
 
 export type BotFormat = 1 | 2 | 3;
 
+if (!process.env.ANTHROPIC_API_KEY) {
+  throw new Error("ANTHROPIC_API_KEY environment variable is not set");
+}
+
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 const FORMAT_INSTRUCTIONS: Record<BotFormat, string> = {
@@ -40,6 +44,9 @@ Formato: ${FORMAT_INSTRUCTIONS[format]}`;
     messages: [{ role: "user", content: prompt }],
   });
 
+  if (!message.content || message.content.length === 0) {
+    throw new Error("Claude returned empty content");
+  }
   const block = message.content[0];
   if (block.type !== "text") throw new Error("Unexpected Claude response type");
   return block.text.trim();
