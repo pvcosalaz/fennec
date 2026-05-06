@@ -214,7 +214,7 @@ export default function FeedView({ profile, onOpenThread, onOpenProfile, openCom
           onClick={handleLoadNew}
           className="w-full flex items-center justify-center gap-2 py-2 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold hover:bg-amber-500/20 transition animate-pulse"
         >
-          ↑ {newCount} new post{newCount > 1 ? "s" : ""} — tap to load
+          {newCount} new post{newCount > 1 ? "s" : ""} — tap to load
         </button>
       )}
 
