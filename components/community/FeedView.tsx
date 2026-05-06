@@ -66,7 +66,7 @@ export default function FeedView({ profile, onOpenThread, onOpenProfile, openCom
   // ── Poll for new posts every 60s ───────────────────────────
   useEffect(() => {
     const interval = setInterval(async () => {
-      const data = await fetchPosts(category as PostCategory, 0, false).catch(() => [] as Post[]);
+      const data = await fetchPosts(category, 0, profile.id).catch(() => [] as Post[]);
       if (!data.length) return;
       const latestId = data[0].id;
       if (newestIdRef.current && latestId !== newestIdRef.current) {
