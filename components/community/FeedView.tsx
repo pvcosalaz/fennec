@@ -88,7 +88,7 @@ export default function FeedView({ profile, onOpenThread, onOpenProfile, openCom
     }
 
     function onTouchMove(e: TouchEvent) {
-      const scrollTop = el.scrollTop ?? 0;
+      const scrollTop = el?.scrollTop ?? 0;
       if (scrollTop > 0) return;
       const delta = e.touches[0].clientY - touchStartY.current;
       if (delta > 0) setPullY(Math.min(delta * 0.4, 72));
