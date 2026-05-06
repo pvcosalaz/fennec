@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS bot_posted_urls (
 -- 3. Insert bot profile (phantom user, not in auth.users)
 INSERT INTO profiles (id, username, avatar_url, is_pro, is_bot, fennec_db_score, bio, genres, worked_with, worked_in, banner_url)
 VALUES (
-  '00000000-0000-0000-0000-000000000f0x',
+  'f0000000-0000-0000-0000-000000000001',
   'fennec',
   '/fennec-bot-avatar.png',
   true,
@@ -285,7 +285,7 @@ import { rewriteWithClaude, pickFormat } from "@/lib/botContent";
 import type { NewsItem } from "@/app/api/news/route";
 import type { PostCategory } from "@/lib/communityTypes";
 
-const BOT_UUID = "00000000-0000-0000-0000-000000000f0x";
+const BOT_UUID = "f0000000-0000-0000-0000-000000000001";
 
 const CATEGORY_MAP: Record<string, PostCategory> = {
   AI:       "music",

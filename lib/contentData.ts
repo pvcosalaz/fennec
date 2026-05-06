@@ -18,6 +18,7 @@ export type ContentFormat = {
   id: string;
   name: string;
   color: string;       // color-coded, like Trello
+  description?: string;
   isDefault?: boolean;
 };
 
@@ -64,13 +65,20 @@ export type Post = {
 
 // Formats: how you present the content (color-coded like Trello)
 export const DEFAULT_FORMATS: ContentFormat[] = [
-  { id: "broll-frase",      name: "B-roll with text overlay",          color: "#9b59b6", isDefault: true },
-  { id: "broll-desc",       name: "B-roll with info in description",   color: "#8b3a3a", isDefault: true },
-  { id: "broll-voiceover",  name: "B-roll with voiceover",             color: "#1abc9c", isDefault: true },
-  { id: "carrusel",         name: "Carousel with information",         color: "#b8a300", isDefault: true },
-  { id: "ejecucion",        name: "Execution / Performance",           color: "#c0692a", isDefault: true },
-  { id: "hablando-camara",  name: "Talking to camera",                 color: "#c9718a", isDefault: true },
-  { id: "sketches",         name: "Sketches",                          color: "#27ae60", isDefault: true },
+  { id: "broll-frase",      name: "B-roll with text overlay",        color: "#9b59b6", isDefault: true,
+    description: "Background footage with a phrase or hook displayed as text on screen. No voice needed." },
+  { id: "broll-desc",       name: "B-roll + info in description",    color: "#8b3a3a", isDefault: true,
+    description: "Visual footage while the real value lives in the caption — tips, links, credits, context." },
+  { id: "broll-voiceover",  name: "B-roll with voiceover",           color: "#1abc9c", isDefault: true,
+    description: "You narrate over footage without showing your face. Great for tutorials and storytelling." },
+  { id: "carrusel",         name: "Carousel with information",       color: "#b8a300", isDefault: true,
+    description: "Swipeable slides that teach, list, or break down a concept. High save rate." },
+  { id: "ejecucion",        name: "Execution / Performance",         color: "#c0692a", isDefault: true,
+    description: "You performing, composing, or producing in real time. Showcases your actual craft." },
+  { id: "hablando-camara",  name: "Talking to camera",               color: "#c9718a", isDefault: true,
+    description: "Direct to camera. Opinion, advice, story, or reaction. Builds personal connection fast." },
+  { id: "sketches",         name: "Sketches",                        color: "#27ae60", isDefault: true,
+    description: "Short scripted scenes or comedy bits with music context. High entertainment value." },
 ];
 
 // Lines: what you talk about / the hook (plain text, no color)

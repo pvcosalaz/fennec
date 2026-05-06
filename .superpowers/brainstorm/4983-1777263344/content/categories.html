@@ -1,0 +1,127 @@
+<h2>¿Cómo compactamos las categorías?</h2>
+<p class="subtitle">Tus canales de Discord agrupados en chips para el feed</p>
+
+<div style="margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+
+  <!-- Opción A: 6 chips -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)" style="padding:0;overflow:hidden;cursor:pointer;">
+    <div style="padding:12px 16px;background:rgba(245,158,11,0.08);border-bottom:1px solid rgba(255,255,255,0.08);">
+      <span style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#f59e0b;">A · 6 categorías</span>
+    </div>
+    <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px;">
+
+      <div style="display:flex;align-items:flex-start;gap:10px;">
+        <div style="font-size:16px;">🎵</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#e4e4e7;">Beats</div>
+          <div style="font-size:11px;color:#52525b;margin-top:1px;">Melody Bank, beats, loops, aprecia-musical</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;">
+        <div style="font-size:16px;">🎛️</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#e4e4e7;">Gear & Tools</div>
+          <div style="font-size:11px;color:#52525b;margin-top:1px;">DAWs, plug-ins, librerías, fotos de estudios</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;">
+        <div style="font-size:16px;">🎬</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#e4e4e7;">Sync & Scoring</div>
+          <div style="font-size:11px;color:#52525b;margin-top:1px;">Film scoring, videojuegos, diseño sonoro</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;">
+        <div style="font-size:16px;">💼</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#e4e4e7;">Business</div>
+          <div style="font-size:11px;color:#52525b;margin-top:1px;">Music business, promociónate, oportunidades</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;">
+        <div style="font-size:16px;">🤝</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#e4e4e7;">Collabs</div>
+          <div style="font-size:11px;color:#52525b;margin-top:1px;">Colabs abiertas, colabs en proceso</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;">
+        <div style="font-size:16px;">💬</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#e4e4e7;">General</div>
+          <div style="font-size:11px;color:#52525b;margin-top:1px;">Tips, memes, Q&A, salud mental</div>
+        </div>
+      </div>
+
+      <div style="margin-top:6px;padding:10px;background:rgba(245,158,11,0.06);border-radius:10px;font-size:11px;color:#71717a;">
+        ✅ Bien organizado · ✅ Cubre todo el Discord · ⚠️ "Sync" puede verse nicho para algunos
+      </div>
+    </div>
+  </div>
+
+  <!-- Opción B: 4 chips anchos -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)" style="padding:0;overflow:hidden;cursor:pointer;">
+    <div style="padding:12px 16px;background:rgba(99,102,241,0.08);border-bottom:1px solid rgba(255,255,255,0.08);">
+      <span style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#6366f1;">B · 4 categorías</span>
+    </div>
+    <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px;">
+
+      <div style="display:flex;align-items:flex-start;gap:10px;">
+        <div style="font-size:16px;">🎵</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#e4e4e7;">Music</div>
+          <div style="font-size:11px;color:#52525b;margin-top:1px;">Beats, loops, Melody Bank, apreciación, scoring, sound design</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;">
+        <div style="font-size:16px;">🎛️</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#e4e4e7;">Gear</div>
+          <div style="font-size:11px;color:#52525b;margin-top:1px;">DAWs, plugins, librerías, estudios, recursos</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;">
+        <div style="font-size:16px;">💼</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#e4e4e7;">Business & Collabs</div>
+          <div style="font-size:11px;color:#52525b;margin-top:1px;">Business, oportunidades, promociónate, colabs</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;">
+        <div style="font-size:16px;">💬</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#e4e4e7;">General</div>
+          <div style="font-size:11px;color:#52525b;margin-top:1px;">Tips, memes, educación, Q&A, salud mental</div>
+        </div>
+      </div>
+
+      <div style="height:32px;"></div><!-- spacer -->
+
+      <div style="margin-top:6px;padding:10px;background:rgba(99,102,241,0.06);border-radius:10px;font-size:11px;color:#71717a;">
+        ✅ Más simple de arrancar · ✅ Menos decisiones al postear · ⚠️ Menos granularidad
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top:20px;padding:14px 16px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:14px;">
+  <div style="font-size:12px;font-weight:600;color:#e4e4e7;margin-bottom:6px;">Preview de chips en el feed (Opción A):</div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;">
+    <div style="padding:5px 14px;background:#f59e0b;border-radius:20px;font-size:11px;font-weight:600;color:#000;">All</div>
+    <div style="padding:5px 14px;background:#ffffff10;border-radius:20px;font-size:11px;color:#71717a;">🎵 Beats</div>
+    <div style="padding:5px 14px;background:#ffffff10;border-radius:20px;font-size:11px;color:#71717a;">🎛️ Gear</div>
+    <div style="padding:5px 14px;background:#ffffff10;border-radius:20px;font-size:11px;color:#71717a;">🎬 Sync</div>
+    <div style="padding:5px 14px;background:#ffffff10;border-radius:20px;font-size:11px;color:#71717a;">💼 Business</div>
+    <div style="padding:5px 14px;background:#ffffff10;border-radius:20px;font-size:11px;color:#71717a;">🤝 Collabs</div>
+    <div style="padding:5px 14px;background:#ffffff10;border-radius:20px;font-size:11px;color:#71717a;">💬 General</div>
+  </div>
+</div>

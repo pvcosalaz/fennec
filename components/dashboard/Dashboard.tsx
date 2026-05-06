@@ -1,133 +1,514 @@
 "use client";
 
+import { useEffect, useState, useMemo, useRef } from "react";
+import { ChevronRight, Info } from "lucide-react";
+import { SiSpotify, SiInstagram, SiYoutube, SiTiktok } from "react-icons/si";
 import {
-  BarChart2,
-  Music2,
-  Camera,
-  Play,
-  Calculator,
-  ArrowRight,
-  Wifi,
-} from "lucide-react";
+  PROJECTS_STORAGE_KEY,
+  QUOTES_STORAGE_KEY,
+  CLIENTS_STORAGE_KEY,
+  type Project,
+  type Quote,
+  type Client,
+  formatCOP,
+  computePricing,
+} from "@/lib/pricingData";
+import { PROFILE_KEY, type UserProfile } from "@/components/settings/SettingsModule";
+import FennecFox from "./FennecFox";
 
-type ConnectionItem = {
-  icon: React.ComponentType<{ className?: string }>;
-  name: string;
-  description: string;
-  status: "disconnected";
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const TRACK_COLORS = ["#ff6b6b", "#ffd93d", "#6bcb77", "#4d96ff", "#c77dff", "#ff9f43", "#48dbfb"];
+const STATUS_PROGRESS: Record<string, number> = {
+  in_progress: 28, review: 55, delivered: 80, paid: 100,
 };
-
-const connections: ConnectionItem[] = [
-  {
-    icon: Music2,
-    name: "Spotify",
-    description: "Track your streams and listener growth",
-    status: "disconnected",
-  },
-  {
-    icon: Camera,
-    name: "Instagram",
-    description: "Monitor followers, reach and post performance",
-    status: "disconnected",
-  },
-  {
-    icon: Play,
-    name: "YouTube",
-    description: "View subscribers, views and revenue",
-    status: "disconnected",
-  },
-  {
-    icon: BarChart2,
-    name: "TikTok",
-    description: "Measure video performance and audience",
-    status: "disconnected",
-  },
-  {
-    icon: Calculator,
-    name: "Pricing Calculator",
-    description: "See your minimum price and active projects",
-    status: "disconnected",
-  },
+const PLATFORMS = [
+  { key: "instagram", name: "IG",      Icon: SiInstagram, color: "#E1306C" },
+  { key: "spotify",   name: "Spotify", Icon: SiSpotify,   color: "#1DB954" },
+  { key: "youtube",   name: "YT",      Icon: SiYoutube,   color: "#FF0000" },
+  { key: "tiktok",    name: "TikTok",  Icon: SiTiktok,    color: "#ffffff" },
 ];
 
-export default function Dashboard() {
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function getLastNMonths(n: number) {
+  const now = new Date();
+  return Array.from({ length: n }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - (n - 1 - i), 1);
+    return {
+      month: d.getMonth(),
+      year: d.getFullYear(),
+      label: d.toLocaleString("en-US", { month: "short" }),
+      isCurrent: i === n - 1,
+    };
+  });
+}
+
+function isInMonth(ts: number, month: number, year: number) {
+  const d = new Date(ts);
+  return d.getMonth() === month && d.getFullYear() === year;
+}
+
+function revenueForMonth(projects: Project[], month: number, year: number) {
+  return projects
+    .filter((p) => p.status === "paid" && isInMonth(p.createdAt, month, year))
+    .reduce((s, p) => s + p.price, 0);
+}
+
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 19) return "Good afternoon";
+  return "Good evening";
+}
+
+function timeAgo(ts: number) {
+  const d = Math.floor((Date.now() - ts) / 1000);
+  if (d < 60) return "now";
+  if (d < 3600) return `${Math.floor(d / 60)}m ago`;
+  if (d < 86400) return `${Math.floor(d / 3600)}h ago`;
+  return `${Math.floor(d / 86400)}d ago`;
+}
+
+// ─── AnimatedNumber ───────────────────────────────────────────────────────────
+
+function AnimatedNumber({ value }: { value: number }) {
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    if (value === 0) { setN(0); return; }
+    let start: number | null = null;
+    const tick = (ts: number) => {
+      if (!start) start = ts;
+      const p = Math.min((ts - start) / 1000, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setN(Math.floor(eased * value));
+      if (p < 1) requestAnimationFrame(tick);
+      else setN(value);
+    };
+    const id = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(id);
+  }, [value]);
+  return <>{n}</>;
+}
+
+// ─── Waveform ─────────────────────────────────────────────────────────────────
+
+function WaveformHero({ activeCount }: { activeCount: number }) {
+  const fillRef   = useRef<SVGPathElement>(null);
+  const strokeRef = useRef<SVGPathElement>(null);
+  const rafRef    = useRef<number>(0);
+  const W = 400; const H = 80;
+
+  // Escala suave: 0 proyectos = casi nada, 5+ = máximo
+  const energy = Math.min(activeCount / 5, 1);
+  const ampA   = 0.02 + energy * 0.10; // amplitud onda principal
+  const ampB   = 0.01 + energy * 0.04; // amplitud onda secundaria
+  const speed  = 0.003 + energy * 0.004; // velocidad
+
+  // Usamos refs para evitar re-crear el effect cada render
+  const energyRef = useRef({ ampA, ampB, speed });
+  useEffect(() => { energyRef.current = { ampA, ampB, speed }; }, [ampA, ampB, speed]);
+
+  useEffect(() => {
+    let phase = 0;
+    const tick = () => {
+      const { ampA, ampB, speed } = energyRef.current;
+      phase += speed;
+
+      const pts = Array.from({ length: 80 }, (_, i) => ({
+        x: (i / 79) * W,
+        y: H * 0.78
+          + Math.sin(i * 0.20 + phase) * H * ampA
+          + Math.sin(i * 0.10 + phase * 0.55) * H * ampB,
+      }));
+
+      let d = `M ${pts[0].x} ${pts[0].y}`;
+      for (let i = 1; i < pts.length; i++) {
+        const cw = (pts[i].x - pts[i - 1].x) / 2;
+        d += ` C ${pts[i-1].x + cw} ${pts[i-1].y} ${pts[i].x - cw} ${pts[i].y} ${pts[i].x} ${pts[i].y}`;
+      }
+
+      fillRef.current?.setAttribute("d", d + ` L ${W} ${H} L 0 ${H} Z`);
+      strokeRef.current?.setAttribute("d", d);
+
+      rafRef.current = requestAnimationFrame(tick);
+    };
+
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, []);
+
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-8 px-2">
+    <div className="absolute inset-x-0 bottom-0 h-20 z-0 pointer-events-none">
+      <style>{`
+        @keyframes waveBreath {
+          0%, 100% { opacity: 0.55; filter: drop-shadow(0 0 3px rgba(245,166,35,0.12)); }
+          50%       { opacity: 1;    filter: drop-shadow(0 0 10px rgba(245,166,35,0.40)); }
+        }
+      `}</style>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        className="w-full h-full"
+        preserveAspectRatio="none"
+        style={{ animation: "waveBreath 4.5s ease-in-out infinite" }}
+      >
+        <defs>
+          <linearGradient id="wg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stopColor="#f5a623" stopOpacity="0.45" />
+            <stop offset="100%" stopColor="#f5a623" stopOpacity="0.03" />
+          </linearGradient>
+        </defs>
+        <path ref={fillRef}   fill="url(#wg)" />
+        <path ref={strokeRef} fill="none" stroke="#f5a623" strokeWidth="1.5" strokeOpacity="0.65" />
+      </svg>
+    </div>
+  );
+}
 
-      {/* Header */}
-      <div className="space-y-2">
-        <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">
-          Fennec Dashboard
-        </p>
-        <h1 className="text-3xl font-bold tracking-tight text-white">
-          Your business, at a glance.
-        </h1>
-        <p className="text-zinc-400 text-sm leading-relaxed">
-          The Dashboard is your command center. Once connected, you'll see your streams,
-          social metrics, and business health — all in one place, updated automatically.
-        </p>
-      </div>
+// ─── Equalizer bars ───────────────────────────────────────────────────────────
 
-      {/* How it works */}
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-6 space-y-4">
-        <div className="flex items-center gap-3">
-          <Wifi className="h-5 w-5 text-accent" />
-          <h2 className="text-lg font-semibold text-white">How it works</h2>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <div className="rounded-xl bg-black/30 p-4 space-y-1">
-            <p className="text-accent font-bold text-lg">01</p>
-            <p className="text-white text-sm font-medium">Connect your platforms</p>
-            <p className="text-zinc-400 text-xs">Link Spotify, Instagram, YouTube and TikTok below.</p>
-          </div>
-          <div className="rounded-xl bg-black/30 p-4 space-y-1">
-            <p className="text-accent font-bold text-lg">02</p>
-            <p className="text-white text-sm font-medium">Complete your setup</p>
-            <p className="text-zinc-400 text-xs">Finish your Pricing Calculator so your business metrics appear here.</p>
-          </div>
-          <div className="rounded-xl bg-black/30 p-4 space-y-1">
-            <p className="text-accent font-bold text-lg">03</p>
-            <p className="text-white text-sm font-medium">Get your overview</p>
-            <p className="text-zinc-400 text-xs">Your AI agent will summarize your growth, wins and what to focus on.</p>
-          </div>
-        </div>
-      </div>
+function EqualizerBars({
+  months, revenues,
+}: { months: ReturnType<typeof getLastNMonths>; revenues: number[] }) {
+  const [up, setUp] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setUp(true), 150); return () => clearTimeout(t); }, []);
+  const max = Math.max(...revenues, 1);
 
-      {/* Connections */}
-      <div className="space-y-3">
-        <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-widest">
-          Connect your platforms
-        </h2>
-        <div className="space-y-2">
-          {connections.map((item) => {
-            const Icon = item.icon;
-            return (
+  return (
+    <div className="flex items-end gap-1.5" style={{ height: 120 }}>
+      {months.map((m, i) => {
+        const hasRev = revenues[i] > 0;
+        const pct = hasRev ? Math.max((revenues[i] / max) * 100, 10) : 3;
+        return (
+          <div key={i} className="flex flex-1 flex-col items-center gap-2">
+            <div className="relative w-full flex items-end rounded-lg overflow-hidden bg-white/[0.04]" style={{ height: 96 }}>
               <div
-                key={item.name}
-                className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-5 py-4 transition hover:border-accent/40"
+                className={`w-full rounded-lg transition-all duration-700 ease-out ${m.isCurrent ? "bg-accent" : "bg-white/15"}`}
+                style={{
+                  height: up ? `${pct}%` : "0%",
+                  transitionDelay: `${i * 55}ms`,
+                  boxShadow: m.isCurrent && hasRev ? "0 0 16px rgba(245,166,35,0.45)" : "none",
+                }}
               >
-                <div className="flex items-center gap-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-black/40">
-                    <Icon className="h-5 w-5 text-zinc-300" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-white">{item.name}</p>
-                    <p className="text-xs text-zinc-400">{item.description}</p>
-                  </div>
-                </div>
-                <button className="flex items-center gap-1.5 rounded-xl border border-white/15 px-3 py-1.5 text-xs text-zinc-300 transition hover:border-accent hover:text-accent">
-                  Connect <ArrowRight className="h-3 w-3" />
+                {m.isCurrent && <div className="absolute top-0 inset-x-0 h-px bg-white/40 rounded-full" />}
+              </div>
+            </div>
+            <span className={`text-[10px] font-medium ${m.isCurrent ? "text-accent" : "text-zinc-700"}`}>
+              {m.label}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Project track (DAW) ──────────────────────────────────────────────────────
+
+function ProjectTrack({ project, color }: { project: Project; color: string }) {
+  const [up, setUp] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setUp(true), 300); return () => clearTimeout(t); }, []);
+  const progress = STATUS_PROGRESS[project.status] ?? 25;
+  const isPaid = project.status === "paid";
+
+  return (
+    <div className="flex items-center gap-3">
+      <div className="h-9 w-1 rounded-full shrink-0" style={{ backgroundColor: color }} />
+      <div className="flex-1 min-w-0 space-y-1.5">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-xs font-semibold text-white truncate">{project.name}</p>
+          <span className={`text-[10px] shrink-0 font-medium ${isPaid ? "text-emerald-400" : "text-zinc-600"}`}>
+            {isPaid ? "✓ Paid" : project.status.replace("_", " ")}
+          </span>
+        </div>
+        <div className="h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all duration-1000 ease-out"
+            style={{
+              width: up ? `${progress}%` : "0%",
+              backgroundColor: color,
+              boxShadow: `0 0 8px ${color}50`,
+            }}
+          />
+        </div>
+        {project.clientName && (
+          <p className="text-[10px] text-zinc-700 truncate">{project.clientName}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── VU Meter ─────────────────────────────────────────────────────────────────
+
+function VUMeter({ platform, value = 0 }: { platform: typeof PLATFORMS[0]; value?: number }) {
+  const [up, setUp] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setUp(true), 400); return () => clearTimeout(t); }, []);
+  const segments = 14;
+  const filled = up ? Math.max(Math.round(value * segments), value > 0 ? 3 : 0) : 0;
+
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <div className="flex flex-col-reverse gap-[3px]" style={{ height: 88 }}>
+        {Array.from({ length: segments }, (_, i) => {
+          const lit = i < filled;
+          const segColor = i >= segments * 0.8 ? "#ef4444" : i >= segments * 0.6 ? "#fbbf24" : platform.color;
+          return (
+            <div
+              key={i}
+              className="rounded-sm transition-all"
+              style={{
+                width: 18,
+                height: 4,
+                backgroundColor: lit ? segColor : "rgba(255,255,255,0.05)",
+                boxShadow: lit ? `0 0 5px ${segColor}70` : "none",
+                transitionDelay: `${(segments - i) * 25}ms`,
+              }}
+            />
+          );
+        })}
+      </div>
+      <platform.Icon className="h-4 w-4" style={{ color: platform.color, opacity: 0.6 }} />
+      <span className="text-[9px] text-zinc-700 font-medium">{platform.name}</span>
+    </div>
+  );
+}
+
+// ─── Dashboard ────────────────────────────────────────────────────────────────
+
+export default function Dashboard({ avatarUrl, username, isPro }: { avatarUrl?: string | null; username?: string | null; isPro?: boolean }) {
+  const [projects,  setProjects]  = useState<Project[]>([]);
+  const [quotes,    setQuotes]    = useState<Quote[]>([]);
+  const [clients,   setClients]   = useState<Client[]>([]);
+  const [profile,   setProfile]   = useState<UserProfile | null>(null);
+  const [mounted,   setMounted]   = useState(false);
+  const [showDbInfo, setShowDbInfo] = useState(false);
+
+  useEffect(() => {
+    try {
+      const p  = localStorage.getItem(PROJECTS_STORAGE_KEY);
+      const q  = localStorage.getItem(QUOTES_STORAGE_KEY);
+      const c  = localStorage.getItem(CLIENTS_STORAGE_KEY);
+      const pr = localStorage.getItem(PROFILE_KEY);
+      if (p)  setProjects(JSON.parse(p));
+      if (q)  setQuotes(JSON.parse(q));
+      if (c)  setClients(JSON.parse(c));
+      if (pr) setProfile(JSON.parse(pr));
+    } catch {}
+    setMounted(true);
+  }, []);
+
+  const months   = useMemo(() => getLastNMonths(6), []);
+  const revenues = useMemo(() => months.map((m) => revenueForMonth(projects, m.month, m.year)), [projects, months]);
+
+  const firstName    = profile?.name?.trim().split(" ")[0] || null;
+  const activeCount  = projects.filter((p) => p.status !== "paid").length;
+  const closedCount  = projects.filter((p) => p.status === "paid").length;
+  const quotesSent   = quotes.filter((q) => q.status === "sent").length;
+  const isFoxActive  = activeCount > 0;
+
+  const fennecDb = Math.round(
+    activeCount  * 150 +
+    closedCount  * 50  +
+    clients.length * 75 +
+    quotesSent   * 25
+  );
+
+  // Persist score so the community feed can read it
+  useEffect(() => {
+    if (mounted) localStorage.setItem("fennec-db-score", String(fennecDb));
+  }, [fennecDb, mounted]);
+
+  type Act = { id: string; label: string; sub: string; ts: number; dot: string };
+  const activity: Act[] = useMemo(() => {
+    const items: Act[] = [
+      ...projects.map((p) => ({
+        id: p.id,
+        label: p.status === "paid" ? `Cobrado · ${formatCOP(p.price)}` : `${p.name} → ${p.status.replace("_", " ")}`,
+        sub: p.clientName || p.projectTypeName,
+        ts: p.createdAt,
+        dot: p.status === "paid" ? "#6bcb77" : "#4d96ff",
+      })),
+      ...quotes.map((q) => ({
+        id: q.id,
+        label: q.status === "sent" ? "Quote enviado" : "Quote creado",
+        sub: `${q.projectName}${q.clientName ? ` · ${q.clientName}` : ""}`,
+        ts: q.createdAt,
+        dot: "#f5a623",
+      })),
+    ];
+    return items.sort((a, b) => b.ts - a.ts).slice(0, 5);
+  }, [projects, quotes]);
+
+  if (!mounted) return null;
+
+  return (
+    <div className="mx-auto w-full max-w-4xl space-y-4 px-2 pb-8">
+
+      {/* ── Fennec dB ────────────────────────────────────────────────────── */}
+      <div className="relative overflow-hidden px-2 pt-4 pb-6">
+        <WaveformHero activeCount={activeCount} />
+        <div className="relative z-10 space-y-4">
+
+          {/* Row 1: Greeting + inline Fennec logo + username */}
+          <div className="flex items-center gap-2">
+            <img
+              src="/fennec-logo.png"
+              alt=""
+              style={{ width: 22, height: "auto", filter: "brightness(0) invert(1)", opacity: 0.5 }}
+            />
+            <p className="text-[11px] text-zinc-500 font-medium uppercase tracking-widest">
+              {greeting()}{firstName ? `, ${firstName}` : ""}
+            </p>
+            {username && (
+              <span className="text-base font-bold text-amber-400 ml-3">
+                @{username}
+              </span>
+            )}
+          </div>
+
+          {/* Row 2: photo + dB + metrics side by side */}
+          <div className="flex items-start gap-4">
+
+            {/* Avatar */}
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="" className="w-16 h-16 rounded-full object-cover ring-2 ring-white/10 shrink-0 mt-1" />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-amber-500/20 border border-amber-500/20 flex items-center justify-center shrink-0 mt-1">
+                <span className="text-xl font-bold text-amber-400">{firstName ? firstName[0].toUpperCase() : "?"}</span>
+              </div>
+            )}
+
+            {/* dB number */}
+            <div className="space-y-1 shrink-0 w-24">
+              <div className="flex items-center gap-1.5">
+                <p className="text-[10px] font-semibold tracking-widest text-accent/70 uppercase">Fennec dB</p>
+                <button onClick={() => setShowDbInfo((v) => !v)} className="text-zinc-600 hover:text-accent transition">
+                  <Info className="h-3 w-3" />
                 </button>
               </div>
-            );
-          })}
+              <p className="text-6xl font-black text-white leading-none tracking-tighter tabular-nums">
+                <AnimatedNumber value={fennecDb} />
+              </p>
+              <p className="text-[10px] text-zinc-600">business signal</p>
+            </div>
+
+            {/* Signal components — fill the space to the right */}
+            <div className="flex flex-col gap-1.5 pt-0.5 flex-1">
+              {[
+                { label: "Active projects", value: activeCount,    color: "#4d96ff", weight: 150 },
+                { label: "Clients",         value: clients.length, color: "#c77dff", weight: 75  },
+                { label: "Closed",          value: closedCount,    color: "#6bcb77", weight: 50  },
+                { label: "Streams",         value: null,           color: "#1DB954", weight: null },
+                { label: "Reach",           value: null,           color: "#E1306C", weight: null },
+              ].map((row) => (
+                <div key={row.label} className="flex items-center gap-2">
+                  <div
+                    className="h-1.5 w-1.5 rounded-full shrink-0"
+                    style={{
+                      backgroundColor: row.value !== null && row.value > 0 ? row.color : "rgba(255,255,255,0.08)",
+                      boxShadow: row.value !== null && row.value > 0 ? `0 0 5px ${row.color}` : "none",
+                    }}
+                  />
+                  <span className="text-[10px] text-zinc-600 w-20">{row.label}</span>
+                  {row.value !== null ? (
+                    <span className={`text-[10px] font-medium ${row.value > 0 ? "text-white" : "text-zinc-700"}`}>
+                      {row.value > 0 ? `${row.value} × ${row.weight}` : "—"}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-zinc-700 italic">connect soon</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Inline info — toggle with ⓘ */}
+          {showDbInfo && (
+            <div className="rounded-xl border border-white/8 bg-white/[0.04] px-3 py-2.5 space-y-1.5">
+              <p className="text-[10px] text-zinc-400 leading-relaxed">
+                A growing number that measures how active your music business is — like signal strength, but for your career.
+              </p>
+              <div className="flex flex-wrap gap-x-3 gap-y-1 pt-0.5">
+                {[
+                  { label: "Active project", value: "×150" },
+                  { label: "Closed project", value: "×50"  },
+                  { label: "Client",         value: "×75"  },
+                  { label: "Quote sent",     value: "×25"  },
+                ].map((r) => (
+                  <span key={r.label} className="text-[10px] text-zinc-600">
+                    <span className="text-white font-medium">{r.value}</span> {r.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Coming soon note */}
-      <p className="text-center text-xs text-zinc-600 pb-2">
-        Platform integrations coming in the next update · Your data stays private
-      </p>
+      {/* ── KPIs ─────────────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-4 gap-2 px-2 border-t border-white/5 pt-4">
+        {[
+          { label: "Active",  value: projects.filter((p) => p.status !== "paid").length, color: "#4d96ff"  },
+          { label: "Closed",  value: projects.filter((p) => p.status === "paid").length,  color: "#6bcb77"  },
+          { label: "Clients", value: clients.length,                                       color: "#c77dff"  },
+          { label: "Quotes",  value: quotes.filter((q) => q.status === "sent").length,     color: "#f5a623"  },
+        ].map((k) => (
+          <div key={k.label} className="p-3 text-center space-y-1">
+            <p className="text-2xl font-black" style={{ color: k.color }}>
+              <AnimatedNumber value={k.value} />
+            </p>
+            <p className="text-[9px] text-zinc-700 font-medium uppercase tracking-wide">{k.label}</p>
+          </div>
+        ))}
+      </div>
+
+
+      {/* ── Social VU meters ─────────────────────────────────────────────── */}
+      <div className="px-2 pt-4 pb-2 space-y-4 border-t border-white/5">
+        <div className="flex items-center justify-between">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">Social Reach</p>
+          <button className="flex items-center gap-0.5 text-[10px] text-accent/70 hover:text-accent transition">
+            Connect <ChevronRight className="h-3 w-3" />
+          </button>
+        </div>
+        <div className="flex items-end justify-around px-2">
+          {PLATFORMS.map((p) => <VUMeter key={p.key} platform={p} value={0} />)}
+        </div>
+        <p className="text-center text-[10px] text-zinc-700">
+          Connect Instagram & Spotify to see live stats
+        </p>
+      </div>
+
+      {/* ── Activity ─────────────────────────────────────────────────────── */}
+      {activity.length > 0 && (
+        <div className="px-2 pt-4 pb-2 space-y-3 border-t border-white/5">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">Activity</p>
+          <div className="space-y-3">
+            {activity.map((item) => (
+              <div key={item.id} className="flex items-center gap-3">
+                <div className="h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: item.dot }} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-white leading-snug">{item.label}</p>
+                  {item.sub && <p className="text-[10px] text-zinc-700 truncate">{item.sub}</p>}
+                </div>
+                <span className="text-[10px] text-zinc-700 shrink-0">{timeAgo(item.ts)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Empty state ───────────────────────────────────────────────────── */}
+      {projects.length === 0 && quotes.length === 0 && (
+        <div className="py-14 text-center space-y-2">
+          <p className="text-sm font-bold text-white">Your studio is ready.</p>
+          <p className="text-xs text-zinc-600 max-w-xs mx-auto leading-relaxed">
+            Add clients, create quotes and log projects — the dashboard comes alive as you work.
+          </p>
+        </div>
+      )}
+
     </div>
   );
 }

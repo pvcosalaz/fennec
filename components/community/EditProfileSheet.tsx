@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef } from "react";
-import { X, Plus } from "lucide-react";
+import { X, Plus, ImagePlus } from "lucide-react";
 import { updateProfile, uploadImage } from "@/lib/communityDb";
 import type { Profile } from "@/lib/communityTypes";
 
@@ -16,8 +16,10 @@ export default function EditProfileSheet({ profile, onClose, onSaved }: Props) {
   const [genres, setGenres]         = useState<string[]>(profile.genres ?? []);
   const [workedWith, setWorkedWith] = useState(profile.worked_with ?? "");
   const [workedIn, setWorkedIn]     = useState(profile.worked_in ?? "");
+  const [bannerUrl, setBannerUrl]   = useState<string | null>(profile.banner_url ?? null);
   const [saving, setSaving]         = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
+  const fileRef   = useRef<HTMLInputElement>(null);
+  const bannerRef = useRef<HTMLInputElement>(null);
 
   function addGenre() {
     const tag = genreInput.trim();
@@ -43,6 +45,18 @@ export default function EditProfileSheet({ profile, onClose, onSaved }: Props) {
     }
   }
 
+  async function handleBannerSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSaving(true);
+    try {
+      const url = await uploadImage(file);
+      setBannerUrl(url);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function handleSave() {
     setSaving(true);
     try {
@@ -51,6 +65,7 @@ export default function EditProfileSheet({ profile, onClose, onSaved }: Props) {
         genres,
         worked_with: workedWith.trim() || null,
         worked_in:   workedIn.trim() || null,
+        banner_url:  bannerUrl,
       });
       onSaved(updated);
       onClose();
@@ -71,6 +86,27 @@ export default function EditProfileSheet({ profile, onClose, onSaved }: Props) {
         <div className="flex items-center justify-between">
           <span className="text-sm font-semibold text-white">Editar perfil</span>
           <button onClick={onClose}><X className="h-5 w-5 text-zinc-500" /></button>
+        </div>
+
+        {/* Banner */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">Studio photo</label>
+          <button
+            onClick={() => bannerRef.current?.click()}
+            className="relative w-full h-28 rounded-2xl overflow-hidden border border-white/10 bg-white/5 hover:border-amber-500 transition flex items-center justify-center"
+          >
+            {bannerUrl
+              ? <img src={bannerUrl} className="w-full h-full object-cover" alt="" />
+              : <div className="flex flex-col items-center gap-1.5 text-zinc-600">
+                  <ImagePlus className="h-6 w-6" />
+                  <span className="text-xs">Upload studio photo</span>
+                </div>}
+            {bannerUrl && (
+              <div className="absolute inset-0 bg-black/30 opacity-0 hover:opacity-100 transition flex items-center justify-center">
+                <span className="text-xs text-white font-medium">Change photo</span>
+              </div>
+            )}
+          </button>
         </div>
 
         {/* Avatar */}
@@ -170,7 +206,8 @@ export default function EditProfileSheet({ profile, onClose, onSaved }: Props) {
           {saving ? "Guardando..." : "Guardar cambios"}
         </button>
 
-        <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarSelect} />
+        <input ref={fileRef}   type="file" accept="image/*" className="hidden" onChange={handleAvatarSelect} />
+        <input ref={bannerRef} type="file" accept="image/*" className="hidden" onChange={handleBannerSelect} />
       </div>
     </>
   );

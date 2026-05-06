@@ -11,6 +11,9 @@ type Props = {
   profile: Profile;
   onClose: () => void;
   onPostCreated: (post: Post) => void;
+  initialMediaUrl?: string;
+  initialMediaType?: MediaType;
+  initialMediaName?: string;
 };
 
 const YOUTUBE_RE = /(?:youtube\.com\/watch\?v=|youtu\.be\/)[a-zA-Z0-9_-]{11}/;
@@ -24,12 +27,12 @@ function detectVideo(text: string): string | null {
   return null;
 }
 
-export default function ComposerSheet({ profile, onClose, onPostCreated }: Props) {
+export default function ComposerSheet({ profile, onClose, onPostCreated, initialMediaUrl, initialMediaType, initialMediaName }: Props) {
   const [content, setContent]       = useState("");
-  const [category, setCategory]     = useState<PostCategory>("general");
-  const [mediaUrl, setMediaUrl]     = useState<string | null>(null);
-  const [mediaType, setMediaType]   = useState<MediaType>(null);
-  const [mediaName, setMediaName]   = useState<string | null>(null);
+  const [category, setCategory]     = useState<PostCategory>("music");
+  const [mediaUrl, setMediaUrl]     = useState<string | null>(initialMediaUrl ?? null);
+  const [mediaType, setMediaType]   = useState<MediaType>(initialMediaType ?? null);
+  const [mediaName, setMediaName]   = useState<string | null>(initialMediaName ?? null);
   const [linkUrl, setLinkUrl]       = useState<string | null>(null);
   const [linkTitle, setLinkTitle]   = useState<string | null>(null);
   const [showMelody, setShowMelody] = useState(false);
@@ -88,9 +91,10 @@ export default function ComposerSheet({ profile, onClose, onPostCreated }: Props
         linkTitle: linkTitle ?? undefined,
       });
       onPostCreated(post);
-    } catch (err) {
-      console.error(err);
-      alert("Error publicando. Intenta de nuevo.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : JSON.stringify(err);
+      console.error("createPost error:", msg);
+      alert(`Error publicando: ${msg}`);
     } finally {
       setSubmitting(false);
     }

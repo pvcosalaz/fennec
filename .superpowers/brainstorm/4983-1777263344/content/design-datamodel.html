@@ -1,0 +1,109 @@
+<h2>Diseño: Fennec Community Feed</h2>
+<p class="subtitle">Sección 2 de 3 — Modelo de datos (Supabase)</p>
+
+<div style="margin-top:24px;display:flex;flex-direction:column;gap:14px;">
+
+  <!-- profiles -->
+  <div style="background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.25);border-radius:14px;overflow:hidden;">
+    <div style="padding:10px 16px;background:rgba(245,158,11,0.1);display:flex;align-items:center;gap:8px;">
+      <span style="font-size:14px;">👤</span>
+      <span style="font-size:13px;font-weight:700;color:#f59e0b;">profiles</span>
+      <span style="font-size:11px;color:#71717a;margin-left:4px;">— extiende auth.users de Supabase</span>
+    </div>
+    <div style="padding:10px 16px;display:flex;flex-wrap:wrap;gap:8px;">
+      <span style="font-size:11px;background:#f59e0b22;color:#f59e0b;padding:3px 10px;border-radius:20px;">id</span>
+      <span style="font-size:11px;background:#ffffff0a;color:#a1a1aa;padding:3px 10px;border-radius:20px;">username</span>
+      <span style="font-size:11px;background:#ffffff0a;color:#a1a1aa;padding:3px 10px;border-radius:20px;">avatar_url</span>
+      <span style="font-size:11px;background:#6366f122;color:#818cf8;padding:3px 10px;border-radius:20px;">is_pro</span>
+      <span style="font-size:11px;background:#6366f122;color:#818cf8;padding:3px 10px;border-radius:20px;">fennec_db_score</span>
+      <span style="font-size:11px;background:#ffffff0a;color:#a1a1aa;padding:3px 10px;border-radius:20px;">created_at</span>
+    </div>
+  </div>
+
+  <!-- posts -->
+  <div style="background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.25);border-radius:14px;overflow:hidden;">
+    <div style="padding:10px 16px;background:rgba(99,102,241,0.1);display:flex;align-items:center;gap:8px;">
+      <span style="font-size:14px;">📝</span>
+      <span style="font-size:13px;font-weight:700;color:#818cf8;">posts</span>
+      <span style="font-size:11px;color:#71717a;margin-left:4px;">— el corazón del feed</span>
+    </div>
+    <div style="padding:10px 16px;display:flex;flex-wrap:wrap;gap:8px;">
+      <span style="font-size:11px;background:#6366f122;color:#818cf8;padding:3px 10px;border-radius:20px;">id</span>
+      <span style="font-size:11px;background:#f59e0b22;color:#f59e0b;padding:3px 10px;border-radius:20px;">user_id → profiles</span>
+      <span style="font-size:11px;background:#ffffff0a;color:#a1a1aa;padding:3px 10px;border-radius:20px;">content (text)</span>
+      <span style="font-size:11px;background:#10b98122;color:#34d399;padding:3px 10px;border-radius:20px;">category</span>
+      <span style="font-size:11px;background:#ffffff0a;color:#a1a1aa;padding:3px 10px;border-radius:20px;">media_url</span>
+      <span style="font-size:11px;background:#ffffff0a;color:#a1a1aa;padding:3px 10px;border-radius:20px;">media_type (audio|image|link)</span>
+      <span style="font-size:11px;background:#ffffff0a;color:#a1a1aa;padding:3px 10px;border-radius:20px;">link_url</span>
+      <span style="font-size:11px;background:#ffffff0a;color:#a1a1aa;padding:3px 10px;border-radius:20px;">link_title</span>
+      <span style="font-size:11px;background:#ffffff0a;color:#a1a1aa;padding:3px 10px;border-radius:20px;">repost_of (nullable)</span>
+      <span style="font-size:11px;background:#ffffff0a;color:#a1a1aa;padding:3px 10px;border-radius:20px;">created_at</span>
+    </div>
+    <div style="padding:6px 16px 12px;font-size:11px;color:#52525b;">
+      category: "music" | "gear" | "sync" | "business" | "mindset" | "general"
+    </div>
+  </div>
+
+  <!-- 3 columnas: likes, comments, bookmarks -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+
+    <div style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:14px;overflow:hidden;">
+      <div style="padding:10px 14px;background:rgba(239,68,68,0.1);display:flex;align-items:center;gap:6px;">
+        <span style="font-size:13px;">❤️</span>
+        <span style="font-size:12px;font-weight:700;color:#f87171;">likes</span>
+      </div>
+      <div style="padding:10px 14px;display:flex;flex-direction:column;gap:6px;">
+        <span style="font-size:11px;color:#a1a1aa;">post_id → posts</span>
+        <span style="font-size:11px;color:#a1a1aa;">user_id → profiles</span>
+        <span style="font-size:11px;color:#52525b;font-style:italic;">unique(post_id, user_id)</span>
+      </div>
+    </div>
+
+    <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);border-radius:14px;overflow:hidden;">
+      <div style="padding:10px 14px;background:rgba(16,185,129,0.1);display:flex;align-items:center;gap:6px;">
+        <span style="font-size:13px;">💬</span>
+        <span style="font-size:12px;font-weight:700;color:#34d399;">comments</span>
+      </div>
+      <div style="padding:10px 14px;display:flex;flex-direction:column;gap:6px;">
+        <span style="font-size:11px;color:#a1a1aa;">id</span>
+        <span style="font-size:11px;color:#a1a1aa;">post_id → posts</span>
+        <span style="font-size:11px;color:#a1a1aa;">user_id → profiles</span>
+        <span style="font-size:11px;color:#a1a1aa;">content (text)</span>
+        <span style="font-size:11px;color:#a1a1aa;">created_at</span>
+      </div>
+    </div>
+
+    <div style="background:rgba(139,92,246,0.06);border:1px solid rgba(139,92,246,0.2);border-radius:14px;overflow:hidden;">
+      <div style="padding:10px 14px;background:rgba(139,92,246,0.1);display:flex;align-items:center;gap:6px;">
+        <span style="font-size:13px;">🔖</span>
+        <span style="font-size:12px;font-weight:700;color:#a78bfa;">bookmarks</span>
+      </div>
+      <div style="padding:10px 14px;display:flex;flex-direction:column;gap:6px;">
+        <span style="font-size:11px;color:#a1a1aa;">post_id → posts</span>
+        <span style="font-size:11px;color:#a1a1aa;">user_id → profiles</span>
+        <span style="font-size:11px;color:#52525b;font-style:italic;">unique(post_id, user_id)</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Storage buckets -->
+  <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:14px 16px;">
+    <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#71717a;margin-bottom:10px;">Supabase Storage — Buckets</div>
+    <div style="display:flex;gap:10px;">
+      <div style="flex:1;background:#0f172a;border:1px solid #1e3a5f;border-radius:10px;padding:10px 12px;">
+        <div style="font-size:12px;font-weight:600;color:#38bdf8;margin-bottom:3px;">community-audio</div>
+        <div style="font-size:11px;color:#52525b;">Audios compartidos desde el Melody Bank. Público para reproducción.</div>
+      </div>
+      <div style="flex:1;background:#0f172a;border:1px solid #1e3a5f;border-radius:10px;padding:10px 12px;">
+        <div style="font-size:12px;font-weight:600;color:#38bdf8;margin-bottom:3px;">community-images</div>
+        <div style="font-size:11px;color:#52525b;">Imágenes adjuntas a posts. Público, max 5MB por imagen.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top:16px;padding:14px 16px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:14px;font-size:12px;color:#71717a;">
+  ¿El modelo de datos se ve completo? Responde en el terminal → seguimos con los componentes UI
+</div>

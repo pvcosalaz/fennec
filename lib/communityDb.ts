@@ -42,6 +42,7 @@ export async function updateProfile(userId: string, updates: {
   worked_with?: string | null;
   worked_in?: string | null;
   avatar_url?: string | null;
+  banner_url?: string | null;
 }): Promise<Profile> {
   const { data, error } = await supabase
     .from("profiles")
@@ -162,6 +163,11 @@ export async function fetchUserPosts(userId: string, currentUserId: string | nul
     user_vibed: userVibes.has(p.id),
     user_bookmarked: userBookmarks.has(p.id),
   }));
+}
+
+export async function deletePost(postId: string): Promise<void> {
+  const { error } = await supabase.from("posts").delete().eq("id", postId);
+  if (error) throw error;
 }
 
 // ── Vibes ─────────────────────────────────────────────────────────

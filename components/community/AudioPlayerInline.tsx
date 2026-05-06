@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { Play, Pause } from "lucide-react";
 
 type Props = { url: string; name: string };
 
@@ -36,11 +35,15 @@ export default function AudioPlayerInline({ url, name }: Props) {
     <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/30 px-3 py-2.5">
       <button
         onClick={toggle}
-        className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center shrink-0 hover:bg-amber-400 transition"
+        className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 hover:brightness-110 transition"
+        style={{
+          background: "linear-gradient(135deg, #fbbf24, #f59e0b)",
+          boxShadow: "0 0 12px rgba(251,191,36,0.45)",
+        }}
       >
         {playing
-          ? <Pause className="h-3.5 w-3.5 text-black" />
-          : <Play className="h-3.5 w-3.5 text-black ml-0.5" />}
+          ? <svg viewBox="0 0 24 24" className="h-4 w-4 fill-black"><rect x="5" y="4" width="4" height="16" rx="1"/><rect x="15" y="4" width="4" height="16" rx="1"/></svg>
+          : <svg viewBox="0 0 24 24" className="h-4 w-4 fill-black translate-x-0.5"><path d="M6 4.75a.75.75 0 0 1 1.14-.64l12 7.25a.75.75 0 0 1 0 1.28l-12 7.25A.75.75 0 0 1 6 19.25V4.75z"/></svg>}
       </button>
       <div className="flex-1 min-w-0">
         <p className="text-xs font-medium text-zinc-300 truncate mb-1.5">{name}</p>

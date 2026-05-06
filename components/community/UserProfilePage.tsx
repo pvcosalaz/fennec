@@ -65,47 +65,56 @@ export default function UserProfilePage({ userId, currentProfile, onBack, onOpen
   }
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-2 pb-24 space-y-6">
+    <div className="mx-auto w-full max-w-4xl px-2 pb-24 space-y-4 overflow-x-hidden">
 
-      {/* Back */}
-      <button
-        onClick={onBack}
-        className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-white transition pt-2"
-      >
-        <ChevronLeft className="h-4 w-4" />
-        Back
-      </button>
-
-      {/* Profile header */}
-      <div className="flex flex-col items-center gap-3 pt-2">
-        <div
-          className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold shrink-0 overflow-hidden"
-          style={{ backgroundColor: avatarColor(profile.username) }}
+      {/* Banner + avatar */}
+      <div className="relative -mx-2 -mt-2">
+        {/* Back button — overlay on banner */}
+        <button
+          onClick={onBack}
+          className="absolute top-3 left-4 z-10 flex items-center gap-1 text-xs text-white/80 hover:text-white transition bg-black/30 backdrop-blur-sm px-2.5 py-1.5 rounded-full"
         >
-          {profile.avatar_url
-            ? <img src={profile.avatar_url} className="w-full h-full object-cover" alt="" />
-            : profile.username[0]?.toUpperCase()}
+          <ChevronLeft className="h-3.5 w-3.5" />
+          Back
+        </button>
+
+        {/* Banner — full bleed, no side rounding */}
+        <div className="w-full h-44 overflow-hidden bg-zinc-900 rounded-xl">
+          {profile.banner_url
+            ? <img src={profile.banner_url} className="w-full h-full object-cover" alt="" />
+            : <div className="w-full h-full bg-gradient-to-br from-zinc-900 to-zinc-800" />}
         </div>
 
+        {/* Avatar — overlapping bottom edge of banner */}
+        <div className="absolute -bottom-10 left-1/2 -translate-x-1/2">
+          <div className="relative">
+            <div
+              className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold shrink-0 overflow-hidden ring-4 ring-zinc-950"
+              style={{ backgroundColor: avatarColor(profile.username) }}
+            >
+              {profile.avatar_url
+                ? <img src={profile.avatar_url} className="w-full h-full object-cover" alt="" />
+                : profile.username[0]?.toUpperCase()}
+            </div>
+            {isOwnProfile && (
+              <button
+                onClick={() => setEditOpen(true)}
+                className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-zinc-800 border border-white/20 flex items-center justify-center hover:bg-zinc-700 transition"
+              >
+                <Pencil className="h-3 w-3 text-white" />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Profile info — pushed down to clear the avatar overlap */}
+      <div className="flex flex-col items-center gap-1.5 pt-10">
         <div className="flex items-center gap-2">
-          <span className="text-lg font-bold text-white">@{profile.username}</span>
+          <span className={`text-lg font-bold ${profile.is_pro ? "text-amber-400" : "text-white"}`}>@{profile.username}</span>
           {profile.is_pro && <ProBadge />}
+          <span className="text-sm font-bold text-amber-500">{profile.fennec_db_score} <span className="text-xs font-normal text-zinc-500">dB</span></span>
         </div>
-
-        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10">
-          <span className="text-xs text-zinc-400">Fennec dB</span>
-          <span className="text-sm font-bold text-amber-500">{profile.fennec_db_score}</span>
-        </div>
-
-        {isOwnProfile && (
-          <button
-            onClick={() => setEditOpen(true)}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-white/10 text-xs text-zinc-400 hover:text-white hover:border-white/20 transition"
-          >
-            <Pencil className="h-3 w-3" />
-            Editar perfil
-          </button>
-        )}
       </div>
 
       {/* Bio */}
@@ -161,6 +170,7 @@ export default function UserProfilePage({ userId, currentProfile, onBack, onOpen
             onOpenThread={onOpenThread}
             onLoop={() => {}}
             onOpenProfile={onOpenProfile}
+            onDelete={(id) => setPosts((prev) => prev.filter((p) => p.id !== id))}
           />
         ))}
       </div>

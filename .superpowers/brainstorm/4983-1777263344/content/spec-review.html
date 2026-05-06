@@ -1,0 +1,128 @@
+<h2>Fennec Community Feed — Spec</h2>
+<p class="subtitle">Revisa que todo esté correcto antes de arrancar</p>
+
+<div style="display:flex;flex-direction:column;gap:14px;margin-top:20px;">
+
+  <!-- Decisions -->
+  <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;overflow:hidden;">
+    <div style="padding:12px 16px;background:rgba(245,158,11,0.08);border-bottom:1px solid rgba(255,255,255,0.06);">
+      <span style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#f59e0b;">Decisiones clave</span>
+    </div>
+    <div style="padding:14px 16px;display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;gap:10px;align-items:flex-start;">
+        <span style="font-size:13px;flex-shrink:0;">👥</span>
+        <div><span style="font-size:12px;font-weight:600;color:#e4e4e7;">Quién postea:</span> <span style="font-size:12px;color:#71717a;">Todos. PRO tienen el logo Fennec en ámbar junto a su nombre.</span></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-start;">
+        <span style="font-size:13px;flex-shrink:0;">📎</span>
+        <div><span style="font-size:12px;font-weight:600;color:#e4e4e7;">Contenido:</span> <span style="font-size:12px;color:#71717a;">Texto, audio (Melody Bank), imágenes, links. Sin video.</span></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-start;">
+        <span style="font-size:13px;flex-shrink:0;">🎵</span>
+        <div><span style="font-size:12px;font-weight:600;color:#e4e4e7;">Like → Vibe &nbsp;·&nbsp; Repost → Loop:</span> <span style="font-size:12px;color:#71717a;">Nombres music-native, no genéricos.</span></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-start;">
+        <span style="font-size:13px;flex-shrink:0;">🌐</span>
+        <div><span style="font-size:12px;font-weight:600;color:#e4e4e7;">Feed global + chips:</span> <span style="font-size:12px;color:#71717a;">Un solo feed, filtros por categoría. Sin follows en v1.</span></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-start;">
+        <span style="font-size:13px;flex-shrink:0;">🔐</span>
+        <div><span style="font-size:12px;font-weight:600;color:#e4e4e7;">Auth:</span> <span style="font-size:12px;color:#71717a;">Google OAuth (principal) + email/password (fallback). Supabase.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Categorías -->
+  <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;overflow:hidden;">
+    <div style="padding:12px 16px;background:rgba(99,102,241,0.08);border-bottom:1px solid rgba(255,255,255,0.06);">
+      <span style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#818cf8;">6 categorías del feed</span>
+    </div>
+    <div style="padding:14px 16px;display:flex;flex-wrap:wrap;gap:8px;">
+      <div style="background:#ffffff08;border-radius:12px;padding:8px 12px;display:flex;align-items:center;gap:6px;">
+        <span>🎵</span><span style="font-size:12px;color:#e4e4e7;font-weight:500;">Music</span>
+        <span style="font-size:10px;color:#52525b;">— Melody Bank, beats, loops</span>
+      </div>
+      <div style="background:#ffffff08;border-radius:12px;padding:8px 12px;display:flex;align-items:center;gap:6px;">
+        <span>🎛️</span><span style="font-size:12px;color:#e4e4e7;font-weight:500;">Gear & Tools</span>
+        <span style="font-size:10px;color:#52525b;">— DAWs, plugins, estudios</span>
+      </div>
+      <div style="background:#ffffff08;border-radius:12px;padding:8px 12px;display:flex;align-items:center;gap:6px;">
+        <span>🎬</span><span style="font-size:12px;color:#e4e4e7;font-weight:500;">Sync & Scoring</span>
+        <span style="font-size:10px;color:#52525b;">— Film, videojuegos, sound design</span>
+      </div>
+      <div style="background:#ffffff08;border-radius:12px;padding:8px 12px;display:flex;align-items:center;gap:6px;">
+        <span>💼</span><span style="font-size:12px;color:#e4e4e7;font-weight:500;">Business</span>
+        <span style="font-size:10px;color:#52525b;">— Rates, colabs, oportunidades</span>
+      </div>
+      <div style="background:#ffffff08;border-radius:12px;padding:8px 12px;display:flex;align-items:center;gap:6px;">
+        <span>🧠</span><span style="font-size:12px;color:#e4e4e7;font-weight:500;">Mindset</span>
+        <span style="font-size:10px;color:#52525b;">— Salud mental, burnout, psicología</span>
+      </div>
+      <div style="background:#ffffff08;border-radius:12px;padding:8px 12px;display:flex;align-items:center;gap:6px;">
+        <span>💬</span><span style="font-size:12px;color:#e4e4e7;font-weight:500;">General</span>
+        <span style="font-size:10px;color:#52525b;">— Tips, memes, Q&A</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Post card preview -->
+  <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;overflow:hidden;">
+    <div style="padding:12px 16px;background:rgba(16,185,129,0.08);border-bottom:1px solid rgba(255,255,255,0.06);">
+      <span style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#34d399;">Diseño del post card</span>
+    </div>
+    <div style="padding:14px 16px;">
+      <div style="background:#111;border:1px solid #1f1f1f;border-radius:14px;overflow:hidden;max-width:320px;margin:0 auto;">
+        <div style="padding:10px 14px 8px;display:flex;justify-content:space-between;">
+          <span style="font-size:9px;color:#52525b;background:#ffffff08;padding:2px 8px;border-radius:20px;">🎵 Music</span>
+          <span style="font-size:9px;color:#3f3f46;">2h</span>
+        </div>
+        <div style="padding:0 14px 10px;font-size:12px;color:#d4d4d8;line-height:1.6;">Acabo de terminar este loop de Rhodes ¿qué opinan? 🎹</div>
+        <div style="margin:0 14px 10px;background:#0d0d0d;border:1px solid #1f1f1f;border-radius:10px;padding:8px 10px;display:flex;align-items:center;gap:8px;">
+          <div style="width:24px;height:24px;border-radius:50%;background:#f59e0b;display:flex;align-items:center;justify-content:center;font-size:8px;color:#000;flex-shrink:0;">▶</div>
+          <div style="flex:1;"><div style="font-size:10px;color:#e4e4e7;font-weight:600;margin-bottom:4px;">Rhodes Loop #4</div><div style="height:2px;background:#1f1f1f;border-radius:1px;"><div style="width:35%;height:2px;background:#f59e0b;border-radius:1px;"></div></div></div>
+          <span style="font-size:9px;color:#3f3f46;">1:24</span>
+        </div>
+        <!-- waveform -->
+        <div style="padding:0 14px;margin-bottom:2px;">
+          <svg viewBox="0 0 260 12" style="width:100%;height:12px;">
+            <defs><linearGradient id="wg" x1="0%" x2="100%"><stop offset="0%" style="stop-color:#f59e0b;stop-opacity:0"/><stop offset="50%" style="stop-color:#f59e0b;stop-opacity:0.8"/><stop offset="100%" style="stop-color:#f59e0b;stop-opacity:0"/></linearGradient></defs>
+            <rect x="2" y="4" width="2" height="4" rx="1" fill="url(#wg)"/><rect x="7" y="1" width="2" height="10" rx="1" fill="url(#wg)"/><rect x="12" y="3" width="2" height="6" rx="1" fill="url(#wg)"/><rect x="17" y="0" width="2" height="12" rx="1" fill="url(#wg)"/><rect x="22" y="3" width="2" height="6" rx="1" fill="url(#wg)"/><rect x="27" y="4" width="2" height="4" rx="1" fill="url(#wg)"/><rect x="32" y="1" width="2" height="10" rx="1" fill="url(#wg)"/><rect x="37" y="3" width="2" height="6" rx="1" fill="url(#wg)"/><rect x="42" y="0" width="2" height="12" rx="1" fill="url(#wg)"/><rect x="47" y="2" width="2" height="8" rx="1" fill="url(#wg)"/><rect x="52" y="4" width="2" height="4" rx="1" fill="url(#wg)"/><rect x="57" y="1" width="2" height="10" rx="1" fill="url(#wg)"/><rect x="62" y="0" width="2" height="12" rx="1" fill="url(#wg)"/><rect x="67" y="3" width="2" height="6" rx="1" fill="url(#wg)"/><rect x="72" y="1" width="2" height="10" rx="1" fill="url(#wg)"/><rect x="77" y="4" width="2" height="4" rx="1" fill="url(#wg)"/><rect x="82" y="0" width="2" height="12" rx="1" fill="url(#wg)"/><rect x="87" y="2" width="2" height="8" rx="1" fill="url(#wg)"/><rect x="92" y="4" width="2" height="4" rx="1" fill="url(#wg)"/><rect x="97" y="1" width="2" height="10" rx="1" fill="url(#wg)"/><rect x="102" y="0" width="2" height="12" rx="1" fill="url(#wg)"/><rect x="107" y="3" width="2" height="6" rx="1" fill="url(#wg)"/><rect x="112" y="1" width="2" height="10" rx="1" fill="url(#wg)"/><rect x="117" y="4" width="2" height="4" rx="1" fill="url(#wg)"/><rect x="122" y="0" width="2" height="12" rx="1" fill="url(#wg)"/><rect x="127" y="2" width="2" height="8" rx="1" fill="url(#wg)"/><rect x="132" y="4" width="2" height="4" rx="1" fill="url(#wg)"/><rect x="137" y="1" width="2" height="10" rx="1" fill="url(#wg)"/><rect x="142" y="0" width="2" height="12" rx="1" fill="url(#wg)"/><rect x="147" y="3" width="2" height="6" rx="1" fill="url(#wg)"/><rect x="152" y="1" width="2" height="10" rx="1" fill="url(#wg)"/><rect x="157" y="4" width="2" height="4" rx="1" fill="url(#wg)"/><rect x="162" y="0" width="2" height="12" rx="1" fill="url(#wg)"/><rect x="167" y="2" width="2" height="8" rx="1" fill="url(#wg)"/><rect x="172" y="4" width="2" height="4" rx="1" fill="url(#wg)"/><rect x="177" y="1" width="2" height="10" rx="1" fill="url(#wg)"/><rect x="182" y="0" width="2" height="12" rx="1" fill="url(#wg)"/><rect x="187" y="3" width="2" height="6" rx="1" fill="url(#wg)"/><rect x="192" y="1" width="2" height="10" rx="1" fill="url(#wg)"/><rect x="197" y="4" width="2" height="4" rx="1" fill="url(#wg)"/><rect x="202" y="2" width="2" height="8" rx="1" fill="url(#wg)"/><rect x="207" y="0" width="2" height="12" rx="1" fill="url(#wg)"/><rect x="212" y="3" width="2" height="6" rx="1" fill="url(#wg)"/><rect x="217" y="1" width="2" height="10" rx="1" fill="url(#wg)"/><rect x="222" y="4" width="2" height="4" rx="1" fill="url(#wg)"/><rect x="227" y="2" width="2" height="8" rx="1" fill="url(#wg)"/><rect x="232" y="4" width="2" height="4" rx="1" fill="url(#wg)"/><rect x="237" y="1" width="2" height="10" rx="1" fill="url(#wg)"/><rect x="242" y="3" width="2" height="6" rx="1" fill="url(#wg)"/><rect x="247" y="4" width="2" height="4" rx="1" fill="url(#wg)"/><rect x="252" y="2" width="2" height="8" rx="1" fill="url(#wg)"/><rect x="257" y="4" width="2" height="4" rx="1" fill="url(#wg)"/>
+          </svg>
+        </div>
+        <!-- user -->
+        <div style="padding:6px 14px 10px;display:flex;align-items:center;justify-content:center;gap:8px;">
+          <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#000;">P</div>
+          <span style="font-size:12px;font-weight:600;color:#e4e4e7;">@paco</span>
+          <span style="font-size:11px;color:#f59e0b;">⬦</span>
+          <span style="font-size:10px;color:#52525b;">72 dB</span>
+        </div>
+        <div style="height:1px;background:#1a1a1a;margin:0 14px;"></div>
+        <div style="padding:9px 14px;display:flex;justify-content:space-around;">
+          <span style="font-size:11px;color:#52525b;">🎵 Vibe · 48</span>
+          <span style="font-size:11px;color:#52525b;">💬 12</span>
+          <span style="font-size:11px;color:#52525b;">🔁 Loop · 7</span>
+          <span style="font-size:11px;color:#52525b;">🔖</span>
+        </div>
+      </div>
+      <p style="font-size:10px;color:#3f3f46;text-align:center;margin-top:8px;">⬦ = logo Fennec ámbar (placeholder visual — el PNG real funciona en la app)</p>
+    </div>
+  </div>
+
+  <!-- Fuera de scope -->
+  <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:14px 16px;">
+    <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#52525b;margin-bottom:10px;">Fuera de scope v1 (para después)</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+      <span style="font-size:11px;color:#3f3f46;background:#ffffff06;padding:3px 10px;border-radius:20px;">Follows / siguiendo</span>
+      <span style="font-size:11px;color:#3f3f46;background:#ffffff06;padding:3px 10px;border-radius:20px;">Notificaciones push</span>
+      <span style="font-size:11px;color:#3f3f46;background:#ffffff06;padding:3px 10px;border-radius:20px;">Editar / eliminar posts</span>
+      <span style="font-size:11px;color:#3f3f46;background:#ffffff06;padding:3px 10px;border-radius:20px;">Video</span>
+      <span style="font-size:11px;color:#3f3f46;background:#ffffff06;padding:3px 10px;border-radius:20px;">Mensajes directos</span>
+      <span style="font-size:11px;color:#3f3f46;background:#ffffff06;padding:3px 10px;border-radius:20px;">Perfiles públicos</span>
+    </div>
+  </div>
+
+  <div style="padding:14px 16px;background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.2);border-radius:14px;font-size:12px;color:#71717a;text-align:center;">
+    ✅ ¿Todo bien? Dime en el terminal y arrancamos con el plan de implementación paso a paso.
+  </div>
+
+</div>

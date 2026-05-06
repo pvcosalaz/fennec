@@ -1,0 +1,444 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import {
+  ChevronLeft,
+  Plus,
+  Calendar,
+  CheckCircle2,
+  Clock,
+  Send,
+  Banknote,
+  X,
+  ChevronRight,
+} from "lucide-react";
+import {
+  type Project,
+  type ProjectStatus,
+  PROJECTS_STORAGE_KEY,
+  CLIENTS_STORAGE_KEY,
+  type Client,
+  projectTypes,
+  formatCOP,
+} from "@/lib/pricingData";
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const STATUS_ORDER: ProjectStatus[] = ["in_progress", "review", "delivered", "paid"];
+
+const STATUS_META: Record<ProjectStatus, { label: string; color: string; bg: string; icon: React.ComponentType<{ className?: string }> }> = {
+  in_progress: { label: "In Progress", color: "text-blue-400",   bg: "bg-blue-400/10",   icon: Clock        },
+  review:      { label: "In Review",   color: "text-amber-400",  bg: "bg-amber-400/10",  icon: Send         },
+  delivered:   { label: "Delivered",   color: "text-purple-400", bg: "bg-purple-400/10", icon: CheckCircle2 },
+  paid:        { label: "Paid",        color: "text-emerald-400",bg: "bg-emerald-400/10",icon: Banknote     },
+};
+
+function deadlineInfo(deadline: string): { label: string; color: string } {
+  if (!deadline) return { label: "No deadline", color: "text-zinc-600" };
+  const days = Math.ceil((new Date(deadline).getTime() - Date.now()) / 86400000);
+  if (days < 0)  return { label: `${Math.abs(days)}d overdue`, color: "text-red-400" };
+  if (days === 0) return { label: "Due today",                  color: "text-red-400" };
+  if (days <= 3)  return { label: `${days}d left`,             color: "text-red-400" };
+  if (days <= 7)  return { label: `${days}d left`,             color: "text-amber-400" };
+  return { label: `${days}d left`, color: "text-emerald-400" };
+}
+
+function nextStatus(current: ProjectStatus): ProjectStatus {
+  const idx = STATUS_ORDER.indexOf(current);
+  return STATUS_ORDER[Math.min(idx + 1, STATUS_ORDER.length - 1)];
+}
+
+// ─── Empty state ──────────────────────────────────────────────────────────────
+
+function EmptyState({ onAdd }: { onAdd: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-white/10 py-16 text-center">
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/5">
+        <Clock className="h-6 w-6 text-zinc-500" />
+      </div>
+      <div className="space-y-1">
+        <p className="text-sm font-semibold text-white">No active projects</p>
+        <p className="text-xs text-zinc-500">Create one manually or convert a quote.</p>
+      </div>
+      <button
+        onClick={onAdd}
+        className="flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-xs font-semibold text-black transition hover:bg-accent/90"
+      >
+        <Plus className="h-3.5 w-3.5" /> New project
+      </button>
+    </div>
+  );
+}
+
+// ─── Project form ─────────────────────────────────────────────────────────────
+
+type FormState = {
+  name: string;
+  clientId: string;
+  projectTypeId: string;
+  price: string;
+  deadline: string;
+  notes: string;
+};
+
+const EMPTY_FORM: FormState = {
+  name: "", clientId: "", projectTypeId: "", price: "", deadline: "", notes: "",
+};
+
+function ProjectForm({
+  initial,
+  clients,
+  onSave,
+  onCancel,
+}: {
+  initial?: Partial<FormState>;
+  clients: Client[];
+  onSave: (f: FormState) => void;
+  onCancel: () => void;
+}) {
+  const [form, setForm] = useState<FormState>({ ...EMPTY_FORM, ...initial });
+  const set = (k: keyof FormState, v: string) => setForm((p) => ({ ...p, [k]: v }));
+  const valid = form.name.trim() && form.price;
+
+  return (
+    <div className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-5">
+      <p className="text-sm font-semibold text-white">New project</p>
+
+      {/* Name */}
+      <div className="space-y-1.5">
+        <label className="text-xs text-zinc-400">Project name *</label>
+        <input
+          value={form.name}
+          onChange={(e) => set("name", e.target.value)}
+          placeholder="e.g. Score for short film"
+          className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white placeholder-zinc-600 outline-none focus:border-accent/50"
+        />
+      </div>
+
+      {/* Client */}
+      <div className="space-y-1.5">
+        <label className="text-xs text-zinc-400">Client</label>
+        <select
+          value={form.clientId}
+          onChange={(e) => set("clientId", e.target.value)}
+          className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none focus:border-accent/50"
+        >
+          <option value="">— No client —</option>
+          {clients.map((c) => (
+            <option key={c.id} value={c.id}>{c.name}{c.company ? ` · ${c.company}` : ""}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Type + Price */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <label className="text-xs text-zinc-400">Project type</label>
+          <select
+            value={form.projectTypeId}
+            onChange={(e) => set("projectTypeId", e.target.value)}
+            className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none focus:border-accent/50"
+          >
+            <option value="">— Select —</option>
+            {projectTypes.map((pt) => (
+              <option key={pt.id} value={pt.id}>{pt.label}</option>
+            ))}
+          </select>
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-xs text-zinc-400">Agreed price *</label>
+          <input
+            type="number"
+            value={form.price}
+            onChange={(e) => set("price", e.target.value)}
+            placeholder="0"
+            className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white placeholder-zinc-600 outline-none focus:border-accent/50"
+          />
+        </div>
+      </div>
+
+      {/* Deadline */}
+      <div className="space-y-1.5">
+        <label className="text-xs text-zinc-400">Delivery deadline</label>
+        <input
+          type="date"
+          value={form.deadline}
+          onChange={(e) => set("deadline", e.target.value)}
+          className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none focus:border-accent/50"
+          style={{ colorScheme: "dark" }}
+        />
+      </div>
+
+      {/* Notes */}
+      <div className="space-y-1.5">
+        <label className="text-xs text-zinc-400">Notes</label>
+        <textarea
+          value={form.notes}
+          onChange={(e) => set("notes", e.target.value)}
+          placeholder="Deliverables, revisions, special requirements..."
+          rows={2}
+          className="w-full resize-none rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white placeholder-zinc-600 outline-none focus:border-accent/50"
+        />
+      </div>
+
+      {/* Actions */}
+      <div className="flex gap-2 pt-1">
+        <button
+          onClick={onCancel}
+          className="flex-1 rounded-xl border border-white/10 py-2.5 text-xs font-semibold text-zinc-400 transition hover:border-white/20"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={() => valid && onSave(form)}
+          disabled={!valid}
+          className="flex-1 rounded-xl bg-accent py-2.5 text-xs font-semibold text-black transition hover:bg-accent/90 disabled:opacity-40"
+        >
+          Save project
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Project card ─────────────────────────────────────────────────────────────
+
+function ProjectCard({
+  project,
+  onAdvance,
+  onDelete,
+}: {
+  project: Project;
+  onAdvance: () => void;
+  onDelete: () => void;
+}) {
+  const meta   = STATUS_META[project.status];
+  const StatusIcon = meta.icon;
+  const dl     = deadlineInfo(project.deadline);
+  const isPaid = project.status === "paid";
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
+      {/* Top row */}
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-white leading-snug">{project.name}</p>
+          {project.clientName && (
+            <p className="text-xs text-zinc-500 mt-0.5">{project.clientName}</p>
+          )}
+        </div>
+        {confirmDelete ? (
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              onClick={onDelete}
+              className="rounded-lg px-2 py-1 text-[10px] font-semibold bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 transition"
+            >
+              Delete
+            </button>
+            <button
+              onClick={() => setConfirmDelete(false)}
+              className="rounded-lg px-2 py-1 text-[10px] font-semibold bg-white/5 text-zinc-400 border border-white/10 hover:bg-white/10 transition"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setConfirmDelete(true)}
+            className="shrink-0 rounded-lg p-1 text-zinc-600 transition hover:text-red-400"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
+
+      {/* Metadata row */}
+      <div className="flex flex-wrap gap-2">
+        {/* Status pill */}
+        <span className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold ${meta.bg} ${meta.color}`}>
+          <StatusIcon className="h-3 w-3" />
+          {meta.label}
+        </span>
+
+        {/* Deadline */}
+        {project.deadline && (
+          <span className={`flex items-center gap-1 rounded-full bg-white/5 px-2.5 py-1 text-[10px] font-medium ${dl.color}`}>
+            <Calendar className="h-3 w-3" />
+            {dl.label}
+          </span>
+        )}
+
+        {/* Type */}
+        {project.projectTypeName && (
+          <span className="rounded-full bg-white/5 px-2.5 py-1 text-[10px] text-zinc-500">
+            {project.projectTypeName}
+          </span>
+        )}
+      </div>
+
+      {/* Notes */}
+      {project.notes && (
+        <p className="text-xs text-zinc-500 leading-relaxed line-clamp-2">{project.notes}</p>
+      )}
+
+      {/* Bottom row — price + advance */}
+      <div className="flex items-center justify-between pt-1 border-t border-white/5">
+        <p className={`text-sm font-bold ${isPaid ? "text-emerald-400" : "text-white"}`}>
+          {formatCOP(project.price)}
+        </p>
+        {!isPaid && (
+          <button
+            onClick={onAdvance}
+            className="flex items-center gap-1.5 rounded-xl border border-white/10 px-3 py-1.5 text-xs font-medium text-zinc-300 transition hover:border-accent/50 hover:text-accent"
+          >
+            Mark as {STATUS_META[nextStatus(project.status)].label}
+            <ChevronRight className="h-3 w-3" />
+          </button>
+        )}
+        {isPaid && (
+          <span className="text-xs text-emerald-400 font-medium">✓ Closed</span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
+
+export default function ActiveProjects({ onBack }: { onBack: () => void }) {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [clients, setClients]   = useState<Client[]>([]);
+  const [showForm, setShowForm] = useState(false);
+
+  // Load
+  useEffect(() => {
+    try {
+      const p = localStorage.getItem(PROJECTS_STORAGE_KEY);
+      if (p) setProjects(JSON.parse(p));
+      const c = localStorage.getItem(CLIENTS_STORAGE_KEY);
+      if (c) setClients(JSON.parse(c));
+    } catch {}
+  }, []);
+
+  const save = (updated: Project[]) => {
+    setProjects(updated);
+    localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updated));
+  };
+
+  const handleSave = (form: FormState) => {
+    const client = clients.find((c) => c.id === form.clientId);
+    const pType  = projectTypes.find((pt) => pt.id === form.projectTypeId);
+    const newProject: Project = {
+      id:              `proj-${Date.now()}`,
+      name:            form.name.trim(),
+      clientId:        form.clientId,
+      clientName:      client?.name ?? "",
+      projectTypeId:   form.projectTypeId,
+      projectTypeName: pType?.label ?? "",
+      price:           Number(form.price) || 0,
+      deadline:        form.deadline,
+      status:          "in_progress",
+      notes:           form.notes.trim(),
+      createdAt:       Date.now(),
+    };
+    save([newProject, ...projects]);
+    setShowForm(false);
+  };
+
+  const handleAdvance = (id: string) => {
+    save(projects.map((p) => p.id === id ? { ...p, status: nextStatus(p.status) } : p));
+  };
+
+  const handleDelete = (id: string) => {
+    save(projects.filter((p) => p.id !== id));
+  };
+
+  // Group by status
+  const active  = projects.filter((p) => p.status !== "paid");
+  const paid    = projects.filter((p) => p.status === "paid");
+
+  // Stats
+  const totalActive  = active.reduce((s, p) => s + p.price, 0);
+  const totalPaid    = paid.reduce((s, p) => s + p.price, 0);
+
+  return (
+    <div className="mx-auto w-full max-w-4xl space-y-6 px-2">
+
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <button onClick={onBack} className="rounded-xl p-2 text-zinc-400 transition hover:bg-white/5 hover:text-white">
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-semibold tracking-widest text-accent uppercase">Business</p>
+          <h1 className="text-2xl font-bold text-white">Active Projects</h1>
+        </div>
+        <button
+          onClick={() => setShowForm(true)}
+          className="flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-xs font-semibold text-black transition hover:bg-accent/90"
+        >
+          <Plus className="h-3.5 w-3.5" /> New
+        </button>
+      </div>
+
+      {/* Summary cards */}
+      {projects.length > 0 && (
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <p className="text-xs text-zinc-500 mb-1">In progress</p>
+            <p className="text-lg font-bold text-white">{active.length} projects</p>
+            <p className="text-xs text-zinc-400 mt-0.5">{formatCOP(totalActive)}</p>
+          </div>
+          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4">
+            <p className="text-xs text-zinc-500 mb-1">Collected</p>
+            <p className="text-lg font-bold text-emerald-400">{paid.length} projects</p>
+            <p className="text-xs text-zinc-400 mt-0.5">{formatCOP(totalPaid)}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Form */}
+      {showForm && (
+        <ProjectForm
+          clients={clients}
+          onSave={handleSave}
+          onCancel={() => setShowForm(false)}
+        />
+      )}
+
+      {/* Active projects */}
+      {!showForm && active.length === 0 && paid.length === 0 && (
+        <EmptyState onAdd={() => setShowForm(true)} />
+      )}
+
+      {active.length > 0 && (
+        <div className="space-y-2">
+          {active.map((p) => (
+            <ProjectCard
+              key={p.id}
+              project={p}
+              onAdvance={() => handleAdvance(p.id)}
+              onDelete={() => handleDelete(p.id)}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Paid / closed */}
+      {paid.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">Closed & Paid</p>
+          {paid.map((p) => (
+            <ProjectCard
+              key={p.id}
+              project={p}
+              onAdvance={() => handleAdvance(p.id)}
+              onDelete={() => handleDelete(p.id)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

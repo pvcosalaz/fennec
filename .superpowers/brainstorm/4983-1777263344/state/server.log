@@ -1,0 +1,15 @@
+{"type":"server-started","port":61163,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:61163","screen_dir":"/Users/pacosalazar/Documents/Fennec App/fennec/.superpowers/brainstorm/4983-1777263344/content","state_dir":"/Users/pacosalazar/Documents/Fennec App/fennec/.superpowers/brainstorm/4983-1777263344/state"}
+{"type":"screen-added","file":"/Users/pacosalazar/Documents/Fennec App/fennec/.superpowers/brainstorm/4983-1777263344/content/feed-layout.html"}
+{"type":"screen-added","file":"/Users/pacosalazar/Documents/Fennec App/fennec/.superpowers/brainstorm/4983-1777263344/content/categories.html"}
+{"type":"screen-added","file":"/Users/pacosalazar/Documents/Fennec App/fennec/.superpowers/brainstorm/4983-1777263344/content/design-architecture.html"}
+{"type":"screen-added","file":"/Users/pacosalazar/Documents/Fennec App/fennec/.superpowers/brainstorm/4983-1777263344/content/design-datamodel.html"}
+{"type":"screen-added","file":"/Users/pacosalazar/Documents/Fennec App/fennec/.superpowers/brainstorm/4983-1777263344/content/like-alternatives.html"}
+{"type":"screen-added","file":"/Users/pacosalazar/Documents/Fennec App/fennec/.superpowers/brainstorm/4983-1777263344/content/design-ui.html"}
+{"type":"screen-added","file":"/Users/pacosalazar/Documents/Fennec App/fennec/.superpowers/brainstorm/4983-1777263344/content/post-layouts.html"}
+{"source":"user-event","type":"click","text":"🎵 Music\n        2h\n      \n\n      \n      \n        Acabo de terminar este loop de Rhodes ¿qué opinan? 🎹\n        \n        \n          ▶\n          \n            Rhodes Loop #4\n            \n          \n        \n      \n\n      \n      \n      \n        P\n        @paco\n        🦊\n        72 dB\n      \n\n      \n      \n      \n        🎵 48\n        💬 12\n        🔁 7\n        🔖","choice":"a","id":null,"timestamp":1777265348402}
+{"source":"user-event","type":"click","text":"🎵 Music\n        2h\n      \n\n      \n      \n        Acabo de terminar este loop de Rhodes ¿qué opinan? 🎹\n        \n        \n          ▶\n          \n            Rhodes Loop #4\n            \n          \n        \n      \n\n      \n      \n      \n        P\n        @paco\n        🦊\n        72 dB\n      \n\n      \n      \n      \n        🎵 48\n        💬 12\n        🔁 7\n        🔖","choice":"a","id":null,"timestamp":1777265351385}
+{"type":"screen-added","file":"/Users/pacosalazar/Documents/Fennec App/fennec/.superpowers/brainstorm/4983-1777263344/content/post-layout-a-v2.html"}
+{"type":"screen-added","file":"/Users/pacosalazar/Documents/Fennec App/fennec/.superpowers/brainstorm/4983-1777263344/content/post-layout-a-v3.html"}
+{"type":"screen-added","file":"/Users/pacosalazar/Documents/Fennec App/fennec/.superpowers/brainstorm/4983-1777263344/content/post-layout-a-v4.html"}
+{"type":"screen-added","file":"/Users/pacosalazar/Documents/Fennec App/fennec/.superpowers/brainstorm/4983-1777263344/content/spec-review.html"}
+{"type":"server-stopped","reason":"idle timeout"}

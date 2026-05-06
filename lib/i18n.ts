@@ -113,7 +113,7 @@ if (!i18n.isInitialized) {
 
           quote: {
             title: "Quote",
-            subtitle: "Get your minimum and recommended price instantly.",
+            subtitle: "Know your minimum rate before saying yes to any music production.",
             setupMissing: "You must complete setup before using the quote.",
             minimumPrice: "Minimum base price:",
             recommendedPrice: "Recommended price:",
@@ -224,7 +224,7 @@ if (!i18n.isInitialized) {
 
           quote: {
             title: "Cotizador",
-            subtitle: "Obtén tu precio mínimo y recomendado al instante.",
+            subtitle: "Conoce tu tarifa mínima antes de decir sí a cualquier producción musical.",
             setupMissing: "Debes completar el setup antes de usar el cotizador.",
             minimumPrice: "Precio mínimo base:",
             recommendedPrice: "Precio recomendado:",

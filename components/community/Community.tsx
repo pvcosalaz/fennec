@@ -237,7 +237,7 @@ function NewsPanel({ onSelect }: { onSelect: (item: NewsItem) => void }) {
 
 // ─── Community panel (feed — auth already handled at app level) ───────────────
 
-function CommunityPanel({ profile }: { profile: Profile }) {
+function CommunityPanel({ profile, openComposerWith, onComposerConsumed }: { profile: Profile; openComposerWith?: { url: string; name: string } | null; onComposerConsumed?: () => void }) {
   const [view, setView]                   = useState<CommunityView>("feed");
   const [activePost, setActivePost]       = useState<Post | null>(null);
   const [profileUserId, setProfileUserId] = useState<string | null>(null);
@@ -275,13 +275,15 @@ function CommunityPanel({ profile }: { profile: Profile }) {
       profile={profile}
       onOpenThread={(post) => { setActivePost(post); setView("thread"); }}
       onOpenProfile={openProfile}
+      openComposerWith={openComposerWith}
+      onComposerConsumed={onComposerConsumed}
     />
   );
 }
 
 // ─── Root component ───────────────────────────────────────────────────────────
 
-export default function Community({ profile }: { profile: Profile }) {
+export default function Community({ profile, openComposerWith, onComposerConsumed }: { profile: Profile; openComposerWith?: { url: string; name: string } | null; onComposerConsumed?: () => void }) {
   const [fennecTab, setFennecTab] = useState<FennecTab>("community");
   const [selected, setSelected] = useState<NewsItem | null>(null);
 
@@ -295,19 +297,33 @@ export default function Community({ profile }: { profile: Profile }) {
   }
 
   return (
-    <div className="mx-auto w-full max-w-4xl">
+    <div className="mx-auto w-full max-w-4xl -mt-6">
+
+      {/* SVG filter — thicken logo strokes */}
+      <svg style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }}>
+        <defs>
+          <filter id="fennec-thicken-community" x="-10%" y="-10%" width="120%" height="120%">
+            <feMorphology operator="dilate" radius="0.7" />
+          </filter>
+        </defs>
+      </svg>
 
       {/* ── Header — X-style ─────────────────────────────── */}
-      <div className="flex flex-col items-center pt-4 pb-0">
+      <div className="flex flex-col items-center pt-0 pb-0">
         <img
           src="/fennec-logo.png"
           alt="Fennec"
-          style={{ width: 48, height: "auto", filter: "invert(1)", opacity: 0.9 }}
+          style={{
+            width: 72,
+            height: "auto",
+            filter: "url(#fennec-thicken-community) brightness(0) invert(1)",
+            opacity: 0.9,
+          }}
         />
       </div>
 
       {/* ── Tab switcher — X-style ────────────────────────── */}
-      <div className="flex border-b border-white/10 mt-3">
+      <div className="flex border-b border-white/10 mt-1">
         <button
           onClick={() => setFennecTab("community")}
           className={`flex flex-1 items-center justify-center py-3.5 text-sm font-semibold transition-all relative ${
@@ -336,7 +352,7 @@ export default function Community({ profile }: { profile: Profile }) {
       {/* ── Panels ───────────────────────────────────────── */}
       <div className="px-2 pt-4">
         {fennecTab === "news"      && <NewsPanel onSelect={setSelected} />}
-        {fennecTab === "community" && <CommunityPanel profile={profile} />}
+        {fennecTab === "community" && <CommunityPanel profile={profile} openComposerWith={openComposerWith} onComposerConsumed={onComposerConsumed} />}
       </div>
 
     </div>
