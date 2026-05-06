@@ -31,9 +31,11 @@ export default function FeedView({ profile, onOpenThread, onOpenProfile, openCom
   const [composerOpen, setComposerOpen] = useState(!!openComposerWith);
   const [pullY, setPullY]               = useState(0);
   const [refreshing, setRefreshing]     = useState(false);
+  const [newCount, setNewCount]         = useState(0);
   const consumedRef  = useRef(false);
   const touchStartY  = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const newestIdRef  = useRef<string | null>(null);
 
   // Notify parent that we consumed the pending audio (clear it so it won't re-open)
   useEffect(() => {
@@ -47,6 +49,7 @@ export default function FeedView({ profile, onOpenThread, onOpenProfile, openCom
     setLoading(true);
     try {
       const data = await fetchPosts(cat, p, profile.id);
+      if (reset && data[0]) newestIdRef.current = data[0].id;
       setPosts((prev) => reset ? data : [...prev, ...data]);
       setHasMore(data.length === 20);
     } finally {
@@ -56,8 +59,24 @@ export default function FeedView({ profile, onOpenThread, onOpenProfile, openCom
 
   useEffect(() => {
     setPage(0);
+    setNewCount(0);
     loadPosts(category, 0, true);
   }, [category, loadPosts]);
+
+  // ── Poll for new posts every 60s ───────────────────────────
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const data = await fetchPosts(category, 0, false).catch(() => [] as Post[]);
+      if (!data.length) return;
+      const latestId = data[0].id;
+      if (newestIdRef.current && latestId !== newestIdRef.current) {
+        // Count how many posts are newer than what we have
+        const count = data.findIndex((p) => p.id === newestIdRef.current);
+        setNewCount(count === -1 ? data.length : count);
+      }
+    }, 60_000);
+    return () => clearInterval(interval);
+  }, [category]);
 
   // ── Pull-to-refresh ────────────────────────────────────────
   useEffect(() => {
@@ -94,6 +113,12 @@ export default function FeedView({ profile, onOpenThread, onOpenProfile, openCom
       el.removeEventListener("touchend",   onTouchEnd);
     };
   }, [pullY, refreshing, category, loadPosts]);
+
+  async function handleLoadNew() {
+    setNewCount(0);
+    await loadPosts(category, 0, true);
+    containerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
   async function handleLoop(post: Post) {
     await createPost({
@@ -182,6 +207,16 @@ export default function FeedView({ profile, onOpenThread, onOpenProfile, openCom
           </button>
         ))}
       </div>
+
+      {/* New posts banner */}
+      {newCount > 0 && (
+        <button
+          onClick={handleLoadNew}
+          className="w-full flex items-center justify-center gap-2 py-2 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold hover:bg-amber-500/20 transition animate-pulse"
+        >
+          ↑ {newCount} new post{newCount > 1 ? "s" : ""} — tap to load
+        </button>
+      )}
 
       {/* Posts */}
       <div className="space-y-3">
