@@ -921,7 +921,7 @@ export default function PricingCalculator() {
               <button
                 key={tab.id}
                 onClick={() => { setActiveTab(tab.id); setBusinessView("hub"); }}
-                className={`flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-2 py-2 text-xs transition ${
+                className={`flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-2 py-2 text-xs transition hover:bg-white/5 ${
                   isActive
                     ? "text-accent"
                     : "text-zinc-500 hover:text-zinc-300"
