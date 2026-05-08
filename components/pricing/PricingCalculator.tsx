@@ -921,14 +921,18 @@ export default function PricingCalculator() {
               <button
                 key={tab.id}
                 onClick={() => { setActiveTab(tab.id); setBusinessView("hub"); }}
-                className={`flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-2 py-2 text-xs transition hover:bg-white/5 ${
+                className={`flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-2 py-2 text-xs transition group ${
                   isActive
                     ? "text-accent"
                     : "text-zinc-500 hover:text-zinc-300"
                 }`}
               >
-                <Icon className="h-5 w-5" />
-                <span className="leading-tight text-center text-[10px]">{t(tab.labelKey)}</span>
+                <div className={`flex flex-col items-center gap-1 rounded-xl px-3 py-1.5 transition ${
+                  isActive ? "bg-accent/10" : "group-hover:bg-white/8"
+                }`}>
+                  <Icon className="h-5 w-5" />
+                  <span className="leading-tight text-center text-[10px]">{t(tab.labelKey)}</span>
+                </div>
               </button>
             );
           })}
