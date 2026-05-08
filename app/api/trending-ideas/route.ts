@@ -48,7 +48,7 @@ const TAG_COLORS: { tag: string; color: string }[] = [
 ];
 
 async function fetchYouTubeVideos(keyword: string, maxResults = 4) {
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const sevenDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
   const url = new URL("https://www.googleapis.com/youtube/v3/search");
   url.searchParams.set("part", "snippet");
   url.searchParams.set("q", keyword);
