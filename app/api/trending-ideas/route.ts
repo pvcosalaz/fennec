@@ -121,7 +121,8 @@ Respond ONLY with a valid JSON array with ${videos.length} objects, each with ke
 
 export async function GET() {
   console.log("[trending-ideas] FENNEC_ANTHROPIC_KEY present:", !!process.env.FENNEC_ANTHROPIC_KEY);
-  console.log("[trending-ideas] YOUTUBE_API_KEY present:", !!process.env.YOUTUBE_API_KEY);
+  const ytKey = process.env.YOUTUBE_API_KEY ?? "";
+  console.log("[trending-ideas] YOUTUBE_API_KEY len:", ytKey.length, "prefix:", ytKey.slice(0, 10), "suffix:", ytKey.slice(-4));
   try {
     const keywords = pickKeywords(2);
 
