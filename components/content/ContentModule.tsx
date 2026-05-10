@@ -1536,7 +1536,12 @@ type TrendingVideo = {
 const CACHE_KEY    = "fennec-trending-ideas-v2";
 const CACHE_TTL_MS = 1000 * 60 * 60 * 24; // 24 horas
 
-function TrendingView({ isPro, onBack }: { isPro: boolean; onBack: () => void }) {
+function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule }: {
+  isPro: boolean;
+  onBack: () => void;
+  onUseAsReference?: (video: { title: string; channel: string; angle: string; url: string }) => void;
+  onRequestSchedule?: (title: string, notes?: string) => void;
+}) {
   const [videos,  setVideos]  = useState<TrendingVideo[]>([]);
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState<string | null>(null);
@@ -1588,9 +1593,6 @@ function TrendingView({ isPro, onBack }: { isPro: boolean; onBack: () => void })
 
       {/* Header */}
       <div className="flex items-center gap-3">
-        <button onClick={onBack} className="text-zinc-400 hover:text-accent transition">
-          <ArrowLeft className="h-5 w-5" />
-        </button>
         <div>
           <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">Content · Pro</p>
           <h1 className="text-2xl font-bold text-white">Daily Ideas</h1>
@@ -1680,6 +1682,30 @@ function TrendingView({ isPro, onBack }: { isPro: boolean; onBack: () => void })
                 >
                   Watch on YouTube →
                 </a>
+                {/* Action buttons */}
+                <div className="flex gap-2 pt-2 border-t border-white/5 mt-2">
+                  <button
+                    onClick={() => onUseAsReference?.({
+                      title: v.title,
+                      channel: v.channel,
+                      angle: v.angle,
+                      url: v.url,
+                    })}
+                    className="flex-1 py-2 rounded-xl bg-accent/10 border border-accent/30 text-xs font-semibold text-accent hover:bg-accent/20 transition"
+                  >
+                    ✨ Usar como referencia
+                  </button>
+                  <button
+                    onClick={() => onRequestSchedule?.(
+                      v.title,
+                      `Referencia: ${v.url}\n\n${v.angle}`
+                    )}
+                    className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-zinc-400 hover:text-white transition"
+                    title="Agendar"
+                  >
+                    📅
+                  </button>
+                </div>
               </div>
             </div>
           ))}
