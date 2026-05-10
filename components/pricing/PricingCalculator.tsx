@@ -927,11 +927,10 @@ export default function PricingCalculator() {
                     : "text-zinc-500 hover:text-zinc-300"
                 }`}
               >
-                <div className={`flex flex-col items-center gap-1 rounded-xl px-3 py-1.5 transition ${
+                <div className={`flex items-center justify-center rounded-xl p-2.5 transition ${
                   isActive ? "bg-accent/10" : "group-hover:bg-white/8"
                 }`}>
                   <Icon className="h-5 w-5" />
-                  <span className="leading-tight text-center text-[10px]">{t(tab.labelKey)}</span>
                 </div>
               </button>
             );
