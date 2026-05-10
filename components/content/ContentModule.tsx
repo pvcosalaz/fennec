@@ -11,8 +11,30 @@ import {
   DEFAULT_LINES, DEFAULT_FORMATS, DEFAULT_BRIEFS, TRENDING_IDEAS,
   type ContentLine, type ContentFormat, type Idea, type IdeaCategory, type Post, type PostStatus, type Brief,
 } from "@/lib/contentData";
+import CalendarHub from "./CalendarHub";
+import SchedulePrompt from "./SchedulePrompt";
 
-type ContentView = "hub" | "setup" | "scripts" | "ideas" | "calendar" | "trending";
+const TASKS_KEY = "fennec-content-tasks-v1";
+
+type ContentView = "calendar" | "scripts" | "ideas" | "trending";
+type ActiveSheet = "none" | "inspire" | "ideas" | "scripts";
+
+type ContentTask = {
+  id: string;
+  title: string;
+  date: string;        // "YYYY-MM-DD"
+  notes?: string;
+  source: "manual" | "inspire" | "ideas" | "scripts";
+  status: "pending" | "done";
+  createdAt: number;
+};
+
+type VideoRef = {
+  title: string;
+  channel: string;
+  angle: string;
+  url: string;
+};
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -1670,101 +1692,153 @@ function TrendingView({ isPro, onBack }: { isPro: boolean; onBack: () => void })
 // ─── Main module ──────────────────────────────────────────────────────────────
 
 export default function ContentModule() {
-  const [view, setView]       = useState<ContentView>("hub");
-  const [lines, setLines]     = useState<ContentLine[]>([]);
-  const [formats, setFormats] = useState<ContentFormat[]>([]);
-  const [ideas, setIdeas]     = useState<Idea[]>([]);
-  const [posts, setPosts]     = useState<Post[]>([]);
-  const [briefs, setBriefs]   = useState<Brief[]>([]);
+  const [ideas,  setIdeas]  = useState<Idea[]>([]);
+  const [briefs, setBriefs] = useState<Brief[]>([]);
+  const [tasks,  setTasks]  = useState<ContentTask[]>([]);
+  const [sheet,  setSheet]  = useState<ActiveSheet>("none");
+  const [videoRef, setVideoRef] = useState<VideoRef | null>(null);
+  const [pendingTask, setPendingTask] = useState<{
+    title: string; notes?: string; source: ContentTask["source"];
+  } | null>(null);
 
-  const isPro = true; // TODO: conectar a auth
+  const isPro = true;
 
   // ── Load ──
   useEffect(() => {
     try {
-      const load = <T,>(key: string, fallback: T[]): T[] => {
-        const raw = localStorage.getItem(key);
-        if (!raw) return fallback;
-        const parsed = JSON.parse(raw) as T[];
-        return Array.isArray(parsed) && parsed.length > 0 ? parsed : fallback;
-      };
-      setLines(load(CONTENT_LINES_KEY, DEFAULT_LINES));
-      setFormats(load(CONTENT_FORMATS_KEY, DEFAULT_FORMATS));
-      setIdeas(load(IDEAS_BANK_KEY, []));
-      setPosts(load(POSTS_KEY, []));
-      setBriefs(load(BRIEFS_KEY, []));
+      const raw = localStorage.getItem(IDEAS_BANK_KEY);
+      if (raw) setIdeas(JSON.parse(raw) as Idea[]);
+    } catch { /* ignore */ }
+    try {
+      const raw = localStorage.getItem(BRIEFS_KEY);
+      if (raw) setBriefs(JSON.parse(raw) as Brief[]);
+    } catch { /* ignore */ }
+    try {
+      const raw = localStorage.getItem(TASKS_KEY);
+      if (raw) setTasks(JSON.parse(raw) as ContentTask[]);
     } catch { /* ignore */ }
   }, []);
 
   // ── Persist ──
-  useEffect(() => { localStorage.setItem(CONTENT_LINES_KEY,   JSON.stringify(lines));   }, [lines]);
-  useEffect(() => { localStorage.setItem(CONTENT_FORMATS_KEY, JSON.stringify(formats)); }, [formats]);
-  useEffect(() => { localStorage.setItem(IDEAS_BANK_KEY,      JSON.stringify(ideas));   }, [ideas]);
-  useEffect(() => { localStorage.setItem(POSTS_KEY,           JSON.stringify(posts));   }, [posts]);
-  useEffect(() => { localStorage.setItem(BRIEFS_KEY,          JSON.stringify(briefs));  }, [briefs]);
+  useEffect(() => { localStorage.setItem(IDEAS_BANK_KEY, JSON.stringify(ideas));   }, [ideas]);
+  useEffect(() => { localStorage.setItem(BRIEFS_KEY,     JSON.stringify(briefs));  }, [briefs]);
+  useEffect(() => { localStorage.setItem(TASKS_KEY,      JSON.stringify(tasks));   }, [tasks]);
 
-  // ── Handlers ──
-  const addLine      = (l: ContentLine)   => setLines((prev) => [...prev, l]);
-  const deleteLine   = (id: string)       => setLines((prev) => prev.filter((l) => l.id !== id));
-  const addFormat    = (f: ContentFormat) => setFormats((prev) => [...prev, f]);
-  const deleteFormat = (id: string)       => setFormats((prev) => prev.filter((f) => f.id !== id));
+  // ── Task handlers ──
+  function addTask(title: string, date: string, source: ContentTask["source"], notes?: string) {
+    const t: ContentTask = {
+      id: uid(), title, date, notes, source, status: "pending", createdAt: Date.now(),
+    };
+    setTasks((prev) => [...prev, t]);
+  }
 
-  const addIdea    = (i: Idea)   => setIdeas((prev) => [i, ...prev]);
-  const deleteIdea = (id: string) => setIdeas((prev) => prev.filter((i) => i.id !== id));
+  function toggleDone(id: string) {
+    setTasks((prev) => prev.map((t) =>
+      t.id === id ? { ...t, status: t.status === "done" ? "pending" : "done" } : t
+    ));
+  }
 
-  const addPost      = (p: Post)   => setPosts((prev) => [...prev, p]);
-  const deletePost   = (id: string) => setPosts((prev) => prev.filter((p) => p.id !== id));
-  const changeStatus = (id: string, status: PostStatus) =>
-    setPosts((prev) => prev.map((p) => p.id === id ? { ...p, status } : p));
+  function deleteTask(id: string) {
+    setTasks((prev) => prev.filter((t) => t.id !== id));
+  }
 
-  const addBrief    = (b: Brief)  => setBriefs((prev) => [b, ...prev]);
-  const deleteBrief = (id: string) => setBriefs((prev) => prev.filter((b) => b.id !== id));
+  // ── Sheet handlers ──
+  function openSheet(s: "inspire" | "ideas" | "scripts") {
+    setVideoRef(null);
+    setSheet(s);
+  }
 
-  // ── Views ──
-  if (view === "setup") return (
-    <SetupView
-      lines={lines} formats={formats} onBack={() => setView("hub")}
-      onAddLine={addLine} onDeleteLine={deleteLine}
-      onAddFormat={addFormat} onDeleteFormat={deleteFormat}
-    />
-  );
+  function closeSheet() {
+    setSheet("none");
+    setVideoRef(null);
+    setPendingTask(null);
+  }
 
-  if (view === "scripts") return (
-    <ScriptsView
-      briefs={briefs} formats={formats} lines={lines}
-      onBack={() => setView("hub")}
-      onAdd={addBrief} onDelete={deleteBrief}
-      onAddPost={addPost}
-    />
-  );
+  function requestSchedule(title: string, source: ContentTask["source"], notes?: string) {
+    setPendingTask({ title, notes, source });
+  }
 
-  if (view === "ideas") return (
-    <IdeasBankView
-      ideas={ideas} lines={lines} formats={formats}
-      onBack={() => setView("hub")}
-      onAdd={addIdea} onDelete={deleteIdea}
-      onAddPost={addPost}
-    />
-  );
+  function confirmSchedule(date: string) {
+    if (!pendingTask) return;
+    addTask(pendingTask.title, date, pendingTask.source, pendingTask.notes);
+    setPendingTask(null);
+    closeSheet();
+  }
 
-  if (view === "calendar") return (
-    <CalendarView
-      posts={posts} lines={lines} formats={formats} onBack={() => setView("hub")}
-      onAdd={addPost} onDelete={deletePost} onStatusChange={changeStatus}
-    />
-  );
-
-  if (view === "trending") return (
-    <TrendingView isPro={isPro} onBack={() => setView("hub")} />
-  );
+  function useVideoAsReference(video: VideoRef) {
+    setVideoRef(video);
+    setSheet("scripts");
+  }
 
   return (
-    <HubView
-      onNavigate={setView}
-      posts={posts}
-      ideas={ideas}
-      briefs={briefs}
-      isPro={isPro}
-    />
+    <div className="relative">
+      {/* Main calendar hub */}
+      <CalendarHub
+        tasks={tasks}
+        onOpenSheet={openSheet}
+        onToggleDone={toggleDone}
+        onDeleteTask={deleteTask}
+      />
+
+      {/* Bottom sheet overlay */}
+      {sheet !== "none" && (
+        <>
+          <div
+            className="fixed inset-0 z-30 bg-black/70 backdrop-blur-sm"
+            onClick={closeSheet}
+          />
+          <div className="fixed bottom-0 left-0 right-0 z-40 mx-auto max-w-lg h-[88vh] rounded-t-3xl border-t border-white/10 bg-zinc-950 overflow-y-auto">
+            {/* Drag handle + close */}
+            <div className="sticky top-0 z-10 flex items-center px-4 pt-4 pb-2 bg-zinc-950 border-b border-white/5">
+              <div className="w-10 h-1 rounded-full bg-white/20 mx-auto" />
+              <button
+                onClick={closeSheet}
+                className="absolute right-4 top-4 text-zinc-500 hover:text-white transition text-sm"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="px-2 pb-8 pt-2">
+              {sheet === "inspire" && (
+                <TrendingView
+                  isPro={isPro}
+                  onBack={closeSheet}
+                  onUseAsReference={useVideoAsReference}
+                  onRequestSchedule={(title: string, notes?: string) => requestSchedule(title, "inspire", notes)}
+                />
+              )}
+              {sheet === "ideas" && (
+                <IdeasBankView
+                  ideas={ideas}
+                  onBack={closeSheet}
+                  onAdd={(i) => setIdeas((prev) => [i, ...prev])}
+                  onDelete={(id) => setIdeas((prev) => prev.filter((i) => i.id !== id))}
+                  onRequestSchedule={(title: string, notes?: string) => requestSchedule(title, "ideas", notes)}
+                />
+              )}
+              {sheet === "scripts" && (
+                <ScriptsView
+                  briefs={briefs}
+                  videoRef={videoRef}
+                  onBack={closeSheet}
+                  onAdd={(b) => setBriefs((prev) => [b, ...prev])}
+                  onDelete={(id) => setBriefs((prev) => prev.filter((b) => b.id !== id))}
+                  onRequestSchedule={(title: string, notes?: string) => requestSchedule(title, "scripts", notes)}
+                />
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Schedule prompt */}
+      {pendingTask && (
+        <SchedulePrompt
+          taskTitle={pendingTask.title}
+          onConfirm={confirmSchedule}
+          onSkip={() => { setPendingTask(null); closeSheet(); }}
+        />
+      )}
+    </div>
   );
 }
