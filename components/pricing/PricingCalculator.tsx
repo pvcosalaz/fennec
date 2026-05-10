@@ -876,21 +876,21 @@ export default function PricingCalculator() {
                   onClick={() => { setActiveTab(tab.id); setBusinessView("hub"); }}
                   className="flex flex-1 flex-col items-center gap-1 text-xs transition"
                 >
-                  <div className={`relative flex h-12 w-12 items-center justify-center rounded-full transition ${
+                  <div className={`relative flex h-12 w-12 items-center justify-center rounded-xl transition ${
                     isActive
-                      ? "bg-accent shadow-lg shadow-accent/50"
-                      : "bg-accent/10 hover:bg-accent/20"
+                      ? "bg-accent/10"
+                      : "hover:bg-white/5"
                   }`}>
                     <img
                       src="/fennec-logo.png"
                       alt="Fennec"
                       style={{
-                        width: 40,
+                        width: 38,
                         height: "auto",
-                        transform: "scaleX(-1)",
-                        filter: isActive ? "none" : "invert(1)",
-                        mixBlendMode: isActive ? "multiply" : "normal",
-                        opacity: isActive ? 1 : 0.9,
+                        filter: isActive
+                          ? "invert(1) sepia(1) saturate(3) hue-rotate(5deg) brightness(1.1)"
+                          : "invert(1) brightness(0.4)",
+                        transition: "filter 0.2s",
                       }}
                       onError={(e) => {
                         (e.currentTarget as HTMLImageElement).style.display = "none";
@@ -899,7 +899,7 @@ export default function PricingCalculator() {
                       }}
                     />
                     <Globe
-                      className={`h-5 w-5 hidden ${isActive ? "text-black" : "text-accent"}`}
+                      className={`h-5 w-5 hidden ${isActive ? "text-accent" : "text-zinc-500"}`}
                     />
                   </div>
                 </button>
