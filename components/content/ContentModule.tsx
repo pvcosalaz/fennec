@@ -620,71 +620,14 @@ function SetupView({
 
 // ─── Ideas Bank ───────────────────────────────────────────────────────────────
 
-function ScheduleMiniForm({
-  idea, lines, formats, onSchedule, onClose,
-}: {
-  idea: Idea;
-  lines: ContentLine[];
-  formats: ContentFormat[];
-  onSchedule: (p: Post) => void;
-  onClose: () => void;
-}) {
-  const [fDate, setFDate] = useState(toYMD(new Date()));
-  const [done,  setDone]  = useState(false);
-
-  function submit() {
-    if (!fDate) return;
-    const line   = lines[0];
-    const format = formats[0];
-    onSchedule({
-      id: uid(),
-      lineId:      line?.id ?? "",    lineName:    line?.name ?? "",
-      formatId:    format?.id ?? "",  formatName:  format?.name ?? "",
-      formatColor: format?.color ?? "#6bcb77",
-      title: idea.title,
-      notes: idea.notes,
-      date: fDate,
-      status: "pending",
-      createdAt: Date.now(),
-    });
-    setDone(true);
-    setTimeout(onClose, 1200);
-  }
-
-  if (done) return (
-    <div className="flex items-center gap-2 rounded-xl bg-emerald-400/10 px-3 py-2 text-xs text-emerald-400">
-      <Check className="h-3.5 w-3.5" /> Added to calendar!
-    </div>
-  );
-
-  return (
-    <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/40 px-3 py-2">
-      <input
-        type="date"
-        value={fDate}
-        onChange={(e) => setFDate(e.target.value)}
-        className="flex-1 h-8 rounded-lg border border-white/10 bg-transparent px-2 text-xs text-white outline-none focus:border-accent [color-scheme:dark]"
-      />
-      <button onClick={onClose} className="text-xs text-zinc-500 hover:text-white transition px-1">
-        Cancel
-      </button>
-      <button onClick={submit} className="rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-black whitespace-nowrap">
-        Add to calendar
-      </button>
-    </div>
-  );
-}
-
 function IdeasBankView({
-  ideas, lines, formats, onBack, onAdd, onDelete, onAddPost,
+  ideas, onBack, onAdd, onDelete, onRequestSchedule,
 }: {
   ideas: Idea[];
-  lines: ContentLine[];
-  formats: ContentFormat[];
   onBack: () => void;
-  onAdd: (idea: Idea) => void;
+  onAdd: (i: Idea) => void;
   onDelete: (id: string) => void;
-  onAddPost: (p: Post) => void;
+  onRequestSchedule?: (title: string, notes?: string) => void;
 }) {
   const [tab,          setTab]          = useState<IdeaCategory>("meme");
   const [showForm,     setShowForm]     = useState(false);
@@ -692,11 +635,6 @@ function IdeasBankView({
   const [title,        setTitle]        = useState("");
   const [notes,        setNotes]        = useState("");
   const [url,          setUrl]          = useState("");
-
-  // Post-save schedule prompt
-  const [savedIdea,      setSavedIdea]      = useState<Idea | null>(null);
-  const [ideaSchedDate,  setIdeaSchedDate]  = useState(toYMD(new Date()));
-  const [ideaSchedDone,  setIdeaSchedDone]  = useState(false);
 
   const filtered = ideas.filter((i) => i.category === tab);
 
@@ -706,35 +644,13 @@ function IdeasBankView({
     const idea: Idea = { id: uid(), category: tab, title: t, notes: notes.trim() || undefined, url: url.trim() || undefined, createdAt: Date.now() };
     onAdd(idea);
     setTitle(""); setNotes(""); setUrl("");
-    setSavedIdea(idea); // → muestra prompt de calendario
-    setIdeaSchedDate(toYMD(new Date()));
-    setIdeaSchedDone(false);
-  }
-
-  function scheduleIdea() {
-    if (!savedIdea || !formats[0] || !lines[0]) return;
-    onAddPost({
-      id: uid(),
-      lineId: lines[0].id,     lineName: lines[0].name,
-      formatId: formats[0].id, formatName: formats[0].name, formatColor: formats[0].color,
-      title: savedIdea.title,  notes: savedIdea.notes,
-      date: ideaSchedDate,     status: "pending", createdAt: Date.now(),
-    });
-    setIdeaSchedDone(true);
-    setTimeout(() => { setSavedIdea(null); setShowForm(false); }, 1200);
-  }
-
-  function dismissIdeaPrompt() {
-    setSavedIdea(null);
     setShowForm(false);
+    onRequestSchedule?.(idea.title, idea.notes || undefined);
   }
 
   return (
     <div className="mx-auto w-full max-w-4xl space-y-5 px-2">
       <div className="flex items-center gap-3">
-        <button onClick={onBack} className="text-zinc-400 hover:text-accent transition">
-          <ArrowLeft className="h-5 w-5" />
-        </button>
         <div>
           <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">Content</p>
           <h1 className="text-2xl font-bold text-white">Quick Ideas</h1>
@@ -768,68 +684,40 @@ function IdeasBankView({
         })}
       </div>
 
-      {/* Add form / post-save prompt */}
+      {/* Add form */}
       {showForm && (
         <div className="rounded-2xl border border-accent/30 bg-accent/5 p-4 space-y-3">
-          {savedIdea ? (
-            ideaSchedDone ? (
-              <div className="flex items-center gap-2 py-2 text-emerald-400">
-                <Check className="h-4 w-4" />
-                <span className="text-sm font-semibold">Added to calendar!</span>
-              </div>
-            ) : (
-              <>
-                <p className="text-sm font-semibold text-white">Add to production calendar?</p>
-                <p className="text-xs text-zinc-500 truncate">"{savedIdea.title}"</p>
-                <input
-                  type="date"
-                  value={ideaSchedDate}
-                  onChange={(e) => setIdeaSchedDate(e.target.value)}
-                  className="w-full h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none focus:border-accent [color-scheme:dark]"
-                />
-                <div className="flex gap-2 justify-end">
-                  <button onClick={dismissIdeaPrompt} className="px-3 py-1.5 text-xs text-zinc-400 hover:text-white transition">Skip</button>
-                  <button onClick={scheduleIdea} className="flex items-center gap-1 rounded-xl bg-accent px-4 py-1.5 text-xs font-semibold text-black">
-                    <Calendar className="h-3.5 w-3.5" /> Schedule
-                  </button>
-                </div>
-              </>
-            )
-          ) : (
-            <>
-              <p className="text-xs font-semibold text-accent uppercase tracking-widest">
-                New {IDEA_CATEGORIES.find((c) => c.id === tab)?.label.slice(0, -1)}
-              </p>
-              <input
-                autoFocus
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Title or idea..."
-                className="w-full h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-accent"
-              />
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Notes (optional)"
-                rows={2}
-                className="w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white outline-none resize-none placeholder:text-zinc-600 focus:border-accent"
-              />
-              <input
-                type="url"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                placeholder="URL (optional)"
-                className="w-full h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-accent"
-              />
-              <div className="flex gap-2 justify-end">
-                <button onClick={() => setShowForm(false)} className="px-3 py-1.5 text-xs text-zinc-400 hover:text-white transition">Cancel</button>
-                <button onClick={submit} className="flex items-center gap-1 rounded-xl bg-accent px-4 py-1.5 text-xs font-semibold text-black">
-                  <Check className="h-3.5 w-3.5" /> Save
-                </button>
-              </div>
-            </>
-          )}
+          <p className="text-xs font-semibold text-accent uppercase tracking-widest">
+            New {IDEA_CATEGORIES.find((c) => c.id === tab)?.label.slice(0, -1)}
+          </p>
+          <input
+            autoFocus
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Title or idea..."
+            className="w-full h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-accent"
+          />
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Notes (optional)"
+            rows={2}
+            className="w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white outline-none resize-none placeholder:text-zinc-600 focus:border-accent"
+          />
+          <input
+            type="url"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="URL (optional)"
+            className="w-full h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-accent"
+          />
+          <div className="flex gap-2 justify-end">
+            <button onClick={() => setShowForm(false)} className="px-3 py-1.5 text-xs text-zinc-400 hover:text-white transition">Cancel</button>
+            <button onClick={submit} className="flex items-center gap-1 rounded-xl bg-accent px-4 py-1.5 text-xs font-semibold text-black">
+              <Check className="h-3.5 w-3.5" /> Save
+            </button>
+          </div>
         </div>
       )}
 
@@ -865,23 +753,13 @@ function IdeasBankView({
                 </a>
               )}
 
-              {/* Schedule toggle */}
-              {schedulingId === idea.id ? (
-                <ScheduleMiniForm
-                  idea={idea}
-                  lines={lines}
-                  formats={formats}
-                  onSchedule={(p) => { onAddPost(p); }}
-                  onClose={() => setSchedulingId(null)}
-                />
-              ) : (
-                <button
-                  onClick={() => setSchedulingId(idea.id)}
-                  className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-zinc-400 hover:border-accent/40 hover:text-accent transition"
-                >
-                  <Calendar className="h-3 w-3" /> Add to calendar
-                </button>
-              )}
+              {/* Schedule button */}
+              <button
+                onClick={() => { onRequestSchedule?.(idea.title, idea.notes || undefined); setSchedulingId(null); }}
+                className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-zinc-400 hover:border-accent/40 hover:text-accent transition"
+              >
+                <Calendar className="h-3 w-3" /> Add to calendar
+              </button>
             </div>
           ))}
         </div>
