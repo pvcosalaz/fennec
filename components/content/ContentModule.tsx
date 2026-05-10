@@ -12,6 +12,7 @@ import {
 } from "@/lib/contentData";
 import CalendarHub from "./CalendarHub";
 import SchedulePrompt from "./SchedulePrompt";
+import ScriptWriterOverlay from "./ScriptWriterOverlay";
 
 const TASKS_KEY = "fennec-content-tasks-v1";
 
@@ -31,7 +32,9 @@ type VideoRef = {
   title: string;
   channel: string;
   angle: string;
+  why: string;
   url: string;
+  thumbnail: string;
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -385,7 +388,7 @@ const CACHE_TTL_MS = 1000 * 60 * 60 * 24; // 24 horas
 function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule }: {
   isPro: boolean;
   onBack: () => void;
-  onUseAsReference?: (video: { title: string; channel: string; angle: string; url: string }) => void;
+  onUseAsReference?: (video: VideoRef) => void;
   onRequestSchedule?: (title: string, notes?: string) => void;
 }) {
   const [videos,  setVideos]  = useState<TrendingVideo[]>([]);
@@ -535,7 +538,9 @@ function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule }: {
                       title: v.title,
                       channel: v.channel,
                       angle: v.angle,
+                      why: v.why,
                       url: v.url,
+                      thumbnail: v.thumbnail,
                     })}
                     className="flex-1 py-2 rounded-xl bg-accent/10 border border-accent/30 text-xs font-semibold text-accent hover:bg-accent/20 transition"
                   >
@@ -559,6 +564,7 @@ export default function ContentModule() {
   const [tasks,  setTasks]  = useState<ContentTask[]>([]);
   const [sheet,  setSheet]  = useState<ActiveSheet>("none");
   const [videoRef, setVideoRef] = useState<VideoRef | null>(null);
+  const [scriptWriter, setScriptWriter] = useState<VideoRef | null>(null);
   const [pendingTask, setPendingTask] = useState<{
     title: string; notes?: string; source: ContentTask["source"];
   } | null>(null);
@@ -628,8 +634,8 @@ export default function ContentModule() {
   }
 
   function useVideoAsReference(video: VideoRef) {
-    setVideoRef(video);
-    setSheet("scripts");
+    setSheet("none"); // close the Inspire sheet
+    setScriptWriter(video); // open full-screen writer
   }
 
   return (
@@ -685,6 +691,30 @@ export default function ContentModule() {
             </div>
           </div>
         </>
+      )}
+
+      {/* Full-screen script writer (from Inspire reference) */}
+      {scriptWriter && (
+        <ScriptWriterOverlay
+          videoRef={scriptWriter}
+          onClose={() => setScriptWriter(null)}
+          onSave={(title, script) => {
+            const brief = {
+              id: uid(),
+              title,
+              script,
+              formatId: "",
+              formatName: "Script",
+              formatColor: "#f5a623",
+              lineId: "",
+              lineName: "Inspire",
+              createdAt: Date.now(),
+            };
+            setBriefs((prev) => [brief, ...prev]);
+            setScriptWriter(null);
+            requestSchedule(title, "inspire", script || undefined);
+          }}
+        />
       )}
 
       {/* Schedule prompt */}

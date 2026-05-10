@@ -4,13 +4,17 @@ import Anthropic from "@anthropic-ai/sdk";
 // Keywords que rotamos para cubrir el nicho de producción musical
 const KEYWORD_SETS = [
   "music production tips 2025",
-  "beat making tutorial",
-  "fl studio tutorial",
-  "logic pro tips",
-  "ableton live tutorial",
-  "how to mix music",
-  "music producer workflow",
-  "sample flipping tutorial",
+  "beat making tutorial producer",
+  "fl studio beat tutorial",
+  "logic pro music production",
+  "ableton live music producer",
+  "how to mix and master music",
+  "music producer workflow studio",
+  "sample flipping beat making",
+  "music composer tips",
+  "film scoring tutorial composer",
+  "DAW tutorial music production",
+  "music producer secrets",
 ];
 
 export type TrendingVideo = {
@@ -55,6 +59,7 @@ async function fetchYouTubeVideos(keyword: string, maxResults = 4) {
   url.searchParams.set("order", "viewCount");
   url.searchParams.set("maxResults", String(maxResults));
   url.searchParams.set("relevanceLanguage", "en");
+  url.searchParams.set("videoCategoryId", "10"); // Music category
   url.searchParams.set("key", process.env.YOUTUBE_API_KEY!);
 
   const res  = await fetch(url.toString());
@@ -81,20 +86,23 @@ async function fetchVideoStats(videoIds: string[]) {
 
 async function analyzeWithClaude(videos: {
   title: string; channel: string; views: number;
-}[]): Promise<{ why: string; angle: string; tag: string; tagColor: string }[]> {
+}[]): Promise<{ relevant: boolean; why: string; angle: string; tag: string; tagColor: string }[]> {
   const client = new Anthropic({ apiKey: process.env.FENNEC_ANTHROPIC_KEY });
 
   const prompt = `You are an expert music production content strategist. Analyze these YouTube videos that are trending in the music production niche this week.
 
+IMPORTANT: Some videos may be off-topic (not related to music production, beat making, composing, mixing, or the music business). For those, set "relevant": false and skip real analysis.
+
 For each video, provide:
-1. "why": 1-2 sentences explaining why it's performing well (what hook, format, or topic is resonating). Be specific and insightful, not generic.
-2. "angle": 1 sentence suggesting how a music producer/composer could adapt this content idea for their own channel.
-3. "tag": Pick ONE tag from this list that best describes the video's content strategy: "Trending", "Viral format", "Underrated", "Educational", "Storytelling"
+1. "relevant": true if the video is about music production, beat making, composing, mixing, music gear, or the music industry. false otherwise.
+2. "why": (only if relevant=true) 1-2 sentences explaining why it's performing well. Be specific and insightful.
+3. "angle": (only if relevant=true) 1 sentence on how a music producer/composer could adapt this idea for their channel.
+4. "tag": (only if relevant=true) Pick ONE: "Trending", "Viral format", "Underrated", "Educational", "Storytelling". If relevant=false, use "Trending".
 
 Videos to analyze:
 ${videos.map((v, i) => `${i + 1}. "${v.title}" by ${v.channel} — ${formatViews(v.views)}`).join("\n")}
 
-Respond ONLY with a valid JSON array with ${videos.length} objects, each with keys: "why", "angle", "tag". No markdown, no explanation.`;
+Respond ONLY with a valid JSON array with ${videos.length} objects, each with keys: "relevant", "why", "angle", "tag". No markdown, no explanation.`;
 
   const message = await client.messages.create({
     model:      "claude-haiku-4-5",
@@ -105,10 +113,11 @@ Respond ONLY with a valid JSON array with ${videos.length} objects, each with ke
   let text = (message.content[0] as { type: string; text: string }).text.trim();
   // Strip markdown code fences if present
   text = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
-  const parsed = JSON.parse(text) as { why: string; angle: string; tag: string }[];
+  const parsed = JSON.parse(text) as { relevant: boolean; why: string; angle: string; tag: string }[];
 
   return parsed.map((item) => ({
     ...item,
+    relevant: item.relevant !== false,
     tagColor: TAG_COLORS.find((t) => t.tag === item.tag)?.color ?? TAG_COLORS[0].color,
   }));
 }
@@ -158,20 +167,25 @@ export async function GET() {
       forAnalysis.map((v) => ({ title: v.title, channel: v.channel, views: v.views }))
     );
 
-    // Merge
-    const videos: TrendingVideo[] = forAnalysis.map((v, i) => ({
-      id:          v.id,
-      title:       v.title,
-      channel:     v.channel,
-      thumbnail:   v.thumb,
-      views:       formatViews(v.views),
-      url:         `https://www.youtube.com/watch?v=${v.id}`,
-      publishedAt: v.published,
-      why:         analyses[i]?.why   ?? "",
-      angle:       analyses[i]?.angle ?? "",
-      tag:         analyses[i]?.tag   ?? "Trending",
-      tagColor:    analyses[i]?.tagColor ?? TAG_COLORS[0].color,
-    }));
+    // Merge + filter out off-topic videos
+    const videos: TrendingVideo[] = forAnalysis
+      .map((v, i) => ({
+        id:          v.id,
+        title:       v.title,
+        channel:     v.channel,
+        thumbnail:   v.thumb,
+        views:       formatViews(v.views),
+        url:         `https://www.youtube.com/watch?v=${v.id}`,
+        publishedAt: v.published,
+        why:         analyses[i]?.why   ?? "",
+        angle:       analyses[i]?.angle ?? "",
+        tag:         analyses[i]?.tag   ?? "Trending",
+        tagColor:    analyses[i]?.tagColor ?? TAG_COLORS[0].color,
+        relevant:    analyses[i]?.relevant !== false,
+      }))
+      .filter((v) => v.relevant);
+
+    console.log(`[trending-ideas] after relevance filter: ${videos.length} / ${forAnalysis.length} videos`);
 
     return NextResponse.json({ videos, cachedAt: Date.now() });
   } catch (err) {
