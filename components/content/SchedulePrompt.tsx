@@ -44,9 +44,9 @@ export default function SchedulePrompt({
             <div className="h-12 w-12 rounded-full bg-accent/20 flex items-center justify-center">
               <Check className="h-6 w-6 text-accent" />
             </div>
-            <p className="text-sm font-semibold text-white">¡Agendado! 🎬</p>
+            <p className="text-sm font-semibold text-white">Scheduled! 🎬</p>
             <p className="text-xs text-zinc-500 text-center">
-              Aparecerá en tu calendario de contenido.
+              It&apos;ll show up on your content calendar.
             </p>
           </div>
         ) : (
@@ -59,7 +59,7 @@ export default function SchedulePrompt({
               </div>
               <div>
                 <p className="text-sm font-bold text-white">
-                  ¿Cuándo lo agendamos?
+                  When should we schedule this?
                 </p>
                 <p className="text-xs text-zinc-500 line-clamp-2">
                   {taskTitle}
@@ -82,14 +82,14 @@ export default function SchedulePrompt({
                 onClick={onSkip}
                 className="flex-1 py-3 rounded-2xl border border-white/10 text-sm text-zinc-400 hover:bg-white/5 transition-colors"
               >
-                Ahora no
+                Not now
               </button>
               <button
                 onClick={handleConfirm}
                 disabled={!date}
                 className="flex-1 py-3 rounded-2xl bg-accent text-sm font-bold text-black disabled:opacity-50 disabled:cursor-not-allowed hover:bg-accent/90 transition-colors"
               >
-                Agendar
+                Schedule
               </button>
             </div>
           </>

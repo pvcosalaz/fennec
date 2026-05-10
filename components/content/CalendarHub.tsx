@@ -39,12 +39,12 @@ function getWeekDays(anchor: Date): Date[] {
 
 function greeting(userName: string): { text: string; emoji: string } {
   const h = new Date().getHours();
-  if (h < 12) return { text: `Buenos días, ${userName}`, emoji: "☀️" };
-  if (h < 19) return { text: `Buenas tardes, ${userName}`, emoji: "👋" };
-  return { text: `Buenas noches, ${userName}`, emoji: "🌙" };
+  if (h < 12) return { text: `Good morning, ${userName}`, emoji: "☀️" };
+  if (h < 19) return { text: `Good afternoon, ${userName}`, emoji: "👋" };
+  return { text: `Good evening, ${userName}`, emoji: "🌙" };
 }
 
-const DAY_LABELS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const SOURCE_COLORS: Record<string, string> = {
   inspire: "bg-purple-400/20 text-purple-400",
@@ -128,7 +128,7 @@ export default function CalendarHub({
         </h1>
         <p className="text-sm text-zinc-400">
           {pendingThisWeek === 0
-            ? "No tienes tareas esta semana. ¡Agrega una! 🎬"
+            ? "No tasks this week. Add one! 🎬"
             : `Tienes ${pendingThisWeek} tarea${pendingThisWeek === 1 ? "" : "s"} pendiente${pendingThisWeek === 1 ? "" : "s"} esta semana.`}
         </p>
       </div>
@@ -199,7 +199,7 @@ export default function CalendarHub({
         </span>
 
         {selectedTasks.length === 0 ? (
-          <p className="text-xs text-zinc-600">Sin tareas este día.</p>
+          <p className="text-xs text-zinc-600">No tasks for this day.</p>
         ) : (
           <div className="flex flex-col gap-2">
             {selectedTasks.map((task) => {

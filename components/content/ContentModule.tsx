@@ -212,7 +212,7 @@ function ScriptsView({
 }) {
   const [tab,       setTab]       = useState<"create" | "list">("create");
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [fTitle,    setFTitle]    = useState(videoRef ? `Mi versión: ${videoRef.title.slice(0, 60)}` : "");
+  const [fTitle,    setFTitle]    = useState(videoRef ? `My take: ${videoRef.title.slice(0, 60)}` : "");
   const [fScript,   setFScript]   = useState("");
 
   function closeSheet() {
@@ -337,7 +337,7 @@ function ScriptsView({
         <div className="space-y-3">
           {videoRef && (
             <div className="rounded-2xl border border-purple-400/20 bg-purple-400/5 p-3 space-y-1 mb-3">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-purple-400">Referencia de Inspire</p>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-purple-400">Inspire Reference</p>
               <p className="text-sm text-white font-medium line-clamp-2">{videoRef.title}</p>
               <p className="text-xs text-zinc-400 line-clamp-2">💡 {videoRef.angle}</p>
             </div>
@@ -539,7 +539,7 @@ function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule }: {
                     })}
                     className="flex-1 py-2 rounded-xl bg-accent/10 border border-accent/30 text-xs font-semibold text-accent hover:bg-accent/20 transition"
                   >
-                    ✨ Usar como referencia
+                    ✨ Use as reference
                   </button>
                   <button
                     onClick={() => onRequestSchedule?.(
@@ -547,7 +547,7 @@ function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule }: {
                       `Referencia: ${v.url}\n\n${v.angle}`
                     )}
                     className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-zinc-400 hover:text-white transition"
-                    title="Agendar"
+                    title="Schedule"
                   >
                     📅
                   </button>
