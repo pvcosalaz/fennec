@@ -130,7 +130,9 @@ export async function GET() {
       return true;
     }).slice(0, 7);
 
+    console.log("[trending-ideas] allItems:", allItems.length, "unique:", unique.length);
     if (!unique.length) {
+      console.log("[trending-ideas] rawResults sample:", JSON.stringify(rawResults[0]?.[0]?.id ?? "empty"));
       return NextResponse.json({ videos: [], cachedAt: Date.now() });
     }
 
