@@ -135,14 +135,14 @@ export default function CalendarHub({
     <div className="flex flex-col min-h-full bg-zinc-950 text-white px-4 pt-6 pb-4 gap-5">
       {/* 1. Greeting section */}
       <div className="flex flex-col gap-1">
-        <span className="text-xs uppercase tracking-widest text-zinc-500">Content</span>
+        <span className="text-xs font-semibold uppercase tracking-widest text-accent">
+          Music Content Creation Hub
+        </span>
         <h1 className="text-2xl font-bold">
           {greetText} {greetEmoji}
         </h1>
-        <p className="text-sm text-zinc-400">
-          {pendingThisWeek === 0
-            ? "No tasks this week. Add one! 🎬"
-            : `Tienes ${pendingThisWeek} tarea${pendingThisWeek === 1 ? "" : "s"} pendiente${pendingThisWeek === 1 ? "" : "s"} esta semana.`}
+        <p className="text-sm text-zinc-400 leading-relaxed">
+          Inspire, create and organize your content for your music personal brand.
         </p>
       </div>
 
