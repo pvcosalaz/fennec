@@ -12,6 +12,7 @@ import {
   X,
   ChevronRight,
 } from "lucide-react";
+import Select from "@/components/ui/Select";
 import {
   type Project,
   type ProjectStatus,
@@ -46,6 +47,11 @@ function deadlineInfo(deadline: string): { label: string; color: string } {
 function nextStatus(current: ProjectStatus): ProjectStatus {
   const idx = STATUS_ORDER.indexOf(current);
   return STATUS_ORDER[Math.min(idx + 1, STATUS_ORDER.length - 1)];
+}
+
+function prevStatus(current: ProjectStatus): ProjectStatus | null {
+  const idx = STATUS_ORDER.indexOf(current);
+  return idx > 0 ? STATUS_ORDER[idx - 1] : null;
 }
 
 // ─── Empty state ──────────────────────────────────────────────────────────────
@@ -118,32 +124,24 @@ function ProjectForm({
       {/* Client */}
       <div className="space-y-1.5">
         <label className="text-xs text-zinc-400">Client</label>
-        <select
+        <Select
           value={form.clientId}
-          onChange={(e) => set("clientId", e.target.value)}
-          className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none focus:border-accent/50"
-        >
-          <option value="">— No client —</option>
-          {clients.map((c) => (
-            <option key={c.id} value={c.id}>{c.name}{c.company ? ` · ${c.company}` : ""}</option>
-          ))}
-        </select>
+          onChange={(val) => set("clientId", val)}
+          placeholder="— No client —"
+          options={clients.map((c) => ({ value: c.id, label: c.name + (c.company ? ` · ${c.company}` : "") }))}
+        />
       </div>
 
       {/* Type + Price */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <label className="text-xs text-zinc-400">Project type</label>
-          <select
+          <Select
             value={form.projectTypeId}
-            onChange={(e) => set("projectTypeId", e.target.value)}
-            className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none focus:border-accent/50"
-          >
-            <option value="">— Select —</option>
-            {projectTypes.map((pt) => (
-              <option key={pt.id} value={pt.id}>{pt.label}</option>
-            ))}
-          </select>
+            onChange={(val) => set("projectTypeId", val)}
+            placeholder="— Select —"
+            options={projectTypes.map((pt) => ({ value: pt.id, label: pt.label }))}
+          />
         </div>
         <div className="space-y-1.5">
           <label className="text-xs text-zinc-400">Agreed price *</label>
@@ -206,10 +204,12 @@ function ProjectForm({
 function ProjectCard({
   project,
   onAdvance,
+  onRevert,
   onDelete,
 }: {
   project: Project;
   onAdvance: () => void;
+  onRevert: () => void;
   onDelete: () => void;
 }) {
   const meta   = STATUS_META[project.status];
@@ -288,13 +288,25 @@ function ProjectCard({
           {formatCOP(project.price)}
         </p>
         {!isPaid && (
-          <button
-            onClick={onAdvance}
-            className="flex items-center gap-1.5 rounded-xl border border-white/10 px-3 py-1.5 text-xs font-medium text-zinc-300 transition hover:border-accent/50 hover:text-accent"
-          >
-            Mark as {STATUS_META[nextStatus(project.status)].label}
-            <ChevronRight className="h-3 w-3" />
-          </button>
+          <div className="flex items-center gap-2">
+            {prevStatus(project.status) !== null && project.status !== "in_progress" && (
+              <button
+                onClick={onRevert}
+                className="group flex items-center gap-1.5 rounded-xl border border-white/10 px-3 py-1.5 text-xs font-medium text-zinc-300 transition hover:border-accent/50 hover:text-accent"
+                title={`Back to ${STATUS_META[prevStatus(project.status)!].label}`}
+              >
+                <ChevronRight className="h-3 w-3 rotate-180 transition-colors group-hover:text-accent" />
+                {STATUS_META[prevStatus(project.status)!].label}
+              </button>
+            )}
+            <button
+              onClick={onAdvance}
+              className="flex items-center gap-1.5 rounded-xl border border-white/10 px-3 py-1.5 text-xs font-medium text-zinc-300 transition hover:border-accent/50 hover:text-accent"
+            >
+              Mark as {STATUS_META[nextStatus(project.status)].label}
+              <ChevronRight className="h-3 w-3" />
+            </button>
+          </div>
         )}
         {isPaid && (
           <span className="text-xs text-emerald-400 font-medium">✓ Closed</span>
@@ -350,6 +362,14 @@ export default function ActiveProjects({ onBack }: { onBack: () => void }) {
     save(projects.map((p) => p.id === id ? { ...p, status: nextStatus(p.status) } : p));
   };
 
+  const handleRevert = (id: string) => {
+    save(projects.map((p) => {
+      if (p.id !== id) return p;
+      const prev = prevStatus(p.status);
+      return prev ? { ...p, status: prev } : p;
+    }));
+  };
+
   const handleDelete = (id: string) => {
     save(projects.filter((p) => p.id !== id));
   };
@@ -363,7 +383,7 @@ export default function ActiveProjects({ onBack }: { onBack: () => void }) {
   const totalPaid    = paid.reduce((s, p) => s + p.price, 0);
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-6 px-2">
+    <div className="mx-auto w-full max-w-4xl space-y-6 px-4">
 
       {/* Header */}
       <div className="flex items-center gap-3">
@@ -419,6 +439,7 @@ export default function ActiveProjects({ onBack }: { onBack: () => void }) {
               key={p.id}
               project={p}
               onAdvance={() => handleAdvance(p.id)}
+              onRevert={() => handleRevert(p.id)}
               onDelete={() => handleDelete(p.id)}
             />
           ))}
@@ -434,6 +455,7 @@ export default function ActiveProjects({ onBack }: { onBack: () => void }) {
               key={p.id}
               project={p}
               onAdvance={() => handleAdvance(p.id)}
+              onRevert={() => handleRevert(p.id)}
               onDelete={() => handleDelete(p.id)}
             />
           ))}

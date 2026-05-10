@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import "@/lib/i18n";
 import {
   AudioWaveform,
@@ -26,6 +26,7 @@ import { getProfile, updateDbScore, uploadAudio, createPost } from "@/lib/commun
 import type { Profile } from "@/lib/communityTypes";
 import AuthGate from "@/components/community/AuthGate";
 import UsernameSetup from "@/components/community/UsernameSetup";
+import Select from "@/components/ui/Select";
 
 type FieldConfig = {
   key: string;
@@ -154,6 +155,49 @@ const mergePersistedState = (persisted: Partial<PricingState>): PricingState => 
   },
 });
 
+function DashboardWave() {
+  const fillRef   = useRef<SVGPathElement>(null);
+  const strokeRef = useRef<SVGPathElement>(null);
+  const rafRef    = useRef<number>(0);
+  const W = 400; const H = 64;
+
+  useEffect(() => {
+    let phase = 0;
+    const tick = () => {
+      phase += 0.0015;
+      const pts = Array.from({ length: 80 }, (_, i) => ({
+        x: (i / 79) * W,
+        y: H * 0.72
+          + Math.sin(i * 0.18 - phase) * H * 0.08
+          + Math.sin(i * 0.09 - phase * 0.6) * H * 0.03,
+      }));
+      let d = `M ${pts[0].x} ${pts[0].y}`;
+      for (let i = 1; i < pts.length; i++) {
+        const cw = (pts[i].x - pts[i-1].x) / 2;
+        d += ` C ${pts[i-1].x+cw} ${pts[i-1].y} ${pts[i].x-cw} ${pts[i].y} ${pts[i].x} ${pts[i].y}`;
+      }
+      fillRef.current?.setAttribute("d", d + ` L ${W} ${H} L 0 ${H} Z`);
+      strokeRef.current?.setAttribute("d", d);
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, []);
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="wg2" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#f5a623" stopOpacity="0.45" />
+          <stop offset="100%" stopColor="#f5a623" stopOpacity="0.03" />
+        </linearGradient>
+      </defs>
+      <path ref={fillRef}   fill="url(#wg2)" />
+      <path ref={strokeRef} fill="none" stroke="#f5a623" strokeWidth="1.5" strokeOpacity="0.65" />
+    </svg>
+  );
+}
+
 const moduleTabs: {
   id: ModuleTab;
   labelKey: string;
@@ -206,6 +250,7 @@ export default function PricingCalculator() {
   const [showSetup, setShowSetup] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [businessView, setBusinessView] = useState<BusinessView>("hub");
+  const prevBusinessView = useRef<BusinessView>("hub");
 
   // Auto-open setup when user enters calculator without financial data
   useEffect(() => {
@@ -226,7 +271,10 @@ export default function PricingCalculator() {
   const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
+    const timeout = setTimeout(() => setAuthLoading(false), 4000);
+
     supabase.auth.getSession().then(({ data: { session } }) => {
+      clearTimeout(timeout);
       const user = session?.user ?? null;
       setAuthUser(user ? { id: user.id } : null);
       if (user) loadProfile(user.id);
@@ -371,16 +419,27 @@ export default function PricingCalculator() {
 
   return (
     <div className="flex h-screen flex-col">
-    <main className={`flex-1 overflow-y-auto pb-6 ${activeTab === "contenido" ? "pt-4" : "px-6 pt-10"}`}>
-      {/* Settings button — always visible, positioned differently per tab */}
-      <div className={`mb-4 flex w-full max-w-4xl justify-end ${activeTab === "contenido" ? "px-4" : ""}`}>
-        <button
-          onClick={() => setShowSettings(true)}
-          className="flex items-center justify-center h-8 w-8 rounded-xl border border-white/10 bg-white/5 text-zinc-400 hover:text-accent hover:border-accent/30 transition"
-        >
-          <Settings className="h-4 w-4" />
-        </button>
+    <main className="flex-1 overflow-y-auto pb-6 pt-6">
+      {/* Settings button */}
+      <div className={`flex w-full max-w-4xl items-center px-6 ${activeTab === "dashboard" ? "mb-0" : "mb-4"}`}>
+        <div className="flex-1" />
+        {activeTab === "dashboard" && profile.username && (
+          <span className="text-xl font-bold text-amber-400">@{profile.username}</span>
+        )}
+        <div className="flex-1 flex justify-end">
+          <button
+            onClick={() => setShowSettings(true)}
+            className="flex items-center justify-center h-8 w-8 rounded-xl border border-white/10 bg-white/5 text-zinc-400 hover:text-accent hover:border-accent/30 transition"
+          >
+            <Settings className="h-4 w-4" />
+          </button>
+        </div>
       </div>
+      {activeTab === "dashboard" && (
+        <div className="relative w-full h-16 mb-2 pointer-events-none overflow-hidden">
+          <DashboardWave />
+        </div>
+      )}
       {showSettings ? (
         <SettingsModule
           onBack={() => setShowSettings(false)}
@@ -389,15 +448,15 @@ export default function PricingCalculator() {
           avatarUrl={profile.avatar_url}
         />
       ) : activeTab === "pricing" && businessView === "hub" ? (
-        <BusinessHub onOpenView={setBusinessView} isPro={true} />
+        <BusinessHub onOpenView={setBusinessView} isPro={profile?.is_pro ?? true} />
       ) : activeTab === "pricing" && businessView === "projects" ? (
         <ActiveProjects onBack={() => setBusinessView("hub")} />
       ) : activeTab === "pricing" && businessView === "clients" ? (
-        <ClientsLeads onBack={() => setBusinessView("hub")} />
+        <ClientsLeads onBack={() => setBusinessView(prevBusinessView.current)} />
       ) : activeTab === "pricing" && businessView === "quotes" ? (
         <QuoteGenerator
           onBack={() => setBusinessView("hub")}
-          onGoToClients={() => setBusinessView("clients")}
+          onGoToClients={() => { prevBusinessView.current = "quotes"; setBusinessView("clients"); }}
           onGoToCalculator={() => setBusinessView("calculator")}
           onGoToProjects={() => setBusinessView("projects")}
         />
@@ -668,19 +727,11 @@ export default function PricingCalculator() {
                         <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
                           Project type
                         </span>
-                        <select
+                        <Select
                           value={state.selectedProjectType}
-                          onChange={(e) =>
-                            setState((prev) => ({ ...prev, selectedProjectType: e.target.value }))
-                          }
-                          className="h-11 rounded-xl border border-white/15 bg-black/40 px-3 text-white outline-none focus:border-accent"
-                        >
-                          {projectTypes.map((project) => (
-                            <option key={project.id} value={project.id}>
-                              {t(project.nameKey)}
-                            </option>
-                          ))}
-                        </select>
+                          onChange={(val) => setState((prev) => ({ ...prev, selectedProjectType: val }))}
+                          options={projectTypes.map((p) => ({ value: p.id, label: t(p.nameKey) }))}
+                        />
                       </label>
 
                       {/* Quantity selector */}
@@ -764,7 +815,14 @@ export default function PricingCalculator() {
 
                   {/* ── Upsell CTA ───────────────────────────────── */}
                   <button
-                    onClick={() => setShowUpgrade(true)}
+                    onClick={() => {
+                      if (profile?.is_pro) {
+                        setBusinessView("quotes");
+                        setActiveTab("pricing");
+                      } else {
+                        setShowUpgrade(true);
+                      }
+                    }}
                     className="w-full rounded-2xl bg-gradient-to-r from-amber-500 to-amber-400 py-4 px-5 flex items-center justify-between shadow-lg shadow-amber-500/25 hover:brightness-110 transition active:scale-[0.98]"
                   >
                     <div className="text-left">
@@ -780,7 +838,7 @@ export default function PricingCalculator() {
           )}
 
           {/* ── Upgrade sheet ─────────────────────────────────────── */}
-          {showUpgrade && (
+          {showUpgrade && !profile?.is_pro && (
             <>
               <div className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm" onClick={() => setShowUpgrade(false)} />
               <div className="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl bg-zinc-950 border-t border-white/10 p-6 space-y-5">
@@ -841,65 +899,55 @@ export default function PricingCalculator() {
       ) : null}
 
     </main>
-      <nav className="shrink-0 px-4 pb-4 pt-2">
-        <div className="mx-auto flex w-full max-w-2xl items-center rounded-2xl border border-white/10 bg-black/80 px-2 py-1.5 backdrop-blur-xl">
+      <nav className="shrink-0 border-t border-white/8 bg-black/90 backdrop-blur-xl">
+        <div className="mx-auto flex w-full max-w-2xl items-center px-2 pb-12 pt-2">
           {moduleTabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             const isHome   = tab.id === "dashboard";
             const isFennec = tab.id === "noticias";
 
-            /* ── Home button ────────────────────────────── */
-            if (isHome) {
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => { setActiveTab(tab.id); setBusinessView("hub"); }}
-                  className="flex flex-1 flex-col items-center gap-1 text-xs transition"
-                >
-                  <div className={`flex h-12 w-12 items-center justify-center rounded-full transition ${
-                    isActive
-                      ? "bg-accent shadow-md shadow-accent/40"
-                      : "bg-zinc-800 hover:bg-zinc-700"
-                  }`}>
-                    <Icon className={`h-6 w-6 ${isActive ? "text-black" : "text-zinc-400"}`} />
-                  </div>
-                </button>
-              );
-            }
-
-            /* ── Fennec tab — special pill ──────────────── */
+            /* ── Fennec tab — logo ──────────────────────── */
             if (isFennec) {
               return (
                 <button
                   key={tab.id}
                   onClick={() => { setActiveTab(tab.id); setBusinessView("hub"); }}
-                  className="flex flex-1 flex-col items-center gap-1 text-xs transition"
+                  className="flex flex-1 flex-col items-center justify-center py-3 transition"
                 >
-                  <div className="relative flex h-12 w-12 items-center justify-center">
-                    <img
-                      src="/fennec-logo.png"
-                      alt="Fennec"
-                      style={{
-                        width: 38,
-                        height: "auto",
-                        // inactive: same gray as zinc-500 icons (~44% white)
-                        // active: amber outline by colorizing to #f5a623
-                        filter: isActive
-                          ? "brightness(0) invert(1) sepia(1) saturate(6) hue-rotate(355deg) brightness(1.05)"
-                          : "brightness(0) invert(1)",
-                        opacity: isActive ? 1 : 0.45,
-                        transition: "filter 0.2s, opacity 0.2s",
-                      }}
-                      onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).style.display = "none";
-                        const fallback = e.currentTarget.nextElementSibling as HTMLElement | null;
-                        if (fallback) fallback.style.display = "block";
-                      }}
-                    />
-                    <Globe
-                      className={`h-5 w-5 hidden ${isActive ? "text-accent" : "text-zinc-500"}`}
-                    />
+                  <img
+                    src="/fennec-logo.png"
+                    alt="Fennec"
+                    style={{
+                      width: 28,
+                      height: "auto",
+                      filter: isActive
+                        ? "brightness(0) invert(1) sepia(1) saturate(5) hue-rotate(5deg) brightness(0.95)"
+                        : "brightness(0) invert(1)",
+                      opacity: isActive ? 1 : 0.4,
+                      transition: "filter 0.2s, opacity 0.2s",
+                    }}
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).style.display = "none";
+                    }}
+                  />
+                  {isActive && <div className="mt-1.5 h-0.5 w-4 rounded-full bg-accent" />}
+                </button>
+              );
+            }
+
+            /* ── Home ───────────────────────────────────── */
+            if (isHome) {
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => { setActiveTab(tab.id); setBusinessView("hub"); }}
+                  className="flex flex-1 flex-col items-center justify-center py-3 transition"
+                >
+                  <div className={`flex h-11 w-11 items-center justify-center rounded-full transition ${
+                    isActive ? "bg-accent shadow-md shadow-accent/40" : "bg-zinc-800"
+                  }`}>
+                    <Icon className={`h-6 w-6 ${isActive ? "text-black" : "text-zinc-400"}`} />
                   </div>
                 </button>
               );
@@ -910,17 +958,12 @@ export default function PricingCalculator() {
               <button
                 key={tab.id}
                 onClick={() => { setActiveTab(tab.id); setBusinessView("hub"); }}
-                className={`flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-2 py-2 text-xs transition group ${
-                  isActive
-                    ? "text-accent"
-                    : "text-zinc-500 hover:text-zinc-300"
+                className={`flex flex-1 flex-col items-center justify-center py-3 transition ${
+                  isActive ? "text-accent" : "text-zinc-500"
                 }`}
               >
-                <div className={`flex items-center justify-center rounded-xl p-2.5 transition ${
-                  isActive ? "bg-accent/10" : "group-hover:bg-white/8"
-                }`}>
-                  <Icon className="h-5 w-5" />
-                </div>
+                <Icon className="h-6 w-6" />
+                {isActive && <div className="mt-1.5 h-0.5 w-4 rounded-full bg-accent" />}
               </button>
             );
           })}

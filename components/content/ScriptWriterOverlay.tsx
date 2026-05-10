@@ -62,10 +62,10 @@ export default function ScriptWriterOverlay({ videoRef, onSave, onClose }: Props
 
       <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
 
-        {/* ── Video reference card ── */}
-        <div className="rounded-2xl overflow-hidden border border-purple-400/20">
-          {/* Thumbnail strip */}
-          {videoRef.thumbnail && (
+        {/* ── Reference card ── */}
+        <div className="rounded-2xl overflow-hidden border border-white/10">
+          {/* Thumbnail strip — video reference */}
+          {videoRef.thumbnail ? (
             <div className="relative h-28 w-full">
               <img
                 src={videoRef.thumbnail}
@@ -78,21 +78,20 @@ export default function ScriptWriterOverlay({ videoRef, onSave, onClose }: Props
                 <p className="text-zinc-400 text-[10px] mt-0.5">{videoRef.channel}</p>
               </div>
             </div>
+          ) : (
+            <div className="px-4 py-3 bg-zinc-900">
+              <p className="text-white text-sm font-semibold leading-snug">{videoRef.title}</p>
+            </div>
           )}
 
-          {/* Claude's angle — the key insight */}
-          <div className="bg-purple-500/10 px-4 py-3 space-y-2">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-purple-400">
-              ✦ Your angle
+          {/* Angle */}
+          <div className="bg-amber-400/8 px-4 py-3 space-y-2 border-t border-amber-400/15">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-amber-400">
+              Your angle
             </p>
             <p className="text-sm text-white leading-relaxed">{videoRef.angle}</p>
           </div>
 
-          {/* Why it works — collapsed context */}
-          <div className="bg-black/30 px-4 py-3 space-y-1">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">Why it works</p>
-            <p className="text-xs text-zinc-400 leading-relaxed">{videoRef.why}</p>
-          </div>
         </div>
 
         {/* ── Divider ── */}
@@ -127,15 +126,17 @@ export default function ScriptWriterOverlay({ videoRef, onSave, onClose }: Props
           />
         </div>
 
-        {/* Watch source */}
-        <a
-          href={videoRef.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-[10px] text-zinc-600 hover:text-zinc-400 transition"
-        >
-          Watch original on YouTube →
-        </a>
+        {/* Watch source — only if URL exists */}
+        {videoRef.url && (
+          <a
+            href={videoRef.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-[10px] text-zinc-600 hover:text-zinc-400 transition"
+          >
+            Watch original on YouTube →
+          </a>
+        )}
 
       </div>
     </div>

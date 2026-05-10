@@ -158,7 +158,7 @@ export default function CommentsView({ post, profile, onBack, onOpenProfile }: P
               value={text}
               onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-              placeholder="Escribe un comentario..."
+              placeholder="Write a comment..."
               className="flex-1 text-sm text-white placeholder:text-zinc-600 bg-transparent outline-none"
             />
             <button onClick={() => setShowGif(true)}>

@@ -280,8 +280,13 @@ function RecordView({
       if (timerRef.current) clearInterval(timerRef.current);
       timerRef.current = setInterval(() => setTimer((t) => t + 1), 1000);
       setPhase("recording");
-    } catch {
-      alert("Microphone access is required to record ideas.");
+    } catch (err) {
+      const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+      if (isIOS) {
+        alert("Microphone access is blocked.\n\nTo enable it:\nSettings → Safari → Microphone → Allow");
+      } else {
+        alert("Microphone access is required. Please allow it in your browser settings and try again.");
+      }
     }
   }
 

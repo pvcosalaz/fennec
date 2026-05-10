@@ -6,6 +6,7 @@ import {
   Lightbulb, Calendar, Sparkles, Lock,
   BookOpen, Smile, Quote, Music2, GraduationCap,
 } from "lucide-react";
+import { SiYoutube } from "react-icons/si";
 import {
   IDEAS_BANK_KEY, BRIEFS_KEY,
   type Idea, type IdeaCategory, type Brief,
@@ -13,6 +14,8 @@ import {
 import CalendarHub from "./CalendarHub";
 import SchedulePrompt from "./SchedulePrompt";
 import ScriptWriterOverlay from "./ScriptWriterOverlay";
+import ScriptDetailOverlay from "./ScriptDetailOverlay";
+import MusicContentLab from "./MusicContentLab";
 
 const TASKS_KEY = "fennec-content-tasks-v1";
 
@@ -82,7 +85,7 @@ function IdeasBankView({
   }
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-5 px-2">
+    <div className="mx-auto w-full max-w-4xl space-y-5 px-4">
       <div className="flex items-center gap-3">
         <div>
           <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">Content</p>
@@ -204,13 +207,14 @@ function IdeasBankView({
 // ─── Scripts (tap-to-select + bottom sheet) ───────────────────────────────────
 
 function ScriptsView({
-  briefs, onBack, onAdd, onDelete, onRequestSchedule, videoRef,
+  briefs, onBack, onAdd, onDelete, onRequestSchedule, onOpenDetail, videoRef,
 }: {
   briefs: Brief[];
   onBack: () => void;
   onAdd: (b: Brief) => void;
   onDelete: (id: string) => void;
   onRequestSchedule?: (title: string, notes?: string) => void;
+  onOpenDetail: (brief: Brief) => void;
   videoRef?: VideoRef | null;
 }) {
   const [tab,       setTab]       = useState<"create" | "list">("create");
@@ -240,7 +244,7 @@ function ScriptsView({
   }
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-5 px-2 pb-32">
+    <div className="mx-auto w-full max-w-4xl space-y-5 px-4 pb-32">
 
       {/* Header */}
       <div className="flex items-center gap-3">
@@ -296,7 +300,11 @@ function ScriptsView({
               </button>
             </div>
           ) : briefs.map((brief) => (
-            <div key={brief.id} className="group rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
+            <button
+              key={brief.id}
+              onClick={() => onOpenDetail(brief)}
+              className="group w-full text-left rounded-2xl border border-white/10 bg-white/5 overflow-hidden hover:border-white/20 transition-colors"
+            >
               <div className="h-1.5 w-full" style={{ backgroundColor: brief.formatColor }} />
               <div className="p-3 space-y-2">
                 <div className="flex flex-wrap gap-1.5">
@@ -309,15 +317,10 @@ function ScriptsView({
                 </div>
                 <p className="text-sm font-semibold text-white leading-snug">{brief.title}</p>
                 {brief.script && (
-                  <p className="text-xs text-zinc-400 leading-relaxed line-clamp-3 whitespace-pre-line">{brief.script}</p>
+                  <p className="text-xs text-zinc-400 leading-relaxed line-clamp-2 whitespace-pre-line">{brief.script}</p>
                 )}
-                <div className="flex items-center justify-end pt-1">
-                  <button onClick={() => onDelete(brief.id)} className="opacity-0 group-hover:opacity-100 text-zinc-600 hover:text-red-400 transition">
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
               </div>
-            </div>
+            </button>
           ))}
         </div>
       )}
@@ -438,7 +441,7 @@ function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule }: {
     : null;
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-5 px-2">
+    <div className="mx-auto w-full max-w-4xl space-y-5 px-4">
 
       {/* Header */}
       <div className="flex items-center gap-3">
@@ -500,7 +503,7 @@ function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule }: {
               {/* Thumbnail + meta */}
               <div className="flex gap-0">
                 <img
-                  src={v.thumbnail}
+                  src={`/api/img-proxy?url=${encodeURIComponent(v.thumbnail)}`}
                   alt={v.title}
                   className="w-36 h-24 object-cover shrink-0"
                 />
@@ -529,7 +532,8 @@ function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule }: {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-[10px] text-zinc-500 hover:text-white transition"
                 >
-                  Watch on YouTube →
+                  <SiYoutube className="h-3 w-3 text-red-500" />
+                  Watch on YouTube
                 </a>
                 {/* Action buttons */}
                 <div className="flex gap-2 pt-2 border-t border-white/5 mt-2">
@@ -565,6 +569,7 @@ export default function ContentModule() {
   const [sheet,  setSheet]  = useState<ActiveSheet>("none");
   const [videoRef, setVideoRef] = useState<VideoRef | null>(null);
   const [scriptWriter, setScriptWriter] = useState<VideoRef | null>(null);
+  const [detailBrief, setDetailBrief]   = useState<Brief | null>(null);
   const [pendingTask, setPendingTask] = useState<{
     title: string; notes?: string; source: ContentTask["source"];
   } | null>(null);
@@ -693,22 +698,31 @@ export default function ContentModule() {
                   onAdd={(b) => setBriefs((prev) => [b, ...prev])}
                   onDelete={(id) => setBriefs((prev) => prev.filter((b) => b.id !== id))}
                   onRequestSchedule={(title: string, notes?: string) => requestSchedule(title, "scripts", notes)}
+                  onOpenDetail={(brief) => { setSheet("none"); setDetailBrief(brief); }}
                 />
               )}
               {sheet === "lab" && (
-                <div className="flex flex-col items-center justify-center py-20 gap-4 text-center px-6">
-                  <div className="h-14 w-14 rounded-2xl bg-emerald-500/15 border border-emerald-400/20 flex items-center justify-center">
-                    <span className="text-2xl">🧪</span>
-                  </div>
-                  <div>
-                    <p className="text-white font-bold text-lg">Music Content Lab</p>
-                    <p className="text-zinc-500 text-sm mt-1">Your content pillars and formats — coming soon.</p>
-                  </div>
-                </div>
+                <MusicContentLab
+                  onClose={() => setSheet("none")}
+                  onGenerateScript={(ref) => {
+                    setSheet("none");
+                    setScriptWriter(ref);
+                  }}
+                />
               )}
             </div>
           </div>
         </>
+      )}
+
+      {/* Full-screen script detail view */}
+      {detailBrief && (
+        <ScriptDetailOverlay
+          brief={detailBrief}
+          onClose={() => setDetailBrief(null)}
+          onDelete={(id) => { setBriefs((prev) => prev.filter((b) => b.id !== id)); setDetailBrief(null); }}
+          onSchedule={(title, notes) => { setDetailBrief(null); requestSchedule(title, "scripts", notes); }}
+        />
       )}
 
       {/* Full-screen script writer (from Inspire reference) */}
@@ -717,15 +731,18 @@ export default function ContentModule() {
           videoRef={scriptWriter}
           onClose={() => setScriptWriter(null)}
           onSave={(title, script) => {
+            const isLabGenerated = !!scriptWriter?.channel && scriptWriter.channel !== "";
             const brief = {
               id: uid(),
               title,
               script,
               formatId: "",
-              formatName: "Script",
+              formatName: isLabGenerated ? scriptWriter!.channel : "Inspire",
               formatColor: "#f5a623",
               lineId: "",
-              lineName: "Inspire",
+              lineName: isLabGenerated
+                ? scriptWriter!.title.split(" — ").slice(1).join(" — ")
+                : scriptWriter?.title ?? "",
               createdAt: Date.now(),
             };
             setBriefs((prev) => [brief, ...prev]);

@@ -8,8 +8,8 @@ import {
   Trash2,
   AlertTriangle,
   CheckCircle2,
-  ChevronDown,
 } from "lucide-react";
+import Select from "@/components/ui/Select";
 import {
   type Client,
   type Quote,
@@ -210,7 +210,7 @@ export default function QuoteGenerator({
     }).format(new Date(ts));
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-6 px-2">
+    <div className="mx-auto w-full max-w-4xl space-y-6 px-4">
       {/* Back */}
       <button
         onClick={onBack}
@@ -296,20 +296,11 @@ export default function QuoteGenerator({
           {/* Project type */}
           <label className="flex flex-col gap-1.5">
             <span className="text-xs text-zinc-400">Project type *</span>
-            <div className="relative">
-              <select
-                value={form.projectTypeId}
-                onChange={(e) => handleProjectTypeChange(e.target.value)}
-                className="h-10 w-full appearance-none rounded-xl border border-white/15 bg-black/30 px-3 pr-8 text-sm text-white outline-none focus:border-accent"
-              >
-                {projectTypes.map((pt) => (
-                  <option key={pt.id} value={pt.id}>
-                    {pt.label}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-            </div>
+            <Select
+              value={form.projectTypeId}
+              onChange={handleProjectTypeChange}
+              options={projectTypes.map((pt) => ({ value: pt.id, label: pt.label }))}
+            />
           </label>
 
           {/* Pricing info */}
@@ -369,23 +360,12 @@ export default function QuoteGenerator({
                 </button>
               </div>
             ) : (
-              <div className="relative">
-                <select
-                  value={form.clientId}
-                  onChange={(e) =>
-                    setForm((p) => ({ ...p, clientId: e.target.value }))
-                  }
-                  className="h-10 w-full appearance-none rounded-xl border border-white/15 bg-black/30 px-3 pr-8 text-sm text-white outline-none focus:border-accent"
-                >
-                  <option value="">Select a client</option>
-                  {clients.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}{c.company ? ` — ${c.company}` : ""}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-              </div>
+              <Select
+                value={form.clientId}
+                onChange={(val) => setForm((p) => ({ ...p, clientId: val }))}
+                placeholder="Select a client"
+                options={clients.map((c) => ({ value: c.id, label: c.name + (c.company ? ` — ${c.company}` : "") }))}
+              />
             )}
           </div>
 

@@ -41,6 +41,7 @@ function getWeekDays(anchor: Date): Date[] {
 
 function greeting(userName: string): { text: string; emoji: string } {
   const h = new Date().getHours();
+  if (h < 5)  return { text: `Good evening, ${userName}`, emoji: "🌙" };
   if (h < 12) return { text: `Good morning, ${userName}`, emoji: "☀️" };
   if (h < 19) return { text: `Good afternoon, ${userName}`, emoji: "👋" };
   return { text: `Good evening, ${userName}`, emoji: "🌙" };
@@ -133,16 +134,16 @@ export default function CalendarHub({
   }
 
   return (
-    <div className="flex flex-col min-h-full bg-zinc-950 text-white px-4 pt-6 pb-4 gap-5">
+    <div className="flex flex-col bg-zinc-950 text-white gap-5">
       {/* 1. Greeting section */}
       <div className="flex flex-col gap-1">
-        <span className="text-xs font-semibold uppercase tracking-widest text-accent">
+        <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">
           Music Content Creation Hub
-        </span>
-        <h1 className="text-2xl font-bold">
+        </p>
+        <h1 className="mt-3 text-3xl font-bold tracking-tight text-white">
           {greetText} {greetEmoji}
         </h1>
-        <p className="text-sm text-zinc-400 leading-relaxed">
+        <p className="mt-2 text-sm text-zinc-400">
           Inspire, create and organize your content for your music personal brand.
         </p>
       </div>
@@ -207,7 +208,7 @@ export default function CalendarHub({
       </div>
 
       {/* 4. Selected day tasks section */}
-      <div className="flex flex-col gap-3 flex-1">
+      <div className="flex flex-col gap-3">
         <span className="text-xs font-medium text-zinc-400 uppercase tracking-wide">
           {selectedDay === todayYMD ? "Hoy" : formatDateES(selectedDay)}
         </span>
@@ -316,12 +317,12 @@ export default function CalendarHub({
           </div>
         </button>
 
-        {/* Quick Ideas · My Scripts · Music Content Lab — 3 columns */}
-        <div className="grid grid-cols-3 gap-2">
+        {/* Quick Ideas · Music Content Lab (hero) · My Scripts */}
+        <div className="flex gap-2 items-stretch">
           {/* Quick Ideas */}
           <button
             onClick={() => onOpenSheet("ideas")}
-            className="relative rounded-2xl overflow-hidden group bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800/80 transition-colors"
+            className="relative rounded-2xl overflow-hidden group bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800/80 transition-colors flex-1"
           >
             <div className="flex flex-col items-center gap-2 py-4 px-2">
               <div className="h-9 w-9 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center group-hover:bg-zinc-700 transition-colors">
@@ -331,29 +332,29 @@ export default function CalendarHub({
             </div>
           </button>
 
+          {/* Music Content Lab — hero center */}
+          <button
+            onClick={() => onOpenSheet("lab")}
+            className="relative rounded-2xl overflow-hidden group bg-zinc-900 border border-zinc-700 hover:border-zinc-600 hover:bg-zinc-800/80 transition-colors flex-[1.6]"
+          >
+            <div className="flex flex-col items-center gap-2.5 py-5 px-3">
+              <div className="h-11 w-11 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center group-hover:bg-zinc-700 transition-colors">
+                <FlaskConical size={20} className="text-zinc-200" />
+              </div>
+              <span className="text-[12px] font-semibold text-zinc-200 text-center leading-tight">Music Content Lab</span>
+            </div>
+          </button>
+
           {/* My Scripts */}
           <button
             onClick={() => onOpenSheet("scripts")}
-            className="relative rounded-2xl overflow-hidden group bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800/80 transition-colors"
+            className="relative rounded-2xl overflow-hidden group bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800/80 transition-colors flex-1"
           >
             <div className="flex flex-col items-center gap-2 py-4 px-2">
               <div className="h-9 w-9 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center group-hover:bg-zinc-700 transition-colors">
                 <Pencil size={16} className="text-zinc-300" />
               </div>
               <span className="text-[11px] font-semibold text-zinc-300 text-center leading-tight">My Scripts</span>
-            </div>
-          </button>
-
-          {/* Music Content Lab */}
-          <button
-            onClick={() => onOpenSheet("lab")}
-            className="relative rounded-2xl overflow-hidden group bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800/80 transition-colors"
-          >
-            <div className="flex flex-col items-center gap-2 py-4 px-2">
-              <div className="h-9 w-9 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center group-hover:bg-zinc-700 transition-colors">
-                <FlaskConical size={16} className="text-zinc-300" />
-              </div>
-              <span className="text-[11px] font-semibold text-zinc-300 text-center leading-tight">Music Content Lab</span>
             </div>
           </button>
         </div>

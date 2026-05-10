@@ -57,6 +57,7 @@ function revenueForMonth(projects: Project[], month: number, year: number) {
 
 function greeting() {
   const h = new Date().getHours();
+  if (h < 5)  return "Good evening";
   if (h < 12) return "Good morning";
   if (h < 19) return "Good afternoon";
   return "Good evening";
@@ -117,9 +118,9 @@ function WaveformHero({ activeCount }: { activeCount: number }) {
 
       const pts = Array.from({ length: 80 }, (_, i) => ({
         x: (i / 79) * W,
-        y: H * 0.78
-          + Math.sin(i * 0.20 + phase) * H * ampA
-          + Math.sin(i * 0.10 + phase * 0.55) * H * ampB,
+        y: H * 0.72
+          + Math.sin(i * 0.18 - phase) * H * ampA
+          + Math.sin(i * 0.09 - phase * 0.6) * H * ampB,
       }));
 
       let d = `M ${pts[0].x} ${pts[0].y}`;
@@ -343,11 +344,10 @@ export default function Dashboard({ avatarUrl, username, isPro }: { avatarUrl?: 
   if (!mounted) return null;
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-4 px-2 pb-8">
+    <div className="mx-auto w-full max-w-4xl space-y-4 pb-8 pt-2">
 
       {/* ── Fennec dB ────────────────────────────────────────────────────── */}
       <div className="relative overflow-hidden px-2 pt-4 pb-6">
-        <WaveformHero activeCount={activeCount} />
         <div className="relative z-10 space-y-4">
 
           {/* Row 1: Greeting + inline Fennec logo + username */}
@@ -360,11 +360,6 @@ export default function Dashboard({ avatarUrl, username, isPro }: { avatarUrl?: 
             <p className="text-[11px] text-zinc-500 font-medium uppercase tracking-widest">
               {greeting()}{firstName ? `, ${firstName}` : ""}
             </p>
-            {username && (
-              <span className="text-base font-bold text-amber-400 ml-3">
-                @{username}
-              </span>
-            )}
           </div>
 
           {/* Row 2: photo + dB + metrics side by side */}
@@ -499,14 +494,11 @@ export default function Dashboard({ avatarUrl, username, isPro }: { avatarUrl?: 
         </div>
       )}
 
-      {/* ── Empty state ───────────────────────────────────────────────────── */}
+      {/* ── Empty hint ────────────────────────────────────────────────────── */}
       {projects.length === 0 && quotes.length === 0 && (
-        <div className="py-14 text-center space-y-2">
-          <p className="text-sm font-bold text-white">Your studio is ready.</p>
-          <p className="text-xs text-zinc-600 max-w-xs mx-auto leading-relaxed">
-            Add clients, create quotes and log projects — the dashboard comes alive as you work.
-          </p>
-        </div>
+        <p className="text-center text-xs text-zinc-700 pb-2">
+          Add projects & quotes to bring the dashboard to life
+        </p>
       )}
 
     </div>

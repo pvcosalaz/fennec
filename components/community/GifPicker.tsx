@@ -70,7 +70,7 @@ export default function GifPicker({ onSelect, onClose }: Props) {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Buscar GIFs..."
+            placeholder="Search GIFs..."
             className="w-full h-10 rounded-xl border border-white/10 bg-white/5 pl-9 pr-3 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-amber-500"
             autoFocus
           />

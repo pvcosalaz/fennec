@@ -6,6 +6,7 @@ import {
   ChevronRight, Check, AlertTriangle,
 } from "lucide-react";
 import { SiInstagram, SiSpotify, SiYoutube, SiTiktok } from "react-icons/si";
+import Select from "@/components/ui/Select";
 
 export const PROFILE_KEY = "fennec-profile-v1";
 
@@ -88,7 +89,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
 
   // ── Profile section ──
   if (section === "profile") return (
-    <div className="mx-auto w-full max-w-lg space-y-5 px-2">
+    <div className="mx-auto w-full max-w-lg space-y-5 px-4">
       <div className="flex items-center gap-3">
         <button onClick={() => setSection("main")} className="text-zinc-400 hover:text-accent transition">
           <ArrowLeft className="h-5 w-5" />
@@ -113,14 +114,12 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
 
         <div className="space-y-1">
           <p className="text-xs text-zinc-500">Role</p>
-          <select
+          <Select
             value={profile.role}
-            onChange={(e) => setProfile((p) => ({ ...p, role: e.target.value }))}
-            className="w-full h-10 rounded-xl border border-white/15 bg-black/80 px-3 text-sm text-white outline-none focus:border-accent"
-          >
-            <option value="">Select your role</option>
-            {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
-          </select>
+            onChange={(val) => setProfile((p) => ({ ...p, role: val }))}
+            placeholder="Select your role"
+            options={ROLES.map((r) => ({ value: r, label: r }))}
+          />
         </div>
 
         <div className="space-y-1">
@@ -169,7 +168,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
 
   // ── Currency section ──
   if (section === "currency") return (
-    <div className="mx-auto w-full max-w-lg space-y-5 px-2">
+    <div className="mx-auto w-full max-w-lg space-y-5 px-4">
       <div className="flex items-center gap-3">
         <button onClick={() => setSection("main")} className="text-zinc-400 hover:text-accent transition">
           <ArrowLeft className="h-5 w-5" />
@@ -209,7 +208,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
 
   // ── Language section ──
   if (section === "language") return (
-    <div className="mx-auto w-full max-w-lg space-y-5 px-2">
+    <div className="mx-auto w-full max-w-lg space-y-5 px-4">
       <div className="flex items-center gap-3">
         <button onClick={() => setSection("main")} className="text-zinc-400 hover:text-accent transition">
           <ArrowLeft className="h-5 w-5" />
@@ -245,7 +244,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
 
   // ── Data section ──
   if (section === "data") return (
-    <div className="mx-auto w-full max-w-lg space-y-5 px-2">
+    <div className="mx-auto w-full max-w-lg space-y-5 px-4">
       <div className="flex items-center gap-3">
         <button onClick={() => setSection("main")} className="text-zinc-400 hover:text-accent transition">
           <ArrowLeft className="h-5 w-5" />
@@ -334,7 +333,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
   ];
 
   return (
-    <div className="mx-auto w-full max-w-lg space-y-5 px-2">
+    <div className="mx-auto w-full max-w-lg space-y-5 px-4">
       <div className="flex items-center gap-3">
         <button onClick={onBack} className="text-zinc-400 hover:text-accent transition">
           <ArrowLeft className="h-5 w-5" />
@@ -393,7 +392,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
       {/* App info */}
       <div className="text-center space-y-1 pt-2">
         <p className="text-xs text-zinc-600">Fennec · fennec.audio</p>
-        <p className="text-xs text-zinc-700">v0.1.0 · Free plan</p>
+        <p className="text-xs text-zinc-700">v0.1.0 · Pro</p>
       </div>
     </div>
   );

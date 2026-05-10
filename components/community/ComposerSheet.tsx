@@ -107,7 +107,7 @@ export default function ComposerSheet({ profile, onClose, onPostCreated, initial
 
         {/* Header */}
         <div className="flex items-center justify-between">
-          <span className="text-sm font-semibold text-white">Nuevo post</span>
+          <span className="text-sm font-semibold text-white">New post</span>
           <button onClick={onClose}><X className="h-5 w-5 text-zinc-500" /></button>
         </div>
 
@@ -131,7 +131,7 @@ export default function ComposerSheet({ profile, onClose, onPostCreated, initial
         <textarea
           value={content}
           onChange={(e) => handleContentChange(e.target.value)}
-          placeholder="¿Qué está pasando en tu estudio?"
+          placeholder="What's happening in your studio?"
           maxLength={500}
           rows={3}
           autoFocus
