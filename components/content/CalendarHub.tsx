@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Sparkles, Lightbulb, Pencil, Check, ArrowRight, FlaskConical } from "lucide-react";
 
-const TRENDING_CACHE_KEY = "fennec-trending-ideas-v2";
+const TRENDING_CACHE_KEY = "fennec-trending-ideas-v3";
 
 type ContentTask = {
   id: string;
@@ -90,8 +90,9 @@ export default function CalendarHub({
     try {
       const raw = localStorage.getItem(TRENDING_CACHE_KEY);
       if (raw) {
-        const { videos } = JSON.parse(raw) as { videos: { thumbnail: string }[] };
-        if (videos?.[0]?.thumbnail) setInspireThumbnail(videos[0].thumbnail);
+        const { videos, cachedAt } = JSON.parse(raw) as { videos: { thumbnail: string }[]; cachedAt: number };
+        const isExpired = Date.now() - (cachedAt ?? 0) > 1000 * 60 * 60 * 24;
+        if (!isExpired && videos?.[0]?.thumbnail) setInspireThumbnail(videos[0].thumbnail);
       }
     } catch { /* ignore */ }
   }, []);
