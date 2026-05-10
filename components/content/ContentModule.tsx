@@ -16,7 +16,7 @@ import ScriptWriterOverlay from "./ScriptWriterOverlay";
 
 const TASKS_KEY = "fennec-content-tasks-v1";
 
-type ActiveSheet = "none" | "inspire" | "ideas" | "scripts";
+type ActiveSheet = "none" | "inspire" | "ideas" | "scripts" | "lab";
 
 type ContentTask = {
   id: string;
@@ -611,7 +611,7 @@ export default function ContentModule() {
   }
 
   // ── Sheet handlers ──
-  function openSheet(s: "inspire" | "ideas" | "scripts") {
+  function openSheet(s: "inspire" | "ideas" | "scripts" | "lab") {
     setVideoRef(null);
     setSheet(s);
   }
@@ -694,6 +694,17 @@ export default function ContentModule() {
                   onDelete={(id) => setBriefs((prev) => prev.filter((b) => b.id !== id))}
                   onRequestSchedule={(title: string, notes?: string) => requestSchedule(title, "scripts", notes)}
                 />
+              )}
+              {sheet === "lab" && (
+                <div className="flex flex-col items-center justify-center py-20 gap-4 text-center px-6">
+                  <div className="h-14 w-14 rounded-2xl bg-emerald-500/15 border border-emerald-400/20 flex items-center justify-center">
+                    <span className="text-2xl">🧪</span>
+                  </div>
+                  <div>
+                    <p className="text-white font-bold text-lg">Music Content Lab</p>
+                    <p className="text-zinc-500 text-sm mt-1">Your content pillars and formats — coming soon.</p>
+                  </div>
+                </div>
               )}
             </div>
           </div>
