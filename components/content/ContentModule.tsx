@@ -1511,7 +1511,7 @@ type TrendingVideo = {
   why: string; angle: string; tag: string; tagColor: string;
 };
 
-const CACHE_KEY    = "fennec-trending-ideas-v1";
+const CACHE_KEY    = "fennec-trending-ideas-v2";
 const CACHE_TTL_MS = 1000 * 60 * 60 * 24; // 24 horas
 
 function TrendingView({ isPro, onBack }: { isPro: boolean; onBack: () => void }) {
