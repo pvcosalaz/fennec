@@ -40,7 +40,7 @@ async function fetchOgImage(url: string): Promise<string | null> {
   }
 }
 
-export async function POST(req: NextRequest) {
+async function handler(req: NextRequest) {
   // ── Auth check ────────────────────────────────────────────────
   const secret = process.env.CRON_SECRET;
   const authHeader = req.headers.get("authorization");
@@ -114,3 +114,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
+
+// Vercel crons always use GET; manual triggers can use POST
+export const GET  = handler;
+export const POST = handler;
