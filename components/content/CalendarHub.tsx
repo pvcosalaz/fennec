@@ -301,12 +301,12 @@ export default function CalendarHub({
           {/* Content */}
           <div className="absolute inset-0 flex items-end justify-between p-4">
             <div className="flex items-center gap-2.5">
-              <div className="h-9 w-9 rounded-xl bg-purple-500/30 backdrop-blur-sm border border-purple-400/30 flex items-center justify-center">
-                <Sparkles size={18} className="text-purple-300" />
+              <div className="h-9 w-9 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center">
+                <Sparkles size={18} className="text-white" />
               </div>
               <div className="text-left">
                 <p className="text-white font-bold text-base leading-tight">Inspire</p>
-                <p className="text-purple-200/70 text-xs">Trending in music production</p>
+                <p className="text-white/60 text-xs">Daily trends in music production</p>
               </div>
             </div>
             <div className="h-8 w-8 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
@@ -320,58 +320,40 @@ export default function CalendarHub({
           {/* Quick Ideas */}
           <button
             onClick={() => onOpenSheet("ideas")}
-            className="relative rounded-2xl overflow-hidden group"
-            style={{
-              background: "linear-gradient(135deg, rgba(96,165,250,0.08) 0%, rgba(59,130,246,0.04) 100%)",
-              boxShadow: "inset 0 0 0 1px rgba(96,165,250,0.15)",
-            }}
+            className="relative rounded-2xl overflow-hidden group bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800/80 transition-colors"
           >
             <div className="flex flex-col items-center gap-2 py-4 px-2">
-              <div className="h-9 w-9 rounded-xl bg-blue-500/15 border border-blue-400/20 flex items-center justify-center group-hover:bg-blue-500/25 transition-colors">
-                <Lightbulb size={16} className="text-blue-400" />
+              <div className="h-9 w-9 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center group-hover:bg-zinc-700 transition-colors">
+                <Lightbulb size={16} className="text-zinc-300" />
               </div>
-              <span className="text-[11px] font-semibold text-blue-300 text-center leading-tight">Quick Ideas</span>
+              <span className="text-[11px] font-semibold text-zinc-300 text-center leading-tight">Quick Ideas</span>
             </div>
-            <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"
-              style={{ boxShadow: "inset 0 0 0 1px rgba(96,165,250,0.35)" }} />
           </button>
 
           {/* My Scripts */}
           <button
             onClick={() => onOpenSheet("scripts")}
-            className="relative rounded-2xl overflow-hidden group"
-            style={{
-              background: "linear-gradient(135deg, rgba(251,191,36,0.08) 0%, rgba(245,158,11,0.04) 100%)",
-              boxShadow: "inset 0 0 0 1px rgba(251,191,36,0.15)",
-            }}
+            className="relative rounded-2xl overflow-hidden group bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800/80 transition-colors"
           >
             <div className="flex flex-col items-center gap-2 py-4 px-2">
-              <div className="h-9 w-9 rounded-xl bg-amber-500/15 border border-amber-400/20 flex items-center justify-center group-hover:bg-amber-500/25 transition-colors">
-                <Pencil size={16} className="text-amber-400" />
+              <div className="h-9 w-9 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center group-hover:bg-zinc-700 transition-colors">
+                <Pencil size={16} className="text-zinc-300" />
               </div>
-              <span className="text-[11px] font-semibold text-amber-300 text-center leading-tight">My Scripts</span>
+              <span className="text-[11px] font-semibold text-zinc-300 text-center leading-tight">My Scripts</span>
             </div>
-            <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"
-              style={{ boxShadow: "inset 0 0 0 1px rgba(251,191,36,0.35)" }} />
           </button>
 
           {/* Music Content Lab */}
           <button
             onClick={() => onOpenSheet("lab")}
-            className="relative rounded-2xl overflow-hidden group"
-            style={{
-              background: "linear-gradient(135deg, rgba(52,211,153,0.08) 0%, rgba(16,185,129,0.04) 100%)",
-              boxShadow: "inset 0 0 0 1px rgba(52,211,153,0.15)",
-            }}
+            className="relative rounded-2xl overflow-hidden group bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800/80 transition-colors"
           >
             <div className="flex flex-col items-center gap-2 py-4 px-2">
-              <div className="h-9 w-9 rounded-xl bg-emerald-500/15 border border-emerald-400/20 flex items-center justify-center group-hover:bg-emerald-500/25 transition-colors">
-                <FlaskConical size={16} className="text-emerald-400" />
+              <div className="h-9 w-9 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center group-hover:bg-zinc-700 transition-colors">
+                <FlaskConical size={16} className="text-zinc-300" />
               </div>
-              <span className="text-[11px] font-semibold text-emerald-300 text-center leading-tight">Music Content Lab</span>
+              <span className="text-[11px] font-semibold text-zinc-300 text-center leading-tight">Music Content Lab</span>
             </div>
-            <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"
-              style={{ boxShadow: "inset 0 0 0 1px rgba(52,211,153,0.35)" }} />
           </button>
         </div>
       </div>
