@@ -264,7 +264,7 @@ export default function CalendarHub({
 
       {/* 5. Tool pills section */}
       <div className="border-t border-zinc-800 pt-4 flex flex-col gap-3">
-        <span className="text-xs uppercase tracking-widest text-zinc-500">Herramientas</span>
+        <span className="text-xs uppercase tracking-widest text-zinc-500">Tools</span>
         <div className="flex gap-2">
           <button
             onClick={() => onOpenSheet("inspire")}
