@@ -58,8 +58,15 @@ async function fetchYouTubeVideos(keyword: string, maxResults = 4) {
   url.searchParams.set("key", process.env.YOUTUBE_API_KEY!);
 
   const res  = await fetch(url.toString());
-  const data = await res.json();
-  console.log("[trending-ideas] YouTube response for", keyword, "- items:", data.items?.length ?? 0, "error:", data.error?.message ?? "none");
+  const text = await res.text();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let data: any = {};
+  try { data = JSON.parse(text); } catch { /* ignore */ }
+  console.log("[trending-ideas] YouTube", keyword,
+    "| status:", res.status,
+    "| items:", data.items?.length ?? 0,
+    "| error:", data.error?.message ?? "none",
+    "| raw:", text.slice(0, 300));
   return data.items ?? [];
 }
 
