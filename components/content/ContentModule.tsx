@@ -541,16 +541,6 @@ function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule }: {
                   >
                     ✨ Use as reference
                   </button>
-                  <button
-                    onClick={() => onRequestSchedule?.(
-                      v.title,
-                      `Referencia: ${v.url}\n\n${v.angle}`
-                    )}
-                    className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-zinc-400 hover:text-white transition"
-                    title="Schedule"
-                  >
-                    📅
-                  </button>
                 </div>
               </div>
             </div>
