@@ -59,6 +59,7 @@ async function fetchYouTubeVideos(keyword: string, maxResults = 4) {
 
   const res  = await fetch(url.toString());
   const data = await res.json();
+  console.log("[trending-ideas] YouTube response for", keyword, "- items:", data.items?.length ?? 0, "error:", data.error?.message ?? "none");
   return data.items ?? [];
 }
 
