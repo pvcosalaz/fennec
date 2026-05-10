@@ -58,15 +58,9 @@ async function fetchYouTubeVideos(keyword: string, maxResults = 4) {
   url.searchParams.set("key", process.env.YOUTUBE_API_KEY!);
 
   const res  = await fetch(url.toString());
-  const text = await res.text();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let data: any = {};
-  try { data = JSON.parse(text); } catch { /* ignore */ }
-  console.log("[trending-ideas] YouTube", keyword,
-    "| status:", res.status,
-    "| items:", data.items?.length ?? 0,
-    "| error:", data.error?.message ?? "none",
-    "| raw:", text.slice(0, 300));
+  const data = await res.json() as any;
+  if (data.error) throw new Error(`YouTube API error: ${data.error.message}`);
   return data.items ?? [];
 }
 
@@ -120,9 +114,6 @@ Respond ONLY with a valid JSON array with ${videos.length} objects, each with ke
 }
 
 export async function GET() {
-  console.log("[trending-ideas] FENNEC_ANTHROPIC_KEY present:", !!process.env.FENNEC_ANTHROPIC_KEY);
-  const ytKey = process.env.YOUTUBE_API_KEY ?? "";
-  console.log("[trending-ideas] YOUTUBE_API_KEY len:", ytKey.length, "prefix:", ytKey.slice(0, 10), "suffix:", ytKey.slice(-4));
   try {
     const keywords = pickKeywords(2);
 

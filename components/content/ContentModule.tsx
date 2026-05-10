@@ -1544,8 +1544,10 @@ function TrendingView({ isPro, onBack }: { isPro: boolean; onBack: () => void })
       const res  = await fetch("/api/trending-ideas");
       const data = await res.json();
       if (data.error) throw new Error(data.error);
+      if (!data.videos?.length) throw new Error("No videos returned");
       setVideos(data.videos);
       setLastFetch(data.cachedAt);
+      // Only cache when we actually have results — never cache empty responses
       localStorage.setItem(CACHE_KEY, JSON.stringify({ videos: data.videos, cachedAt: data.cachedAt }));
     } catch (e) {
       setError("Could not load trending ideas. Try again later.");
