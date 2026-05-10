@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronLeft, ChevronRight, Sparkles, Lightbulb, Pencil, Check } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ChevronLeft, ChevronRight, Sparkles, Lightbulb, Pencil, Check, ArrowRight } from "lucide-react";
+
+const TRENDING_CACHE_KEY = "fennec-trending-ideas-v2";
 
 type ContentTask = {
   id: string;
@@ -82,6 +84,17 @@ export default function CalendarHub({
 
   const [anchorDate, setAnchorDate] = useState<Date>(today);
   const [selectedDay, setSelectedDay] = useState<string>(todayYMD);
+  const [inspireThumbnail, setInspireThumbnail] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(TRENDING_CACHE_KEY);
+      if (raw) {
+        const { videos } = JSON.parse(raw) as { videos: { thumbnail: string }[] };
+        if (videos?.[0]?.thumbnail) setInspireThumbnail(videos[0].thumbnail);
+      }
+    } catch { /* ignore */ }
+  }, []);
 
   const weekDays = getWeekDays(anchorDate);
   const weekStart = toYMD(weekDays[0]);
@@ -262,30 +275,86 @@ export default function CalendarHub({
         )}
       </div>
 
-      {/* 5. Tool pills section */}
+      {/* 5. Tools section */}
       <div className="border-t border-zinc-800 pt-4 flex flex-col gap-3">
         <span className="text-xs uppercase tracking-widest text-zinc-500">Tools</span>
+
+        {/* Inspire — hero card with thumbnail */}
+        <button
+          onClick={() => onOpenSheet("inspire")}
+          className="relative w-full h-32 rounded-2xl overflow-hidden group"
+        >
+          {/* Background: thumbnail or fallback gradient */}
+          {inspireThumbnail ? (
+            <img
+              src={inspireThumbnail}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover scale-105 group-hover:scale-110 transition-transform duration-500"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-900/80 via-purple-800/60 to-zinc-900" />
+          )}
+
+          {/* Dark overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
+
+          {/* Content */}
+          <div className="absolute inset-0 flex items-end justify-between p-4">
+            <div className="flex items-center gap-2.5">
+              <div className="h-9 w-9 rounded-xl bg-purple-500/30 backdrop-blur-sm border border-purple-400/30 flex items-center justify-center">
+                <Sparkles size={18} className="text-purple-300" />
+              </div>
+              <div className="text-left">
+                <p className="text-white font-bold text-base leading-tight">Inspire</p>
+                <p className="text-purple-200/70 text-xs">Trending in music production</p>
+              </div>
+            </div>
+            <div className="h-8 w-8 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
+              <ArrowRight size={14} className="text-white" />
+            </div>
+          </div>
+        </button>
+
+        {/* Ideas + Scripts — glassmorphism side by side */}
         <div className="flex gap-2">
-          <button
-            onClick={() => onOpenSheet("inspire")}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-purple-400/10 text-purple-400 hover:bg-purple-400/20 transition-colors text-sm font-medium"
-          >
-            <Sparkles size={15} />
-            Inspire
-          </button>
+          {/* Ideas */}
           <button
             onClick={() => onOpenSheet("ideas")}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-blue-400/10 text-blue-400 hover:bg-blue-400/20 transition-colors text-sm font-medium"
+            className="flex-1 relative rounded-2xl overflow-hidden group"
+            style={{
+              background: "linear-gradient(135deg, rgba(96,165,250,0.08) 0%, rgba(59,130,246,0.04) 100%)",
+              boxShadow: "inset 0 0 0 1px rgba(96,165,250,0.15), 0 0 20px rgba(96,165,250,0.05)",
+            }}
           >
-            <Lightbulb size={15} />
-            Ideas
+            <div className="flex flex-col items-center gap-2 py-5 px-3">
+              <div className="h-10 w-10 rounded-xl bg-blue-500/15 border border-blue-400/20 flex items-center justify-center group-hover:bg-blue-500/25 transition-colors">
+                <Lightbulb size={18} className="text-blue-400" />
+              </div>
+              <span className="text-sm font-semibold text-blue-300">Ideas</span>
+            </div>
+            {/* Glow on hover */}
+            <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"
+              style={{ boxShadow: "inset 0 0 0 1px rgba(96,165,250,0.35)" }} />
           </button>
+
+          {/* Scripts */}
           <button
             onClick={() => onOpenSheet("scripts")}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-amber-400/10 text-amber-400 hover:bg-amber-400/20 transition-colors text-sm font-medium"
+            className="flex-1 relative rounded-2xl overflow-hidden group"
+            style={{
+              background: "linear-gradient(135deg, rgba(251,191,36,0.08) 0%, rgba(245,158,11,0.04) 100%)",
+              boxShadow: "inset 0 0 0 1px rgba(251,191,36,0.15), 0 0 20px rgba(251,191,36,0.05)",
+            }}
           >
-            <Pencil size={15} />
-            Scripts
+            <div className="flex flex-col items-center gap-2 py-5 px-3">
+              <div className="h-10 w-10 rounded-xl bg-amber-500/15 border border-amber-400/20 flex items-center justify-center group-hover:bg-amber-500/25 transition-colors">
+                <Pencil size={18} className="text-amber-400" />
+              </div>
+              <span className="text-sm font-semibold text-amber-300">Scripts</span>
+            </div>
+            {/* Glow on hover */}
+            <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"
+              style={{ boxShadow: "inset 0 0 0 1px rgba(251,191,36,0.35)" }} />
           </button>
         </div>
       </div>
