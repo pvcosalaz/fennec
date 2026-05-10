@@ -83,7 +83,7 @@ export default function ScriptWriterOverlay({ videoRef, onSave, onClose }: Props
           {/* Claude's angle — the key insight */}
           <div className="bg-purple-500/10 px-4 py-3 space-y-2">
             <p className="text-[10px] font-bold uppercase tracking-widest text-purple-400">
-              ✦ Your angle (from Claude)
+              ✦ Your angle
             </p>
             <p className="text-sm text-white leading-relaxed">{videoRef.angle}</p>
           </div>
@@ -121,7 +121,7 @@ export default function ScriptWriterOverlay({ videoRef, onSave, onClose }: Props
           <textarea
             value={script}
             onChange={(e) => setScript(e.target.value)}
-            placeholder={`Use Claude's angle above as your starting point.\n\nWrite your hook, structure, and key points here...`}
+            placeholder={`Use the angle above as your starting point.\n\nWrite your hook, structure, and key points here...`}
             rows={10}
             className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-purple-400/50 transition resize-none leading-relaxed"
           />
