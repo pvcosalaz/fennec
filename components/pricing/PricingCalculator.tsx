@@ -371,15 +371,17 @@ export default function PricingCalculator() {
 
   return (
     <div className="flex h-screen flex-col">
-    <main className="flex-1 overflow-y-auto px-6 pt-10 pb-6">
-      <div className="mx-auto mb-4 flex w-full max-w-4xl justify-end">
-        <button
-          onClick={() => setShowSettings(true)}
-          className="flex items-center justify-center h-8 w-8 rounded-xl border border-white/10 bg-white/5 text-zinc-400 hover:text-accent hover:border-accent/30 transition"
-        >
-          <Settings className="h-4 w-4" />
-        </button>
-      </div>
+    <main className={`flex-1 overflow-y-auto pb-6 ${activeTab === "contenido" ? "" : "px-6 pt-10"}`}>
+      {activeTab !== "contenido" && (
+        <div className="mx-auto mb-4 flex w-full max-w-4xl justify-end">
+          <button
+            onClick={() => setShowSettings(true)}
+            className="flex items-center justify-center h-8 w-8 rounded-xl border border-white/10 bg-white/5 text-zinc-400 hover:text-accent hover:border-accent/30 transition"
+          >
+            <Settings className="h-4 w-4" />
+          </button>
+        </div>
+      )}
       {showSettings ? (
         <SettingsModule
           onBack={() => setShowSettings(false)}
