@@ -893,96 +893,46 @@ function IdeasBankView({
 // ─── Scripts (tap-to-select + bottom sheet) ───────────────────────────────────
 
 function ScriptsView({
-  briefs, formats, lines, onBack, onAdd, onDelete, onAddPost,
+  briefs, onBack, onAdd, onDelete, onRequestSchedule, videoRef,
 }: {
   briefs: Brief[];
-  formats: ContentFormat[];
-  lines: ContentLine[];
   onBack: () => void;
   onAdd: (b: Brief) => void;
   onDelete: (id: string) => void;
-  onAddPost: (p: Post) => void;
+  onRequestSchedule?: (title: string, notes?: string) => void;
+  videoRef?: VideoRef | null;
 }) {
-  const [tab,          setTab]          = useState<"create" | "list">("create");
-  const [selFormat,    setSelFormat]    = useState<ContentFormat | null>(null);
-  const [selLine,      setSelLine]      = useState<ContentLine | null>(null);
-  const [sheetOpen,    setSheetOpen]    = useState(false);
-  const [fTitle,       setFTitle]       = useState("");
-  const [fScript,      setFScript]      = useState("");
-  const [schedulingId, setSchedulingId] = useState<string | null>(null);
-  const [schedDate,    setSchedDate]    = useState(toYMD(new Date()));
-  const [schedDone,    setSchedDone]    = useState<string | null>(null);
-
-  // Post-save schedule prompt
-  const [savedBrief,     setSavedBrief]     = useState<Brief | null>(null);
-  const [postSaveDate,   setPostSaveDate]   = useState(toYMD(new Date()));
-  const [postSaveDone,   setPostSaveDone]   = useState(false);
-
-  // Auto-open sheet when both are selected
-  useEffect(() => {
-    if (selFormat && selLine) setSheetOpen(true);
-  }, [selFormat, selLine]);
+  const [tab,       setTab]       = useState<"create" | "list">("create");
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [fTitle,    setFTitle]    = useState(videoRef ? `Mi versión: ${videoRef.title.slice(0, 60)}` : "");
+  const [fScript,   setFScript]   = useState("");
 
   function closeSheet() {
     setSheetOpen(false);
-    setSelFormat(null);
-    setSelLine(null);
     setFTitle("");
     setFScript("");
-    setSavedBrief(null);
-    setPostSaveDate(toYMD(new Date()));
-    setPostSaveDone(false);
   }
 
   function submitBrief() {
-    if (!selFormat || !selLine || !fTitle.trim()) return;
+    if (!fTitle.trim()) return;
     const brief: Brief = {
       id: uid(),
-      formatId: selFormat.id, formatName: selFormat.name, formatColor: selFormat.color,
-      lineId: selLine.id,     lineName: selLine.name,
+      formatId: "", formatName: "", formatColor: "",
+      lineId: "",   lineName: "",
       title: fTitle.trim(),
       script: fScript.trim(),
       createdAt: Date.now(),
     };
     onAdd(brief);
-    setSavedBrief(brief); // → muestra prompt de calendario
+    onRequestSchedule?.(brief.title, brief.script || undefined);
+    closeSheet();
   }
-
-  function scheduleFromSheet() {
-    if (!savedBrief) return;
-    onAddPost({
-      id: uid(),
-      lineId: savedBrief.lineId, lineName: savedBrief.lineName,
-      formatId: savedBrief.formatId, formatName: savedBrief.formatName, formatColor: savedBrief.formatColor,
-      title: savedBrief.title, notes: savedBrief.script || undefined,
-      date: postSaveDate, status: "pending", createdAt: Date.now(),
-    });
-    setPostSaveDone(true);
-    setTimeout(closeSheet, 1200);
-  }
-
-  function schedulePost(brief: Brief) {
-    onAddPost({
-      id: uid(),
-      lineId: brief.lineId, lineName: brief.lineName,
-      formatId: brief.formatId, formatName: brief.formatName, formatColor: brief.formatColor,
-      title: brief.title, notes: brief.script || undefined,
-      date: schedDate, status: "pending", createdAt: Date.now(),
-    });
-    setSchedDone(brief.id);
-    setTimeout(() => { setSchedulingId(null); setSchedDone(null); }, 1500);
-  }
-
-  const step = !selFormat ? 1 : !selLine ? 2 : 3;
 
   return (
     <div className="mx-auto w-full max-w-4xl space-y-5 px-2 pb-32">
 
       {/* Header */}
       <div className="flex items-center gap-3">
-        <button onClick={onBack} className="text-zinc-400 hover:text-accent transition">
-          <ArrowLeft className="h-5 w-5" />
-        </button>
         <div>
           <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">Content</p>
           <h1 className="text-2xl font-bold text-white">Content Generator</h1>
@@ -1006,80 +956,21 @@ function ScriptsView({
       </div>
 
       {/* CREATE tab */}
-      {tab === "create" && (<>
-        {/* Step indicator */}
-        <div className="rounded-2xl border border-accent/20 bg-accent/5 px-4 py-3 space-y-2.5">
-          <p className="text-xs text-zinc-400 leading-relaxed">
-            Every <span className="text-white font-medium">Format</span> × <span className="text-white font-medium">Content Line</span> combination is a potential piece of content.
-          </p>
-          <div className="flex flex-col gap-1.5">
-            {[
-              { n: 1, label: "Pick a format",       done: !!selFormat },
-              { n: 2, label: "Pick a content line",  done: !!selLine   },
-              { n: 3, label: "Write your script",    done: false        },
-            ].map((s) => (
-              <div key={s.n} className="flex items-center gap-2.5">
-                <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold transition ${
-                  s.done ? "bg-accent text-black" : step === s.n ? "border border-accent/50 text-accent" : "border border-white/10 text-zinc-600"
-                }`}>
-                  {s.done ? <Check className="h-3 w-3" /> : s.n}
-                </div>
-                <span className={`text-xs transition ${
-                  s.done ? "text-white" : step === s.n ? "text-accent" : "text-zinc-600"
-                }`}>{s.label}</span>
-              </div>
-            ))}
+      {tab === "create" && (
+        <div className="flex flex-col items-center justify-center py-12 text-center gap-4">
+          <Sparkles className="h-8 w-8 text-accent/60" />
+          <div className="space-y-1">
+            <p className="text-white font-semibold">Ready to write?</p>
+            <p className="text-xs text-zinc-500">Tap below to create a new script brief.</p>
           </div>
+          <button
+            onClick={() => setSheetOpen(true)}
+            className="flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-black"
+          >
+            <Plus className="h-4 w-4" /> New Script
+          </button>
         </div>
-
-        {/* Two reference columns */}
-        <div className="grid grid-cols-2 gap-3">
-          {/* Formats */}
-          <div className="space-y-2">
-            <p className="text-[10px] font-bold tracking-[0.2em] text-zinc-500 uppercase px-1">Formats</p>
-            {formats.map((fmt) => {
-              const isSelected = selFormat?.id === fmt.id;
-              return (
-                <button
-                  key={fmt.id}
-                  onClick={() => setSelFormat(isSelected ? null : fmt)}
-                  className={`w-full flex items-start gap-2.5 rounded-xl px-3 py-2.5 text-left transition border ${
-                    isSelected ? "border-transparent bg-white/15 scale-[1.02]" : "border-white/10 bg-white/5 hover:bg-white/10 active:scale-95"
-                  }`}
-                  style={isSelected ? { boxShadow: `0 0 0 2px ${fmt.color}` } : {}}
-                >
-                  <div className="h-6 w-1.5 rounded-full flex-shrink-0 mt-0.5" style={{ backgroundColor: fmt.color }} />
-                  <div className="space-y-0.5 min-w-0">
-                    <p className="text-xs text-zinc-200 leading-snug">{fmt.name}</p>
-                    {fmt.description && (
-                      <p className="text-[10px] text-zinc-500 leading-relaxed">{fmt.description}</p>
-                    )}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Lines */}
-          <div className="space-y-2">
-            <p className="text-[10px] font-bold tracking-[0.2em] text-zinc-500 uppercase px-1">Content Lines</p>
-            {lines.map((line) => {
-              const isSelected = selLine?.id === line.id;
-              return (
-                <button
-                  key={line.id}
-                  onClick={() => setSelLine(isSelected ? null : line)}
-                  className={`w-full rounded-xl px-3 py-2.5 text-left transition border ${
-                    isSelected ? "border-accent bg-accent/10 scale-[1.02]" : "border-white/10 bg-white/5 hover:bg-white/10 active:scale-95"
-                  }`}
-                >
-                  <span className="text-xs text-zinc-200 leading-snug">{line.name}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </>)}
+      )}
 
       {/* MY SCRIPTS tab */}
       {tab === "list" && (
@@ -1109,23 +1000,7 @@ function ScriptsView({
                 {brief.script && (
                   <p className="text-xs text-zinc-400 leading-relaxed line-clamp-3 whitespace-pre-line">{brief.script}</p>
                 )}
-                <div className="flex items-center justify-between pt-1">
-                  {schedulingId === brief.id ? (
-                    schedDone === brief.id ? (
-                      <span className="flex items-center gap-1 text-xs text-emerald-400"><Check className="h-3 w-3" /> Added!</span>
-                    ) : (
-                      <div className="flex items-center gap-2 flex-1">
-                        <input type="date" value={schedDate} onChange={(e) => setSchedDate(e.target.value)}
-                          className="flex-1 h-7 rounded-lg border border-white/10 bg-black/50 px-2 text-xs text-white outline-none [color-scheme:dark]" />
-                        <button onClick={() => schedulePost(brief)} className="rounded-lg bg-accent px-2 py-1 text-[10px] font-bold text-black">Add</button>
-                        <button onClick={() => setSchedulingId(null)} className="text-zinc-600 hover:text-white"><X className="h-3.5 w-3.5" /></button>
-                      </div>
-                    )
-                  ) : (
-                    <button onClick={() => setSchedulingId(brief.id)} className="flex items-center gap-1 text-xs text-zinc-500 hover:text-accent transition">
-                      <Calendar className="h-3 w-3" /> Schedule
-                    </button>
-                  )}
+                <div className="flex items-center justify-end pt-1">
                   <button onClick={() => onDelete(brief.id)} className="opacity-0 group-hover:opacity-100 text-zinc-600 hover:text-red-400 transition">
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
@@ -1151,78 +1026,38 @@ function ScriptsView({
         {/* Handle */}
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/20" />
 
-        {/* ── Post-save: schedule prompt ── */}
-        {savedBrief ? (
-          postSaveDone ? (
-            <div className="flex flex-col items-center gap-2 py-6">
-              <div className="flex items-center gap-2 text-emerald-400">
-                <Check className="h-5 w-5" />
-                <span className="text-sm font-semibold">Added to calendar!</span>
-              </div>
+        <div className="space-y-3">
+          {videoRef && (
+            <div className="rounded-2xl border border-purple-400/20 bg-purple-400/5 p-3 space-y-1 mb-3">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-purple-400">Referencia de Inspire</p>
+              <p className="text-sm text-white font-medium line-clamp-2">{videoRef.title}</p>
+              <p className="text-xs text-zinc-400 line-clamp-2">💡 {videoRef.angle}</p>
             </div>
-          ) : (
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm font-semibold text-white">Add to production calendar?</p>
-                <p className="text-xs text-zinc-500 mt-0.5 truncate">"{savedBrief.title}"</p>
-              </div>
-              <input
-                type="date"
-                value={postSaveDate}
-                onChange={(e) => setPostSaveDate(e.target.value)}
-                className="w-full h-11 rounded-2xl border border-white/15 bg-white/5 px-4 text-sm text-white outline-none focus:border-accent [color-scheme:dark]"
-              />
-              <div className="flex gap-2">
-                <button onClick={closeSheet} className="flex-1 rounded-2xl border border-white/10 py-3 text-sm text-zinc-400 hover:text-white transition">
-                  Skip
-                </button>
-                <button onClick={scheduleFromSheet} className="flex-1 rounded-2xl bg-accent py-3 text-sm font-bold text-black">
-                  Schedule
-                </button>
-              </div>
-            </div>
-          )
-        ) : (
-          <>
-            {/* Pre-filled combo */}
-            {selFormat && selLine && (
-              <div className="flex flex-wrap gap-2 mb-4 items-center">
-                <span className="rounded-full px-3 py-1 text-xs font-semibold text-black" style={{ backgroundColor: selFormat.color }}>
-                  {selFormat.name}
-                </span>
-                <span className="text-zinc-500 text-sm">×</span>
-                <span className="rounded-full border border-white/20 px-3 py-1 text-xs text-zinc-300">
-                  {selLine.name}
-                </span>
-              </div>
-            )}
-            <div className="space-y-3">
-              <input
-                autoFocus={sheetOpen}
-                type="text"
-                value={fTitle}
-                onChange={(e) => setFTitle(e.target.value)}
-                placeholder="Title or hook for this piece..."
-                className="w-full h-11 rounded-2xl border border-white/15 bg-white/5 px-4 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-accent"
-              />
-              <textarea
-                value={fScript}
-                onChange={(e) => setFScript(e.target.value)}
-                placeholder="Write your script, idea, or execution notes..."
-                rows={4}
-                className="w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white outline-none resize-none placeholder:text-zinc-600 focus:border-accent"
-              />
-              <div className="flex gap-2">
-                <button onClick={closeSheet} className="flex-1 rounded-2xl border border-white/10 py-3 text-sm text-zinc-400 hover:text-white transition">
-                  Cancel
-                </button>
-                <button onClick={submitBrief} className="flex-1 rounded-2xl bg-accent py-3 text-sm font-bold text-black">
-                  Save script
-                </button>
-              </div>
-            </div>
-          </>
-        )}
+          )}
+          <input
+            autoFocus={sheetOpen}
+            type="text"
+            value={fTitle}
+            onChange={(e) => setFTitle(e.target.value)}
+            placeholder="Title or hook for this piece..."
+            className="w-full h-11 rounded-2xl border border-white/15 bg-white/5 px-4 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-accent"
+          />
+          <textarea
+            value={fScript}
+            onChange={(e) => setFScript(e.target.value)}
+            placeholder="Write your script, idea, or execution notes..."
+            rows={4}
+            className="w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white outline-none resize-none placeholder:text-zinc-600 focus:border-accent"
+          />
+          <div className="flex gap-2">
+            <button onClick={closeSheet} className="flex-1 rounded-2xl border border-white/10 py-3 text-sm text-zinc-400 hover:text-white transition">
+              Cancel
+            </button>
+            <button onClick={submitBrief} className="flex-1 rounded-2xl bg-accent py-3 text-sm font-bold text-black">
+              Save script
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
