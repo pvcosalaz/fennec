@@ -865,9 +865,6 @@ export default function PricingCalculator() {
                   }`}>
                     <Icon className={`h-6 w-6 ${isActive ? "text-black" : "text-zinc-400"}`} />
                   </div>
-                  <span className={isActive ? "text-accent" : "text-zinc-500"}>
-                    {t(tab.labelKey)}
-                  </span>
                 </button>
               );
             }
@@ -880,16 +877,11 @@ export default function PricingCalculator() {
                   onClick={() => { setActiveTab(tab.id); setBusinessView("hub"); }}
                   className="flex flex-1 flex-col items-center gap-1 text-xs transition"
                 >
-                  <div className={`relative flex h-12 w-12 items-center justify-center rounded-2xl transition ${
+                  <div className={`relative flex h-12 w-12 items-center justify-center rounded-full transition ${
                     isActive
                       ? "bg-accent shadow-lg shadow-accent/50"
-                      : "bg-accent/10 ring-1 ring-accent/40 hover:bg-accent/20 hover:ring-accent/60"
+                      : "bg-accent/10 hover:bg-accent/20"
                   }`}>
-                    {/* Glow pulse when inactive */}
-                    {!isActive && (
-                      <span className="absolute inset-0 rounded-2xl animate-pulse bg-accent/5" />
-                    )}
-                    {/* Logo — landscape image, no crop needed */}
                     <img
                       src="/fennec-logo.png"
                       alt="Fennec"
@@ -911,9 +903,6 @@ export default function PricingCalculator() {
                       className={`h-5 w-5 hidden ${isActive ? "text-black" : "text-accent"}`}
                     />
                   </div>
-                  <span className={isActive ? "text-accent font-semibold" : "text-accent/60"}>
-                    {t(tab.labelKey)}
-                  </span>
                 </button>
               );
             }
