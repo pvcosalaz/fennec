@@ -649,18 +649,12 @@ export default function ContentModule() {
             className="fixed inset-0 z-30 bg-black/70 backdrop-blur-sm"
             onClick={closeSheet}
           />
-          <div className="fixed bottom-0 left-0 right-0 z-40 mx-auto max-w-lg h-[88vh] rounded-t-3xl border-t border-white/10 bg-zinc-950 overflow-y-auto">
-            {/* Drag handle + close */}
-            <div className="sticky top-0 z-10 flex items-center px-4 pt-4 pb-2 bg-zinc-950 border-b border-white/5">
-              <div className="w-10 h-1 rounded-full bg-white/20 mx-auto" />
-              <button
-                onClick={closeSheet}
-                className="absolute right-4 top-4 text-zinc-500 hover:text-white transition text-sm"
-              >
-                ✕
-              </button>
+          <div className="fixed bottom-0 left-0 right-0 z-40 h-[92vh] rounded-t-3xl border-t border-white/10 bg-zinc-950 overflow-y-auto">
+            {/* Drag handle only */}
+            <div className="sticky top-0 z-10 flex items-center justify-center px-4 pt-3 pb-2 bg-zinc-950">
+              <div className="w-10 h-1 rounded-full bg-white/20" />
             </div>
-            <div className="px-2 pb-8 pt-2">
+            <div className="px-2 pb-8 pt-1">
               {sheet === "inspire" && (
                 <TrendingView
                   isPro={isPro}
