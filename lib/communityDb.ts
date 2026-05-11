@@ -208,10 +208,17 @@ export async function fetchComments(postId: string, currentUserId: string | null
 }
 
 export async function createComment(postId: string, userId: string, content: string, gifUrl?: string): Promise<Comment> {
-  const { data, error } = await supabase
+  const { data: inserted, error: insertError } = await supabase
     .from("comments")
     .insert({ post_id: postId, user_id: userId, content, gif_url: gifUrl ?? null })
-    .select(`*, profile:profiles!posts_user_id_fkey(*)`)
+    .select("id")
+    .single();
+  if (insertError) throw insertError;
+
+  const { data, error } = await supabase
+    .from("comments")
+    .select(`*, profile:profiles(*)`)
+    .eq("id", inserted.id)
     .single();
   if (error) throw error;
   return { ...data, vibe_count: 0, user_vibed: false };

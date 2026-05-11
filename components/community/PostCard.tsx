@@ -99,7 +99,7 @@ export default function PostCard({ post, currentProfile, onOpenThread, onLoop, o
           className="flex items-center gap-1.5 min-w-0 hover:opacity-80 transition"
         >
           <div
-            className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 overflow-hidden"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 overflow-hidden"
             style={{ backgroundColor: p.is_bot ? "#000000" : avatarColor(p.username) }}
           >
             {p.avatar_url
@@ -179,28 +179,28 @@ export default function PostCard({ post, currentProfile, onOpenThread, onLoop, o
       </div>
 
       {/* Action bar */}
-      <div className="border-t border-white/5 flex items-center justify-around px-4 py-2.5">
+      <div className="border-t border-white/5 flex items-center justify-around px-4 py-3.5">
         <button
           onClick={handleVibe}
-          className={`flex items-center gap-1.5 text-xs transition ${vibed ? "text-amber-500" : "text-zinc-500 hover:text-zinc-300"}`}
+          className={`flex items-center gap-2 text-sm transition ${vibed ? "text-amber-500" : "text-zinc-500 hover:text-zinc-300"}`}
         >
-          <span>🎵</span>
+          <span className="text-base">🎵</span>
           <span>{vibeCount > 0 ? vibeCount : ""}</span>
         </button>
 
         <button
           onClick={() => onOpenThread(post)}
-          className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 transition"
+          className="flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-300 transition"
         >
-          <MessageCircle className="h-4 w-4" />
+          <MessageCircle className="h-5 w-5" />
           <span>{post.comment_count > 0 ? post.comment_count : ""}</span>
         </button>
 
         <button
           onClick={() => onLoop(post)}
-          className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 transition"
+          className="flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-300 transition"
         >
-          <Repeat2 className="h-4 w-4" />
+          <Repeat2 className="h-5 w-5" />
         </button>
 
         <button
@@ -208,8 +208,8 @@ export default function PostCard({ post, currentProfile, onOpenThread, onLoop, o
           className={`transition ${bookmarked ? "text-amber-500" : "text-zinc-500 hover:text-zinc-300"}`}
         >
           {bookmarked
-            ? <BookmarkCheck className="h-4 w-4" />
-            : <Bookmark className="h-4 w-4" />}
+            ? <BookmarkCheck className="h-5 w-5" />
+            : <Bookmark className="h-5 w-5" />}
         </button>
       </div>
     </div>
