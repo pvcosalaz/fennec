@@ -448,17 +448,18 @@ export default function PricingCalculator() {
           avatarUrl={profile.avatar_url}
         />
       ) : activeTab === "pricing" && businessView === "hub" ? (
-        <BusinessHub onOpenView={setBusinessView} isPro={profile?.is_pro ?? true} />
+        <BusinessHub onOpenView={setBusinessView} isPro={profile?.is_pro ?? true} userId={authUser.id} />
       ) : activeTab === "pricing" && businessView === "projects" ? (
-        <ActiveProjects onBack={() => setBusinessView("hub")} />
+        <ActiveProjects onBack={() => setBusinessView("hub")} userId={authUser.id} />
       ) : activeTab === "pricing" && businessView === "clients" ? (
-        <ClientsLeads onBack={() => setBusinessView(prevBusinessView.current)} />
+        <ClientsLeads onBack={() => setBusinessView(prevBusinessView.current)} userId={authUser.id} />
       ) : activeTab === "pricing" && businessView === "quotes" ? (
         <QuoteGenerator
           onBack={() => setBusinessView("hub")}
           onGoToClients={() => { prevBusinessView.current = "quotes"; setBusinessView("clients"); }}
           onGoToCalculator={() => setBusinessView("calculator")}
           onGoToProjects={() => setBusinessView("projects")}
+          userId={authUser.id}
         />
       ) : activeTab === "pricing" && businessView === "calculator" ? (
         <section className="mx-auto w-full max-w-4xl rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/40 backdrop-blur-sm sm:p-10">

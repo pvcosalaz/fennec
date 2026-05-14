@@ -10,33 +10,31 @@ import {
   Trash2,
   Pencil,
 } from "lucide-react";
-import { type Client, CLIENTS_STORAGE_KEY } from "@/lib/pricingData";
+import { type Client } from "@/lib/pricingData";
+import { getClients, upsertClient, deleteClient } from "@/lib/businessDb";
 
 type Props = {
   onBack: () => void;
+  userId: string;
 };
 
 const emptyForm = { name: "", email: "", phone: "", company: "" };
 
-export default function ClientsLeads({ onBack }: Props) {
+export default function ClientsLeads({ onBack, userId }: Props) {
   const [clients, setClients] = useState<Client[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Client | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [saved, setSaved] = useState(false);
 
-  // Load
+  // Load from Supabase
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(CLIENTS_STORAGE_KEY);
-      if (raw) setClients(JSON.parse(raw) as Client[]);
-    } catch {}
-  }, []);
-
-  // Persist
-  useEffect(() => {
-    localStorage.setItem(CLIENTS_STORAGE_KEY, JSON.stringify(clients));
-  }, [clients]);
+    getClients(userId).then((data) => {
+      setClients(data);
+      setLoading(false);
+    });
+  }, [userId]);
 
   const openAdd = () => {
     setForm(emptyForm);
@@ -59,16 +57,19 @@ export default function ClientsLeads({ onBack }: Props) {
     if (!form.name.trim() || !form.email.trim()) return;
 
     if (editing) {
-      setClients((prev) =>
-        prev.map((c) => (c.id === editing.id ? { ...editing, ...form } : c)),
-      );
+      const updated = { ...editing, ...form };
+      // Optimistic update
+      setClients((prev) => prev.map((c) => (c.id === editing.id ? updated : c)));
+      upsertClient(userId, updated);
     } else {
       const newClient: Client = {
         id: crypto.randomUUID(),
         ...form,
         createdAt: Date.now(),
       };
-      setClients((prev) => [...prev, newClient]);
+      // Optimistic update
+      setClients((prev) => [newClient, ...prev]);
+      upsertClient(userId, newClient);
     }
 
     setShowForm(false);
@@ -77,7 +78,9 @@ export default function ClientsLeads({ onBack }: Props) {
   };
 
   const handleDelete = (id: string) => {
+    // Optimistic update
     setClients((prev) => prev.filter((c) => c.id !== id));
+    deleteClient(userId, id);
   };
 
   const field = (key: keyof typeof emptyForm) => ({
@@ -193,8 +196,15 @@ export default function ClientsLeads({ onBack }: Props) {
         </div>
       )}
 
+      {/* Loading state */}
+      {loading && (
+        <div className="flex items-center justify-center py-16">
+          <div className="h-6 w-6 rounded-full border-2 border-accent border-t-transparent animate-spin" />
+        </div>
+      )}
+
       {/* Empty state */}
-      {clients.length === 0 && !showForm && (
+      {!loading && clients.length === 0 && !showForm && (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[0.02] py-16 text-center">
           <p className="text-sm text-zinc-500">No clients yet.</p>
           <p className="mt-1 text-xs text-zinc-600">
@@ -204,7 +214,7 @@ export default function ClientsLeads({ onBack }: Props) {
       )}
 
       {/* Client list */}
-      {clients.length > 0 && (
+      {!loading && clients.length > 0 && (
         <div className="space-y-2">
           {clients.map((client) => (
             <div

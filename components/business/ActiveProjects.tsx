@@ -16,12 +16,16 @@ import Select from "@/components/ui/Select";
 import {
   type Project,
   type ProjectStatus,
-  PROJECTS_STORAGE_KEY,
-  CLIENTS_STORAGE_KEY,
   type Client,
   projectTypes,
   formatCOP,
 } from "@/lib/pricingData";
+import {
+  getProjects,
+  upsertProject,
+  deleteProject,
+  getClients,
+} from "@/lib/businessDb";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -318,24 +322,23 @@ function ProjectCard({
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function ActiveProjects({ onBack }: { onBack: () => void }) {
+export default function ActiveProjects({ onBack, userId }: { onBack: () => void; userId: string }) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [clients, setClients]   = useState<Client[]>([]);
+  const [loading, setLoading]   = useState(true);
   const [showForm, setShowForm] = useState(false);
 
-  // Load
+  // Load from Supabase
   useEffect(() => {
-    try {
-      const p = localStorage.getItem(PROJECTS_STORAGE_KEY);
-      if (p) setProjects(JSON.parse(p));
-      const c = localStorage.getItem(CLIENTS_STORAGE_KEY);
-      if (c) setClients(JSON.parse(c));
-    } catch {}
-  }, []);
+    Promise.all([getProjects(userId), getClients(userId)]).then(([p, c]) => {
+      setProjects(p);
+      setClients(c);
+      setLoading(false);
+    });
+  }, [userId]);
 
   const save = (updated: Project[]) => {
     setProjects(updated);
-    localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updated));
   };
 
   const handleSave = (form: FormState) => {
@@ -355,23 +358,31 @@ export default function ActiveProjects({ onBack }: { onBack: () => void }) {
       createdAt:       Date.now(),
     };
     save([newProject, ...projects]);
+    upsertProject(userId, newProject);
     setShowForm(false);
   };
 
   const handleAdvance = (id: string) => {
-    save(projects.map((p) => p.id === id ? { ...p, status: nextStatus(p.status) } : p));
+    const updated = projects.map((p) => p.id === id ? { ...p, status: nextStatus(p.status) } : p);
+    save(updated);
+    const proj = updated.find((p) => p.id === id);
+    if (proj) upsertProject(userId, proj);
   };
 
   const handleRevert = (id: string) => {
-    save(projects.map((p) => {
+    const updated = projects.map((p) => {
       if (p.id !== id) return p;
       const prev = prevStatus(p.status);
       return prev ? { ...p, status: prev } : p;
-    }));
+    });
+    save(updated);
+    const proj = updated.find((p) => p.id === id);
+    if (proj) upsertProject(userId, proj);
   };
 
   const handleDelete = (id: string) => {
     save(projects.filter((p) => p.id !== id));
+    deleteProject(userId, id);
   };
 
   // Group by status
@@ -402,8 +413,15 @@ export default function ActiveProjects({ onBack }: { onBack: () => void }) {
         </button>
       </div>
 
+      {/* Loading state */}
+      {loading && (
+        <div className="flex items-center justify-center py-16">
+          <div className="h-6 w-6 rounded-full border-2 border-accent border-t-transparent animate-spin" />
+        </div>
+      )}
+
       {/* Summary cards */}
-      {projects.length > 0 && (
+      {!loading && projects.length > 0 && (
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
             <p className="text-xs text-zinc-500 mb-1">In progress</p>
@@ -428,11 +446,11 @@ export default function ActiveProjects({ onBack }: { onBack: () => void }) {
       )}
 
       {/* Active projects */}
-      {!showForm && active.length === 0 && paid.length === 0 && (
+      {!loading && !showForm && active.length === 0 && paid.length === 0 && (
         <EmptyState onAdd={() => setShowForm(true)} />
       )}
 
-      {active.length > 0 && (
+      {!loading && active.length > 0 && (
         <div className="space-y-2">
           {active.map((p) => (
             <ProjectCard
@@ -447,7 +465,7 @@ export default function ActiveProjects({ onBack }: { onBack: () => void }) {
       )}
 
       {/* Paid / closed */}
-      {paid.length > 0 && (
+      {!loading && paid.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">Closed & Paid</p>
           {paid.map((p) => (

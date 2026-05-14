@@ -3,10 +3,10 @@
 import { useEffect, useState, useMemo } from "react";
 import { Calculator, FileText, FolderOpen, Users, ArrowRight, Lock } from "lucide-react";
 import {
-  PROJECTS_STORAGE_KEY, QUOTES_STORAGE_KEY, CLIENTS_STORAGE_KEY,
   type Project, type Quote, type Client,
   formatCOP, computePricing,
 } from "@/lib/pricingData";
+import { getProjects, getQuotes, getClients } from "@/lib/businessDb";
 
 export type BusinessView = "hub" | "calculator" | "quotes" | "projects" | "clients";
 
@@ -24,23 +24,19 @@ function revenueThisMonth(projects: Project[]) {
 type Props = {
   onOpenView: (view: BusinessView) => void;
   isPro?: boolean;
+  userId: string;
 };
 
-export default function BusinessHub({ onOpenView, isPro = false }: Props) {
+export default function BusinessHub({ onOpenView, isPro = false, userId }: Props) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [quotes,   setQuotes]   = useState<Quote[]>([]);
   const [clients,  setClients]  = useState<Client[]>([]);
 
   useEffect(() => {
-    try {
-      const p = localStorage.getItem(PROJECTS_STORAGE_KEY);
-      const q = localStorage.getItem(QUOTES_STORAGE_KEY);
-      const c = localStorage.getItem(CLIENTS_STORAGE_KEY);
-      if (p) setProjects(JSON.parse(p));
-      if (q) setQuotes(JSON.parse(q));
-      if (c) setClients(JSON.parse(c));
-    } catch {}
-  }, []);
+    Promise.all([getProjects(userId), getQuotes(userId), getClients(userId)]).then(
+      ([p, q, c]) => { setProjects(p); setQuotes(q); setClients(c); }
+    );
+  }, [userId]);
 
   const { monthlyTarget } = computePricing();
   const revenue      = useMemo(() => revenueThisMonth(projects), [projects]);
