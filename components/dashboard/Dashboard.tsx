@@ -277,13 +277,17 @@ function VUMeter({ platform, value = 0 }: { platform: typeof PLATFORMS[0]; value
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 
-export default function Dashboard({ avatarUrl, username, isPro }: { avatarUrl?: string | null; username?: string | null; isPro?: boolean }) {
-  const [projects,  setProjects]  = useState<Project[]>([]);
-  const [quotes,    setQuotes]    = useState<Quote[]>([]);
-  const [clients,   setClients]   = useState<Client[]>([]);
-  const [profile,   setProfile]   = useState<UserProfile | null>(null);
-  const [mounted,   setMounted]   = useState(false);
-  const [showDbInfo, setShowDbInfo] = useState(false);
+type SpotifyData = { connected: boolean; followers: number; displayName?: string; imageUrl?: string | null } | null;
+
+export default function Dashboard({ avatarUrl, username, isPro, userId }: { avatarUrl?: string | null; username?: string | null; isPro?: boolean; userId?: string | null }) {
+  const [projects,    setProjects]    = useState<Project[]>([]);
+  const [quotes,      setQuotes]      = useState<Quote[]>([]);
+  const [clients,     setClients]     = useState<Client[]>([]);
+  const [profile,     setProfile]     = useState<UserProfile | null>(null);
+  const [mounted,     setMounted]     = useState(false);
+  const [showDbInfo,  setShowDbInfo]  = useState(false);
+  const [spotifyData, setSpotifyData] = useState<SpotifyData>(null);
+  const [spotifyToast, setSpotifyToast] = useState(false);
 
   useEffect(() => {
     try {
@@ -299,6 +303,30 @@ export default function Dashboard({ avatarUrl, username, isPro }: { avatarUrl?: 
     setMounted(true);
   }, []);
 
+  // Fetch Spotify stats on mount
+  useEffect(() => {
+    if (!userId) return;
+    fetch(`/api/spotify/stats?userId=${userId}`)
+      .then((r) => r.json())
+      .then((data) => setSpotifyData(data))
+      .catch(() => {});
+  }, [userId]);
+
+  // Show success toast if redirected back with ?spotify=connected
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("spotify") === "connected") {
+      setSpotifyToast(true);
+      // Clean up URL without reload
+      const url = new URL(window.location.href);
+      url.searchParams.delete("spotify");
+      window.history.replaceState({}, "", url.toString());
+      const t = setTimeout(() => setSpotifyToast(false), 4000);
+      return () => clearTimeout(t);
+    }
+  }, []);
+
   const months   = useMemo(() => getLastNMonths(6), []);
   const revenues = useMemo(() => months.map((m) => revenueForMonth(projects, m.month, m.year)), [projects, months]);
 
@@ -308,11 +336,15 @@ export default function Dashboard({ avatarUrl, username, isPro }: { avatarUrl?: 
   const quotesSent   = quotes.filter((q) => q.status === "sent").length;
   const isFoxActive  = activeCount > 0;
 
+  const spotifyFollowers = spotifyData?.connected ? (spotifyData.followers ?? 0) : 0;
+  const spotifyDbPoints = Math.min(spotifyFollowers / 100, 50);
+
   const fennecDb = Math.round(
     activeCount  * 150 +
     closedCount  * 50  +
     clients.length * 75 +
-    quotesSent   * 25
+    quotesSent   * 25  +
+    spotifyDbPoints
   );
 
   // Persist score so the community feed can read it
@@ -345,6 +377,14 @@ export default function Dashboard({ avatarUrl, username, isPro }: { avatarUrl?: 
 
   return (
     <div className="mx-auto w-full max-w-4xl space-y-4 pb-8 pt-2 px-4">
+
+      {/* ── Spotify toast ─────────────────────────────────────────────────── */}
+      {spotifyToast && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-xl border border-[#1DB954]/30 bg-zinc-900 px-4 py-2.5 shadow-lg">
+          <SiSpotify className="h-4 w-4 text-[#1DB954]" />
+          <span className="text-sm text-white font-medium">Spotify connected!</span>
+        </div>
+      )}
 
       {/* ── Fennec dB ────────────────────────────────────────────────────── */}
       <div className="relative overflow-hidden px-2 pt-4 pb-6">
@@ -391,11 +431,11 @@ export default function Dashboard({ avatarUrl, username, isPro }: { avatarUrl?: 
             {/* Signal components — fill the space to the right */}
             <div className="flex flex-col gap-1.5 pt-0.5 flex-1">
               {[
-                { label: "Active projects", value: activeCount,    color: "#4d96ff", weight: 150 },
-                { label: "Clients",         value: clients.length, color: "#c77dff", weight: 75  },
-                { label: "Closed",          value: closedCount,    color: "#6bcb77", weight: 50  },
-                { label: "Streams",         value: null,           color: "#1DB954", weight: null },
-                { label: "Reach",           value: null,           color: "#E1306C", weight: null },
+                { label: "Active projects", value: activeCount,       color: "#4d96ff", weight: 150,  connected: true  },
+                { label: "Clients",         value: clients.length,    color: "#c77dff", weight: 75,   connected: true  },
+                { label: "Closed",          value: closedCount,       color: "#6bcb77", weight: 50,   connected: true  },
+                { label: "Streams",         value: spotifyData?.connected ? spotifyFollowers : null, color: "#1DB954", weight: 1, connected: spotifyData?.connected ?? false },
+                { label: "Reach",           value: null,              color: "#E1306C", weight: null, connected: false },
               ].map((row) => (
                 <div key={row.label} className="flex items-center gap-2">
                   <div
@@ -463,16 +503,41 @@ export default function Dashboard({ avatarUrl, username, isPro }: { avatarUrl?: 
       <div className="px-2 pt-4 pb-2 space-y-4 border-t border-white/5">
         <div className="flex items-center justify-between">
           <p className="text-xs font-semibold uppercase tracking-widest text-zinc-300">Social Reach</p>
-          <button className="flex items-center gap-0.5 text-[10px] text-accent/70 hover:text-accent transition">
-            Connect <ChevronRight className="h-3 w-3" />
-          </button>
+          {userId && !spotifyData?.connected && (
+            <a
+              href={`/api/spotify/connect?userId=${userId}`}
+              className="flex items-center gap-1 text-[10px] text-[#1DB954]/80 hover:text-[#1DB954] transition"
+            >
+              <SiSpotify className="h-3 w-3" />
+              Connect Spotify <ChevronRight className="h-3 w-3" />
+            </a>
+          )}
+          {spotifyData?.connected && (
+            <span className="flex items-center gap-1 text-[10px] text-[#1DB954]/70">
+              <SiSpotify className="h-3 w-3" />
+              {spotifyData.displayName ?? "Connected"}
+            </span>
+          )}
         </div>
         <div className="flex items-end justify-around px-2">
-          {PLATFORMS.map((p) => <VUMeter key={p.key} platform={p} value={0} />)}
+          {PLATFORMS.map((p) => {
+            let value = 0;
+            if (p.key === "spotify" && spotifyData?.connected) {
+              value = Math.min(spotifyFollowers / 10000, 1);
+            }
+            return <VUMeter key={p.key} platform={p} value={value} />;
+          })}
         </div>
-        <p className="text-center text-[10px] text-zinc-500">
-          Connect Instagram & Spotify to see live stats
-        </p>
+        {spotifyData?.connected ? (
+          <p className="text-center text-[10px] text-zinc-500">
+            Spotify: <span className="text-[#1DB954]">{spotifyFollowers.toLocaleString()} followers</span>
+            {" · "}Connect Instagram to complete your profile
+          </p>
+        ) : (
+          <p className="text-center text-[10px] text-zinc-500">
+            Connect Instagram &amp; Spotify to see live stats
+          </p>
+        )}
       </div>
 
       {/* ── Activity ─────────────────────────────────────────────────────── */}

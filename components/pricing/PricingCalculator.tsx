@@ -875,7 +875,7 @@ export default function PricingCalculator() {
           )}
         </section>
       ) : activeTab === "dashboard" ? (
-        <Dashboard avatarUrl={profile.avatar_url} username={profile.username} isPro={profile.is_pro} />
+        <Dashboard avatarUrl={profile.avatar_url} username={profile.username} isPro={profile.is_pro} userId={authUser?.id} />
       ) : activeTab === "contenido" ? (
         <ContentModule />
       ) : activeTab === "ideas" ? (
