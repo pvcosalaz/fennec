@@ -294,7 +294,7 @@ export default function CalendarHub({
               className="absolute inset-0 w-full h-full object-cover scale-105 group-hover:scale-110 transition-transform duration-500"
             />
           ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-900/80 via-purple-800/60 to-zinc-900" />
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-900/80 via-amber-800/40 to-zinc-900" />
           )}
 
           {/* Dark overlay */}
