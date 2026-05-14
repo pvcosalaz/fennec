@@ -221,7 +221,7 @@ function CurrencyInput({
 }) {
   return (
     <label className="flex flex-col gap-2">
-      <span className="text-sm text-zinc-300">{label}</span>
+      <span className="text-xs text-zinc-400">{label}</span>
       <input
         type="number"
         min="0"
@@ -474,7 +474,7 @@ export default function PricingCalculator() {
               <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">
                 {t("brand")}
               </p>
-              <h1 className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              <h1 className="mt-3 text-2xl font-bold tracking-tight text-white">
                 {t("calculatorTitle")}
               </h1>
               <p className="mt-2 text-sm text-zinc-400">{t("calculatorSubtitle")}</p>
@@ -555,7 +555,7 @@ export default function PricingCalculator() {
                   <h2 className="mb-5 text-xl font-semibold text-white">{t("step3.title")}</h2>
                   <div className="grid gap-4 sm:grid-cols-3">
                     <label className="flex flex-col gap-2">
-                      <span className="text-sm text-zinc-300">{t("step3.impuestos")}</span>
+                      <span className="text-xs text-zinc-400">{t("step3.impuestos")}</span>
                       <input
                         type="number"
                         min="0"
@@ -568,7 +568,7 @@ export default function PricingCalculator() {
                       />
                     </label>
                     <label className="flex flex-col gap-2">
-                      <span className="text-sm text-zinc-300">{t("step3.reinversion")}</span>
+                      <span className="text-xs text-zinc-400">{t("step3.reinversion")}</span>
                       <input
                         type="number"
                         min="0"
@@ -610,7 +610,7 @@ export default function PricingCalculator() {
                   <h2 className="mb-5 text-xl font-semibold text-white">{t("step4.title")}</h2>
                   <div className="grid gap-4 sm:grid-cols-3">
                     <label className="flex flex-col gap-2">
-                      <span className="text-sm text-zinc-300">{t("step4.horasSemana")}</span>
+                      <span className="text-xs text-zinc-400">{t("step4.horasSemana")}</span>
                       <input
                         type="number"
                         min="0"
@@ -622,7 +622,7 @@ export default function PricingCalculator() {
                       />
                     </label>
                     <label className="flex flex-col gap-2">
-                      <span className="text-sm text-zinc-300">{t("step4.semanasMes")}</span>
+                      <span className="text-xs text-zinc-400">{t("step4.semanasMes")}</span>
                       <input
                         type="number"
                         min="0"
@@ -634,7 +634,7 @@ export default function PricingCalculator() {
                       />
                     </label>
                     <label className="flex flex-col gap-2">
-                      <span className="text-sm text-zinc-300">{t("step4.horasProyecto")}</span>
+                      <span className="text-xs text-zinc-400">{t("step4.horasProyecto")}</span>
                       <input
                         type="number"
                         min="1"

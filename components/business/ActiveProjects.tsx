@@ -73,7 +73,7 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
       </div>
       <button
         onClick={onAdd}
-        className="flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-xs font-semibold text-black transition hover:bg-accent/90"
+        className="flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-black transition hover:bg-accent/90"
       >
         <Plus className="h-3.5 w-3.5" /> New project
       </button>
@@ -188,14 +188,14 @@ function ProjectForm({
       <div className="flex gap-2 pt-1">
         <button
           onClick={onCancel}
-          className="flex-1 rounded-xl border border-white/10 py-2.5 text-xs font-semibold text-zinc-400 transition hover:border-white/20"
+          className="flex-1 rounded-xl border border-white/10 py-2.5 text-sm font-semibold text-zinc-400 transition hover:border-white/20"
         >
           Cancel
         </button>
         <button
           onClick={() => valid && onSave(form)}
           disabled={!valid}
-          className="flex-1 rounded-xl bg-accent py-2.5 text-xs font-semibold text-black transition hover:bg-accent/90 disabled:opacity-40"
+          className="flex-1 rounded-xl bg-accent py-2.5 text-sm font-semibold text-black transition hover:bg-accent/90 disabled:opacity-40"
         >
           Save project
         </button>
@@ -429,7 +429,7 @@ export default function ActiveProjects({ onBack, userId }: { onBack: () => void;
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-xs font-semibold text-black transition hover:bg-accent/90"
+          className="flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-black transition hover:bg-accent/90"
         >
           <Plus className="h-3.5 w-3.5" /> New
         </button>

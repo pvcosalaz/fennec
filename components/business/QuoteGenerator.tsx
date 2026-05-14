@@ -249,10 +249,10 @@ export default function QuoteGenerator({
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
-          <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">
+          <p className="text-[10px] font-semibold tracking-[0.3em] text-accent uppercase">
             Quote Generator
           </p>
-          <h1 className="text-3xl font-bold tracking-tight text-white">
+          <h1 className="text-2xl font-bold tracking-tight text-white">
             Create a quote.
           </h1>
           <p className="text-sm text-zinc-400">
@@ -303,7 +303,7 @@ export default function QuoteGenerator({
       {/* New quote form */}
       {showForm && (
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6 space-y-5">
-          <h2 className="text-base font-semibold text-white">New quote</h2>
+          <h2 className="text-sm font-semibold text-white">New quote</h2>
 
           {/* Project name */}
           <label className="flex flex-col gap-1.5">

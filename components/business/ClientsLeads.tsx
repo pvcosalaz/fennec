@@ -122,10 +122,10 @@ export default function ClientsLeads({ onBack, userId }: Props) {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
-          <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">
+          <p className="text-[10px] font-semibold tracking-[0.3em] text-accent uppercase">
             Clients & Leads
           </p>
-          <h1 className="text-3xl font-bold tracking-tight text-white">
+          <h1 className="text-2xl font-bold tracking-tight text-white">
             Your contacts.
           </h1>
           <p className="text-sm text-zinc-400">
@@ -151,7 +151,7 @@ export default function ClientsLeads({ onBack, userId }: Props) {
       {/* Form */}
       {showForm && (
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6 space-y-4">
-          <h2 className="text-base font-semibold text-white">
+          <h2 className="text-sm font-semibold text-white">
             {editing ? "Edit client" : "New client"}
           </h2>
 
