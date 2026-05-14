@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { Calculator, FileText, FolderOpen, Users, ArrowRight, Lock } from "lucide-react";
 import {
   type Project, type Quote, type Client,
@@ -9,6 +9,63 @@ import {
 import { getProjects, getQuotes, getClients } from "@/lib/businessDb";
 
 export type BusinessView = "hub" | "calculator" | "quotes" | "projects" | "clients";
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function getLastNMonths(n: number) {
+  const now = new Date();
+  return Array.from({ length: n }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - (n - 1 - i), 1);
+    return {
+      month: d.getMonth(),
+      year: d.getFullYear(),
+      label: d.toLocaleString("en-US", { month: "short" }),
+      isCurrent: i === n - 1,
+    };
+  });
+}
+
+function revenueForMonth(projects: Project[], month: number, year: number) {
+  return projects
+    .filter((p) => {
+      if (p.status !== "paid") return false;
+      const d = new Date(p.createdAt);
+      return d.getMonth() === month && d.getFullYear() === year;
+    })
+    .reduce((s, p) => s + p.price, 0);
+}
+
+function EqualizerBars({ months, revenues }: { months: ReturnType<typeof getLastNMonths>; revenues: number[] }) {
+  const [up, setUp] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setUp(true), 150); return () => clearTimeout(t); }, []);
+  const max = Math.max(...revenues, 1);
+
+  return (
+    <div className="flex items-end gap-1.5" style={{ height: 100 }}>
+      {months.map((m, i) => {
+        const hasRev = revenues[i] > 0;
+        const pct = hasRev ? Math.max((revenues[i] / max) * 100, 10) : 3;
+        return (
+          <div key={i} className="flex flex-1 flex-col items-center gap-2">
+            <div className="relative w-full flex items-end rounded-lg overflow-hidden bg-white/[0.04]" style={{ height: 76 }}>
+              <div
+                className={`w-full rounded-lg transition-all duration-700 ease-out ${m.isCurrent ? "bg-accent" : "bg-white/15"}`}
+                style={{
+                  height: up ? `${pct}%` : "0%",
+                  transitionDelay: `${i * 55}ms`,
+                  boxShadow: m.isCurrent && hasRev ? "0 0 16px rgba(245,166,35,0.45)" : "none",
+                }}
+              />
+            </div>
+            <span className={`text-[10px] font-medium ${m.isCurrent ? "text-accent" : "text-zinc-600"}`}>
+              {m.label}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 function revenueThisMonth(projects: Project[]) {
   const now = new Date();
@@ -42,6 +99,8 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
   const revenue      = useMemo(() => revenueThisMonth(projects), [projects]);
   const activeCount  = useMemo(() => projects.filter((p) => p.status !== "paid").length, [projects]);
   const quotesCount  = useMemo(() => quotes.filter((q) => q.status === "sent").length, [quotes]);
+  const months       = useMemo(() => getLastNMonths(6), []);
+  const revenues     = useMemo(() => months.map((m) => revenueForMonth(projects, m.month, m.year)), [projects, months]);
 
   return (
     <div className="mx-auto w-full max-w-4xl space-y-5 pb-4 px-4">
@@ -131,15 +190,18 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
         <ArrowRight size={16} className="text-zinc-600 shrink-0" />
       </button>
 
-      {/* ── Revenue summary ── */}
-      <div className="flex items-center justify-between pt-2 border-t border-white/5">
-        <div>
-          <p className="text-[10px] text-zinc-500 uppercase tracking-widest">This month</p>
-          <p className="text-xl font-black text-white mt-0.5">
-            {revenue > 0 ? formatCOP(revenue) : "$0"}
-          </p>
+      {/* ── Revenue summary + bars ── */}
+      <div className="space-y-4 pt-2 border-t border-white/5">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[10px] text-zinc-500 uppercase tracking-widest">This month</p>
+            <p className="text-xl font-black text-white mt-0.5">
+              {revenue > 0 ? formatCOP(revenue) : "$0"}
+            </p>
+          </div>
+          <p className="text-xs text-zinc-500">Revenue</p>
         </div>
-        <p className="text-xs text-zinc-500">Revenue</p>
+        <EqualizerBars months={months} revenues={revenues} />
       </div>
 
     </div>
