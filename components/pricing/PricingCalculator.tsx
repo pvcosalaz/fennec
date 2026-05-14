@@ -913,16 +913,16 @@ export default function PricingCalculator() {
                   className="flex flex-1 flex-col items-center justify-center py-3 transition"
                 >
                   <img
-                    src="/fennec-logo.png"
+                    src="/Logo Design.png"
                     alt="Fennec"
                     style={{
                       width: 28,
-                      height: "auto",
-                      filter: isActive
-                        ? "brightness(0) invert(1) sepia(1) saturate(5) hue-rotate(5deg) brightness(0.95)"
-                        : "brightness(0) invert(1)",
+                      height: 28,
+                      objectFit: "contain",
+                      filter: isActive ? "none" : "grayscale(1) brightness(1.5)",
                       opacity: isActive ? 1 : 0.4,
                       transition: "filter 0.2s, opacity 0.2s",
+                      borderRadius: 6,
                     }}
                     onError={(e) => {
                       (e.currentTarget as HTMLImageElement).style.display = "none";
