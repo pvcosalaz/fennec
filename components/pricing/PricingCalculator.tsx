@@ -435,11 +435,7 @@ export default function PricingCalculator() {
           </button>
         </div>
       </div>
-      {activeTab === "dashboard" && (
-        <div className="relative w-full h-16 mb-2 pointer-events-none overflow-hidden">
-          <DashboardWave />
-        </div>
-      )}
+      {/* wave removed */}
       {showSettings ? (
         <SettingsModule
           onBack={() => setShowSettings(false)}

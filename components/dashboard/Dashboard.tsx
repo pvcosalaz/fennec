@@ -344,7 +344,7 @@ export default function Dashboard({ avatarUrl, username, isPro }: { avatarUrl?: 
   if (!mounted) return null;
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-4 pb-8 pt-2">
+    <div className="mx-auto w-full max-w-4xl space-y-4 pb-8 pt-2 px-4">
 
       {/* ── Fennec dB ────────────────────────────────────────────────────── */}
       <div className="relative overflow-hidden px-2 pt-4 pb-6">
@@ -357,7 +357,7 @@ export default function Dashboard({ avatarUrl, username, isPro }: { avatarUrl?: 
               alt=""
               style={{ width: 22, height: "auto", filter: "brightness(0) invert(1)", opacity: 0.5 }}
             />
-            <p className="text-[11px] text-zinc-300 font-medium uppercase tracking-widest">
+            <p className="text-xs text-white font-medium uppercase tracking-widest">
               {greeting()}{firstName ? `, ${firstName}` : ""}
             </p>
           </div>
@@ -385,7 +385,7 @@ export default function Dashboard({ avatarUrl, username, isPro }: { avatarUrl?: 
               <p className="text-6xl font-black text-white leading-none tracking-tighter tabular-nums">
                 <AnimatedNumber value={fennecDb} />
               </p>
-              <p className="text-[10px] text-zinc-400">business signal</p>
+              <p className="text-xs text-zinc-300">business signal</p>
             </div>
 
             {/* Signal components — fill the space to the right */}
@@ -405,7 +405,7 @@ export default function Dashboard({ avatarUrl, username, isPro }: { avatarUrl?: 
                       boxShadow: row.value !== null && row.value > 0 ? `0 0 5px ${row.color}` : "none",
                     }}
                   />
-                  <span className="text-[10px] text-zinc-400 w-20">{row.label}</span>
+                  <span className="text-xs text-zinc-300 w-20">{row.label}</span>
                   {row.value !== null ? (
                     <span className={`text-[10px] font-medium ${row.value > 0 ? "text-white" : "text-zinc-700"}`}>
                       {row.value > 0 ? `${row.value} × ${row.weight}` : "—"}
@@ -453,7 +453,7 @@ export default function Dashboard({ avatarUrl, username, isPro }: { avatarUrl?: 
             <p className="text-2xl font-black" style={{ color: k.color }}>
               <AnimatedNumber value={k.value} />
             </p>
-            <p className="text-[9px] text-zinc-400 font-medium uppercase tracking-wide">{k.label}</p>
+            <p className="text-xs text-zinc-300 font-medium uppercase tracking-wide">{k.label}</p>
           </div>
         ))}
       </div>
@@ -462,7 +462,7 @@ export default function Dashboard({ avatarUrl, username, isPro }: { avatarUrl?: 
       {/* ── Social VU meters ─────────────────────────────────────────────── */}
       <div className="px-2 pt-4 pb-2 space-y-4 border-t border-white/5">
         <div className="flex items-center justify-between">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">Social Reach</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-300">Social Reach</p>
           <button className="flex items-center gap-0.5 text-[10px] text-accent/70 hover:text-accent transition">
             Connect <ChevronRight className="h-3 w-3" />
           </button>
@@ -478,16 +478,16 @@ export default function Dashboard({ avatarUrl, username, isPro }: { avatarUrl?: 
       {/* ── Activity ─────────────────────────────────────────────────────── */}
       {activity.length > 0 && (
         <div className="px-2 pt-4 pb-2 space-y-3 border-t border-white/5">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">Activity</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-300">Activity</p>
           <div className="space-y-3">
             {activity.map((item) => (
               <div key={item.id} className="flex items-center gap-3">
                 <div className="h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: item.dot }} />
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-white leading-snug">{item.label}</p>
-                  {item.sub && <p className="text-[10px] text-zinc-400 truncate">{item.sub}</p>}
+                  {item.sub && <p className="text-xs text-zinc-300 truncate">{item.sub}</p>}
                 </div>
-                <span className="text-[10px] text-zinc-500 shrink-0">{timeAgo(item.ts)}</span>
+                <span className="text-xs text-zinc-400 shrink-0">{timeAgo(item.ts)}</span>
               </div>
             ))}
           </div>
