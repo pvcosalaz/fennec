@@ -266,11 +266,17 @@ function RecordView({
       source.connect(analyser);
       animateWaveform(analyser);
 
-      const recorder = new MediaRecorder(stream);
+      // Pick the best supported format — Safari iOS only supports mp4/aac
+      const mimeType = MediaRecorder.isTypeSupported("audio/mp4")
+        ? "audio/mp4"
+        : MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? "audio/webm;codecs=opus"
+        : "audio/webm";
+      const recorder = new MediaRecorder(stream, { mimeType });
       chunksRef.current = [];
       recorder.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
       recorder.onstop = () => {
-        const b = new Blob(chunksRef.current, { type: "audio/webm" });
+        const b = new Blob(chunksRef.current, { type: mimeType });
         setBlob(b);
         setAudioUrl(URL.createObjectURL(b));
       };
@@ -521,23 +527,32 @@ function MelodyCard({
   const NUM_BARS = 20;
 
   function startWaveform(audio: HTMLAudioElement) {
-    const ctx      = new AudioContext();
-    const source   = ctx.createMediaElementSource(audio);
-    const analyser = ctx.createAnalyser();
-    analyser.fftSize = 64;
-    source.connect(analyser);
-    analyser.connect(ctx.destination);
-    analyserRef.current = analyser;
-    const data = new Uint8Array(analyser.frequencyBinCount);
-    function tick() {
-      analyser.getByteFrequencyData(data);
-      const step = Math.floor(data.length / NUM_BARS);
-      setBars(Array.from({ length: NUM_BARS }, (_, i) =>
-        Math.max(3, Math.round((data[i * step] / 255) * 28))
-      ));
-      animRef.current = requestAnimationFrame(tick);
+    try {
+      const ctx      = new AudioContext();
+      const source   = ctx.createMediaElementSource(audio);
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 64;
+      source.connect(analyser);
+      analyser.connect(ctx.destination);
+      analyserRef.current = analyser;
+      const data = new Uint8Array(analyser.frequencyBinCount);
+      function tick() {
+        analyser.getByteFrequencyData(data);
+        const step = Math.floor(data.length / NUM_BARS);
+        setBars(Array.from({ length: NUM_BARS }, (_, i) =>
+          Math.max(3, Math.round((data[i * step] / 255) * 28))
+        ));
+        animRef.current = requestAnimationFrame(tick);
+      }
+      tick();
+    } catch {
+      // iOS Safari fallback — animate bars randomly
+      function fakeTick() {
+        setBars(Array.from({ length: NUM_BARS }, () => Math.max(3, Math.floor(Math.random() * 28))));
+        animRef.current = requestAnimationFrame(fakeTick);
+      }
+      fakeTick();
     }
-    tick();
   }
 
   function stopWaveform() {
