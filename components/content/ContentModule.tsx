@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Plus, Trash2, Pencil, Check, X,
   Lightbulb, Calendar, Sparkles, Lock,
@@ -576,6 +576,25 @@ export default function ContentModule() {
 
   const isPro = true;
 
+  // ── Swipe-down to close sheet ──
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const dragStartY = useRef<number | null>(null);
+  const [dragY, setDragY] = useState(0);
+
+  function onTouchStart(e: React.TouchEvent) {
+    dragStartY.current = e.touches[0].clientY;
+  }
+  function onTouchMove(e: React.TouchEvent) {
+    if (dragStartY.current === null) return;
+    const dy = e.touches[0].clientY - dragStartY.current;
+    if (dy > 0) setDragY(dy);
+  }
+  function onTouchEnd() {
+    if (dragY > 100) closeSheet();
+    setDragY(0);
+    dragStartY.current = null;
+  }
+
   // ── Load ──
   useEffect(() => {
     try {
@@ -660,17 +679,17 @@ export default function ContentModule() {
             className="fixed inset-0 z-30 bg-black/70 backdrop-blur-sm"
             onClick={closeSheet}
           />
-          <div className="fixed bottom-0 left-0 right-0 z-40 h-[92vh] rounded-t-3xl border-t border-white/10 bg-zinc-950 overflow-y-auto">
-            {/* Drag handle + close button */}
-            <div className="sticky top-0 z-10 flex items-center justify-between px-4 pt-3 pb-2 bg-zinc-950">
-              <div className="w-8" /> {/* spacer */}
-              <div className="w-10 h-1 rounded-full bg-white/20" />
-              <button
-                onClick={closeSheet}
-                className="w-8 h-8 rounded-full bg-white/8 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/15 transition"
-              >
-                <X size={15} />
-              </button>
+          <div
+            ref={sheetRef}
+            className="fixed bottom-0 left-0 right-0 z-40 h-[92vh] rounded-t-3xl border-t border-white/10 bg-zinc-950 overflow-y-auto"
+            style={{ transform: `translateY(${dragY}px)`, transition: dragY === 0 ? "transform 0.3s ease-out" : "none" }}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+          >
+            {/* Drag handle */}
+            <div className="sticky top-0 z-10 flex items-center justify-center px-4 pt-3 pb-2 bg-zinc-950">
+              <div className="w-10 h-1 rounded-full bg-white/30" />
             </div>
             <div className="px-2 pb-8 pt-1">
               {sheet === "inspire" && (
