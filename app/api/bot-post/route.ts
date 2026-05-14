@@ -1,4 +1,5 @@
 // app/api/bot-post/route.ts
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { markAsPosted } from "@/lib/botDb";
