@@ -108,8 +108,8 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
       {/* ── Header ── */}
       <div className="space-y-1">
         <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">Business Hub</p>
-        <h1 className="mt-3 text-3xl font-bold tracking-tight text-white">Run your business.</h1>
-        <p className="mt-2 text-sm text-zinc-400">Price, quote, track — all in one place.</p>
+        <h1 className="mt-3 text-3xl font-bold tracking-tight text-white">Run your music business.</h1>
+        <p className="mt-2 text-sm text-zinc-400">Price, quote, track your productions.</p>
       </div>
 
       {/* ── Pricing Calculator — hero ── */}
