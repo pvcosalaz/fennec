@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Sparkles, Lightbulb, Pencil, Check, ArrowRight, FlaskConical } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, ArrowRight } from "lucide-react";
 
 const TRENDING_CACHE_KEY = "fennec-trending-ideas-v3";
 
@@ -281,12 +281,12 @@ export default function CalendarHub({
       <div className="border-t border-zinc-800 pt-4 flex flex-col gap-3">
         <span className="text-xs uppercase tracking-widest text-zinc-500">Tools</span>
 
-        {/* Inspire — hero card with thumbnail */}
+        {/* Inspire — hero card */}
         <button
           onClick={() => onOpenSheet("inspire")}
           className="relative w-full h-32 rounded-2xl overflow-hidden group"
         >
-          {/* Background: thumbnail or fallback gradient */}
+          {/* Background */}
           {inspireThumbnail ? (
             <img
               src={inspireThumbnail}
@@ -296,38 +296,31 @@ export default function CalendarHub({
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-amber-900/80 via-amber-800/40 to-zinc-900" />
           )}
-
-          {/* Dark overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
 
           {/* Content */}
-          <div className="absolute inset-0 flex items-end justify-between p-4">
-            <div className="flex items-center gap-2.5">
-              <div className="h-9 w-9 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center">
-                <Sparkles size={18} className="text-white" />
-              </div>
-              <div className="text-left">
-                <p className="text-white font-bold text-base leading-tight">Inspire</p>
-                <p className="text-white/60 text-xs">Daily trends in music production</p>
-              </div>
+          <div className="absolute inset-0 flex items-center p-5 gap-4">
+            <span className="text-5xl leading-none" style={{ filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.5))" }}>⚡</span>
+            <div className="text-left flex-1">
+              <p className="text-white font-bold text-lg leading-tight">Inspire</p>
+              <p className="text-white/60 text-xs mt-0.5">Daily trends in music production</p>
             </div>
-            <div className="h-8 w-8 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
+            <div className="h-8 w-8 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center shrink-0">
               <ArrowRight size={14} className="text-white" />
             </div>
           </div>
         </button>
 
-        {/* Quick Ideas · Music Content Lab (hero) · My Scripts */}
+        {/* Quick Ideas · Music Content Lab · My Scripts */}
         <div className="flex gap-2 items-stretch">
           {/* Quick Ideas */}
           <button
             onClick={() => onOpenSheet("ideas")}
-            className="relative rounded-2xl overflow-hidden group bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800/80 transition-colors flex-1"
+            className="relative rounded-2xl overflow-hidden group flex-1"
           >
-            <div className="flex flex-col items-center gap-2 py-4 px-2">
-              <div className="h-9 w-9 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center group-hover:bg-zinc-700 transition-colors">
-                <Lightbulb size={16} className="text-zinc-300" />
-              </div>
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-950/80 via-blue-900/30 to-zinc-900" />
+            <div className="relative flex flex-col items-center gap-2 py-5 px-2">
+              <span className="text-4xl leading-none" style={{ filter: "drop-shadow(0 4px 10px rgba(0,0,0,0.4))" }}>💡</span>
               <span className="text-[11px] font-semibold text-zinc-300 text-center leading-tight">Quick Ideas</span>
             </div>
           </button>
@@ -335,12 +328,11 @@ export default function CalendarHub({
           {/* Music Content Lab — hero center */}
           <button
             onClick={() => onOpenSheet("lab")}
-            className="relative rounded-2xl overflow-hidden group bg-zinc-900 border border-zinc-700 hover:border-zinc-600 hover:bg-zinc-800/80 transition-colors flex-[1.6]"
+            className="relative rounded-2xl overflow-hidden group flex-[1.6]"
           >
-            <div className="flex flex-col items-center gap-2.5 py-5 px-3">
-              <div className="h-11 w-11 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center group-hover:bg-zinc-700 transition-colors">
-                <FlaskConical size={20} className="text-zinc-200" />
-              </div>
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/80 via-emerald-900/30 to-zinc-900" />
+            <div className="relative flex flex-col items-center gap-2.5 py-5 px-3">
+              <span className="text-5xl leading-none" style={{ filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.4))" }}>🧪</span>
               <span className="text-[12px] font-semibold text-zinc-200 text-center leading-tight">Music Content Lab</span>
             </div>
           </button>
@@ -348,12 +340,11 @@ export default function CalendarHub({
           {/* My Scripts */}
           <button
             onClick={() => onOpenSheet("scripts")}
-            className="relative rounded-2xl overflow-hidden group bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800/80 transition-colors flex-1"
+            className="relative rounded-2xl overflow-hidden group flex-1"
           >
-            <div className="flex flex-col items-center gap-2 py-4 px-2">
-              <div className="h-9 w-9 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center group-hover:bg-zinc-700 transition-colors">
-                <Pencil size={16} className="text-zinc-300" />
-              </div>
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-950/80 via-purple-900/30 to-zinc-900" />
+            <div className="relative flex flex-col items-center gap-2 py-5 px-2">
+              <span className="text-4xl leading-none" style={{ filter: "drop-shadow(0 4px 10px rgba(0,0,0,0.4))" }}>✍️</span>
               <span className="text-[11px] font-semibold text-zinc-300 text-center leading-tight">My Scripts</span>
             </div>
           </button>
