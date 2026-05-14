@@ -103,11 +103,11 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
   const revenues     = useMemo(() => months.map((m) => revenueForMonth(projects, m.month, m.year)), [projects, months]);
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-5 pb-4 px-4">
+    <div className="mx-auto w-full max-w-4xl flex flex-col gap-5 pb-4 px-4">
 
       {/* ── Header ── */}
       <div className="space-y-1">
-        <p className="text-[10px] font-semibold tracking-[0.3em] text-accent uppercase">Business Hub</p>
+        <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">Business Hub</p>
         <h1 className="mt-3 text-3xl font-bold tracking-tight text-white">Run your business.</h1>
         <p className="mt-2 text-sm text-zinc-400">Price, quote, track — all in one place.</p>
       </div>
