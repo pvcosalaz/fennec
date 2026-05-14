@@ -56,116 +56,90 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
       {/* ── Pricing Calculator — hero ── */}
       <button
         onClick={() => onOpenView("calculator")}
-        className="w-full rounded-2xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800/80 transition-colors overflow-hidden text-left"
+        className="w-full text-left py-3 flex items-center gap-4 border-b border-white/5"
       >
-        <div className="p-4 flex items-center gap-4">
-          <div className="h-12 w-12 rounded-xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center shrink-0">
-            <Calculator size={22} className="text-amber-400" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-base font-bold text-white">Pricing Calculator</p>
-            <p className="text-xs text-zinc-500 mt-0.5">Know your rate before saying yes to any project.</p>
-          </div>
-          <ArrowRight size={16} className="text-zinc-600 shrink-0" />
+        <div className="h-10 w-10 rounded-xl bg-amber-400/10 flex items-center justify-center shrink-0">
+          <Calculator size={20} className="text-amber-400" />
         </div>
-        {monthlyTarget > 0 && (
-          <div className="px-4 pb-4 space-y-1.5">
-            <div className="flex justify-between text-[10px] text-zinc-600">
-              <span>Monthly target</span>
-              <span>{formatCOP(monthlyTarget)}</span>
-            </div>
-            <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-amber-400 rounded-full transition-all duration-700"
-                style={{ width: `${monthlyTarget > 0 ? Math.min((revenue / monthlyTarget) * 100, 100) : 0}%` }}
-              />
-            </div>
-          </div>
-        )}
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold text-white">Pricing Calculator</p>
+          <p className="text-xs text-zinc-500 mt-0.5">Know your rate before saying yes.</p>
+        </div>
+        <ArrowRight size={16} className="text-zinc-600 shrink-0" />
       </button>
 
       {/* ── Quotes + Projects — 2 columns ── */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-6">
         {/* Quotes */}
         <button
           onClick={() => isPro ? onOpenView("quotes") : undefined}
-          className="rounded-2xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800/80 transition-colors text-left p-4 space-y-3 relative overflow-hidden"
+          className="text-left space-y-1 relative"
         >
           {!isPro && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-[2px] rounded-2xl z-10">
+            <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-[2px] rounded-xl z-10">
               <Lock size={14} className="text-zinc-500" />
             </div>
           )}
           <div className="flex items-center justify-between">
-            <div className="h-9 w-9 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center">
-              <FileText size={16} className="text-zinc-300" />
-            </div>
+            <FileText size={16} className="text-zinc-500" />
             <span className="text-2xl font-black text-white">{quotesCount}</span>
           </div>
-          <div>
-            <p className="text-sm font-semibold text-white">Quotes</p>
-            <p className="text-[10px] text-zinc-500 mt-0.5">Sent this month</p>
-          </div>
+          <p className="text-sm font-semibold text-white">Quotes</p>
+          <p className="text-xs text-zinc-500">Sent this month</p>
         </button>
 
         {/* Active Projects */}
         <button
           onClick={() => isPro ? onOpenView("projects") : undefined}
-          className="rounded-2xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800/80 transition-colors text-left p-4 space-y-3 relative overflow-hidden"
+          className="text-left space-y-1 relative"
         >
           {!isPro && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-[2px] rounded-2xl z-10">
+            <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-[2px] rounded-xl z-10">
               <Lock size={14} className="text-zinc-500" />
             </div>
           )}
           <div className="flex items-center justify-between">
-            <div className="h-9 w-9 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center">
-              <FolderOpen size={16} className="text-zinc-300" />
-            </div>
+            <FolderOpen size={16} className="text-zinc-500" />
             <span className="text-2xl font-black text-white">{activeCount}</span>
           </div>
-          <div>
-            <p className="text-sm font-semibold text-white">Projects</p>
-            <p className="text-[10px] text-zinc-500 mt-0.5">Active right now</p>
-          </div>
+          <p className="text-sm font-semibold text-white">Projects</p>
+          <p className="text-xs text-zinc-500">Active right now</p>
         </button>
       </div>
 
-      {/* ── Clients & Leads — full width ── */}
+      {/* ── Clients & Leads ── */}
       <button
         onClick={() => isPro ? onOpenView("clients") : undefined}
-        className="w-full rounded-2xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800/80 transition-colors text-left p-4 relative overflow-hidden"
+        className="w-full text-left py-3 flex items-center gap-3 border-t border-white/5 relative"
       >
         {!isPro && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-[2px] rounded-2xl z-10">
+          <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-[2px] rounded-xl z-10">
             <div className="flex items-center gap-1.5 bg-amber-400 text-black text-xs font-bold px-3 py-1.5 rounded-full">
               <Lock size={12} /> Unlock Pro
             </div>
           </div>
         )}
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center shrink-0">
-            <Users size={18} className="text-zinc-300" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-white">Clients & Leads</p>
-            <p className="text-xs text-zinc-500 mt-0.5">
-              {clients.length > 0 ? `${clients.length} contact${clients.length !== 1 ? "s" : ""}` : "Your contacts and prospects"}
-            </p>
-          </div>
-          <ArrowRight size={16} className="text-zinc-600 shrink-0" />
+        <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
+          <Users size={18} className="text-zinc-400" />
         </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-white">Clients & Leads</p>
+          <p className="text-xs text-zinc-500 mt-0.5">
+            {clients.length > 0 ? `${clients.length} contact${clients.length !== 1 ? "s" : ""}` : "Your contacts and prospects"}
+          </p>
+        </div>
+        <ArrowRight size={16} className="text-zinc-600 shrink-0" />
       </button>
 
-      {/* ── Revenue summary — contextual, at the bottom ── */}
+      {/* ── Revenue summary ── */}
       <div className="flex items-center justify-between pt-2 border-t border-white/5">
         <div>
-          <p className="text-[10px] text-zinc-600 uppercase tracking-widest">This month</p>
+          <p className="text-[10px] text-zinc-500 uppercase tracking-widest">This month</p>
           <p className="text-xl font-black text-white mt-0.5">
             {revenue > 0 ? formatCOP(revenue) : "$0"}
           </p>
         </div>
-        <p className="text-[10px] text-zinc-700">Revenue</p>
+        <p className="text-xs text-zinc-500">Revenue</p>
       </div>
 
     </div>
