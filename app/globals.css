@@ -13,10 +13,15 @@
   --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
+html {
+  background: var(--background);
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  overscroll-behavior: none;
 }
 
 /* Remove native number input spinners */

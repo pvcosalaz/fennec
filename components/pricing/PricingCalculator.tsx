@@ -418,8 +418,8 @@ export default function PricingCalculator() {
   }
 
   return (
-    <div className="flex h-screen flex-col">
-    <main className="flex-1 overflow-y-auto pb-6 pt-6">
+    <div className="flex h-screen flex-col bg-background">
+    <main className="flex-1 overflow-y-auto overscroll-none pb-6 pt-6">
       {/* Settings button */}
       <div className={`flex w-full max-w-4xl items-center px-6 ${activeTab === "dashboard" ? "mb-0" : "mb-4"}`}>
         <div className="flex-1" />
@@ -896,8 +896,8 @@ export default function PricingCalculator() {
       ) : null}
 
     </main>
-      <nav className="shrink-0 border-t border-white/8 bg-black/90 backdrop-blur-xl">
-        <div className="mx-auto flex w-full max-w-2xl items-center px-2 pb-12 pt-2">
+      <nav className="shrink-0 border-t border-white/8 bg-background backdrop-blur-xl" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+        <div className="mx-auto flex w-full max-w-2xl items-center px-2 pb-3 pt-2">
           {moduleTabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
