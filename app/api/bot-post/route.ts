@@ -4,7 +4,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { markAsPosted } from "@/lib/botDb";
 import { rewriteWithClaude, pickFormat } from "@/lib/botContent";
-import type { NewsItem } from "@/app/api/news/route";
+import { fetchNewsItems } from "@/lib/newsData";
+import type { NewsItem } from "@/lib/newsData";
 import type { PostCategory } from "@/lib/communityTypes";
 
 const BOT_UUID = "f0000000-0000-0000-0000-000000000001";
@@ -51,10 +52,7 @@ async function handler(req: NextRequest) {
 
   try {
     // ── 1. Fetch news ─────────────────────────────────────────
-    const baseUrl = `${req.nextUrl.protocol}//${req.nextUrl.host}`;
-    const newsRes = await fetch(`${baseUrl}/api/news`);
-    if (!newsRes.ok) throw new Error(`News fetch failed: ${newsRes.status}`);
-    const allItems: NewsItem[] = await newsRes.json();
+    const allItems: NewsItem[] = await fetchNewsItems();
 
     // ── 2. Filter already-posted (single batch query) ────────
     const { data: postedRows } = await supabase
