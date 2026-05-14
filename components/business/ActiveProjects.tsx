@@ -26,6 +26,7 @@ import {
   deleteProject,
   getClients,
 } from "@/lib/businessDb";
+import { supabase } from "@/lib/supabase";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -335,6 +336,27 @@ export default function ActiveProjects({ onBack, userId }: { onBack: () => void;
       setClients(c);
       setLoading(false);
     });
+  }, [userId]);
+
+  // Realtime sync — updates from other devices
+  useEffect(() => {
+    if (!userId) return;
+
+    const projectsChannel = supabase
+      .channel(`business_projects:${userId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'business_projects', filter: `user_id=eq.${userId}` },
+        () => {
+          Promise.all([getProjects(userId), getClients(userId)]).then(([p, c]) => {
+            setProjects(p);
+            setClients(c);
+          });
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(projectsChannel); };
   }, [userId]);
 
   const save = (updated: Project[]) => {

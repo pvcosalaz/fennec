@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { type Client } from "@/lib/pricingData";
 import { getClients, upsertClient, deleteClient } from "@/lib/businessDb";
+import { supabase } from "@/lib/supabase";
 
 type Props = {
   onBack: () => void;
@@ -34,6 +35,24 @@ export default function ClientsLeads({ onBack, userId }: Props) {
       setClients(data);
       setLoading(false);
     });
+  }, [userId]);
+
+  // Realtime sync — updates from other devices
+  useEffect(() => {
+    if (!userId) return;
+
+    const channel = supabase
+      .channel(`business_clients:${userId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'business_clients', filter: `user_id=eq.${userId}` },
+        () => {
+          getClients(userId).then(setClients);
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, [userId]);
 
   const openAdd = () => {

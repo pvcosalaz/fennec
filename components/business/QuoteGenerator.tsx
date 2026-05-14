@@ -25,6 +25,7 @@ import {
   deleteQuote,
   upsertProject,
 } from "@/lib/businessDb";
+import { supabase } from "@/lib/supabase";
 
 type Props = {
   onBack: () => void;
@@ -65,6 +66,38 @@ export default function QuoteGenerator({
       setQuotes(q);
       setLoading(false);
     });
+  }, [userId]);
+
+  // Realtime sync — updates from other devices
+  useEffect(() => {
+    if (!userId) return;
+
+    const quotesChannel = supabase
+      .channel(`business_quotes:${userId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'business_quotes', filter: `user_id=eq.${userId}` },
+        () => {
+          getQuotes(userId).then(setQuotes);
+        }
+      )
+      .subscribe();
+
+    const clientsChannel = supabase
+      .channel(`business_clients_qg:${userId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'business_clients', filter: `user_id=eq.${userId}` },
+        () => {
+          getClients(userId).then(setClients);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(quotesChannel);
+      supabase.removeChannel(clientsChannel);
+    };
   }, [userId]);
 
   // Computed prices for current form
