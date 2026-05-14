@@ -916,13 +916,12 @@ export default function PricingCalculator() {
                     src="/fennec-icon.png"
                     alt="Fennec"
                     style={{
-                      width: 28,
-                      height: 28,
+                      width: 36,
+                      height: 36,
                       objectFit: "contain",
-                      filter: isActive ? "none" : "grayscale(1) brightness(1.5)",
-                      opacity: isActive ? 1 : 0.4,
-                      transition: "filter 0.2s, opacity 0.2s",
-                      borderRadius: 6,
+                      mixBlendMode: "screen",
+                      opacity: isActive ? 1 : 0.45,
+                      transition: "opacity 0.2s",
                     }}
                     onError={(e) => {
                       (e.currentTarget as HTMLImageElement).style.display = "none";
