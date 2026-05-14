@@ -913,7 +913,7 @@ export default function PricingCalculator() {
                   className="flex flex-1 flex-col items-center justify-center py-3 transition"
                 >
                   <img
-                    src="/Logo Design.png"
+                    src="/fennec-icon.png"
                     alt="Fennec"
                     style={{
                       width: 28,
