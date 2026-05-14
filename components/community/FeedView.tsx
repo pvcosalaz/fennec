@@ -136,7 +136,7 @@ export default function FeedView({ profile, onOpenThread, onOpenProfile, openCom
   }
 
   return (
-    <div ref={containerRef} className="mx-auto w-full max-w-4xl space-y-4 px-2 pb-24 overflow-y-auto">
+    <div ref={containerRef} className="mx-auto w-full max-w-4xl space-y-4 px-4 pb-24 overflow-y-auto">
 
       {/* Pull-to-refresh indicator */}
       {(pullY > 0 || refreshing) && (

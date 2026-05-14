@@ -44,7 +44,7 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
   const quotesCount  = useMemo(() => quotes.filter((q) => q.status === "sent").length, [quotes]);
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-5 pb-4">
+    <div className="mx-auto w-full max-w-4xl space-y-5 pb-4 px-4">
 
       {/* ── Header ── */}
       <div className="space-y-1">

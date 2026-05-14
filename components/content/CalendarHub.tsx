@@ -134,7 +134,7 @@ export default function CalendarHub({
   }
 
   return (
-    <div className="flex flex-col bg-zinc-950 text-white gap-5">
+    <div className="flex flex-col bg-zinc-950 text-white gap-5 px-4">
       {/* 1. Greeting section */}
       <div className="flex flex-col gap-1">
         <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">

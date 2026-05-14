@@ -290,7 +290,7 @@ export default function Community({ profile, openComposerWith, onComposerConsume
   // Article reader — full screen within the module
   if (selected) {
     return (
-      <div className="mx-auto w-full max-w-4xl px-2">
+      <div className="mx-auto w-full max-w-4xl px-4">
         <ArticleReader item={selected} onBack={() => setSelected(null)} />
       </div>
     );
@@ -350,7 +350,7 @@ export default function Community({ profile, openComposerWith, onComposerConsume
       </div>
 
       {/* ── Panels ───────────────────────────────────────── */}
-      <div className="px-2 pt-4">
+      <div className="px-4 pt-4">
         {fennecTab === "news"      && <NewsPanel onSelect={setSelected} />}
         {fennecTab === "community" && <CommunityPanel profile={profile} openComposerWith={openComposerWith} onComposerConsumed={onComposerConsumed} />}
       </div>
