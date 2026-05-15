@@ -670,6 +670,10 @@ export default function ContentModule() {
         onOpenSheet={openSheet}
         onToggleDone={toggleDone}
         onDeleteTask={deleteTask}
+        onEditScript={(taskTitle) => {
+          const brief = briefs.find((b) => b.title === taskTitle);
+          if (brief) setDetailBrief(brief);
+        }}
       />
 
       {/* Bottom sheet overlay */}

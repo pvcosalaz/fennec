@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Check, ArrowRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, ArrowRight, Pencil } from "lucide-react";
 
 const TRENDING_CACHE_KEY = "fennec-trending-ideas-v3";
 
@@ -20,6 +20,7 @@ type Props = {
   onOpenSheet: (sheet: "inspire" | "ideas" | "scripts" | "lab") => void;
   onToggleDone: (id: string) => void;
   onDeleteTask: (id: string) => void;
+  onEditScript?: (taskTitle: string) => void;
   userName?: string;
 };
 
@@ -78,6 +79,7 @@ export default function CalendarHub({
   onOpenSheet,
   onToggleDone,
   onDeleteTask,
+  onEditScript,
   userName = "Paco",
 }: Props) {
   const today = new Date();
@@ -262,14 +264,25 @@ export default function CalendarHub({
                     </span>
                   </div>
 
-                  {/* Delete */}
-                  <button
-                    onClick={() => onDeleteTask(task.id)}
-                    className="flex-shrink-0 text-zinc-600 hover:text-red-400 transition-colors text-sm leading-none mt-0.5"
-                    aria-label="Eliminar tarea"
-                  >
-                    ✕
-                  </button>
+                  {/* Actions */}
+                  <div className="flex items-center gap-2 shrink-0 mt-0.5">
+                    {task.source === "scripts" && onEditScript && (
+                      <button
+                        onClick={() => onEditScript(task.title)}
+                        className="text-zinc-600 hover:text-amber-400 transition-colors"
+                        aria-label="Editar script"
+                      >
+                        <Pencil size={14} />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => onDeleteTask(task.id)}
+                      className="text-zinc-600 hover:text-red-400 transition-colors text-sm leading-none"
+                      aria-label="Eliminar tarea"
+                    >
+                      ✕
+                    </button>
+                  </div>
                 </div>
               );
             })}
