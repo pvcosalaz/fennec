@@ -4,23 +4,27 @@ import { useState } from "react";
 import { ArrowLeft, Calendar, Trash2, Pencil, Check } from "lucide-react";
 import type { Brief } from "@/lib/contentData";
 
+type ContentTask = { id: string; title: string; date: string; source: string };
+
 type Props = {
   brief: Brief;
   onClose: () => void;
   onDelete: (id: string) => void;
   onSchedule: (title: string, notes?: string) => void;
-  onUpdate: (id: string, title: string, script: string) => void;
+  onUpdate: (id: string, title: string, script: string, newDate?: string) => void;
+  scheduledTask: ContentTask | null;
 };
 
-export default function ScriptDetailOverlay({ brief, onClose, onDelete, onSchedule, onUpdate }: Props) {
+export default function ScriptDetailOverlay({ brief, onClose, onDelete, onSchedule, onUpdate, scheduledTask }: Props) {
   const [editing, setEditing] = useState(false);
   const [title,   setTitle]   = useState(brief.title);
   const [script,  setScript]  = useState(brief.script ?? "");
+  const [date,    setDate]    = useState(scheduledTask?.date ?? "");
   const [saved,   setSaved]   = useState(false);
 
   function handleSave() {
     if (!title.trim()) return;
-    onUpdate(brief.id, title.trim(), script.trim());
+    onUpdate(brief.id, title.trim(), script.trim(), date || undefined);
     setSaved(true);
     setTimeout(() => { setSaved(false); setEditing(false); }, 800);
   }
@@ -101,12 +105,29 @@ export default function ScriptDetailOverlay({ brief, onClose, onDelete, onSchedu
               className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-lg font-bold placeholder-zinc-600 focus:outline-none focus:border-accent/50"
             />
 
+            {/* Date picker */}
+            <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+              <Calendar size={15} className="text-zinc-500 shrink-0" />
+              <div className="flex-1">
+                <p className="text-[10px] text-zinc-500 uppercase tracking-widest mb-0.5">Publish date</p>
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="bg-transparent text-sm text-white focus:outline-none w-full"
+                />
+              </div>
+              {date && (
+                <button onClick={() => setDate("")} className="text-zinc-600 hover:text-red-400 text-xs transition">✕</button>
+              )}
+            </div>
+
             {/* Script textarea */}
             <textarea
               value={script}
               onChange={(e) => setScript(e.target.value)}
               placeholder="Write your script here..."
-              rows={16}
+              rows={14}
               className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-zinc-200 placeholder-zinc-600 leading-relaxed resize-none focus:outline-none focus:border-accent/50"
             />
           </>

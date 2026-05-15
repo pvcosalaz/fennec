@@ -741,9 +741,19 @@ export default function ContentModule() {
           onClose={() => setDetailBrief(null)}
           onDelete={(id) => { setBriefs((prev) => prev.filter((b) => b.id !== id)); setDetailBrief(null); }}
           onSchedule={(title, notes) => { setDetailBrief(null); requestSchedule(title, "scripts", notes); }}
-          onUpdate={(id, title, script) => {
+          scheduledTask={tasks.find((t) => t.source === "scripts" && t.title === detailBrief.title) ?? null}
+          onUpdate={(id, title, script, newDate) => {
             setBriefs((prev) => prev.map((b) => b.id === id ? { ...b, title, script } : b));
             setDetailBrief((prev) => prev ? { ...prev, title, script } : prev);
+            if (newDate) {
+              // Update existing task date, or create a new one
+              const existing = tasks.find((t) => t.source === "scripts" && t.title === detailBrief.title);
+              if (existing) {
+                setTasks((prev) => prev.map((t) => t.id === existing.id ? { ...t, title, date: newDate } : t));
+              } else {
+                addTask(title, newDate, "scripts", script || undefined);
+              }
+            }
           }}
         />
       )}
