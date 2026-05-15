@@ -128,7 +128,8 @@ export default function ScriptDetailOverlay({ brief, onClose, onDelete, onSchedu
               onChange={(e) => setScript(e.target.value)}
               placeholder="Write your script here..."
               rows={14}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-zinc-200 placeholder-zinc-600 leading-relaxed resize-none focus:outline-none focus:border-accent/50"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-zinc-200 placeholder-zinc-600 leading-relaxed resize-none focus:outline-none focus:border-accent/50"
+              style={{ fontFamily: "Courier, 'Courier New', monospace", fontSize: "12px" }}
             />
           </>
         ) : (
