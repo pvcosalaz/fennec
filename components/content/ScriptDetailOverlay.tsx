@@ -1,6 +1,7 @@
 "use client";
 
-import { ArrowLeft, Calendar, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, Calendar, Trash2, Pencil, Check } from "lucide-react";
 import type { Brief } from "@/lib/contentData";
 
 type Props = {
@@ -8,30 +9,66 @@ type Props = {
   onClose: () => void;
   onDelete: (id: string) => void;
   onSchedule: (title: string, notes?: string) => void;
+  onUpdate: (id: string, title: string, script: string) => void;
 };
 
-export default function ScriptDetailOverlay({ brief, onClose, onDelete, onSchedule }: Props) {
+export default function ScriptDetailOverlay({ brief, onClose, onDelete, onSchedule, onUpdate }: Props) {
+  const [editing, setEditing] = useState(false);
+  const [title,   setTitle]   = useState(brief.title);
+  const [script,  setScript]  = useState(brief.script ?? "");
+  const [saved,   setSaved]   = useState(false);
+
+  function handleSave() {
+    if (!title.trim()) return;
+    onUpdate(brief.id, title.trim(), script.trim());
+    setSaved(true);
+    setTimeout(() => { setSaved(false); setEditing(false); }, 800);
+  }
+
   return (
     <div className="fixed inset-0 z-50 bg-zinc-950 flex flex-col overflow-hidden">
 
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-12 pb-4 border-b border-white/5 shrink-0">
         <button
-          onClick={onClose}
+          onClick={editing ? () => { setEditing(false); setTitle(brief.title); setScript(brief.script ?? ""); } : onClose}
           className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 hover:text-white transition"
         >
           <ArrowLeft size={18} />
         </button>
         <div className="flex-1">
-          <p className="text-xs text-zinc-500 uppercase tracking-widest">Script</p>
+          <p className="text-xs text-zinc-500 uppercase tracking-widest">
+            {editing ? "Editing Script" : "Script"}
+          </p>
         </div>
-        <button
-          onClick={() => { onDelete(brief.id); onClose(); }}
-          className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-zinc-600 hover:text-red-400 transition"
-          aria-label="Delete script"
-        >
-          <Trash2 size={16} />
-        </button>
+
+        {editing ? (
+          <button
+            onClick={handleSave}
+            disabled={!title.trim()}
+            className="px-4 py-2 rounded-xl bg-accent text-black text-sm font-bold disabled:opacity-30 transition flex items-center gap-1.5"
+          >
+            {saved ? <Check size={14} /> : null}
+            {saved ? "Saved" : "Save"}
+          </button>
+        ) : (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setEditing(true)}
+              className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 hover:text-white transition"
+              aria-label="Edit script"
+            >
+              <Pencil size={15} />
+            </button>
+            <button
+              onClick={() => { onDelete(brief.id); onClose(); }}
+              className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-zinc-600 hover:text-red-400 transition"
+              aria-label="Delete script"
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Content */}
@@ -54,35 +91,59 @@ export default function ScriptDetailOverlay({ brief, onClose, onDelete, onSchedu
           )}
         </div>
 
-        {/* Title */}
-        <h1 className="text-2xl font-bold text-white leading-snug">{brief.title}</h1>
+        {editing ? (
+          <>
+            {/* Title input */}
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Title"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-lg font-bold placeholder-zinc-600 focus:outline-none focus:border-accent/50"
+            />
 
-        {/* Divider */}
-        <div className="flex items-center gap-3">
-          <div className="flex-1 h-px bg-white/5" />
-          <p className="text-[10px] text-zinc-600 uppercase tracking-widest">Script</p>
-          <div className="flex-1 h-px bg-white/5" />
-        </div>
-
-        {/* Script body */}
-        {brief.script ? (
-          <p className="text-sm text-zinc-200 leading-relaxed whitespace-pre-wrap">{brief.script}</p>
+            {/* Script textarea */}
+            <textarea
+              value={script}
+              onChange={(e) => setScript(e.target.value)}
+              placeholder="Write your script here..."
+              rows={16}
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-zinc-200 placeholder-zinc-600 leading-relaxed resize-none focus:outline-none focus:border-accent/50"
+            />
+          </>
         ) : (
-          <p className="text-sm text-zinc-600 italic">No script written yet.</p>
-        )}
+          <>
+            {/* Title */}
+            <h1 className="text-2xl font-bold text-white leading-snug">{title}</h1>
 
+            {/* Divider */}
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-px bg-white/5" />
+              <p className="text-[10px] text-zinc-600 uppercase tracking-widest">Script</p>
+              <div className="flex-1 h-px bg-white/5" />
+            </div>
+
+            {/* Script body */}
+            {script ? (
+              <p className="text-sm text-zinc-200 leading-relaxed whitespace-pre-wrap">{script}</p>
+            ) : (
+              <p className="text-sm text-zinc-600 italic">No script written yet.</p>
+            )}
+          </>
+        )}
       </div>
 
       {/* Bottom action */}
-      <div className="px-4 pb-8 pt-3 border-t border-white/5 shrink-0">
-        <button
-          onClick={() => onSchedule(brief.title, brief.script || undefined)}
-          className="w-full h-12 rounded-2xl bg-amber-400 text-black font-bold flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98]"
-        >
-          <Calendar size={16} />
-          Schedule this content
-        </button>
-      </div>
+      {!editing && (
+        <div className="px-4 pb-8 pt-3 border-t border-white/5 shrink-0">
+          <button
+            onClick={() => onSchedule(title, script || undefined)}
+            className="w-full h-12 rounded-2xl bg-amber-400 text-black font-bold flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98]"
+          >
+            <Calendar size={16} />
+            Schedule this content
+          </button>
+        </div>
+      )}
 
     </div>
   );

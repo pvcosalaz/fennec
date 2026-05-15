@@ -741,6 +741,10 @@ export default function ContentModule() {
           onClose={() => setDetailBrief(null)}
           onDelete={(id) => { setBriefs((prev) => prev.filter((b) => b.id !== id)); setDetailBrief(null); }}
           onSchedule={(title, notes) => { setDetailBrief(null); requestSchedule(title, "scripts", notes); }}
+          onUpdate={(id, title, script) => {
+            setBriefs((prev) => prev.map((b) => b.id === id ? { ...b, title, script } : b));
+            setDetailBrief((prev) => prev ? { ...prev, title, script } : prev);
+          }}
         />
       )}
 
