@@ -191,12 +191,9 @@ export default function QuoteGenerator({
     createdAt:       Date.now(),
   });
 
-  const handleConvertToProject = (quote: Quote) => {
-    // Check if a project already exists for this quote
-    const alreadyExists = false; // We can't easily check in DB without a fetch; just create
-    void alreadyExists;
+  const handleConvertToProject = async (quote: Quote) => {
     const newProject = makeProject(quote);
-    upsertProject(userId, newProject);
+    await upsertProject(userId, newProject);
     onGoToProjects();
   };
 

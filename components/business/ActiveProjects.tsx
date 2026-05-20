@@ -427,12 +427,14 @@ export default function ActiveProjects({ onBack, userId }: { onBack: () => void;
           <p className="text-xs font-semibold tracking-widest text-accent uppercase">Business</p>
           <h1 className="text-2xl font-bold text-white">Active Projects</h1>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-black transition hover:bg-accent/90"
-        >
-          <Plus className="h-3.5 w-3.5" /> New
-        </button>
+        {!showForm && (
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-black transition hover:bg-accent/90"
+          >
+            <Plus className="h-3.5 w-3.5" /> New
+          </button>
+        )}
       </div>
 
       {/* Loading state */}

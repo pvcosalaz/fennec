@@ -1,0 +1,235 @@
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #111114; color: #f5f5f5; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; padding: 24px 16px 40px; }
+
+  h2 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .subtitle { font-size: 13px; color: #71717a; margin-bottom: 28px; }
+
+  .cards { display: flex; flex-direction: column; gap: 20px; }
+
+  .card {
+    border-radius: 20px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.2s, transform 0.15s;
+  }
+  .card:hover { transform: scale(1.01); }
+  .card.selected { border-color: #f5a623; }
+
+  .card-label {
+    padding: 14px 18px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #f5a623;
+  }
+  .card-desc {
+    padding: 0 18px 16px;
+    font-size: 12px;
+    color: #71717a;
+    line-height: 1.5;
+  }
+
+  /* ─── OPTION A: Editorial / Magazine ─── */
+  .preview-a {
+    background: #111114;
+    padding: 20px 16px;
+    border-top: 1px solid #27272a;
+  }
+  .a-eyebrow { font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; color: #f5a623; margin-bottom: 6px; }
+  .a-title { font-size: 26px; font-weight: 800; line-height: 1.1; margin-bottom: 4px; color: #fff; }
+  .a-sub { font-size: 12px; color: #52525b; margin-bottom: 20px; }
+  .a-week { display: flex; align-items: center; gap: 8px; margin-bottom: 18px; }
+  .a-week-label { font-size: 10px; color: #52525b; flex: 1; text-align: center; font-weight: 700; letter-spacing: 0.1em; }
+  .a-day { flex: 1; text-align: center; }
+  .a-day-name { font-size: 9px; color: #52525b; text-transform: uppercase; }
+  .a-day-num { font-size: 16px; font-weight: 700; color: #71717a; }
+  .a-day.today .a-day-num { color: #111; background: #f5a623; border-radius: 8px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 14px; }
+  .a-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .a-tool { background: #18181b; border-radius: 12px; padding: 14px; }
+  .a-tool-emoji { font-size: 22px; margin-bottom: 6px; }
+  .a-tool-name { font-size: 11px; font-weight: 600; color: #d4d4d8; }
+  .a-tool-sub { font-size: 10px; color: #52525b; margin-top: 2px; }
+  .a-tool.hero { grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; background: linear-gradient(135deg, #451a03 0%, #18181b 100%); }
+  .a-tool.hero .a-tool-emoji { font-size: 32px; margin: 0; }
+
+  /* ─── OPTION B: Dark Ambient / Poster ─── */
+  .preview-b {
+    background: #0d0d0f;
+    padding: 20px 16px;
+    border-top: 1px solid #27272a;
+    position: relative;
+    overflow: hidden;
+  }
+  .b-glow { position: absolute; top: -40px; right: -40px; width: 140px; height: 140px; border-radius: 50%; background: radial-gradient(circle, rgba(245,166,35,0.12) 0%, transparent 70%); pointer-events: none; }
+  .b-eyebrow { font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; color: #52525b; margin-bottom: 8px; }
+  .b-greeting { font-size: 28px; font-weight: 900; color: #fff; line-height: 1; margin-bottom: 2px; }
+  .b-greeting span { color: #f5a623; }
+  .b-sub { font-size: 12px; color: #3f3f46; margin-bottom: 22px; }
+  .b-week { display: flex; gap: 4px; margin-bottom: 20px; }
+  .b-day { flex: 1; border-radius: 10px; padding: 8px 4px; text-align: center; background: transparent; }
+  .b-day.today { background: #f5a623; }
+  .b-day-name { font-size: 8px; text-transform: uppercase; color: #52525b; letter-spacing: 0.05em; }
+  .b-day.today .b-day-name { color: #000; }
+  .b-day-num { font-size: 15px; font-weight: 800; color: #52525b; }
+  .b-day.today .b-day-num { color: #000; }
+  .b-row { display: flex; gap: 8px; margin-bottom: 8px; }
+  .b-card { border-radius: 14px; padding: 16px; flex: 1; position: relative; overflow: hidden; }
+  .b-card.inspire { background: linear-gradient(135deg, #3d1a00 0%, #1c1c1e 100%); flex: 2; }
+  .b-card.ideas { background: #18181b; }
+  .b-card.lab { background: #18181b; flex: 1.4; }
+  .b-card.scripts { background: #18181b; }
+  .b-card-emoji { font-size: 28px; margin-bottom: 8px; display: block; }
+  .b-card-name { font-size: 11px; font-weight: 700; color: #d4d4d8; }
+  .b-card-sub { font-size: 10px; color: #3f3f46; margin-top: 2px; }
+  .b-card.inspire .b-card-name { font-size: 14px; }
+
+  /* ─── OPTION C: Typographic / Minimal ─── */
+  .preview-c {
+    background: #111114;
+    padding: 20px 16px;
+    border-top: 1px solid #27272a;
+  }
+  .c-top { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; }
+  .c-date { font-size: 40px; font-weight: 900; color: #fff; line-height: 1; }
+  .c-month { font-size: 11px; color: #f5a623; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; }
+  .c-name { font-size: 12px; color: #52525b; text-align: right; }
+  .c-week { display: flex; gap: 0; border-bottom: 1px solid #27272a; margin-bottom: 18px; }
+  .c-day { flex: 1; text-align: center; padding: 8px 2px; border-bottom: 2px solid transparent; }
+  .c-day.today { border-bottom-color: #f5a623; }
+  .c-day-name { font-size: 8px; text-transform: uppercase; color: #3f3f46; }
+  .c-day-num { font-size: 14px; font-weight: 700; color: #3f3f46; }
+  .c-day.today .c-day-num { color: #f5a623; }
+  .c-tools-label { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: #3f3f46; margin-bottom: 12px; }
+  .c-tool-row { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #1c1c1e; gap: 14px; }
+  .c-tool-num { font-size: 11px; color: #3f3f46; font-weight: 700; width: 20px; }
+  .c-tool-emoji { font-size: 20px; }
+  .c-tool-info { flex: 1; }
+  .c-tool-name { font-size: 13px; font-weight: 700; color: #d4d4d8; }
+  .c-tool-sub { font-size: 10px; color: #3f3f46; margin-top: 1px; }
+  .c-tool-arrow { font-size: 14px; color: #3f3f46; }
+</style>
+
+<h2>Content Hub — 3 Directions</h2>
+<p class="subtitle">Minimalista pero con carácter artístico. Click para seleccionar.</p>
+
+<div class="cards">
+
+  <!-- OPTION A -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-label">A — Editorial / Magazine</div>
+    <div class="preview-a">
+      <div class="a-eyebrow">Music Content Creation Hub</div>
+      <div class="a-title">Good afternoon,<br>Paco 👋</div>
+      <div class="a-sub">Inspire, create and organize your content.</div>
+      <div class="a-week">
+        <div class="a-day"><div class="a-day-name">Mon</div><div class="a-day-num">11</div></div>
+        <div class="a-day"><div class="a-day-name">Tue</div><div class="a-day-num">12</div></div>
+        <div class="a-day today"><div class="a-day-name">Thu</div><div class="a-day-num">14</div></div>
+        <div class="a-day"><div class="a-day-name">Fri</div><div class="a-day-num">15</div></div>
+        <div class="a-day"><div class="a-day-name">Sat</div><div class="a-day-num">16</div></div>
+      </div>
+      <div class="a-tools">
+        <div class="a-tool hero">
+          <div class="a-tool-emoji">⚡</div>
+          <div><div class="a-tool-name">Inspire</div><div class="a-tool-sub">Daily trends</div></div>
+        </div>
+        <div class="a-tool"><div class="a-tool-emoji">💡</div><div class="a-tool-name">Quick Ideas</div></div>
+        <div class="a-tool"><div class="a-tool-emoji">🧪</div><div class="a-tool-name">Content Lab</div></div>
+      </div>
+    </div>
+    <div class="card-desc">Tipografía grande y bold. Cards con gradientes. Más warm, más personal. Como una revista de música.</div>
+  </div>
+
+  <!-- OPTION B -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-label">B — Dark Ambient / Poster</div>
+    <div class="preview-b">
+      <div class="b-glow"></div>
+      <div class="b-eyebrow">Content Hub</div>
+      <div class="b-greeting">Good afternoon, <span>Paco.</span></div>
+      <div class="b-sub">Monday, May 19 · 3 tools ready</div>
+      <div class="b-week">
+        <div class="b-day"><div class="b-day-name">M</div><div class="b-day-num">11</div></div>
+        <div class="b-day"><div class="b-day-name">T</div><div class="b-day-num">12</div></div>
+        <div class="b-day today"><div class="b-day-name">T</div><div class="b-day-num">14</div></div>
+        <div class="b-day"><div class="b-day-name">F</div><div class="b-day-num">15</div></div>
+        <div class="b-day"><div class="b-day-name">S</div><div class="b-day-num">16</div></div>
+        <div class="b-day"><div class="b-day-name">S</div><div class="b-day-num">17</div></div>
+      </div>
+      <div class="b-row">
+        <div class="b-card inspire">
+          <span class="b-card-emoji">⚡</span>
+          <div class="b-card-name">Inspire</div>
+          <div class="b-card-sub">Daily trends</div>
+        </div>
+        <div class="b-card ideas">
+          <span class="b-card-emoji">💡</span>
+          <div class="b-card-name">Ideas</div>
+        </div>
+      </div>
+      <div class="b-row">
+        <div class="b-card lab">
+          <span class="b-card-emoji">🧪</span>
+          <div class="b-card-name">Content Lab</div>
+        </div>
+        <div class="b-card scripts">
+          <span class="b-card-emoji">✍️</span>
+          <div class="b-card-name">Scripts</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-desc">Muy oscuro, ambient. Glow de luz amber sutil. Greeting bold con el nombre resaltado en dorado. Más atmospheric, como un poster de concierto.</div>
+  </div>
+
+  <!-- OPTION C -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-label">C — Typographic / Ultra minimal</div>
+    <div class="preview-c">
+      <div class="c-top">
+        <div>
+          <div class="c-month">Mayo 2026</div>
+          <div class="c-date">19</div>
+        </div>
+        <div class="c-name">Paco Salazar</div>
+      </div>
+      <div class="c-week">
+        <div class="c-day"><div class="c-day-name">L</div><div class="c-day-num">11</div></div>
+        <div class="c-day"><div class="c-day-name">M</div><div class="c-day-num">12</div></div>
+        <div class="c-day today"><div class="c-day-name">J</div><div class="c-day-num">19</div></div>
+        <div class="c-day"><div class="c-day-name">V</div><div class="c-day-num">20</div></div>
+        <div class="c-day"><div class="c-day-name">S</div><div class="c-day-num">21</div></div>
+        <div class="c-day"><div class="c-day-name">D</div><div class="c-day-num">22</div></div>
+      </div>
+      <div class="c-tools-label">Tools</div>
+      <div class="c-tool-row">
+        <div class="c-tool-num">01</div>
+        <div class="c-tool-emoji">⚡</div>
+        <div class="c-tool-info"><div class="c-tool-name">Inspire</div><div class="c-tool-sub">Daily trends in music production</div></div>
+        <div class="c-tool-arrow">→</div>
+      </div>
+      <div class="c-tool-row">
+        <div class="c-tool-num">02</div>
+        <div class="c-tool-emoji">💡</div>
+        <div class="c-tool-info"><div class="c-tool-name">Quick Ideas</div><div class="c-tool-sub">Generate content angles</div></div>
+        <div class="c-tool-arrow">→</div>
+      </div>
+      <div class="c-tool-row">
+        <div class="c-tool-num">03</div>
+        <div class="c-tool-emoji">🧪</div>
+        <div class="c-tool-info"><div class="c-tool-name">Music Content Lab</div><div class="c-tool-sub">AI-powered creation</div></div>
+        <div class="c-tool-arrow">→</div>
+      </div>
+      <div class="c-tool-row">
+        <div class="c-tool-num">04</div>
+        <div class="c-tool-emoji">✍️</div>
+        <div class="c-tool-info"><div class="c-tool-name">My Scripts</div><div class="c-tool-sub">Your saved scripts</div></div>
+        <div class="c-tool-arrow">→</div>
+      </div>
+    </div>
+    <div class="card-desc">Ultra limpio. Fecha grande como elemento gráfico. Tools en lista con números. Sin cards, sin bordes. Solo tipografía y espacio. Muy editorial, estilo Notion/Linear.</div>
+  </div>
+
+</div>
