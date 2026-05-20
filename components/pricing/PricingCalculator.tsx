@@ -21,7 +21,7 @@ function SplashScreen() {
         alt="Fennec"
         className="relative z-10 mb-6"
         style={{
-          width: 72,
+          width: 120,
           filter: "brightness(0) invert(1)",
           opacity: 0.9,
           animation: "fennecFadeUp 0.9s cubic-bezier(.16,1,.3,1) 0.1s both",
@@ -345,6 +345,12 @@ export default function PricingCalculator() {
   const [authUser, setAuthUser]       = useState<{ id: string } | null>(null);
   const [profile, setProfile]         = useState<Profile | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [showSplash, setShowSplash]   = useState(true);
+
+  useEffect(() => {
+    const t = setTimeout(() => setShowSplash(false), 2200);
+    return () => clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     const timeout = setTimeout(() => setAuthLoading(false), 4000);
@@ -469,7 +475,7 @@ export default function PricingCalculator() {
   const canGoNext = state.step < 4;
 
   // ── Auth gate renders ────────────────────────────────────────────
-  if (authLoading) {
+  if (authLoading || showSplash) {
     return <SplashScreen />;
   }
 
