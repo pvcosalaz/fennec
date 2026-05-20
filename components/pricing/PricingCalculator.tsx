@@ -1,6 +1,82 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+
+function SplashScreen() {
+  return (
+    <div className="flex h-screen flex-col items-center justify-center bg-[#0d0d0f] relative overflow-hidden">
+      {/* Glow burst */}
+      <div
+        className="absolute rounded-full pointer-events-none"
+        style={{
+          width: 280, height: 280,
+          background: "radial-gradient(circle, rgba(245,166,35,0.18) 0%, transparent 65%)",
+          animation: "fennecGlow 2.6s ease-in-out infinite",
+        }}
+      />
+
+      {/* Logo */}
+      <img
+        src="/fennec-logo.png"
+        alt="Fennec"
+        className="relative z-10 mb-6"
+        style={{
+          width: 72,
+          filter: "brightness(0) invert(1)",
+          opacity: 0.9,
+          animation: "fennecFadeUp 0.9s cubic-bezier(.16,1,.3,1) 0.1s both",
+        }}
+      />
+
+      {/* fennec */}
+      <p
+        className="relative z-10 text-white font-black leading-none"
+        style={{
+          fontSize: 38,
+          letterSpacing: "-0.04em",
+          animation: "fennecFadeUp 0.7s cubic-bezier(.16,1,.3,1) 0.35s both",
+        }}
+      >
+        fennec
+      </p>
+
+      {/* AUDIO */}
+      <p
+        className="relative z-10 text-accent font-bold tracking-[0.2em] uppercase mt-1"
+        style={{
+          fontSize: 11,
+          animation: "fennecFadeUp 0.7s cubic-bezier(.16,1,.3,1) 0.5s both",
+        }}
+      >
+        Audio
+      </p>
+
+      {/* tagline */}
+      <p
+        className="relative z-10 text-zinc-600 mt-5"
+        style={{
+          fontSize: 9,
+          letterSpacing: "0.12em",
+          textTransform: "uppercase",
+          animation: "fennecFadeUp 0.6s ease 0.75s both",
+        }}
+      >
+        music business &amp; community hub
+      </p>
+
+      <style>{`
+        @keyframes fennecGlow {
+          0%,100% { transform: scale(.8); opacity: .45; }
+          50%      { transform: scale(1.2); opacity: 1; }
+        }
+        @keyframes fennecFadeUp {
+          from { opacity: 0; transform: translateY(12px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+    </div>
+  );
+}
 import "@/lib/i18n";
 import {
   AudioWaveform,
@@ -394,11 +470,7 @@ export default function PricingCalculator() {
 
   // ── Auth gate renders ────────────────────────────────────────────
   if (authLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-black">
-        <div className="h-7 w-7 rounded-full border-2 border-amber-500 border-t-transparent animate-spin" />
-      </div>
-    );
+    return <SplashScreen />;
   }
 
   if (!authUser) {

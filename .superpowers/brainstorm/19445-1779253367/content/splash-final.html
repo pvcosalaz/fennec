@@ -1,0 +1,81 @@
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #111114; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+
+  .phone { width: 200px; height: 360px; border-radius: 32px; overflow: hidden; border: 2px solid #27272a; position: relative; }
+
+  .bg {
+    width: 100%; height: 100%; background: #0d0d0f;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 0; position: relative;
+  }
+
+  /* halo */
+  .halo {
+    position: absolute; width: 200px; height: 200px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(245,166,35,.18) 0%, transparent 65%);
+    animation: halo 2.6s ease-in-out infinite;
+  }
+  @keyframes halo { 0%,100%{transform:scale(.8);opacity:.45} 50%{transform:scale(1.2);opacity:1} }
+
+  /* logo placeholder (white fox shape using CSS) */
+  .fox-wrap {
+    position: relative; z-index: 1; margin-bottom: 22px;
+    animation: fadeUp .9s cubic-bezier(.16,1,.3,1) .1s both;
+  }
+  .fox-svg { width: 80px; filter: invert(1) opacity(0.9); }
+
+  /* Fennec */
+  .name {
+    font-size: 32px; font-weight: 900; letter-spacing: -0.04em; color: #fff;
+    position: relative; z-index: 1;
+    animation: fadeUp .7s cubic-bezier(.16,1,.3,1) .35s both;
+    line-height: 1;
+  }
+
+  /* Audio */
+  .audio {
+    font-size: 13px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
+    color: #f5a623; position: relative; z-index: 1; margin-top: 4px;
+    animation: fadeUp .7s cubic-bezier(.16,1,.3,1) .5s both;
+  }
+
+  /* divider */
+  .divider {
+    width: 24px; height: 1px; background: #2e2e2e;
+    margin: 16px 0; position: relative; z-index: 1;
+    animation: fadeUp .5s ease .7s both;
+  }
+
+  /* tagline */
+  .tagline {
+    font-size: 9px; color: #3f3f46; letter-spacing: .12em; text-transform: uppercase;
+    position: relative; z-index: 1; text-align: center; line-height: 1.6; padding: 0 20px;
+    animation: fadeUp .6s ease .85s both;
+  }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+</style>
+
+<div class="phone">
+  <div class="bg">
+    <div class="halo"></div>
+
+    <div class="fox-wrap">
+      <!-- Fennec fox SVG outline (simplified) -->
+      <svg class="fox-svg" viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8 48 C8 48 2 20 20 12 C30 8 38 14 44 10 C52 5 58 2 70 6 C82 10 90 20 96 28 C102 36 108 46 104 56 C100 66 88 70 76 68 C68 66 62 60 54 58 C46 56 36 60 28 58 C18 55 8 52 8 48Z" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M70 6 C74 0 82 -2 88 4 C84 8 78 10 70 6Z" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M44 10 C40 4 34 2 30 8 C34 12 40 12 44 10Z" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="50" cy="32" r="3" fill="white"/>
+        <circle cx="76" cy="28" r="3" fill="white"/>
+        <path d="M54 42 C58 46 66 46 70 42" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+
+    <div class="name">Fennec</div>
+    <div class="audio">Audio</div>
+    <div class="divider"></div>
+    <div class="tagline">Music Business<br>& Community Hub</div>
+  </div>
+</div>

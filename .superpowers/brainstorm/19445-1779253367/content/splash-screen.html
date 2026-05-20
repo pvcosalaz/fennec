@@ -1,0 +1,95 @@
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #111114; color: #f5f5f5; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; padding: 20px 16px 40px; }
+  h2 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .subtitle { font-size: 13px; color: #71717a; margin-bottom: 24px; }
+  .cards { display: flex; flex-direction: column; gap: 20px; }
+  .card { border-radius: 20px; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s; }
+  .card.selected { border-color: #f5a623; }
+  .card-label { padding: 14px 18px 8px; font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #f5a623; background: #18181b; }
+  .card-desc { padding: 12px 18px 16px; font-size: 12px; color: #52525b; line-height: 1.5; background: #18181b; border-top: 1px solid #27272a; }
+
+  /* phone frame */
+  .phone {
+    width: 160px; height: 280px; border-radius: 24px; margin: 0 auto 0;
+    position: relative; overflow: hidden; border: 2px solid #27272a;
+  }
+
+  /* ── A: Logo pulse ── */
+  .a-bg { width: 100%; height: 100%; background: #111114; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
+  .a-fox { width: 56px; height: 56px; animation: pulse-scale 1.8s ease-in-out infinite; }
+  .a-name { font-size: 18px; font-weight: 800; letter-spacing: -0.02em; color: #fff; }
+  .a-dot { color: #f5a623; }
+  @keyframes pulse-scale { 0%,100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.12); opacity: 1; } }
+
+  /* ── B: Wipe reveal ── */
+  .b-bg { width: 100%; height: 100%; background: #111114; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; position: relative; overflow: hidden; }
+  .b-fox { width: 52px; height: 52px; animation: wipe-in 0.7s cubic-bezier(0.16,1,0.3,1) 0.3s both; }
+  .b-name { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: -0.02em; animation: wipe-in 0.6s cubic-bezier(0.16,1,0.3,1) 0.55s both; }
+  .b-tag { font-size: 10px; color: #52525b; letter-spacing: 0.15em; text-transform: uppercase; animation: wipe-in 0.6s cubic-bezier(0.16,1,0.3,1) 0.75s both; }
+  .b-line { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); width: 32px; height: 2px; background: #f5a623; border-radius: 2px; animation: wipe-in 0.5s ease 1s both; }
+  @keyframes wipe-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── C: Glow burst ── */
+  .c-bg { width: 100%; height: 100%; background: #0d0d0f; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; position: relative; }
+  .c-glow { position: absolute; width: 120px; height: 120px; border-radius: 50%; background: radial-gradient(circle, rgba(245,166,35,0.22) 0%, transparent 70%); animation: glow-pulse 2s ease-in-out infinite; }
+  .c-fox { width: 54px; height: 54px; position: relative; z-index: 1; }
+  .c-name { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: -0.02em; position: relative; z-index: 1; }
+  .c-sub { font-size: 9px; color: #f5a623; letter-spacing: 0.2em; text-transform: uppercase; position: relative; z-index: 1; }
+  @keyframes glow-pulse { 0%,100% { transform: scale(0.9); opacity: 0.6; } 50% { transform: scale(1.2); opacity: 1; } }
+
+  .preview-wrap { padding: 20px; background: #18181b; display: flex; justify-content: center; }
+</style>
+
+<h2>Splash Screen — 3 ideas</h2>
+<p class="subtitle">Animación de carga usando el zorrito. Click para seleccionar.</p>
+
+<div class="cards">
+
+  <!-- A -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-label">A — Logo Pulse</div>
+    <div class="preview-wrap">
+      <div class="phone">
+        <div class="a-bg">
+          <img src="https://em-content.zobj.net/source/apple/391/fox_1f98a.png" class="a-fox" />
+          <div class="a-name">fennec<span class="a-dot">.</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-desc">El zorrito respira — escala suave arriba y abajo. Simple, limpio. El logo late mientras carga.</div>
+  </div>
+
+  <!-- B -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-label">B — Wipe Reveal</div>
+    <div class="preview-wrap">
+      <div class="phone">
+        <div class="b-bg">
+          <img src="https://em-content.zobj.net/source/apple/391/fox_1f98a.png" class="b-fox" />
+          <div class="b-name">fennec</div>
+          <div class="b-tag">Music Business</div>
+          <div class="b-line"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-desc">Fox, nombre y tagline aparecen uno por uno deslizándose desde abajo. Más cinemático, como un título de película.</div>
+  </div>
+
+  <!-- C -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-label">C — Glow Burst</div>
+    <div class="preview-wrap">
+      <div class="phone">
+        <div class="c-bg">
+          <div class="c-glow"></div>
+          <img src="https://em-content.zobj.net/source/apple/391/fox_1f98a.png" class="c-fox" />
+          <div class="c-name">fennec</div>
+          <div class="c-sub">Music Business</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-desc">Halo dorado pulsando detrás del zorrito. Atmospheric, como un escenario con luz. El más dramático de los tres.</div>
+  </div>
+
+</div>
