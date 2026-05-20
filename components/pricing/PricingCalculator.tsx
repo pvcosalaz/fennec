@@ -2,9 +2,16 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-function SplashScreen() {
+function SplashScreen({ exiting }: { exiting: boolean }) {
   return (
-    <div className="flex h-screen flex-col items-center justify-center bg-[#0d0d0f] relative overflow-hidden">
+    <div
+      className="flex h-screen flex-col items-center justify-center bg-[#0d0d0f] relative overflow-hidden"
+      style={{
+        transition: "opacity 0.5s ease, transform 0.5s ease",
+        opacity: exiting ? 0 : 1,
+        transform: exiting ? "scale(1.08)" : "scale(1)",
+      }}
+    >
       {/* Glow burst */}
       <div
         className="absolute rounded-full pointer-events-none"
@@ -345,11 +352,14 @@ export default function PricingCalculator() {
   const [authUser, setAuthUser]       = useState<{ id: string } | null>(null);
   const [profile, setProfile]         = useState<Profile | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
-  const [showSplash, setShowSplash]   = useState(true);
+  const [showSplash,   setShowSplash]   = useState(true);
+  const [exitingSplash, setExitingSplash] = useState(false);
 
   useEffect(() => {
-    const t = setTimeout(() => setShowSplash(false), 2200);
-    return () => clearTimeout(t);
+    // Start exit animation at 2s, unmount 500ms later
+    const t1 = setTimeout(() => setExitingSplash(true), 2000);
+    const t2 = setTimeout(() => setShowSplash(false), 2500);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
   useEffect(() => {
@@ -476,7 +486,7 @@ export default function PricingCalculator() {
 
   // ── Auth gate renders ────────────────────────────────────────────
   if (authLoading || showSplash) {
-    return <SplashScreen />;
+    return <SplashScreen exiting={exitingSplash} />;
   }
 
   if (!authUser) {
