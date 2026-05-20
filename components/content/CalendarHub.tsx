@@ -294,33 +294,16 @@ export default function CalendarHub({
       <div className="border-t border-zinc-800 pt-4 flex flex-col gap-3">
         <span className="text-xs uppercase tracking-widest text-zinc-500">Tools</span>
 
-        {/* Inspire — hero card */}
+        {/* Inspire — hero card, spotlight style */}
         <button
           onClick={() => onOpenSheet("inspire")}
-          className="relative w-full h-32 rounded-2xl overflow-hidden group"
+          className="relative w-full rounded-2xl overflow-hidden group"
+          style={{ background: "radial-gradient(ellipse 80% 80% at 50% 0%, #2a2a2a 0%, #161616 100%)" }}
         >
-          {/* Background */}
-          {inspireThumbnail ? (
-            <img
-              src={inspireThumbnail}
-              alt=""
-              className="absolute inset-0 w-full h-full object-cover scale-105 group-hover:scale-110 transition-transform duration-500"
-            />
-          ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-900/80 via-amber-800/40 to-zinc-900" />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
-
-          {/* Content */}
-          <div className="absolute inset-0 flex items-center p-5 gap-4">
-            <span className="text-5xl leading-none" style={{ filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.5))" }}>⚡</span>
-            <div className="text-left flex-1">
-              <p className="text-white font-bold text-lg leading-tight">Inspire</p>
-              <p className="text-white/60 text-xs mt-0.5">Daily trends in music production</p>
-            </div>
-            <div className="h-8 w-8 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center shrink-0">
-              <ArrowRight size={14} className="text-white" />
-            </div>
+          <div className="flex flex-col items-center gap-2 py-6 px-4">
+            <span className="text-5xl leading-none">⚡</span>
+            <p className="text-white font-bold text-base leading-tight">Inspire</p>
+            <p className="text-zinc-500 text-xs">Daily trends in music production</p>
           </div>
         </button>
 
@@ -330,23 +313,23 @@ export default function CalendarHub({
           <button
             onClick={() => onOpenSheet("ideas")}
             className="relative rounded-2xl overflow-hidden group flex-1"
+            style={{ background: "radial-gradient(ellipse 120% 120% at 50% 0%, #222 0%, #161616 100%)" }}
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-950/80 via-blue-900/30 to-zinc-900" />
-            <div className="relative flex flex-col items-center gap-2 py-5 px-2">
-              <span className="text-4xl leading-none" style={{ filter: "drop-shadow(0 4px 10px rgba(0,0,0,0.4))" }}>💡</span>
-              <span className="text-[11px] font-semibold text-zinc-300 text-center leading-tight">Quick Ideas</span>
+            <div className="flex flex-col items-center gap-2 py-5 px-2">
+              <span className="text-4xl leading-none">💡</span>
+              <span className="text-[11px] font-semibold text-zinc-500 text-center leading-tight">Quick Ideas</span>
             </div>
           </button>
 
-          {/* Music Content Lab — hero center */}
+          {/* Music Content Lab */}
           <button
             onClick={() => onOpenSheet("lab")}
             className="relative rounded-2xl overflow-hidden group flex-[1.6]"
+            style={{ background: "radial-gradient(ellipse 120% 120% at 50% 0%, #222 0%, #161616 100%)" }}
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/80 via-emerald-900/30 to-zinc-900" />
-            <div className="relative flex flex-col items-center gap-2.5 py-5 px-3">
-              <span className="text-5xl leading-none" style={{ filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.4))" }}>🧪</span>
-              <span className="text-[12px] font-semibold text-zinc-200 text-center leading-tight">Music Content Lab</span>
+            <div className="flex flex-col items-center gap-2.5 py-5 px-3">
+              <span className="text-5xl leading-none">🧪</span>
+              <span className="text-[12px] font-semibold text-zinc-500 text-center leading-tight">Music Content Lab</span>
             </div>
           </button>
 
@@ -354,11 +337,11 @@ export default function CalendarHub({
           <button
             onClick={() => onOpenSheet("scripts")}
             className="relative rounded-2xl overflow-hidden group flex-1"
+            style={{ background: "radial-gradient(ellipse 120% 120% at 50% 0%, #222 0%, #161616 100%)" }}
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-950/80 via-purple-900/30 to-zinc-900" />
-            <div className="relative flex flex-col items-center gap-2 py-5 px-2">
-              <span className="text-4xl leading-none" style={{ filter: "drop-shadow(0 4px 10px rgba(0,0,0,0.4))" }}>✍️</span>
-              <span className="text-[11px] font-semibold text-zinc-300 text-center leading-tight">My Scripts</span>
+            <div className="flex flex-col items-center gap-2 py-5 px-2">
+              <span className="text-4xl leading-none">✍️</span>
+              <span className="text-[11px] font-semibold text-zinc-500 text-center leading-tight">My Scripts</span>
             </div>
           </button>
         </div>

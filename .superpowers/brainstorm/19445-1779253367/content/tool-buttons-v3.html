@@ -1,0 +1,129 @@
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #111114; color: #f5f5f5; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; padding: 24px 16px 40px; }
+  h2 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .subtitle { font-size: 13px; color: #71717a; margin-bottom: 24px; }
+  .cards { display: flex; flex-direction: column; gap: 24px; }
+  .card { border-radius: 20px; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s; background: #18181b; }
+  .card.selected { border-color: #f5a623; }
+  .card-label { padding: 14px 18px 8px; font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #f5a623; }
+  .card-desc { padding: 12px 18px 16px; font-size: 12px; color: #52525b; line-height: 1.5; border-top: 1px solid #27272a; }
+  .preview { padding: 12px 14px 14px; }
+  .row { display: flex; gap: 8px; }
+  .btn { flex: 1; border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 14px 8px; gap: 7px; }
+  .btn-emoji { font-size: 26px; line-height: 1; }
+  .btn-label { font-size: 11px; font-weight: 600; text-align: center; line-height: 1.2; }
+  .btn-lg { flex: 1.5; }
+
+  /* ── A: Glow ring on Inspire ── */
+  .a-inspire {
+    width: 100%; border-radius: 16px; margin-bottom: 10px;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 22px 16px 18px; gap: 8px;
+    background: #1c1c1e;
+    position: relative; overflow: hidden;
+  }
+  .a-inspire::before {
+    content: '';
+    position: absolute; top: -30px; left: 50%; transform: translateX(-50%);
+    width: 120px; height: 120px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(245,166,35,0.18) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .a-inspire .emoji { font-size: 38px; position: relative; z-index: 1; }
+  .a-inspire .title { font-size: 15px; font-weight: 700; color: #fff; }
+  .a-inspire .sub { font-size: 11px; color: #52525b; }
+  .a-btn { background: #1c1c1e; }
+  .a-btn .btn-label { color: #71717a; }
+
+  /* ── B: Noise texture + top border glow ── */
+  .b-inspire {
+    width: 100%; border-radius: 16px; margin-bottom: 10px;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 22px 16px 18px; gap: 8px;
+    background: linear-gradient(160deg, #242424 0%, #1a1a1a 100%);
+    border: 1px solid #2e2e2e;
+    border-top: 1px solid #3f3f3f;
+    position: relative; overflow: hidden;
+  }
+  .b-inspire .emoji { font-size: 38px; }
+  .b-inspire .title { font-size: 15px; font-weight: 700; color: #e4e4e7; }
+  .b-inspire .sub { font-size: 11px; color: #52525b; }
+  .b-btn { background: linear-gradient(160deg, #242424 0%, #1a1a1a 100%); border: 1px solid #2e2e2e; }
+  .b-btn .btn-label { color: #71717a; }
+
+  /* ── C: Spotlight / vignette ── */
+  .c-inspire {
+    width: 100%; border-radius: 16px; margin-bottom: 10px;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 22px 16px 18px; gap: 8px;
+    background: radial-gradient(ellipse 80% 80% at 50% 0%, #2a2a2a 0%, #161616 100%);
+    position: relative; overflow: hidden;
+  }
+  .c-inspire .emoji { font-size: 38px; }
+  .c-inspire .title { font-size: 15px; font-weight: 700; color: #fff; letter-spacing: -0.01em; }
+  .c-inspire .sub { font-size: 11px; color: #52525b; }
+  .c-btn { background: radial-gradient(ellipse 120% 120% at 50% 0%, #222 0%, #161616 100%); }
+  .c-btn .btn-label { color: #71717a; }
+</style>
+
+<h2>Inspire — 3 efectos</h2>
+<p class="subtitle">Flat dark + algo más de carácter. Click para elegir.</p>
+
+<div class="cards">
+
+  <!-- A: Amber glow -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-label">A — Amber Glow</div>
+    <div class="preview">
+      <div class="a-inspire">
+        <div class="emoji">⚡</div>
+        <div class="title">Inspire</div>
+        <div class="sub">Daily trends in music production</div>
+      </div>
+      <div class="row">
+        <div class="btn a-btn"><div class="btn-emoji">💡</div><div class="btn-label">Quick Ideas</div></div>
+        <div class="btn btn-lg a-btn"><div class="btn-emoji">🧪</div><div class="btn-label">Music Content Lab</div></div>
+        <div class="btn a-btn"><div class="btn-emoji">✍️</div><div class="btn-label">My Scripts</div></div>
+      </div>
+    </div>
+    <div class="card-desc">Glow radial dorado detrás del emoji. Sutil, solo se nota de cerca. Mantiene el mono pero con personalidad.</div>
+  </div>
+
+  <!-- B: Gradient + top highlight -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-label">B — Surface Gradient</div>
+    <div class="preview">
+      <div class="b-inspire">
+        <div class="emoji">⚡</div>
+        <div class="title">Inspire</div>
+        <div class="sub">Daily trends in music production</div>
+      </div>
+      <div class="row">
+        <div class="btn b-btn"><div class="btn-emoji">💡</div><div class="btn-label">Quick Ideas</div></div>
+        <div class="btn btn-lg b-btn"><div class="btn-emoji">🧪</div><div class="btn-label">Music Content Lab</div></div>
+        <div class="btn b-btn"><div class="btn-emoji">✍️</div><div class="btn-label">My Scripts</div></div>
+      </div>
+    </div>
+    <div class="card-desc">Gradiente sutil gris oscuro a más oscuro + borde superior más brillante. Efecto de material, como vidrio mate.</div>
+  </div>
+
+  <!-- C: Spotlight vignette -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-label">C — Spotlight</div>
+    <div class="preview">
+      <div class="c-inspire">
+        <div class="emoji">⚡</div>
+        <div class="title">Inspire</div>
+        <div class="sub">Daily trends in music production</div>
+      </div>
+      <div class="row">
+        <div class="btn c-btn"><div class="btn-emoji">💡</div><div class="btn-label">Quick Ideas</div></div>
+        <div class="btn btn-lg c-btn"><div class="btn-emoji">🧪</div><div class="btn-label">Music Content Lab</div></div>
+        <div class="btn c-btn"><div class="btn-emoji">✍️</div><div class="btn-label">My Scripts</div></div>
+      </div>
+    </div>
+    <div class="card-desc">Spotlight radial desde arriba — más claro en el centro, se oscurece hacia los bordes. Como un foco de escenario.</div>
+  </div>
+
+</div>

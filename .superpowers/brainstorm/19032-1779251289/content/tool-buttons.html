@@ -1,0 +1,91 @@
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #111114; color: #f5f5f5; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; padding: 24px 16px 40px; }
+  h2 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .subtitle { font-size: 13px; color: #71717a; margin-bottom: 28px; }
+  .cards { display: flex; flex-direction: column; gap: 20px; }
+  .card { border-radius: 20px; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s; background: #18181b; }
+  .card.selected { border-color: #f5a623; }
+  .card-label { padding: 14px 18px 8px; font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #f5a623; }
+  .card-desc { padding: 12px 18px 16px; font-size: 12px; color: #52525b; line-height: 1.5; border-top: 1px solid #27272a; margin-top: 0; }
+  .preview { padding: 16px; }
+  .hero { width: 100%; border-radius: 14px; padding: 16px; display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+  .hero-emoji { font-size: 30px; line-height: 1; }
+  .hero-text { flex: 1; }
+  .hero-title { font-size: 15px; font-weight: 700; }
+  .hero-sub { font-size: 11px; margin-top: 2px; }
+  .hero-arrow { font-size: 14px; }
+  .row { display: flex; gap: 8px; }
+  .btn { flex: 1; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 14px 8px; gap: 8px; }
+  .btn-emoji { font-size: 26px; line-height: 1; }
+  .btn-label { font-size: 11px; font-weight: 600; text-align: center; line-height: 1.2; }
+  .btn-lg { flex: 1.5; padding: 16px 8px; }
+  .a-hero { background: transparent; border: 1px solid #3f3f46; }
+  .a-hero .hero-title { color: #fff; } .a-hero .hero-sub { color: #52525b; } .a-hero .hero-arrow { color: #52525b; }
+  .a-btn { background: transparent; border: 1px solid #3f3f46; }
+  .a-btn .btn-label { color: #a1a1aa; }
+  .b-hero { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
+  .b-hero .hero-title { color: #fff; } .b-hero .hero-sub { color: #52525b; } .b-hero .hero-arrow { color: #52525b; }
+  .b-btn { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
+  .b-btn .btn-label { color: #a1a1aa; }
+  .c-hero { background: #1c1c1e; }
+  .c-hero .hero-title { color: #fff; } .c-hero .hero-sub { color: #3f3f46; } .c-hero .hero-arrow { color: #3f3f46; }
+  .c-btn { background: #1c1c1e; }
+  .c-btn .btn-label { color: #71717a; }
+</style>
+
+<h2>Tool Buttons — 3 opciones</h2>
+<p class="subtitle">Monocromático, sin color en fondos. Click para seleccionar.</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-label">A — Ghost / Outline</div>
+    <div class="preview">
+      <div class="hero a-hero">
+        <div class="hero-emoji">⚡</div>
+        <div class="hero-text"><div class="hero-title">Inspire</div><div class="hero-sub">Daily trends in music production</div></div>
+        <div class="hero-arrow">→</div>
+      </div>
+      <div class="row">
+        <div class="btn a-btn"><div class="btn-emoji">💡</div><div class="btn-label">Quick Ideas</div></div>
+        <div class="btn btn-lg a-btn"><div class="btn-emoji">🧪</div><div class="btn-label">Music Content Lab</div></div>
+        <div class="btn a-btn"><div class="btn-emoji">✍️</div><div class="btn-label">My Scripts</div></div>
+      </div>
+    </div>
+    <div class="card-desc">Bordes finos zinc, fondo transparente. Minimalista puro, como botones de sistema.</div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-label">B — Frosted Glass</div>
+    <div class="preview">
+      <div class="hero b-hero">
+        <div class="hero-emoji">⚡</div>
+        <div class="hero-text"><div class="hero-title">Inspire</div><div class="hero-sub">Daily trends in music production</div></div>
+        <div class="hero-arrow">→</div>
+      </div>
+      <div class="row">
+        <div class="btn b-btn"><div class="btn-emoji">💡</div><div class="btn-label">Quick Ideas</div></div>
+        <div class="btn btn-lg b-btn"><div class="btn-emoji">🧪</div><div class="btn-label">Music Content Lab</div></div>
+        <div class="btn b-btn"><div class="btn-emoji">✍️</div><div class="btn-label">My Scripts</div></div>
+      </div>
+    </div>
+    <div class="card-desc">Fondo blanco 4% opacidad, borde blanco sutil. Sensación de profundidad sin color. Más premium.</div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-label">C — Flat Dark</div>
+    <div class="preview">
+      <div class="hero c-hero">
+        <div class="hero-emoji">⚡</div>
+        <div class="hero-text"><div class="hero-title">Inspire</div><div class="hero-sub">Daily trends in music production</div></div>
+        <div class="hero-arrow">→</div>
+      </div>
+      <div class="row">
+        <div class="btn c-btn"><div class="btn-emoji">💡</div><div class="btn-label">Quick Ideas</div></div>
+        <div class="btn btn-lg c-btn"><div class="btn-emoji">🧪</div><div class="btn-label">Music Content Lab</div></div>
+        <div class="btn c-btn"><div class="btn-emoji">✍️</div><div class="btn-label">My Scripts</div></div>
+      </div>
+    </div>
+    <div class="card-desc">Sin bordes, fondo #1c1c1e. Ultra flat. El emoji es el único protagonista visual.</div>
+  </div>
+</div>
