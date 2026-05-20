@@ -388,6 +388,69 @@ type TrendingVideo = {
 const CACHE_KEY    = "fennec-trending-ideas-v3";
 const CACHE_TTL_MS = 1000 * 60 * 60 * 24; // 24 horas
 
+const LOADING_PHRASES = [
+  "Scanning YouTube trends…",
+  "Finding what's working this week…",
+  "Analyzing music production content…",
+  "Almost there…",
+];
+
+function LoadingFeed() {
+  const [phraseIdx, setPhraseIdx] = useState(0);
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setPhraseIdx((i) => (i + 1) % LOADING_PHRASES.length);
+    }, 1800);
+    return () => clearInterval(t);
+  }, []);
+
+  return (
+    <div className="flex flex-col gap-4">
+      {/* Animated message */}
+      <div className="flex flex-col items-center gap-3 py-6">
+        <div className="flex gap-1.5 items-center">
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="h-1.5 w-1.5 rounded-full bg-accent"
+              style={{ animation: `bounce 1.2s ease-in-out ${i * 0.2}s infinite` }}
+            />
+          ))}
+        </div>
+        <p
+          className="text-sm text-zinc-400 transition-opacity duration-500"
+          key={phraseIdx}
+          style={{ animation: "fadeIn 0.4s ease" }}
+        >
+          {LOADING_PHRASES[phraseIdx]}
+        </p>
+      </div>
+
+      {/* Skeleton cards */}
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div key={i} className="rounded-2xl bg-white/[0.03] p-4 space-y-3 animate-pulse">
+          <div className="flex gap-3">
+            <div className="h-20 w-32 rounded-xl bg-white/5 shrink-0" />
+            <div className="flex-1 space-y-2 pt-1">
+              <div className="h-3 bg-white/5 rounded-full w-3/4" />
+              <div className="h-2.5 bg-white/5 rounded-full w-1/2" />
+              <div className="h-2.5 bg-white/5 rounded-full w-1/3" />
+            </div>
+          </div>
+          <div className="h-2.5 bg-white/5 rounded-full w-full" />
+          <div className="h-2.5 bg-white/5 rounded-full w-4/5" />
+        </div>
+      ))}
+
+      <style>{`
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+      `}</style>
+    </div>
+  );
+}
+
 function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule }: {
   isPro: boolean;
   onBack: () => void;
@@ -471,21 +534,7 @@ function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule }: {
           </button>
         </div>
       ) : loading ? (
-        <div className="space-y-3">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="rounded-2xl border border-white/5 bg-white/[0.03] p-4 space-y-3 animate-pulse">
-              <div className="flex gap-3">
-                <div className="h-20 w-32 rounded-xl bg-white/5 shrink-0" />
-                <div className="flex-1 space-y-2 pt-1">
-                  <div className="h-3 bg-white/5 rounded-full w-3/4" />
-                  <div className="h-2.5 bg-white/5 rounded-full w-1/2" />
-                </div>
-              </div>
-              <div className="h-2.5 bg-white/5 rounded-full w-full" />
-              <div className="h-2.5 bg-white/5 rounded-full w-4/5" />
-            </div>
-          ))}
-        </div>
+        <LoadingFeed />
       ) : error ? (
         <div className="rounded-2xl border border-red-400/20 bg-red-400/5 p-6 text-center space-y-2">
           <p className="text-sm text-red-400">{error}</p>
