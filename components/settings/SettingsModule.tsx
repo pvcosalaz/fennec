@@ -52,9 +52,10 @@ type Props = {
   language: string;
   onLanguageChange: (lang: string) => void;
   avatarUrl?: string | null;
+  onSignOut?: () => void;
 };
 
-export default function SettingsModule({ onBack, language, onLanguageChange, avatarUrl }: Props) {
+export default function SettingsModule({ onBack, language, onLanguageChange, avatarUrl, onSignOut }: Props) {
   const [section,  setSection]  = useState<Section>("main");
   const [profile,  setProfile]  = useState<UserProfile>(DEFAULT_PROFILE);
   const [currency, setCurrency] = useState<Currency>("COP");
@@ -388,6 +389,16 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
           );
         })}
       </div>
+
+      {/* Sign out */}
+      {onSignOut && (
+        <button
+          onClick={onSignOut}
+          className="w-full py-3 rounded-2xl border border-white/8 text-sm text-zinc-500 hover:text-red-400 hover:border-red-400/20 transition-colors"
+        >
+          Sign out
+        </button>
+      )}
 
       {/* App info */}
       <div className="text-center space-y-1 pt-2">
