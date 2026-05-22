@@ -15,6 +15,14 @@ export type Profile = {
   worked_with: string | null;
   worked_in: string | null;
   banner_url: string | null;
+  // Settings fields
+  display_name: string | null;
+  role: string | null;
+  country: string | null;
+  instagram: string | null;
+  spotify: string | null;
+  youtube_url: string | null;
+  tiktok: string | null;
 };
 
 export type Post = {

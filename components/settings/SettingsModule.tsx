@@ -8,6 +8,7 @@ import {
 import NotificationPreferences from "./NotificationPreferences";
 import { SiInstagram, SiSpotify, SiYoutube, SiTiktok } from "react-icons/si";
 import Select from "@/components/ui/Select";
+import { fetchProfile, updateProfile } from "@/lib/communityDb";
 
 export const PROFILE_KEY = "fennec-profile-v1";
 
@@ -65,18 +66,41 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
   const [confirmReset, setConfirmReset] = useState<string | null>(null);
 
   useEffect(() => {
+    // Load currency from localStorage
     try {
-      const p = localStorage.getItem(PROFILE_KEY);
-      if (p) setProfile(JSON.parse(p));
       const c = localStorage.getItem(CURRENCY_KEY) as Currency;
       if (c) setCurrency(c);
     } catch { /* ignore */ }
-  }, []);
+    // Load profile from Supabase
+    fetchProfile(userId).then((p) => {
+      if (p) setProfile({
+        name:      p.display_name ?? "",
+        role:      p.role ?? "",
+        country:   p.country ?? "",
+        instagram: p.instagram ?? "",
+        spotify:   p.spotify ?? "",
+        youtube:   p.youtube_url ?? "",
+        tiktok:    p.tiktok ?? "",
+      });
+    }).catch(console.error);
+  }, [userId]);
 
-  function saveProfile() {
-    localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  async function saveProfile() {
+    try {
+      await updateProfile(userId, {
+        display_name: profile.name || null,
+        role:         profile.role || null,
+        country:      profile.country || null,
+        instagram:    profile.instagram || null,
+        spotify:      profile.spotify || null,
+        youtube_url:  profile.youtube || null,
+        tiktok:       profile.tiktok || null,
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      console.error("Failed to save profile", err);
+    }
   }
 
   function saveCurrency(c: Currency) {

@@ -36,6 +36,16 @@ export async function isUsernameTaken(username: string): Promise<boolean> {
   return (count ?? 0) > 0;
 }
 
+export async function fetchProfile(userId: string): Promise<Profile | null> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", userId)
+    .single();
+  if (error) return null;
+  return data;
+}
+
 export async function updateProfile(userId: string, updates: {
   bio?: string | null;
   genres?: string[];
@@ -43,6 +53,13 @@ export async function updateProfile(userId: string, updates: {
   worked_in?: string | null;
   avatar_url?: string | null;
   banner_url?: string | null;
+  display_name?: string | null;
+  role?: string | null;
+  country?: string | null;
+  instagram?: string | null;
+  spotify?: string | null;
+  youtube_url?: string | null;
+  tiktok?: string | null;
 }): Promise<Profile> {
   const { data, error } = await supabase
     .from("profiles")
