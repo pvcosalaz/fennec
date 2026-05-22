@@ -1,8 +1,7 @@
 import { supabase } from "./supabase";
 import type { ProjectReview, ReviewComment, TrackCategory } from "./audioTypes";
-import { createNotification, fetchPushSubscriptionsForUser, deletePushSubscription } from "./notificationDb";
+import { createNotification } from "./notificationDb";
 import { generateNotificationCopy } from "./notificationCopy";
-import { sendPushToMany } from "./pushSend";
 
 // ── Project Reviews ───────────────────────────────────────────────
 
@@ -176,10 +175,17 @@ export async function createReviewComment(params: {
       });
 
       if (notification) {
-        const subs = await fetchPushSubscriptionsForUser(track.user_id);
-        await sendPushToMany(subs, { title, type: "audio_feedback" }, (endpoint) =>
-          deletePushSubscription(endpoint)
-        );
+        const baseUrl = typeof window !== "undefined"
+          ? window.location.origin
+          : process.env.NEXT_PUBLIC_APP_URL ?? "";
+        await fetch(`${baseUrl}/api/push/send`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${process.env.CRON_SECRET ?? ""}`,
+          },
+          body: JSON.stringify({ userId: track.user_id, title, type: "audio_feedback" }),
+        }).catch(() => {/* fire and forget */});
       }
     } catch (err) {
       console.error("[audio_feedback notification]", err);
