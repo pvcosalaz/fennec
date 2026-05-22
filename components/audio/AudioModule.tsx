@@ -89,8 +89,7 @@ export default function AudioModule({ userId, isPro }: Props) {
       {/* ── Melody Bank overlay ────────────────────────────────── */}
       {overlay === "melody" && (
         <div className="fixed inset-0 z-30 bg-[#111114] overflow-y-auto pb-32">
-          <div className="flex items-center justify-between px-4 pt-14 pb-4">
-            <span className="text-sm font-bold text-white">Melody Bank</span>
+          <div className="flex justify-end px-4 pt-14 pb-2">
             <button onClick={() => setOverlay(null)} className="text-zinc-500 hover:text-white transition">
               <X className="h-5 w-5" />
             </button>
