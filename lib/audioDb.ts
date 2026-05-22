@@ -1,7 +1,5 @@
 import { supabase } from "./supabase";
 import type { ProjectReview, ReviewComment, TrackCategory } from "./audioTypes";
-import { createNotification } from "./notificationDb";
-import { generateNotificationCopy } from "./notificationCopy";
 
 // ── Project Reviews ───────────────────────────────────────────────
 
@@ -160,33 +158,20 @@ export async function createReviewComment(params: {
         ? `${Math.floor(params.timestampSeconds / 60)}:${String(params.timestampSeconds % 60).padStart(2, "0")}`
         : undefined;
 
-      const title = await generateNotificationCopy({
-        type: "audio_feedback",
-        commenterUsername: commenterProfile?.username ?? "Someone",
-        trackTitle: track.title,
-        firstTimestamp,
-      });
-
-      const notification = await createNotification({
-        userId: track.user_id,
-        type: "audio_feedback",
-        title,
-        body: track.title,
-      });
-
-      if (notification) {
-        const baseUrl = typeof window !== "undefined"
-          ? window.location.origin
-          : process.env.NEXT_PUBLIC_APP_URL ?? "";
-        await fetch(`${baseUrl}/api/push/send`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${process.env.CRON_SECRET ?? ""}`,
-          },
-          body: JSON.stringify({ userId: track.user_id, title, type: "audio_feedback" }),
-        }).catch(() => {/* fire and forget */});
-      }
+      // Delegate all server-side work (copy generation, notification, push) to API route
+      const baseUrl = typeof window !== "undefined"
+        ? window.location.origin
+        : process.env.NEXT_PUBLIC_APP_URL ?? "";
+      await fetch(`${baseUrl}/api/notifications/audio-feedback`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          trackOwnerId: track.user_id,
+          trackTitle: track.title,
+          commenterUsername: commenterProfile?.username ?? "Someone",
+          firstTimestamp,
+        }),
+      }).catch(() => {/* fire and forget */});
     } catch (err) {
       console.error("[audio_feedback notification]", err);
     }
