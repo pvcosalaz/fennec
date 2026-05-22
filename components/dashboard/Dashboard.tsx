@@ -276,6 +276,7 @@ function VUMeter({ platform, value = 0 }: { platform: typeof PLATFORMS[0]; value
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 
 type SpotifyData = { connected: boolean; followers: number; displayName?: string; imageUrl?: string | null } | null;
+type YouTubeData = { subscriberCount: number; viewCount: number; videoCount: number; channelTitle: string } | null;
 
 export default function Dashboard({ avatarUrl, username, isPro, userId }: { avatarUrl?: string | null; username?: string | null; isPro?: boolean; userId?: string | null }) {
   const [projects,    setProjects]    = useState<Project[]>([]);
@@ -284,7 +285,8 @@ export default function Dashboard({ avatarUrl, username, isPro, userId }: { avat
   const [profile,     setProfile]     = useState<UserProfile | null>(null);
   const [mounted,     setMounted]     = useState(false);
   const [showDbInfo,  setShowDbInfo]  = useState(false);
-  const [spotifyData, setSpotifyData] = useState<SpotifyData>(null);
+  const [spotifyData,  setSpotifyData]  = useState<SpotifyData>(null);
+  const [youtubeData,  setYoutubeData]  = useState<YouTubeData>(null);
   const [spotifyToast, setSpotifyToast] = useState(false);
 
   useEffect(() => {
@@ -302,12 +304,16 @@ export default function Dashboard({ avatarUrl, username, isPro, userId }: { avat
     );
   }, [userId]);
 
-  // Fetch Spotify stats on mount
+  // Fetch Spotify + YouTube stats on mount
   useEffect(() => {
     if (!userId) return;
     fetch(`/api/spotify/stats?userId=${userId}`)
       .then((r) => r.json())
       .then((data) => setSpotifyData(data))
+      .catch(() => {});
+    fetch("/api/youtube/stats")
+      .then((r) => r.json())
+      .then((data) => { if (!data.error) setYoutubeData(data); })
       .catch(() => {});
   }, [userId]);
 
@@ -335,15 +341,18 @@ export default function Dashboard({ avatarUrl, username, isPro, userId }: { avat
   const quotesSent   = quotes.filter((q) => q.status === "sent").length;
   const isFoxActive  = activeCount > 0;
 
-  const spotifyFollowers = spotifyData?.connected ? (spotifyData.followers ?? 0) : 0;
-  const spotifyDbPoints = Math.min(spotifyFollowers / 100, 50);
+  const spotifyFollowers  = spotifyData?.connected ? (spotifyData.followers ?? 0) : 0;
+  const spotifyDbPoints   = Math.min(spotifyFollowers / 100, 50);
+  const youtubeSubscribers = youtubeData?.subscriberCount ?? 0;
+  const youtubeDbPoints   = Math.min(youtubeSubscribers / 50, 100);
 
   const fennecDb = Math.round(
     activeCount  * 150 +
     closedCount  * 50  +
     clients.length * 75 +
     quotesSent   * 25  +
-    spotifyDbPoints
+    spotifyDbPoints +
+    youtubeDbPoints
   );
 
   // Persist score so the community feed can read it
@@ -433,7 +442,8 @@ export default function Dashboard({ avatarUrl, username, isPro, userId }: { avat
                 { label: "Active projects", value: activeCount,       color: "#4d96ff", weight: 150,  connected: true  },
                 { label: "Clients",         value: clients.length,    color: "#c77dff", weight: 75,   connected: true  },
                 { label: "Closed",          value: closedCount,       color: "#6bcb77", weight: 50,   connected: true  },
-                { label: "Streams",         value: spotifyData?.connected ? spotifyFollowers : null, color: "#1DB954", weight: 1, connected: spotifyData?.connected ?? false },
+                { label: "Spotify",         value: spotifyData?.connected ? spotifyFollowers : null, color: "#1DB954", weight: 1, connected: spotifyData?.connected ?? false },
+                { label: "YouTube",         value: youtubeData ? youtubeSubscribers : null,           color: "#FF0000", weight: 1, connected: !!youtubeData },
                 { label: "Reach",           value: null,              color: "#E1306C", weight: null, connected: false },
               ].map((row) => (
                 <div key={row.label} className="flex items-center gap-2">
@@ -524,13 +534,16 @@ export default function Dashboard({ avatarUrl, username, isPro, userId }: { avat
             if (p.key === "spotify" && spotifyData?.connected) {
               value = Math.min(spotifyFollowers / 10000, 1);
             }
+            if (p.key === "youtube" && youtubeData) {
+              value = Math.min(youtubeSubscribers / 5000, 1);
+            }
             return <VUMeter key={p.key} platform={p} value={value} />;
           })}
         </div>
-        {spotifyData?.connected ? (
+        {(spotifyData?.connected || youtubeData) ? (
           <p className="text-center text-[10px] text-zinc-500">
-            Spotify: <span className="text-[#1DB954]">{spotifyFollowers.toLocaleString()} followers</span>
-            {" · "}Connect Instagram to complete your profile
+            {spotifyData?.connected && <><span className="text-[#1DB954]">Spotify {spotifyFollowers.toLocaleString()}</span>{" "}</>}
+            {youtubeData && <><span className="text-[#FF0000]">· YT {youtubeSubscribers.toLocaleString()} subs</span></>}
           </p>
         ) : (
           <p className="text-center text-[10px] text-zinc-500">
