@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import type { ReactNode } from "react";
 import { X, Send } from "lucide-react";
 
 type Props = {
@@ -11,9 +12,9 @@ type Props = {
 export function extractFirstTimestamp(text: string): number | null {
   const match = text.match(/\b(\d{1,2}):([0-5]\d)(?::([0-5]\d))?\b/);
   if (!match) return null;
-  const hours   = match[3] !== undefined ? parseInt(match[1]) : 0;
-  const minutes = match[3] !== undefined ? parseInt(match[2]) : parseInt(match[1]);
-  const seconds = match[3] !== undefined ? parseInt(match[3]) : parseInt(match[2]);
+  const hours   = match[3] !== undefined ? parseInt(match[1], 10) : 0;
+  const minutes = match[3] !== undefined ? parseInt(match[2], 10) : parseInt(match[1], 10);
+  const seconds = match[3] !== undefined ? parseInt(match[3], 10) : parseInt(match[2], 10);
   return hours * 3600 + minutes * 60 + seconds;
 }
 
@@ -21,7 +22,7 @@ export function extractFirstTimestamp(text: string): number | null {
 export function renderBodyWithTimestamps(
   body: string,
   onSeek: (seconds: number) => void
-): React.ReactNode {
+): ReactNode {
   const parts = body.split(/(\b\d{1,2}:[0-5]\d(?::[0-5]\d)?\b)/g);
   return parts.map((part, i) => {
     if (/^\d{1,2}:[0-5]\d(?::[0-5]\d)?$/.test(part)) {
@@ -45,15 +46,19 @@ export function renderBodyWithTimestamps(
 export default function ReviewFeedback({ onSubmit, onClose }: Props) {
   const [body, setBody]       = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState<string | null>(null);
 
   async function handleSubmit() {
     const trimmed = body.trim();
     if (!trimmed) return;
     setLoading(true);
+    setError(null);
     try {
       const ts = extractFirstTimestamp(trimmed);
       await onSubmit(trimmed, ts);
       onClose();
+    } catch {
+      setError("Failed to post. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -85,6 +90,7 @@ export default function ReviewFeedback({ onSubmit, onClose }: Props) {
           rows={4}
           className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-amber-500 resize-none"
         />
+        {error && <p className="text-xs text-red-400">{error}</p>}
         <button
           onClick={handleSubmit}
           disabled={!body.trim() || loading}
