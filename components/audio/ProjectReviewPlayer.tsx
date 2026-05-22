@@ -11,6 +11,14 @@ const MAX_SKIPS = 4;
 // Pre-computed organic waveform path (static visual)
 const WAVE_PATH = "M0,24 C4,24 5,10 8,10 C11,10 12,38 15,38 C18,38 19,18 22,18 C25,18 26,30 29,30 C32,30 33,8 36,8 C39,8 40,40 43,40 C46,40 47,20 50,20 C53,20 54,14 57,14 C60,14 61,34 64,34 C67,34 68,22 71,22 C74,22 75,6 78,6 C81,6 82,42 85,42 C88,42 89,16 92,16 C95,16 96,28 99,28 C102,28 103,12 106,12 C109,12 110,36 113,36 C116,36 117,24 120,24 C123,24 124,10 127,10 C130,10 131,38 134,38 C137,38 138,20 141,20 C144,20 145,30 148,30 C151,30 152,8 155,8 C158,8 159,40 162,40 C165,40 166,18 169,18 C172,18 173,26 176,26 C179,26 180,14 183,14 C186,14 187,34 190,34 C193,34 194,22 197,22 C200,22 201,6 204,6 C207,6 208,42 211,42 C214,42 215,16 218,16 C221,16 222,28 225,28 C228,28 229,24 232,24 C235,24 236,36 239,36 C242,36 243,18 246,18 C249,18 250,10 253,10 C256,10 257,32 260,32 C263,32 264,24 267,24 C270,24 271,14 274,14 C277,14 278,28 281,28 C284,28 285,24 288,24";
 
+const artGradients: Record<string, string> = {
+  "Demo":           "linear-gradient(135deg, #0f0c29, #302b63)",
+  "Missing Mix":    "linear-gradient(135deg, #1a0533, #6b21a8)",
+  "Idea":           "linear-gradient(135deg, #052e16, #166534)",
+  "Missing Master": "linear-gradient(135deg, #431407, #9a3412)",
+  "Final Version":  "linear-gradient(135deg, #1c1917, #78350f)",
+};
+
 type Props = {
   track: ProjectReview;
   userId: string;
@@ -61,14 +69,14 @@ export default function ProjectReviewPlayer({
     const audio = audioRef.current;
     if (!audio) return;
     if (playing) { audio.pause(); setPlaying(false); }
-    else { audio.play(); setPlaying(true); }
+    else { audio.play().catch(console.error); setPlaying(true); }
   }
 
   function seekTo(seconds: number) {
     const audio = audioRef.current;
     if (!audio) return;
     audio.currentTime = seconds;
-    if (!playing) { audio.play(); setPlaying(true); }
+    if (!playing) { audio.play().catch(console.error); setPlaying(true); }
   }
 
   function handleWaveformClick(e: React.MouseEvent<SVGSVGElement>) {
@@ -99,14 +107,6 @@ export default function ProjectReviewPlayer({
 
   const clipId = `clip-${track.id}`;
 
-  const artGradients: Record<string, string> = {
-    "Demo":           "linear-gradient(135deg, #0f0c29, #302b63)",
-    "Missing Mix":    "linear-gradient(135deg, #1a0533, #6b21a8)",
-    "Idea":           "linear-gradient(135deg, #052e16, #166534)",
-    "Missing Master": "linear-gradient(135deg, #431407, #9a3412)",
-    "Final Version":  "linear-gradient(135deg, #1c1917, #78350f)",
-  };
-
   return (
     <div className="flex flex-col gap-4 px-1">
       {/* Artwork */}
@@ -133,6 +133,7 @@ export default function ProjectReviewPlayer({
         </span>
         <button
           onClick={togglePlay}
+          aria-label={playing ? "Pause" : "Play"}
           className="relative z-10 w-14 h-14 rounded-full flex items-center justify-center"
           style={{
             background: "rgba(255,255,255,0.12)",
@@ -165,12 +166,12 @@ export default function ProjectReviewPlayer({
           className="cursor-pointer"
           onClick={handleWaveformClick}
         >
-          <path d={WAVE_PATH} fill="none" stroke="#2a2a2e" strokeWidth="2" />
           <defs>
             <clipPath id={clipId}>
               <rect x="0" y="0" width={`${progress * 288}`} height="48" />
             </clipPath>
           </defs>
+          <path d={WAVE_PATH} fill="none" stroke="#2a2a2e" strokeWidth="2" />
           <path
             d={WAVE_PATH}
             fill="none"
