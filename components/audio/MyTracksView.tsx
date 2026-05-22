@@ -30,11 +30,14 @@ function getAudioDuration(file: File): Promise<number> {
   return new Promise((resolve) => {
     const url = URL.createObjectURL(file);
     const audio = new Audio(url);
+    const cleanup = () => URL.revokeObjectURL(url);
+    const timeout = setTimeout(() => { cleanup(); resolve(0); }, 10_000);
     audio.onloadedmetadata = () => {
+      clearTimeout(timeout);
       resolve(Math.round(audio.duration));
-      URL.revokeObjectURL(url);
+      cleanup();
     };
-    audio.onerror = () => { resolve(0); URL.revokeObjectURL(url); };
+    audio.onerror = () => { clearTimeout(timeout); resolve(0); cleanup(); };
   });
 }
 
@@ -54,11 +57,12 @@ export default function MyTracksView({ userId, isPro }: Props) {
   const [showForm, setShowForm]   = useState(false);
 
   useEffect(() => {
+    if (!isPro) { setLoading(false); return; }
     fetchUserReviews(userId)
       .then(setTracks)
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [userId]);
+  }, [userId, isPro]);
 
   async function handleUpload() {
     if (!audioFile || !title.trim()) return;
@@ -109,8 +113,13 @@ export default function MyTracksView({ userId, isPro }: Props) {
   }
 
   async function handleDelete(id: string) {
-    await deleteReview(id);
-    setTracks((prev) => prev.filter((t) => t.id !== id));
+    if (!confirm("Delete this track? This cannot be undone.")) return;
+    try {
+      await deleteReview(id);
+      setTracks((prev) => prev.filter((t) => t.id !== id));
+    } catch {
+      setError("Could not delete track. Please try again.");
+    }
   }
 
   if (!isPro) {
@@ -237,7 +246,7 @@ export default function MyTracksView({ userId, isPro }: Props) {
       {tracks.map((track) => (
         <div
           key={track.id}
-          className="flex items-center gap-3 rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3"
+          className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3"
         >
           <div
             className="w-11 h-11 rounded-xl shrink-0 overflow-hidden flex items-center justify-center"
