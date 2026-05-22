@@ -368,13 +368,28 @@ export default function PricingCalculator() {
   useEffect(() => {
     const timeout = setTimeout(() => setAuthLoading(false), 4000);
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Handle OAuth redirect: if there's a ?code= in the URL, exchange it for a session
+    async function init() {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("code");
+      if (code) {
+        try {
+          await supabase.auth.exchangeCodeForSession(code);
+        } catch (err) {
+          console.error("[oauth exchange]", err);
+        }
+        // Clean the URL so the code isn't left hanging around
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
       clearTimeout(timeout);
       const user = session?.user ?? null;
       setAuthUser(user ? { id: user.id } : null);
       if (user) loadProfile(user.id);
       else setAuthLoading(false);
-    });
+    }
+    init();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const user = session?.user ?? null;
