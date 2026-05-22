@@ -276,7 +276,7 @@ function VUMeter({ platform, value = 0 }: { platform: typeof PLATFORMS[0]; value
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 
 type SpotifyData = { connected: boolean; followers: number; displayName?: string; imageUrl?: string | null } | null;
-type YouTubeData = { subscriberCount: number; viewCount: number; videoCount: number; channelTitle: string } | null;
+type YouTubeData = { connected: boolean; verified: boolean; subscriberCount: number; viewCount: number; videoCount: number; channelTitle: string; thumbnail?: string } | null;
 
 export default function Dashboard({ avatarUrl, username, isPro, userId }: { avatarUrl?: string | null; username?: string | null; isPro?: boolean; userId?: string | null }) {
   const [projects,    setProjects]    = useState<Project[]>([]);
@@ -287,7 +287,8 @@ export default function Dashboard({ avatarUrl, username, isPro, userId }: { avat
   const [showDbInfo,  setShowDbInfo]  = useState(false);
   const [spotifyData,  setSpotifyData]  = useState<SpotifyData>(null);
   const [youtubeData,  setYoutubeData]  = useState<YouTubeData>(null);
-  const [spotifyToast, setSpotifyToast] = useState(false);
+  const [spotifyToast,  setSpotifyToast]  = useState(false);
+  const [youtubeToast,  setYoutubeToast]  = useState(false);
 
   useEffect(() => {
     try {
@@ -311,23 +312,29 @@ export default function Dashboard({ avatarUrl, username, isPro, userId }: { avat
       .then((r) => r.json())
       .then((data) => setSpotifyData(data))
       .catch(() => {});
-    fetch("/api/youtube/stats")
+    fetch(`/api/youtube/stats?userId=${userId}`)
       .then((r) => r.json())
       .then((data) => { if (!data.error) setYoutubeData(data); })
       .catch(() => {});
   }, [userId]);
 
-  // Show success toast if redirected back with ?spotify=connected
+  // Show success toasts if redirected back with ?spotify=connected or ?youtube=connected
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
+    const url = new URL(window.location.href);
     if (params.get("spotify") === "connected") {
       setSpotifyToast(true);
-      // Clean up URL without reload
-      const url = new URL(window.location.href);
       url.searchParams.delete("spotify");
       window.history.replaceState({}, "", url.toString());
       const t = setTimeout(() => setSpotifyToast(false), 4000);
+      return () => clearTimeout(t);
+    }
+    if (params.get("youtube") === "connected") {
+      setYoutubeToast(true);
+      url.searchParams.delete("youtube");
+      window.history.replaceState({}, "", url.toString());
+      const t = setTimeout(() => setYoutubeToast(false), 4000);
       return () => clearTimeout(t);
     }
   }, []);
@@ -386,11 +393,17 @@ export default function Dashboard({ avatarUrl, username, isPro, userId }: { avat
   return (
     <div className="mx-auto w-full max-w-4xl space-y-4 pb-8 pt-2 px-4">
 
-      {/* ── Spotify toast ─────────────────────────────────────────────────── */}
+      {/* ── Toasts ────────────────────────────────────────────────────────── */}
       {spotifyToast && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-xl border border-[#1DB954]/30 bg-zinc-900 px-4 py-2.5 shadow-lg">
           <SiSpotify className="h-4 w-4 text-[#1DB954]" />
           <span className="text-sm text-white font-medium">Spotify connected!</span>
+        </div>
+      )}
+      {youtubeToast && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-xl border border-[#FF0000]/30 bg-zinc-900 px-4 py-2.5 shadow-lg">
+          <SiYoutube className="h-4 w-4 text-[#FF0000]" />
+          <span className="text-sm text-white font-medium">YouTube connected!</span>
         </div>
       )}
 
@@ -512,21 +525,28 @@ export default function Dashboard({ avatarUrl, username, isPro, userId }: { avat
       <div className="px-2 pt-4 pb-2 space-y-4 border-t border-white/5">
         <div className="flex items-center justify-between">
           <p className="text-xs font-semibold uppercase tracking-widest text-zinc-300">Social Reach</p>
-          {userId && !spotifyData?.connected && (
-            <a
-              href={`/api/spotify/connect?userId=${userId}`}
-              className="flex items-center gap-1 text-[10px] text-[#1DB954]/80 hover:text-[#1DB954] transition"
-            >
-              <SiSpotify className="h-3 w-3" />
-              Connect Spotify <ChevronRight className="h-3 w-3" />
-            </a>
-          )}
-          {spotifyData?.connected && (
-            <span className="flex items-center gap-1 text-[10px] text-[#1DB954]/70">
-              <SiSpotify className="h-3 w-3" />
-              {spotifyData.displayName ?? "Connected"}
-            </span>
-          )}
+          <div className="flex items-center gap-3">
+            {userId && !spotifyData?.connected && (
+              <a href={`/api/spotify/connect?userId=${userId}`} className="flex items-center gap-1 text-[10px] text-[#1DB954]/80 hover:text-[#1DB954] transition">
+                <SiSpotify className="h-3 w-3" /> Connect Spotify
+              </a>
+            )}
+            {spotifyData?.connected && (
+              <span className="flex items-center gap-1 text-[10px] text-[#1DB954]/70">
+                <SiSpotify className="h-3 w-3" /> {spotifyData.displayName ?? "✓"}
+              </span>
+            )}
+            {userId && !youtubeData?.connected && (
+              <a href={`/api/youtube/connect?userId=${userId}`} className="flex items-center gap-1 text-[10px] text-[#FF0000]/80 hover:text-[#FF0000] transition">
+                <SiYoutube className="h-3 w-3" /> Connect YouTube
+              </a>
+            )}
+            {youtubeData?.connected && (
+              <span className="flex items-center gap-1 text-[10px] text-[#FF0000]/70">
+                <SiYoutube className="h-3 w-3" /> {youtubeData.channelTitle ?? "✓"} ✓
+              </span>
+            )}
+          </div>
         </div>
         <div className="flex items-end justify-around px-2">
           {PLATFORMS.map((p) => {
