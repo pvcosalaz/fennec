@@ -37,7 +37,7 @@ body {
     content: "";
     position: fixed;
     inset: 0;
-    background: #0a0a0a;
+    background: #111114;
     z-index: 9999;
   }
 }
