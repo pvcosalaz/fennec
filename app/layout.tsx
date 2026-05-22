@@ -28,8 +28,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className="h-full antialiased" style={{ background: "#0a0a0a" }}>
-      <body className="h-full" style={{ background: "#0a0a0a" }}>{children}</body>
+    <html lang="es" className="h-full antialiased" style={{ background: "#111114" }}>
+      <body className="h-full" style={{ background: "#111114" }}>{children}</body>
     </html>
   );
 }

@@ -64,9 +64,10 @@ Unchanged from current implementation — personal recordings stored in IndexedD
 
 ## Feedback with Timestamps
 
-- Leave Feedback opens a bottom sheet with a multiline text input
-- The input detects time patterns (`2:32`, `0:45`, `1:05:12`) automatically
-- Detected timestamps render as amber hyperlinks in the comment display
+- Tapping "Leave Feedback" opens a bottom sheet with a multiline text input
+- Comments are displayed in a **feed below the waveform**, visible to all users while the track plays
+- The input detects time patterns (`2:32`, `0:45`, `1:05:12`) automatically as the user types
+- Detected timestamps render as **amber hyperlinks** inline within the comment text
 - Tapping a timestamp link seeks the player to that exact second
 - Detection regex: `\b(\d{1,2}):([0-5]\d)(:[0-5]\d)?\b`
 - Comments are stored with `timestamp_seconds: number | null` — if multiple timestamps exist in one comment, `timestamp_seconds` stores the first one found; the full raw text is preserved

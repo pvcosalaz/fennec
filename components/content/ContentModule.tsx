@@ -744,7 +744,7 @@ export default function ContentModule() {
             <div className="sticky top-0 z-10 flex items-center justify-center px-4 pt-3 pb-2 bg-zinc-950">
               <div className="w-10 h-1 rounded-full bg-white/30" />
             </div>
-            <div className="px-2 pb-8 pt-1">
+            <div className="px-2 pb-32 pt-1">
               {sheet === "inspire" && (
                 <TrendingView
                   isPro={isPro}

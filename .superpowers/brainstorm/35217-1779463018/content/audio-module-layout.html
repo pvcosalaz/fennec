@@ -1,0 +1,392 @@
+<style>
+  .phone-frame {
+    width: 320px;
+    min-height: 580px;
+    background: #111114;
+    border-radius: 36px;
+    border: 2px solid #2a2a2e;
+    padding: 24px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    position: relative;
+    overflow: hidden;
+  }
+  .phone-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .module-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: #f5a623;
+    text-transform: uppercase;
+  }
+  .tab-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 18px;
+  }
+  .tab {
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid #2a2a2e;
+    color: #666;
+    background: transparent;
+    cursor: pointer;
+  }
+  .tab.active {
+    background: #f5a623;
+    color: #000;
+    border-color: #f5a623;
+    font-weight: 600;
+  }
+  /* Album art + player */
+  .artwork {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #1e1e2e 0%, #2d1b69 50%, #11998e 100%);
+    margin-bottom: 14px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .artwork-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(245,166,35,0.9);
+    color: #000;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .artwork-play {
+    width: 48px;
+    height: 48px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    backdrop-filter: blur(8px);
+  }
+  .track-info {
+    margin-bottom: 10px;
+  }
+  .track-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 2px;
+  }
+  .track-artist {
+    font-size: 12px;
+    color: #666;
+  }
+  /* Waveform */
+  .waveform {
+    width: 100%;
+    height: 36px;
+    background: #1a1a1e;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 2px;
+    overflow: hidden;
+  }
+  .waveform-bar {
+    flex: 1;
+    border-radius: 2px;
+    background: #2a2a2e;
+  }
+  .waveform-bar.played {
+    background: #f5a623;
+  }
+  .time-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: #444;
+    margin-bottom: 14px;
+  }
+  /* Controls */
+  .controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 16px;
+  }
+  .ctrl-btn {
+    font-size: 18px;
+    color: #555;
+    cursor: pointer;
+  }
+  .ctrl-btn.main {
+    width: 44px;
+    height: 44px;
+    background: #f5a623;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #000;
+  }
+  /* Action row */
+  .action-row {
+    display: flex;
+    gap: 8px;
+  }
+  .btn-skip {
+    flex: 1;
+    padding: 11px;
+    border-radius: 12px;
+    border: 1px solid #2a2a2e;
+    background: transparent;
+    color: #666;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+  }
+  .btn-feedback {
+    flex: 2;
+    padding: 11px;
+    border-radius: 12px;
+    background: #f5a623;
+    color: #000;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+  }
+  /* Karma indicator */
+  .karma-pill {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    background: #1a1a1e;
+    border: 1px solid #2a2a2e;
+    border-radius: 20px;
+    padding: 4px 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    color: #666;
+  }
+  .karma-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #f5a623;
+  }
+
+  /* Layout B - List style */
+  .list-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: #1a1a1e;
+    border-radius: 12px;
+    margin-bottom: 8px;
+  }
+  .list-art {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #1e1e2e, #2d1b69);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+  .list-meta { flex: 1; }
+  .list-title { font-size: 12px; font-weight: 600; color: #fff; }
+  .list-sub { font-size: 10px; color: #555; }
+  .list-badge {
+    font-size: 9px;
+    padding: 3px 7px;
+    border-radius: 20px;
+    background: rgba(245,166,35,0.15);
+    color: #f5a623;
+    font-weight: 600;
+  }
+  .review-count {
+    font-size: 10px;
+    color: #444;
+  }
+
+  .frames-wrapper {
+    display: flex;
+    gap: 32px;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 8px 0 16px;
+  }
+  .frame-label {
+    text-align: center;
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 10px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  /* waveform random heights */
+</style>
+
+<h2>Audio Module — Layout</h2>
+<p class="subtitle">¿Cómo debería verse la pantalla principal de Project Review? Selecciona el que más te convence.</p>
+
+<div class="frames-wrapper">
+
+  <!-- Option A: Full player -->
+  <div>
+    <div class="frame-label">A · Reproductor full</div>
+    <div class="phone-frame card" data-choice="a" onclick="toggleSelect(this)" style="cursor:pointer; transition: box-shadow 0.2s;">
+      <div class="phone-header">
+        <span class="module-title">🎵 Audio</span>
+        <div class="karma-pill"><div class="karma-dot"></div>3 skips left</div>
+      </div>
+      <div class="tab-row">
+        <div class="tab active">Review</div>
+        <div class="tab">Melody Bank</div>
+        <div class="tab">My Tracks</div>
+      </div>
+      <div class="artwork">
+        <div class="artwork-badge">Demo</div>
+        <div class="artwork-play">▶</div>
+      </div>
+      <div class="track-info">
+        <div class="track-title">Untitled Beat #3</div>
+        <div class="track-artist">@marisol_prod · 3:47</div>
+      </div>
+      <div class="waveform">
+        <div class="waveform-bar played" style="height:40%"></div>
+        <div class="waveform-bar played" style="height:60%"></div>
+        <div class="waveform-bar played" style="height:80%"></div>
+        <div class="waveform-bar played" style="height:50%"></div>
+        <div class="waveform-bar played" style="height:70%"></div>
+        <div class="waveform-bar played" style="height:90%"></div>
+        <div class="waveform-bar played" style="height:45%"></div>
+        <div class="waveform-bar" style="height:65%"></div>
+        <div class="waveform-bar" style="height:35%"></div>
+        <div class="waveform-bar" style="height:75%"></div>
+        <div class="waveform-bar" style="height:55%"></div>
+        <div class="waveform-bar" style="height:85%"></div>
+        <div class="waveform-bar" style="height:40%"></div>
+        <div class="waveform-bar" style="height:60%"></div>
+        <div class="waveform-bar" style="height:70%"></div>
+        <div class="waveform-bar" style="height:50%"></div>
+        <div class="waveform-bar" style="height:80%"></div>
+        <div class="waveform-bar" style="height:45%"></div>
+        <div class="waveform-bar" style="height:65%"></div>
+        <div class="waveform-bar" style="height:55%"></div>
+      </div>
+      <div class="time-row"><span>1:12</span><span>3:47</span></div>
+      <div class="controls">
+        <div class="ctrl-btn">⏮</div>
+        <div class="ctrl-btn">⏪</div>
+        <div class="ctrl-btn main">⏸</div>
+        <div class="ctrl-btn">⏩</div>
+        <div class="ctrl-btn">⏭</div>
+      </div>
+      <div class="action-row">
+        <div class="btn-skip">Skip →</div>
+        <div class="btn-feedback">✍ Leave Feedback</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Option B: Compact + queue -->
+  <div>
+    <div class="frame-label">B · Compact + cola</div>
+    <div class="phone-frame card" data-choice="b" onclick="toggleSelect(this)" style="cursor:pointer; transition: box-shadow 0.2s;">
+      <div class="phone-header">
+        <span class="module-title">🎵 Audio</span>
+        <div class="karma-pill"><div class="karma-dot"></div>3 skips left</div>
+      </div>
+      <div class="tab-row">
+        <div class="tab active">Review</div>
+        <div class="tab">Melody Bank</div>
+        <div class="tab">My Tracks</div>
+      </div>
+      <!-- Compact player -->
+      <div style="background:#1a1a1e; border-radius:16px; padding:14px; margin-bottom:14px;">
+        <div style="display:flex; gap:12px; align-items:center; margin-bottom:12px;">
+          <div style="width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,#1e1e2e,#2d1b69);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">▶</div>
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:2px;">Untitled Beat #3</div>
+            <div style="font-size:11px;color:#555;">@marisol_prod · 3:47</div>
+            <div style="display:inline-block;margin-top:4px;font-size:9px;padding:2px 7px;border-radius:20px;background:rgba(245,166,35,0.15);color:#f5a623;font-weight:600;">DEMO</div>
+          </div>
+        </div>
+        <div class="waveform" style="margin-bottom:6px;">
+          <div class="waveform-bar played" style="height:40%"></div>
+          <div class="waveform-bar played" style="height:65%"></div>
+          <div class="waveform-bar played" style="height:80%"></div>
+          <div class="waveform-bar played" style="height:50%"></div>
+          <div class="waveform-bar" style="height:70%"></div>
+          <div class="waveform-bar" style="height:90%"></div>
+          <div class="waveform-bar" style="height:45%"></div>
+          <div class="waveform-bar" style="height:60%"></div>
+          <div class="waveform-bar" style="height:35%"></div>
+          <div class="waveform-bar" style="height:75%"></div>
+          <div class="waveform-bar" style="height:55%"></div>
+          <div class="waveform-bar" style="height:85%"></div>
+          <div class="waveform-bar" style="height:40%"></div>
+          <div class="waveform-bar" style="height:65%"></div>
+          <div class="waveform-bar" style="height:70%"></div>
+          <div class="waveform-bar" style="height:50%"></div>
+          <div class="waveform-bar" style="height:80%"></div>
+          <div class="waveform-bar" style="height:45%"></div>
+          <div class="waveform-bar" style="height:60%"></div>
+          <div class="waveform-bar" style="height:55%"></div>
+        </div>
+        <div class="time-row"><span>1:12</span><span>3:47</span></div>
+        <div class="action-row">
+          <div class="btn-skip">Skip →</div>
+          <div class="btn-feedback">✍ Leave Feedback</div>
+        </div>
+      </div>
+      <!-- Queue -->
+      <div style="font-size:10px;font-weight:700;color:#444;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">Up next</div>
+      <div class="list-item">
+        <div class="list-art">🎹</div>
+        <div class="list-meta">
+          <div class="list-title">Night Drive</div>
+          <div class="list-sub">@carlosbeatz</div>
+        </div>
+        <div class="list-badge">FINAL</div>
+      </div>
+      <div class="list-item">
+        <div class="list-art">🎸</div>
+        <div class="list-meta">
+          <div class="list-title">Untitled v2</div>
+          <div class="list-sub">@luna_mx</div>
+        </div>
+        <div class="list-badge">MIX</div>
+      </div>
+    </div>
+  </div>
+
+</div>

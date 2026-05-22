@@ -9,11 +9,7 @@ export async function fetchRandomReviews(
 ): Promise<ProjectReview[]> {
   const { data, error } = await supabase
     .from("project_reviews")
-    .select(`
-      *,
-      profile:profiles!project_reviews_user_id_fkey(id, username, avatar_url),
-      comment_count:review_comments(count)
-    `)
+    .select(`*, comment_count:review_comments(count)`)
     .neq("user_id", excludeUserId)
     .order("created_at", { ascending: false })
     .limit(limit * 3); // fetch more than needed so we can shuffle client-side
@@ -37,11 +33,7 @@ export async function fetchRandomReviews(
 export async function fetchUserReviews(userId: string): Promise<ProjectReview[]> {
   const { data, error } = await supabase
     .from("project_reviews")
-    .select(`
-      *,
-      profile:profiles!project_reviews_user_id_fkey(id, username, avatar_url),
-      comment_count:review_comments(count)
-    `)
+    .select(`*, comment_count:review_comments(count)`)
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
@@ -70,7 +62,7 @@ export async function createReview(params: {
       artwork_url:      params.artworkUrl,
       duration_seconds: params.durationSeconds,
     })
-    .select(`*, profile:profiles!project_reviews_user_id_fkey(id, username, avatar_url)`)
+    .select(`*`)
     .single();
 
   if (error) throw error;
@@ -121,7 +113,7 @@ export async function countUserReviews(userId: string): Promise<number> {
 export async function fetchReviewComments(trackId: string): Promise<ReviewComment[]> {
   const { data, error } = await supabase
     .from("review_comments")
-    .select(`*, profile:profiles!review_comments_user_id_fkey(id, username, avatar_url)`)
+    .select(`*`)
     .eq("track_id", trackId)
     .order("created_at", { ascending: true });
   if (error) throw error;
@@ -142,7 +134,7 @@ export async function createReviewComment(params: {
       body:              params.body,
       timestamp_seconds: params.timestampSeconds,
     })
-    .select(`*, profile:profiles!review_comments_user_id_fkey(id, username, avatar_url)`)
+    .select(`*`)
     .single();
   if (error) throw error;
   return data;
