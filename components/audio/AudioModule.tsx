@@ -5,6 +5,7 @@ import type { ProjectReview } from "@/lib/audioTypes";
 import { fetchRandomReviews } from "@/lib/audioDb";
 import ProjectReviewPlayer from "./ProjectReviewPlayer";
 import MyTracksView from "./MyTracksView";
+import IdeasModule from "@/components/ideas/IdeasModule";
 
 type AudioTab = "review" | "melody" | "mine";
 
@@ -100,10 +101,7 @@ export default function AudioModule({ userId, isPro }: Props) {
 
       {/* Melody Bank tab */}
       {activeTab === "melody" && (
-        <div className="text-center py-8 text-zinc-600 text-sm">
-          <p>Your melody bank recordings will appear here.</p>
-          <p className="text-xs mt-1 text-zinc-700">Use the Compose button in Community to record new melodies.</p>
-        </div>
+        <IdeasModule onBack={() => setActiveTab("review")} />
       )}
 
       {/* Mine tab */}

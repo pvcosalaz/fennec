@@ -91,7 +91,6 @@ import {
   Briefcase,
   Home,
   Globe,
-  Music2,
   Settings,
   SlidersHorizontal,
 } from "lucide-react";
@@ -105,10 +104,9 @@ import ActiveProjects from "@/components/business/ActiveProjects";
 import { getProjects, getQuotes, getClients } from "@/lib/businessDb";
 import Community from "@/components/community/Community";
 import ContentModule from "@/components/content/ContentModule";
-import IdeasModule from "@/components/ideas/IdeasModule";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/lib/supabase";
-import { getProfile, updateDbScore, uploadAudio, createPost } from "@/lib/communityDb";
+import { getProfile, updateDbScore } from "@/lib/communityDb";
 import type { Profile } from "@/lib/communityTypes";
 import AuthGate from "@/components/community/AuthGate";
 import UsernameSetup from "@/components/community/UsernameSetup";
@@ -139,7 +137,7 @@ type PricingState = {
   selectedProjectType: string;
 };
 
-type ModuleTab = "pricing" | "contenido" | "dashboard" | "ideas" | "noticias" | "audio";
+type ModuleTab = "pricing" | "contenido" | "dashboard" | "ideas" | "noticias";
 
 const STORAGE_KEY = "fennec-pricing-v1";
 const LANGUAGE_STORAGE_KEY = "fennec-language";
@@ -294,7 +292,6 @@ const moduleTabs: {
   { id: "dashboard", labelKey: "tabs.dashboard", icon: Home },
   { id: "ideas", labelKey: "tabs.ideas", icon: AudioWaveform },
   { id: "noticias", labelKey: "tabs.community", icon: Globe },
-  { id: "audio", labelKey: "tabs.audio", icon: Music2 },
 ];
 
 function CurrencyInput({
@@ -327,7 +324,7 @@ export default function PricingCalculator() {
   const [activeTab, setActiveTab] = useState<ModuleTab>(() => {
     if (typeof window === "undefined") return "dashboard";
     const saved = localStorage.getItem("fennec_active_tab") as ModuleTab | null;
-    const valid: ModuleTab[] = ["pricing", "contenido", "dashboard", "ideas", "noticias", "audio"];
+    const valid: ModuleTab[] = ["pricing", "contenido", "dashboard", "ideas", "noticias"];
     return saved && valid.includes(saved) ? saved : "dashboard";
   });
   useEffect(() => { localStorage.setItem("fennec_active_tab", activeTab); }, [activeTab]);
@@ -966,22 +963,13 @@ export default function PricingCalculator() {
       ) : activeTab === "contenido" ? (
         <ContentModule />
       ) : activeTab === "ideas" ? (
-        <IdeasModule
-          onBack={() => setActiveTab("dashboard")}
-          onShareToFeed={profile ? async (blob, title) => {
-            const url = await uploadAudio(blob, `${title}.webm`);
-            setPendingAudio({ url, name: title });
-            setActiveTab("noticias");
-          } : undefined}
-        />
+        <AudioModule userId={authUser.id} isPro={profile?.is_pro ?? false} />
       ) : activeTab === "noticias" ? (
         <Community
           profile={profile}
           openComposerWith={pendingAudio}
           onComposerConsumed={() => setPendingAudio(null)}
         />
-      ) : activeTab === "audio" ? (
-        <AudioModule userId={authUser.id} isPro={profile?.is_pro ?? false} />
       ) : null}
 
     </main>
