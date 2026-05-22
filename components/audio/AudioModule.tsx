@@ -31,18 +31,15 @@ export default function AudioModule({ userId, isPro }: Props) {
   }, [userId]);
 
   function handlePass() {
-    setQueueIndex((i) => {
-      if (i + 1 >= queue.length) {
-        // Reload queue when exhausted
-        setLoadingQueue(true);
-        fetchRandomReviews(userId, 10)
-          .then((tracks) => { setQueue(tracks); setQueueIndex(0); })
-          .catch(console.error)
-          .finally(() => setLoadingQueue(false));
-        return 0;
-      }
-      return i + 1;
-    });
+    if (queueIndex + 1 >= queue.length) {
+      setLoadingQueue(true);
+      fetchRandomReviews(userId, 10)
+        .then((tracks) => { setQueue(tracks); setQueueIndex(0); })
+        .catch(console.error)
+        .finally(() => setLoadingQueue(false));
+    } else {
+      setQueueIndex((i) => i + 1);
+    }
   }
 
   const currentTrack = queue[queueIndex] ?? null;
