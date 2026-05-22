@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import { ChevronLeft, Pencil } from "lucide-react";
+import { ChevronLeft, Pencil, MapPin } from "lucide-react";
+import { SiInstagram, SiSpotify, SiYoutube, SiTiktok } from "react-icons/si";
 import { getProfile, fetchUserPosts } from "@/lib/communityDb";
 import type { Profile, Post } from "@/lib/communityTypes";
 import ProBadge from "./ProBadge";
@@ -110,11 +111,51 @@ export default function UserProfilePage({ userId, currentProfile, onBack, onOpen
 
       {/* Profile info — pushed down to clear the avatar overlap */}
       <div className="flex flex-col items-center gap-1.5 pt-10">
+        {/* Display name */}
+        {profile.display_name && (
+          <p className="text-base font-semibold text-white">{profile.display_name}</p>
+        )}
         <div className="flex items-center gap-2">
-          <span className={`text-lg font-bold ${profile.is_pro ? "text-amber-400" : "text-white"}`}>@{profile.username}</span>
+          <span className={`text-sm font-medium ${profile.is_pro ? "text-amber-400" : "text-zinc-400"}`}>@{profile.username}</span>
           {profile.is_pro && <ProBadge />}
           <span className="text-sm font-bold text-amber-500">{profile.fennec_db_score} <span className="text-xs font-normal text-zinc-500">dB</span></span>
         </div>
+        {/* Role + Country */}
+        <div className="flex items-center gap-3 flex-wrap justify-center">
+          {profile.role && (
+            <span className="text-xs text-zinc-400">{profile.role}</span>
+          )}
+          {profile.country && (
+            <span className="flex items-center gap-1 text-xs text-zinc-500">
+              <MapPin className="h-3 w-3" />{profile.country}
+            </span>
+          )}
+        </div>
+        {/* Social links */}
+        {(profile.instagram || profile.spotify || profile.youtube_url || profile.tiktok) && (
+          <div className="flex items-center gap-4 mt-1">
+            {profile.instagram && (
+              <a href={`https://instagram.com/${profile.instagram.replace("@","")}`} target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-[#E1306C] transition">
+                <SiInstagram className="h-4 w-4" />
+              </a>
+            )}
+            {profile.spotify && (
+              <a href={profile.spotify.startsWith("http") ? profile.spotify : `https://open.spotify.com/search/${encodeURIComponent(profile.spotify)}`} target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-[#1DB954] transition">
+                <SiSpotify className="h-4 w-4" />
+              </a>
+            )}
+            {profile.youtube_url && (
+              <a href={profile.youtube_url.startsWith("http") ? profile.youtube_url : `https://youtube.com/@${profile.youtube_url}`} target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-[#FF0000] transition">
+                <SiYoutube className="h-4 w-4" />
+              </a>
+            )}
+            {profile.tiktok && (
+              <a href={`https://tiktok.com/@${profile.tiktok.replace("@","")}`} target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-white transition">
+                <SiTiktok className="h-4 w-4" />
+              </a>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Bio */}
