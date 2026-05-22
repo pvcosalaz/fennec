@@ -508,7 +508,7 @@ export default function PricingCalculator() {
 
   return (
     <div className="flex h-screen flex-col bg-background">
-    <main className="flex-1 overflow-y-auto overscroll-none pb-6 pt-6">
+    <main id="scroll-root" className="flex-1 overflow-y-auto overscroll-none pb-6 pt-6" style={{ overscrollBehavior: "none" }}>
       {/* Settings button */}
       <div className={`flex w-full max-w-4xl items-center px-6 ${activeTab === "dashboard" ? "mb-0" : "mb-4"}`}>
         <div className="flex-1" />

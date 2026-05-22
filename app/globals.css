@@ -15,6 +15,9 @@
 
 html {
   background: var(--background);
+  overscroll-behavior: none;
+  overflow: hidden;
+  height: 100%;
 }
 
 body {
@@ -22,6 +25,18 @@ body {
   color: var(--foreground);
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   overscroll-behavior: none;
+  overflow: hidden;
+  height: 100%;
+  position: fixed;
+  width: 100%;
+}
+
+/* Main scroll container — only this element scrolls */
+#scroll-root {
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Remove native number input spinners */
