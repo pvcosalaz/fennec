@@ -36,7 +36,7 @@ export type ProjectReview = {
     username: string;
     avatar_url: string | null;
   };
-  comment_count?: number;
+  comment_count: number;
 };
 
 export type ReviewComment = {

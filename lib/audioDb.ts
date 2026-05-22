@@ -16,7 +16,7 @@ export async function fetchRandomReviews(
     `)
     .neq("user_id", excludeUserId)
     .order("created_at", { ascending: false })
-    .limit(limit * 3);
+    .limit(limit * 3); // fetch more than needed so we can shuffle client-side
 
   if (error) throw error;
 
@@ -78,11 +78,33 @@ export async function createReview(params: {
 }
 
 export async function deleteReview(reviewId: string): Promise<void> {
+  // Fetch URLs before deleting so we can clean up storage
+  const { data: review, error: fetchError } = await supabase
+    .from("project_reviews")
+    .select("audio_url, artwork_url")
+    .eq("id", reviewId)
+    .single();
+  if (fetchError) throw fetchError;
+
   const { error } = await supabase
     .from("project_reviews")
     .delete()
     .eq("id", reviewId);
   if (error) throw error;
+
+  // Clean up storage files
+  const pathsToDelete: string[] = [];
+  if (review.audio_url) {
+    const path = review.audio_url.split("/project-reviews/")[1];
+    if (path) pathsToDelete.push(path);
+  }
+  if (review.artwork_url) {
+    const path = review.artwork_url.split("/project-reviews/")[1];
+    if (path) pathsToDelete.push(path);
+  }
+  if (pathsToDelete.length > 0) {
+    await supabase.storage.from("project-reviews").remove(pathsToDelete);
+  }
 }
 
 export async function countUserReviews(userId: string): Promise<number> {
