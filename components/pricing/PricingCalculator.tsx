@@ -100,6 +100,7 @@ import BusinessHub, { type BusinessView } from "@/components/business/BusinessHu
 import ClientsLeads from "@/components/business/ClientsLeads";
 import QuoteGenerator from "@/components/business/QuoteGenerator";
 import ActiveProjects from "@/components/business/ActiveProjects";
+import { getProjects, getQuotes, getClients } from "@/lib/businessDb";
 import Community from "@/components/community/Community";
 import ContentModule from "@/components/content/ContentModule";
 import IdeasModule from "@/components/ideas/IdeasModule";
@@ -386,25 +387,18 @@ export default function PricingCalculator() {
   }, []);
 
   async function loadProfile(userId: string) {
-    const p = await getProfile(userId);
+    const [p, projects, quotes, clients] = await Promise.all([
+      getProfile(userId),
+      getProjects(userId),
+      getQuotes(userId),
+      getClients(userId),
+    ]);
     setAuthLoading(false);
     if (p) {
-      // Calculate score directly from localStorage data (same formula as Dashboard)
-      // so we don't depend on Dashboard having run first
-      const computedScore = (() => {
-        try {
-          const projects: { status: string }[] = JSON.parse(localStorage.getItem("fennec-projects-v1") ?? "[]");
-          const quotes:   { status: string }[] = JSON.parse(localStorage.getItem("fennec-quotes-v1")   ?? "[]");
-          const clients:  unknown[]            = JSON.parse(localStorage.getItem("fennec-clients-v1")  ?? "[]");
-          const active  = projects.filter((pr) => pr.status !== "paid").length;
-          const closed  = projects.filter((pr) => pr.status === "paid").length;
-          const sent    = quotes.filter((q)  => q.status === "sent").length;
-          return Math.round(active * 150 + closed * 50 + clients.length * 75 + sent * 25);
-        } catch { return 0; }
-      })();
-
-      // Save computed score so Dashboard picks it up too
-      localStorage.setItem("fennec-db-score", String(computedScore));
+      const active = projects.filter((pr) => pr.status !== "paid").length;
+      const closed = projects.filter((pr) => pr.status === "paid").length;
+      const sent   = quotes.filter((q)  => q.status === "sent").length;
+      const computedScore = Math.round(active * 150 + closed * 50 + clients.length * 75 + sent * 25);
 
       if (computedScore !== p.fennec_db_score) {
         updateDbScore(userId, computedScore);

@@ -4,15 +4,13 @@ import { useEffect, useState, useMemo, useRef } from "react";
 import { ChevronRight, Info } from "lucide-react";
 import { SiSpotify, SiInstagram, SiYoutube, SiTiktok } from "react-icons/si";
 import {
-  PROJECTS_STORAGE_KEY,
-  QUOTES_STORAGE_KEY,
-  CLIENTS_STORAGE_KEY,
   type Project,
   type Quote,
   type Client,
   formatCOP,
   computePricing,
 } from "@/lib/pricingData";
+import { getProjects, getQuotes, getClients } from "@/lib/businessDb";
 import { PROFILE_KEY, type UserProfile } from "@/components/settings/SettingsModule";
 import FennecFox from "./FennecFox";
 
@@ -291,17 +289,18 @@ export default function Dashboard({ avatarUrl, username, isPro, userId }: { avat
 
   useEffect(() => {
     try {
-      const p  = localStorage.getItem(PROJECTS_STORAGE_KEY);
-      const q  = localStorage.getItem(QUOTES_STORAGE_KEY);
-      const c  = localStorage.getItem(CLIENTS_STORAGE_KEY);
       const pr = localStorage.getItem(PROFILE_KEY);
-      if (p)  setProjects(JSON.parse(p));
-      if (q)  setQuotes(JSON.parse(q));
-      if (c)  setClients(JSON.parse(c));
       if (pr) setProfile(JSON.parse(pr));
     } catch {}
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!userId) return;
+    Promise.all([getProjects(userId), getQuotes(userId), getClients(userId)]).then(
+      ([p, q, c]) => { setProjects(p); setQuotes(q); setClients(c); }
+    );
+  }, [userId]);
 
   // Fetch Spotify stats on mount
   useEffect(() => {
