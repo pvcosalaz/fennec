@@ -80,7 +80,7 @@ export default function AudioModule({ userId, isPro }: Props) {
       {/* Plus — My Tracks (bottom right, above nav) */}
       <button
         onClick={() => setOverlay(overlay === "mine" ? null : "mine")}
-        className="fixed bottom-24 right-4 z-40 w-12 h-12 rounded-full bg-amber-500 flex items-center justify-center text-black shadow-lg hover:bg-amber-400 transition"
+        className="fixed bottom-32 right-4 z-40 w-12 h-12 rounded-full bg-amber-500 flex items-center justify-center text-black shadow-lg hover:bg-amber-400 transition"
         aria-label="My Tracks"
       >
         <Plus className="h-5 w-5" />
