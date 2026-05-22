@@ -334,6 +334,7 @@ export default function PricingCalculator() {
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [businessView, setBusinessView] = useState<BusinessView>("hub");
   const prevBusinessView = useRef<BusinessView>("hub");
+  const [hubRefreshKey, setHubRefreshKey] = useState(0);
 
   // Auto-open setup when user enters calculator without financial data
   useEffect(() => {
@@ -533,14 +534,14 @@ export default function PricingCalculator() {
           onSignOut={async () => { await supabase.auth.signOut(); }}
         />
       ) : activeTab === "pricing" && businessView === "hub" ? (
-        <BusinessHub onOpenView={setBusinessView} isPro={profile?.is_pro ?? true} userId={authUser.id} />
+        <BusinessHub key={hubRefreshKey} onOpenView={setBusinessView} isPro={profile?.is_pro ?? true} userId={authUser.id} />
       ) : activeTab === "pricing" && businessView === "projects" ? (
-        <ActiveProjects onBack={() => setBusinessView("hub")} userId={authUser.id} />
+        <ActiveProjects onBack={() => { setHubRefreshKey((k) => k + 1); setBusinessView("hub"); }} userId={authUser.id} />
       ) : activeTab === "pricing" && businessView === "clients" ? (
-        <ClientsLeads onBack={() => setBusinessView(prevBusinessView.current)} userId={authUser.id} />
+        <ClientsLeads onBack={() => { setHubRefreshKey((k) => k + 1); setBusinessView(prevBusinessView.current); }} userId={authUser.id} />
       ) : activeTab === "pricing" && businessView === "quotes" ? (
         <QuoteGenerator
-          onBack={() => setBusinessView("hub")}
+          onBack={() => { setHubRefreshKey((k) => k + 1); setBusinessView("hub"); }}
           onGoToClients={() => { prevBusinessView.current = "quotes"; setBusinessView("clients"); }}
           onGoToCalculator={() => setBusinessView("calculator")}
           onGoToProjects={() => setBusinessView("projects")}
