@@ -38,7 +38,8 @@ export async function generateNotificationCopy(ctx: CopyContext): Promise<string
       max_tokens: 60,
       messages: [{ role: "user", content: prompt }],
     });
-    const text = (message.content[0] as { type: string; text: string }).text?.trim() ?? "";
+    const block = message.content[0];
+    const text = block.type === "text" ? block.text.trim() : "";
     return text.length > 0 ? text.slice(0, 80) : FALLBACKS[ctx.type](ctx);
   } catch {
     return FALLBACKS[ctx.type](ctx);

@@ -1,11 +1,20 @@
 import webpush from "web-push";
 import type { PushSubscriptionRow } from "./notificationDb";
 
-webpush.setVapidDetails(
-  process.env.VAPID_EMAIL!,
-  process.env.VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-);
+let vapidInitialized = false;
+
+function ensureVapid() {
+  if (vapidInitialized) return;
+  const email = process.env.VAPID_EMAIL;
+  const publicKey = process.env.VAPID_PUBLIC_KEY;
+  const privateKey = process.env.VAPID_PRIVATE_KEY;
+  if (!email || !publicKey || !privateKey) {
+    throw new Error("Missing VAPID env vars (VAPID_EMAIL, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY)");
+  }
+  const mailtoEmail = email.startsWith("mailto:") ? email : `mailto:${email}`;
+  webpush.setVapidDetails(mailtoEmail, publicKey, privateKey);
+  vapidInitialized = true;
+}
 
 export type PushPayload = {
   title: string;
@@ -18,6 +27,7 @@ export async function sendPush(
   payload: PushPayload
 ): Promise<{ ok: true } | { ok: false; expired: boolean }> {
   try {
+    ensureVapid();
     await webpush.sendNotification(
       {
         endpoint: subscription.endpoint,
@@ -37,7 +47,7 @@ export async function sendPushToMany(
   payload: PushPayload,
   onExpired?: (endpoint: string) => Promise<void>
 ): Promise<void> {
-  await Promise.all(
+  await Promise.allSettled(
     subscriptions.map(async (sub) => {
       const result = await sendPush(sub, payload);
       if (!result.ok && result.expired && onExpired) {
