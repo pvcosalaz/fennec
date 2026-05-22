@@ -103,6 +103,7 @@ import QuoteGenerator from "@/components/business/QuoteGenerator";
 import ActiveProjects from "@/components/business/ActiveProjects";
 import { getProjects, getQuotes, getClients } from "@/lib/businessDb";
 import Community from "@/components/community/Community";
+import NotificationBell from "@/components/notifications/NotificationBell";
 import ContentModule from "@/components/content/ContentModule";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/lib/supabase";
@@ -505,7 +506,9 @@ export default function PricingCalculator() {
     <main id="scroll-root" className="flex-1 overflow-y-auto overscroll-none pb-6 pt-6" style={{ overscrollBehavior: "none" }}>
       {/* Settings button */}
       <div className={`flex w-full max-w-4xl items-center px-6 ${activeTab === "dashboard" ? "mb-0" : "mb-4"}`}>
-        <div className="flex-1" />
+        <div className="flex-1 flex justify-start">
+          <NotificationBell userId={authUser.id} />
+        </div>
         {activeTab === "dashboard" && profile.username && (
           <span className="text-xl font-bold text-amber-400">@{profile.username}</span>
         )}
