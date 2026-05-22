@@ -105,7 +105,8 @@ export default function MyTracksView({ userId, isPro }: Props) {
       setArtFile(null);
       setShowForm(false);
     } catch (err) {
-      setError("Upload failed. Please try again.");
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(`Upload failed: ${msg}`);
       console.error(err);
     } finally {
       setUploading(false);
