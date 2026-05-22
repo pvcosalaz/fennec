@@ -147,7 +147,7 @@ export default function MyTracksView({ userId, isPro }: Props) {
           className="w-full h-12 rounded-xl border border-dashed border-white/20 flex items-center justify-center gap-2 text-sm text-zinc-400 hover:border-amber-500/50 hover:text-amber-400 transition disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <Upload className="h-4 w-4" />
-          Submit a track for review
+          Share your music with the community for feedback
           {tracks.length >= MAX_TRACKS && ` (${MAX_TRACKS}/${MAX_TRACKS})`}
         </button>
       )}
