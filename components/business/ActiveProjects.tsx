@@ -367,7 +367,7 @@ export default function ActiveProjects({ onBack, userId }: { onBack: () => void;
     const client = clients.find((c) => c.id === form.clientId);
     const pType  = projectTypes.find((pt) => pt.id === form.projectTypeId);
     const newProject: Project = {
-      id:              `proj-${Date.now()}`,
+      id:              crypto.randomUUID(),
       name:            form.name.trim(),
       clientId:        form.clientId,
       clientName:      client?.name ?? "",

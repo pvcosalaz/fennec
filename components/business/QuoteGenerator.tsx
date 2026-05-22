@@ -177,7 +177,7 @@ export default function QuoteGenerator({
   };
 
   const makeProject = (quote: Quote): Project => ({
-    id:              `proj-${Date.now()}`,
+    id:              crypto.randomUUID(),
     name:            quote.projectName,
     clientId:        quote.clientId,
     clientName:      quote.clientName,
