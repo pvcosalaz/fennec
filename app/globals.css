@@ -31,6 +31,17 @@ body {
   width: 100%;
 }
 
+/* Lock orientation to portrait on browsers that support it */
+@media screen and (orientation: landscape) and (max-height: 500px) {
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: #0a0a0a;
+    z-index: 9999;
+  }
+}
+
 /* Main scroll container — only this element scrolls */
 #scroll-root {
   height: 100%;
