@@ -977,7 +977,16 @@ export default function PricingCalculator() {
       ) : null}
 
     </main>
-      <nav className="shrink-0 border-t border-white/8 bg-background backdrop-blur-xl" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+      <nav
+        className="shrink-0 border-t border-white/10 backdrop-blur-2xl"
+        style={{
+          paddingBottom: "env(safe-area-inset-bottom)",
+          background: "rgba(13, 13, 15, 0.72)",
+          WebkitBackdropFilter: "blur(24px) saturate(180%)",
+          backdropFilter: "blur(24px) saturate(180%)",
+          boxShadow: "0 -1px 0 rgba(255,255,255,0.06)",
+        }}
+      >
         <div className="mx-auto flex w-full max-w-2xl items-center px-2 pb-3 pt-2">
           {moduleTabs.map((tab) => {
             const Icon = tab.icon;
