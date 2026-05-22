@@ -14,7 +14,7 @@ export default function AuthGate() {
     setLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: window.location.origin },
     });
     if (error) { setError(error.message); setLoading(false); }
   }
@@ -23,7 +23,7 @@ export default function AuthGate() {
     setLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "facebook",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: window.location.origin },
     });
     if (error) { setError(error.message); setLoading(false); }
   }
