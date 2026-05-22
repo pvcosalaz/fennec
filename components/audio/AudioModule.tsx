@@ -83,7 +83,7 @@ export default function AudioModule({ userId, isPro }: Props) {
         className="fixed bottom-24 right-4 z-40 w-12 h-12 rounded-full bg-amber-500 flex items-center justify-center text-black shadow-lg hover:bg-amber-400 transition"
         aria-label="My Tracks"
       >
-        {overlay === "mine" ? <X className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
+        <Plus className="h-5 w-5" />
       </button>
 
       {/* ── Melody Bank overlay ────────────────────────────────── */}
