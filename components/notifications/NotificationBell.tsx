@@ -67,9 +67,9 @@ export default function NotificationBell({ userId }: Props) {
   }, [subscribed]);
 
   return (
-    <>
+    <div className="relative">
       <button
-        onClick={() => setOpen(true)}
+        onClick={() => setOpen((o) => !o)}
         className="relative flex items-center justify-center h-8 w-8 rounded-xl border border-white/10 bg-white/5 text-zinc-400 hover:text-accent hover:border-accent/30 transition"
         aria-label="Notifications"
       >
@@ -88,6 +88,6 @@ export default function NotificationBell({ userId }: Props) {
           onRead={refreshCount}
         />
       )}
-    </>
+    </div>
   );
 }
