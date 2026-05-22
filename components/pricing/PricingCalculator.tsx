@@ -91,9 +91,11 @@ import {
   Briefcase,
   Home,
   Globe,
+  Music2,
   Settings,
   SlidersHorizontal,
 } from "lucide-react";
+import AudioModule from "@/components/audio/AudioModule";
 import SettingsModule from "@/components/settings/SettingsModule";
 import Dashboard from "@/components/dashboard/Dashboard";
 import BusinessHub, { type BusinessView } from "@/components/business/BusinessHub";
@@ -137,7 +139,7 @@ type PricingState = {
   selectedProjectType: string;
 };
 
-type ModuleTab = "pricing" | "contenido" | "dashboard" | "ideas" | "noticias";
+type ModuleTab = "pricing" | "contenido" | "dashboard" | "ideas" | "noticias" | "audio";
 
 const STORAGE_KEY = "fennec-pricing-v1";
 const LANGUAGE_STORAGE_KEY = "fennec-language";
@@ -292,6 +294,7 @@ const moduleTabs: {
   { id: "dashboard", labelKey: "tabs.dashboard", icon: Home },
   { id: "ideas", labelKey: "tabs.ideas", icon: AudioWaveform },
   { id: "noticias", labelKey: "tabs.community", icon: Globe },
+  { id: "audio", labelKey: "tabs.audio", icon: Music2 },
 ];
 
 function CurrencyInput({
@@ -324,7 +327,7 @@ export default function PricingCalculator() {
   const [activeTab, setActiveTab] = useState<ModuleTab>(() => {
     if (typeof window === "undefined") return "dashboard";
     const saved = localStorage.getItem("fennec_active_tab") as ModuleTab | null;
-    const valid: ModuleTab[] = ["pricing", "contenido", "dashboard", "ideas", "noticias"];
+    const valid: ModuleTab[] = ["pricing", "contenido", "dashboard", "ideas", "noticias", "audio"];
     return saved && valid.includes(saved) ? saved : "dashboard";
   });
   useEffect(() => { localStorage.setItem("fennec_active_tab", activeTab); }, [activeTab]);
@@ -977,6 +980,8 @@ export default function PricingCalculator() {
           openComposerWith={pendingAudio}
           onComposerConsumed={() => setPendingAudio(null)}
         />
+      ) : activeTab === "audio" ? (
+        <AudioModule userId={authUser.id} isPro={profile?.is_pro ?? false} />
       ) : null}
 
     </main>

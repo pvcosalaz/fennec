@@ -34,6 +34,7 @@ if (!i18n.isInitialized) {
             ideas: "Melody Bank",
             news: "News",
             community: "Fennec",
+            audio: "Audio",
           },
 
           module: {
@@ -145,6 +146,7 @@ if (!i18n.isInitialized) {
             ideas: "Melody Bank",
             news: "Noticias",
             community: "Fennec",
+            audio: "Audio",
           },
 
           module: {
