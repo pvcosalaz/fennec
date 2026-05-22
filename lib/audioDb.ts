@@ -1,0 +1,157 @@
+import { supabase } from "./supabase";
+import type { ProjectReview, ReviewComment, TrackCategory } from "./audioTypes";
+
+// ── Project Reviews ───────────────────────────────────────────────
+
+export async function fetchRandomReviews(
+  excludeUserId: string,
+  limit = 10
+): Promise<ProjectReview[]> {
+  const { data, error } = await supabase
+    .from("project_reviews")
+    .select(`
+      *,
+      profile:profiles!project_reviews_user_id_fkey(id, username, avatar_url),
+      comment_count:review_comments(count)
+    `)
+    .neq("user_id", excludeUserId)
+    .order("created_at", { ascending: false })
+    .limit(limit * 3);
+
+  if (error) throw error;
+
+  const rows = (data ?? []).map((r) => ({
+    ...r,
+    comment_count: r.comment_count?.[0]?.count ?? 0,
+  }));
+
+  // Shuffle
+  for (let i = rows.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [rows[i], rows[j]] = [rows[j], rows[i]];
+  }
+
+  return rows.slice(0, limit);
+}
+
+export async function fetchUserReviews(userId: string): Promise<ProjectReview[]> {
+  const { data, error } = await supabase
+    .from("project_reviews")
+    .select(`
+      *,
+      profile:profiles!project_reviews_user_id_fkey(id, username, avatar_url),
+      comment_count:review_comments(count)
+    `)
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return (data ?? []).map((r) => ({
+    ...r,
+    comment_count: r.comment_count?.[0]?.count ?? 0,
+  }));
+}
+
+export async function createReview(params: {
+  userId: string;
+  title: string;
+  category: TrackCategory;
+  audioUrl: string;
+  artworkUrl: string | null;
+  durationSeconds: number;
+}): Promise<ProjectReview> {
+  const { data, error } = await supabase
+    .from("project_reviews")
+    .insert({
+      user_id:          params.userId,
+      title:            params.title,
+      category:         params.category,
+      audio_url:        params.audioUrl,
+      artwork_url:      params.artworkUrl,
+      duration_seconds: params.durationSeconds,
+    })
+    .select(`*, profile:profiles!project_reviews_user_id_fkey(id, username, avatar_url)`)
+    .single();
+
+  if (error) throw error;
+  return { ...data, comment_count: 0 };
+}
+
+export async function deleteReview(reviewId: string): Promise<void> {
+  const { error } = await supabase
+    .from("project_reviews")
+    .delete()
+    .eq("id", reviewId);
+  if (error) throw error;
+}
+
+export async function countUserReviews(userId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from("project_reviews")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId);
+  if (error) throw error;
+  return count ?? 0;
+}
+
+// ── Review Comments ───────────────────────────────────────────────
+
+export async function fetchReviewComments(trackId: string): Promise<ReviewComment[]> {
+  const { data, error } = await supabase
+    .from("review_comments")
+    .select(`*, profile:profiles!review_comments_user_id_fkey(id, username, avatar_url)`)
+    .eq("track_id", trackId)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function createReviewComment(params: {
+  trackId: string;
+  userId: string;
+  body: string;
+  timestampSeconds: number | null;
+}): Promise<ReviewComment> {
+  const { data, error } = await supabase
+    .from("review_comments")
+    .insert({
+      track_id:          params.trackId,
+      user_id:           params.userId,
+      body:              params.body,
+      timestamp_seconds: params.timestampSeconds,
+    })
+    .select(`*, profile:profiles!review_comments_user_id_fkey(id, username, avatar_url)`)
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+// ── Storage ───────────────────────────────────────────────────────
+
+export async function uploadReviewAudio(
+  userId: string,
+  file: File
+): Promise<string> {
+  const ext = file.name.split(".").pop() ?? "mp3";
+  const path = `${userId}/${Date.now()}.${ext}`;
+  const { error } = await supabase.storage
+    .from("project-reviews")
+    .upload(path, file, { contentType: file.type, upsert: false });
+  if (error) throw error;
+  const { data } = supabase.storage.from("project-reviews").getPublicUrl(path);
+  return data.publicUrl;
+}
+
+export async function uploadReviewArtwork(
+  userId: string,
+  file: File
+): Promise<string> {
+  const ext = file.name.split(".").pop() ?? "jpg";
+  const path = `${userId}/artwork-${Date.now()}.${ext}`;
+  const { error } = await supabase.storage
+    .from("project-reviews")
+    .upload(path, file, { contentType: file.type, upsert: false });
+  if (error) throw error;
+  const { data } = supabase.storage.from("project-reviews").getPublicUrl(path);
+  return data.publicUrl;
+}
