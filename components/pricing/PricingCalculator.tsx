@@ -529,6 +529,7 @@ export default function PricingCalculator() {
           onLanguageChange={(lang) => { void i18n.changeLanguage(lang); }}
           avatarUrl={profile.avatar_url}
           onSignOut={async () => { await supabase.auth.signOut(); }}
+          userId={authUser.id}
         />
       ) : activeTab === "pricing" && businessView === "hub" ? (
         <BusinessHub key={hubRefreshKey} onOpenView={setBusinessView} isPro={profile?.is_pro ?? true} userId={authUser.id} />

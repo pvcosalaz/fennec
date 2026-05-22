@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import {
   ArrowLeft, User, Globe, DollarSign, Trash2,
-  ChevronRight, Check, AlertTriangle,
+  ChevronRight, Check, AlertTriangle, Bell,
 } from "lucide-react";
+import NotificationPreferences from "./NotificationPreferences";
 import { SiInstagram, SiSpotify, SiYoutube, SiTiktok } from "react-icons/si";
 import Select from "@/components/ui/Select";
 
@@ -45,7 +46,7 @@ const ROLES = [
   "Other",
 ];
 
-type Section = "main" | "profile" | "language" | "currency" | "data";
+type Section = "main" | "profile" | "language" | "currency" | "data" | "notifications";
 
 type Props = {
   onBack: () => void;
@@ -53,9 +54,10 @@ type Props = {
   onLanguageChange: (lang: string) => void;
   avatarUrl?: string | null;
   onSignOut?: () => void;
+  userId: string;
 };
 
-export default function SettingsModule({ onBack, language, onLanguageChange, avatarUrl, onSignOut }: Props) {
+export default function SettingsModule({ onBack, language, onLanguageChange, avatarUrl, onSignOut, userId }: Props) {
   const [section,  setSection]  = useState<Section>("main");
   const [profile,  setProfile]  = useState<UserProfile>(DEFAULT_PROFILE);
   const [currency, setCurrency] = useState<Currency>("COP");
@@ -87,6 +89,11 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
     localStorage.removeItem(key);
     setConfirmReset(null);
   }
+
+  // ── Notifications section ──
+  if (section === "notifications") return (
+    <NotificationPreferences userId={userId} onBack={() => setSection("main")} />
+  );
 
   // ── Profile section ──
   if (section === "profile") return (
@@ -330,6 +337,12 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
       label: "Data & Reset",
       value: "Manage your data",
       section: "data" as Section,
+    },
+    {
+      icon: Bell,
+      label: "Notifications",
+      value: "Manage notification preferences",
+      section: "notifications" as Section,
     },
   ];
 
