@@ -1,8 +1,12 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 import { fetchTrendingVideos } from "@/lib/trendingData";
 import { fetchNewsItems } from "@/lib/newsData";
 import { supabase } from "@/lib/supabase";
+import { createNotification, fetchAllPushSubscriptions, deletePushSubscription } from "@/lib/notificationDb";
+import { generateNotificationCopy } from "@/lib/notificationCopy";
+import { sendPushToMany } from "@/lib/pushSend";
 
 async function handler(req: NextRequest) {
   // Auth check — same pattern as /api/bot-post
@@ -28,6 +32,41 @@ async function handler(req: NextRequest) {
     ]);
 
     console.log(`[cache-refresh] videos: ${videos.length}, news: ${newsItems.length}`);
+
+    // Send industry_news notification for the top new item
+    try {
+      const serviceSupabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      );
+      if (newsItems.length > 0) {
+        const item = newsItems[0];
+        const title = await generateNotificationCopy({
+          type: "industry_news",
+          newsHeadline: item.headline,
+        });
+        const { data: users } = await serviceSupabase
+          .from("notification_preferences")
+          .select("user_id")
+          .eq("industry_news", true);
+        for (const u of users ?? []) {
+          await createNotification({
+            userId: u.user_id,
+            type: "industry_news",
+            title,
+            body: item.headline,
+          });
+        }
+        const allSubs = await fetchAllPushSubscriptions();
+        const enabledUserIds = new Set((users ?? []).map((u: { user_id: string }) => u.user_id));
+        const subs = allSubs.filter((s) => enabledUserIds.has(s.user_id));
+        await sendPushToMany(subs, { title, type: "industry_news" }, (endpoint) =>
+          deletePushSubscription(endpoint)
+        );
+      }
+    } catch (err) {
+      console.error("[industry_news notification]", err);
+    }
 
     return NextResponse.json({ ok: true, videosCount: videos.length, newsCount: newsItems.length });
   } catch (err) {

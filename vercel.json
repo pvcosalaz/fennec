@@ -2,6 +2,7 @@
   "crons": [
     { "path": "/api/cache-refresh", "schedule": "0 7 * * *" },
     { "path": "/api/bot-post", "schedule": "0 15 * * *" },
-    { "path": "/api/bot-post", "schedule": "0 0 * * *" }
+    { "path": "/api/bot-post", "schedule": "0 0 * * *" },
+    { "path": "/api/cron/notifications", "schedule": "0 12 * * *" }
   ]
 }

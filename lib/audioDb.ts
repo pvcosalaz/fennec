@@ -1,5 +1,8 @@
 import { supabase } from "./supabase";
 import type { ProjectReview, ReviewComment, TrackCategory } from "./audioTypes";
+import { createNotification, fetchPushSubscriptionsForUser, deletePushSubscription } from "./notificationDb";
+import { generateNotificationCopy } from "./notificationCopy";
+import { sendPushToMany } from "./pushSend";
 
 // ── Project Reviews ───────────────────────────────────────────────
 
@@ -137,6 +140,52 @@ export async function createReviewComment(params: {
     .select(`*`)
     .single();
   if (error) throw error;
+
+  // Notify track owner (fire and forget — don't fail the comment if notification fails)
+  void (async () => {
+    try {
+      const { data: track } = await supabase
+        .from("project_reviews")
+        .select("user_id, title")
+        .eq("id", params.trackId)
+        .single();
+      if (!track || track.user_id === params.userId) return;
+
+      const { data: commenterProfile } = await supabase
+        .from("profiles")
+        .select("username")
+        .eq("id", params.userId)
+        .single();
+
+      const firstTimestamp = params.timestampSeconds
+        ? `${Math.floor(params.timestampSeconds / 60)}:${String(params.timestampSeconds % 60).padStart(2, "0")}`
+        : undefined;
+
+      const title = await generateNotificationCopy({
+        type: "audio_feedback",
+        commenterUsername: commenterProfile?.username ?? "Someone",
+        trackTitle: track.title,
+        firstTimestamp,
+      });
+
+      const notification = await createNotification({
+        userId: track.user_id,
+        type: "audio_feedback",
+        title,
+        body: track.title,
+      });
+
+      if (notification) {
+        const subs = await fetchPushSubscriptionsForUser(track.user_id);
+        await sendPushToMany(subs, { title, type: "audio_feedback" }, (endpoint) =>
+          deletePushSubscription(endpoint)
+        );
+      }
+    } catch (err) {
+      console.error("[audio_feedback notification]", err);
+    }
+  })();
+
   return data;
 }
 
