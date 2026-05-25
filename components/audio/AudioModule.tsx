@@ -102,7 +102,7 @@ export default function AudioModule({ userId, isPro }: Props) {
 
       {/* ── My Tracks bottom sheet ─────────────────────────────── */}
       {overlay === "mine" && (
-        <div className="fixed inset-x-0 bottom-0 z-30 rounded-t-3xl bg-[#1a1a1e] border-t border-white/8 max-h-[80vh] overflow-y-auto pb-8"
+        <div className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl bg-[#1a1a1e] border-t border-white/8 max-h-[80vh] overflow-y-auto pb-8"
           style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 2rem)" }}
         >
           <div className="flex items-center justify-between px-4 pt-5 pb-4">
