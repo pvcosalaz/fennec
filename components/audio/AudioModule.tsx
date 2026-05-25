@@ -71,7 +71,7 @@ export default function AudioModule({ userId, isPro }: Props) {
       {/* Mic — Melody Bank (top right) */}
       <button
         onClick={() => setOverlay(overlay === "melody" ? null : "melody")}
-        className="fixed bottom-40 right-4 z-40 w-10 h-10 rounded-full bg-white/8 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/12 transition"
+        className="fixed bottom-52 right-4 z-40 w-10 h-10 rounded-full bg-white/8 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/12 transition"
         aria-label="Melody Bank"
       >
         <Mic className="h-4 w-4" />

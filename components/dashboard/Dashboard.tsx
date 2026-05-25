@@ -385,7 +385,7 @@ export default function Dashboard({ avatarUrl, username, isPro, userId }: { avat
         dot: "#f5a623",
       })),
     ];
-    return items.sort((a, b) => b.ts - a.ts).slice(0, 5);
+    return items.sort((a, b) => b.ts - a.ts).slice(0, 2);
   }, [projects, quotes]);
 
   if (!mounted) return null;
@@ -408,7 +408,10 @@ export default function Dashboard({ avatarUrl, username, isPro, userId }: { avat
       )}
 
       {/* ── Fennec dB ────────────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden px-2 pt-4 pb-6" style={{ background: "rgba(13, 13, 15, 0.72)", backdropFilter: "blur(24px) saturate(180%)" }}>
+      <div className="relative overflow-hidden rounded-2xl px-4 pt-4 pb-6 border border-white/[0.07]" style={{ background: "rgba(28, 26, 32, 0.85)", backdropFilter: "blur(32px) saturate(180%)", boxShadow: "0 0 40px rgba(245,166,35,0.06), inset 0 1px 0 rgba(255,255,255,0.06)" }}>
+        {/* Ambient glow behind glass */}
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 80% 60% at 50% 120%, rgba(245,166,35,0.10) 0%, transparent 70%)" }} />
+        <WaveformHero activeCount={activeCount} />
         <div className="relative z-10 space-y-4">
 
           {/* Row 1: Greeting + inline Fennec logo + username */}
@@ -576,7 +579,7 @@ export default function Dashboard({ avatarUrl, username, isPro, userId }: { avat
       {activity.length > 0 && (
         <div className="px-2 pt-4 pb-2 space-y-3 border-t border-white/5">
           <p className="text-xs font-semibold uppercase tracking-widest text-zinc-300">Activity</p>
-          <div className="space-y-3 max-h-40 overflow-y-auto pr-1">
+          <div className="space-y-3">
             {activity.map((item) => (
               <div key={item.id} className="flex items-center gap-3">
                 <div className="h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: item.dot }} />
