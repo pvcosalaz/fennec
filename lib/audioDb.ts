@@ -1,6 +1,23 @@
 import { supabase } from "./supabase";
 import type { ProjectReview, ReviewComment, TrackCategory } from "./audioTypes";
 
+// ── Helpers ───────────────────────────────────────────────────────
+
+async function attachProfiles<T extends { user_id: string }>(
+  rows: T[]
+): Promise<(T & { profile?: { id: string; username: string; avatar_url: string | null } })[]> {
+  const userIds = [...new Set(rows.map((r) => r.user_id))];
+  if (userIds.length === 0) return rows;
+
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, username, avatar_url")
+    .in("id", userIds);
+
+  const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
+  return rows.map((r) => ({ ...r, profile: profileMap.get(r.user_id) }));
+}
+
 // ── Project Reviews ───────────────────────────────────────────────
 
 export async function fetchRandomReviews(
@@ -27,7 +44,8 @@ export async function fetchRandomReviews(
     [rows[i], rows[j]] = [rows[j], rows[i]];
   }
 
-  return rows.slice(0, limit);
+  const sliced = rows.slice(0, limit);
+  return attachProfiles(sliced);
 }
 
 export async function fetchUserReviews(userId: string): Promise<ProjectReview[]> {
@@ -38,10 +56,11 @@ export async function fetchUserReviews(userId: string): Promise<ProjectReview[]>
     .order("created_at", { ascending: false });
 
   if (error) throw error;
-  return (data ?? []).map((r) => ({
+  const rows = (data ?? []).map((r) => ({
     ...r,
     comment_count: r.comment_count?.[0]?.count ?? 0,
   }));
+  return attachProfiles(rows);
 }
 
 export async function createReview(params: {
@@ -117,7 +136,7 @@ export async function fetchReviewComments(trackId: string): Promise<ReviewCommen
     .eq("track_id", trackId)
     .order("created_at", { ascending: true });
   if (error) throw error;
-  return data ?? [];
+  return attachProfiles(data ?? []);
 }
 
 export async function createReviewComment(params: {

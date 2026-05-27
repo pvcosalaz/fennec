@@ -7,9 +7,28 @@ import { fetchReviewComments, createReviewComment } from "@/lib/audioDb";
 import ReviewFeedback, { renderBodyWithTimestamps } from "./ReviewFeedback";
 
 const MAX_SKIPS = 4;
+const BARS = 60; // number of amplitude bars in the waveform
 
-// Pre-computed organic waveform path (static visual)
-const WAVE_PATH = "M0,24 C4,24 5,10 8,10 C11,10 12,38 15,38 C18,38 19,18 22,18 C25,18 26,30 29,30 C32,30 33,8 36,8 C39,8 40,40 43,40 C46,40 47,20 50,20 C53,20 54,14 57,14 C60,14 61,34 64,34 C67,34 68,22 71,22 C74,22 75,6 78,6 C81,6 82,42 85,42 C88,42 89,16 92,16 C95,16 96,28 99,28 C102,28 103,12 106,12 C109,12 110,36 113,36 C116,36 117,24 120,24 C123,24 124,10 127,10 C130,10 131,38 134,38 C137,38 138,20 141,20 C144,20 145,30 148,30 C151,30 152,8 155,8 C158,8 159,40 162,40 C165,40 166,18 169,18 C172,18 173,26 176,26 C179,26 180,14 183,14 C186,14 187,34 190,34 C193,34 194,22 197,22 C200,22 201,6 204,6 C207,6 208,42 211,42 C214,42 215,16 218,16 C221,16 222,28 225,28 C228,28 229,24 232,24 C235,24 236,36 239,36 C242,36 243,18 246,18 C249,18 250,10 253,10 C256,10 257,32 260,32 C263,32 264,24 267,24 C270,24 271,14 274,14 C277,14 278,28 281,28 C284,28 285,24 288,24";
+// Build an SVG path from amplitude peaks (0..1 per bar)
+function peaksToPath(peaks: number[]): string {
+  const W = 288; const H = 48; const cx = H / 2;
+  const barW = W / peaks.length;
+  let d = "";
+  peaks.forEach((amp, i) => {
+    const h = Math.max(2, amp * (H - 4));
+    const x = i * barW + barW * 0.15;
+    const w = barW * 0.7;
+    const y = cx - h / 2;
+    d += `M${x.toFixed(1)},${y.toFixed(1)} L${x.toFixed(1)},${(y + h).toFixed(1)} `;
+  });
+  return d;
+}
+
+// Fallback static path (used while real peaks are loading)
+const FALLBACK_PEAKS = Array.from({ length: BARS }, (_, i) =>
+  0.15 + 0.5 * Math.abs(Math.sin(i * 0.45)) + 0.2 * Math.abs(Math.sin(i * 0.13))
+);
+const FALLBACK_PATH = peaksToPath(FALLBACK_PEAKS);
 
 const artGradients: Record<string, string> = {
   "Demo":           "linear-gradient(135deg, #0f0c29, #302b63)",
@@ -46,7 +65,43 @@ export default function ProjectReviewPlayer({
   const [currentTime, setCurrentTime] = useState(0);
   const [comments, setComments]       = useState<ReviewComment[]>([]);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [wavePath, setWavePath]         = useState(FALLBACK_PATH);
   const karmaBlocked = skipStreak >= MAX_SKIPS;
+
+  // Decode audio and extract real amplitude peaks via Web Audio API
+  useEffect(() => {
+    setWavePath(FALLBACK_PATH); // reset on track change
+    let cancelled = false;
+    async function extractPeaks() {
+      try {
+        const res = await fetch(track.audio_url);
+        const arrayBuffer = await res.arrayBuffer();
+        const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+        const decoded = await ctx.decodeAudioData(arrayBuffer);
+        await ctx.close();
+        if (cancelled) return;
+
+        // Mix down to mono and compute RMS per segment
+        const channel = decoded.getChannelData(0);
+        const segSize = Math.floor(channel.length / BARS);
+        const peaks: number[] = [];
+        for (let i = 0; i < BARS; i++) {
+          const start = i * segSize;
+          let sum = 0;
+          for (let j = start; j < start + segSize; j++) sum += channel[j] * channel[j];
+          peaks.push(Math.sqrt(sum / segSize));
+        }
+        // Normalize to 0..1
+        const max = Math.max(...peaks, 0.001);
+        const normalized = peaks.map((p) => p / max);
+        setWavePath(peaksToPath(normalized));
+      } catch {
+        // keep fallback path on error (CORS, decode failure, etc.)
+      }
+    }
+    extractPeaks();
+    return () => { cancelled = true; };
+  }, [track.audio_url]);
 
   // Load audio
   useEffect(() => {
@@ -171,12 +226,13 @@ export default function ProjectReviewPlayer({
               <rect x="0" y="0" width={`${progress * 288}`} height="48" />
             </clipPath>
           </defs>
-          <path d={WAVE_PATH} fill="none" stroke="#2a2a2e" strokeWidth="2" />
+          <path d={wavePath} fill="none" stroke="#2a2a2e" strokeWidth="2" strokeLinecap="round" />
           <path
-            d={WAVE_PATH}
+            d={wavePath}
             fill="none"
             stroke="#f5a623"
             strokeWidth="2"
+            strokeLinecap="round"
             clipPath={`url(#${clipId})`}
           />
           <line
