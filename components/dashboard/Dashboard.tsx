@@ -334,15 +334,15 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
       {/* ── Fennec dB ────────────────────────────────────────────────────── */}
       <style>{`
         @keyframes dbGlow {
-          0%,100% { box-shadow: 0 0 30px rgba(245,166,35,0.06), inset 0 1px 0 rgba(255,255,255,0.06); border-color: rgba(245,166,35,0.10); }
-          50%      { box-shadow: 0 0 55px rgba(245,166,35,0.18), 0 0 90px rgba(245,166,35,0.07), inset 0 1px 0 rgba(255,255,255,0.10); border-color: rgba(245,166,35,0.28); }
+          from { box-shadow: 0 0 20px rgba(245,166,35,0.04), inset 0 1px 0 rgba(255,255,255,0.05); border-color: rgba(245,166,35,0.08); }
+          to   { box-shadow: 0 0 52px rgba(245,166,35,0.16), 0 0 88px rgba(245,166,35,0.06), inset 0 1px 0 rgba(255,255,255,0.10); border-color: rgba(245,166,35,0.26); }
         }
         @keyframes eqBar {
-          0%,100% { transform: scaleY(0.2); }
-          50%      { transform: scaleY(1); }
+          from { transform: scaleY(0.2); }
+          to   { transform: scaleY(1); }
         }
-        .db-card-glow { animation: dbGlow 8s ease-in-out infinite; }
-        .eq-bar { display: inline-block; width: 2.5px; border-radius: 2px; background: #f5a623; margin: 0 1px; transform-origin: bottom; animation: eqBar 2.2s ease-in-out infinite; opacity: 0.6; }
+        .db-card-glow { animation: dbGlow 4s ease-in-out infinite alternate; }
+        .eq-bar { display: inline-block; width: 2.5px; border-radius: 2px; background: #f5a623; margin: 0 1px; transform-origin: bottom; animation: eqBar 1.1s ease-in-out infinite alternate; opacity: 0.6; }
       `}</style>
       <div className="db-card-glow relative overflow-hidden rounded-2xl px-4 pt-4 pb-6 border border-[rgba(245,166,35,0.10)]" style={{ background: "rgba(28, 26, 32, 0.85)", backdropFilter: "blur(32px) saturate(180%)" }}>
         {/* Ambient glow behind glass */}
