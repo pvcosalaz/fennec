@@ -13,13 +13,10 @@ const TAGS = [
   "Mixing", "Mastering", "Sound Design", "Reggaeton", "Ambient",
 ];
 
-// Infinite scrolling tag strip
+// Infinite scrolling tag strip — CSS animation so it never jumps on Remotion loop reset
 function TagStrip() {
-  const frame = useCurrentFrame();
-  // scroll at ~18px/sec (at 30fps = 0.6px/frame)
-  const offset = (frame * 0.55) % 220;
-
-  const allTags = [...TAGS, ...TAGS]; // duplicate to fill
+  // Three copies: the middle copy is always visible, giving seamless appearance
+  const tripled = [...TAGS, ...TAGS, ...TAGS];
 
   return (
     <div style={{
@@ -31,29 +28,39 @@ function TagStrip() {
       maskImage: "linear-gradient(90deg, transparent 0%, black 12%, black 88%, transparent 100%)",
       WebkitMaskImage: "linear-gradient(90deg, transparent 0%, black 12%, black 88%, transparent 100%)",
     }}>
+      {/* Keyframe defined inline so it works inside Remotion Player */}
+      <style>{`
+        @keyframes inspireScroll {
+          from { transform: translateX(0); }
+          to   { transform: translateX(-33.333%); }
+        }
+      `}</style>
       <div style={{
         display: "flex",
         gap: 8,
-        transform: `translateX(-${offset}px)`,
         whiteSpace: "nowrap",
+        animation: "inspireScroll 9s linear infinite",
       }}>
-        {allTags.map((tag, i) => (
-          <span key={i} style={{
-            fontSize: 9,
-            fontWeight: 700,
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-            color: i % 3 === 0 ? "rgba(245,166,35,0.7)" : "rgba(255,255,255,0.2)",
-            padding: "2px 8px",
-            borderRadius: 20,
-            border: `1px solid ${i % 3 === 0 ? "rgba(245,166,35,0.2)" : "rgba(255,255,255,0.06)"}`,
-            background: i % 3 === 0 ? "rgba(245,166,35,0.06)" : "transparent",
-            flexShrink: 0,
-            fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif",
-          }}>
-            {tag}
-          </span>
-        ))}
+        {tripled.map((tag, i) => {
+          const highlight = i % 3 === 0;
+          return (
+            <span key={i} style={{
+              fontSize: 9,
+              fontWeight: 700,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: highlight ? "rgba(245,166,35,0.75)" : "rgba(255,255,255,0.22)",
+              padding: "2px 8px",
+              borderRadius: 20,
+              border: `1px solid ${highlight ? "rgba(245,166,35,0.22)" : "rgba(255,255,255,0.07)"}`,
+              background: highlight ? "rgba(245,166,35,0.07)" : "transparent",
+              flexShrink: 0,
+              fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif",
+            }}>
+              {tag}
+            </span>
+          );
+        })}
       </div>
     </div>
   );
