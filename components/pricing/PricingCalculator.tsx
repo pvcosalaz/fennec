@@ -322,12 +322,7 @@ function CurrencyInput({
 
 export default function PricingCalculator() {
   const { t, i18n } = useTranslation();
-  const [activeTab, setActiveTab] = useState<ModuleTab>(() => {
-    if (typeof window === "undefined") return "dashboard";
-    const saved = localStorage.getItem("fennec_active_tab") as ModuleTab | null;
-    const valid: ModuleTab[] = ["pricing", "contenido", "dashboard", "ideas", "noticias"];
-    return saved && valid.includes(saved) ? saved : "dashboard";
-  });
+  const [activeTab, setActiveTab] = useState<ModuleTab>("dashboard");
   useEffect(() => { localStorage.setItem("fennec_active_tab", activeTab); }, [activeTab]);
 
   const [pendingAudio, setPendingAudio] = useState<{ url: string; name: string } | null>(null);

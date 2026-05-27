@@ -90,80 +90,6 @@ function AnimatedNumber({ value }: { value: number }) {
   return <>{n}</>;
 }
 
-// ─── Waveform ─────────────────────────────────────────────────────────────────
-
-function WaveformHero({ activeCount }: { activeCount: number }) {
-  const fillRef   = useRef<SVGPathElement>(null);
-  const strokeRef = useRef<SVGPathElement>(null);
-  const rafRef    = useRef<number>(0);
-  const W = 400; const H = 80;
-
-  // Escala suave: 0 proyectos = casi nada, 5+ = máximo
-  const energy = Math.min(activeCount / 5, 1);
-  const ampA   = 0.02 + energy * 0.10; // amplitud onda principal
-  const ampB   = 0.01 + energy * 0.04; // amplitud onda secundaria
-  const speed  = 0.003 + energy * 0.004; // velocidad
-
-  // Usamos refs para evitar re-crear el effect cada render
-  const energyRef = useRef({ ampA, ampB, speed });
-  useEffect(() => { energyRef.current = { ampA, ampB, speed }; }, [ampA, ampB, speed]);
-
-  useEffect(() => {
-    let phase = 0;
-    const tick = () => {
-      const { ampA, ampB, speed } = energyRef.current;
-      phase += speed;
-
-      const pts = Array.from({ length: 80 }, (_, i) => ({
-        x: (i / 79) * W,
-        y: H * 0.72
-          + Math.sin(i * 0.18 - phase) * H * ampA
-          + Math.sin(i * 0.09 - phase * 0.6) * H * ampB,
-      }));
-
-      let d = `M ${pts[0].x} ${pts[0].y}`;
-      for (let i = 1; i < pts.length; i++) {
-        const cw = (pts[i].x - pts[i - 1].x) / 2;
-        d += ` C ${pts[i-1].x + cw} ${pts[i-1].y} ${pts[i].x - cw} ${pts[i].y} ${pts[i].x} ${pts[i].y}`;
-      }
-
-      fillRef.current?.setAttribute("d", d + ` L ${W} ${H} L 0 ${H} Z`);
-      strokeRef.current?.setAttribute("d", d);
-
-      rafRef.current = requestAnimationFrame(tick);
-    };
-
-    rafRef.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafRef.current);
-  }, []);
-
-  return (
-    <div className="absolute inset-x-0 bottom-0 h-20 z-0 pointer-events-none">
-      <style>{`
-        @keyframes waveBreath {
-          0%, 100% { opacity: 0.55; filter: drop-shadow(0 0 3px rgba(245,166,35,0.12)); }
-          50%       { opacity: 1;    filter: drop-shadow(0 0 10px rgba(245,166,35,0.40)); }
-        }
-      `}</style>
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        className="w-full h-full"
-        preserveAspectRatio="none"
-        style={{ animation: "waveBreath 4.5s ease-in-out infinite" }}
-      >
-        <defs>
-          <linearGradient id="wg" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%"   stopColor="#f5a623" stopOpacity="0.45" />
-            <stop offset="100%" stopColor="#f5a623" stopOpacity="0.03" />
-          </linearGradient>
-        </defs>
-        <path ref={fillRef}   fill="url(#wg)" />
-        <path ref={strokeRef} fill="none" stroke="#f5a623" strokeWidth="1.5" strokeOpacity="0.65" />
-      </svg>
-    </div>
-  );
-}
-
 // ─── Equalizer bars ───────────────────────────────────────────────────────────
 
 function EqualizerBars({
@@ -388,8 +314,6 @@ export default function Dashboard({ avatarUrl, username, isPro, userId }: { avat
     return items.sort((a, b) => b.ts - a.ts).slice(0, 2);
   }, [projects, quotes]);
 
-  if (!mounted) return null;
-
   return (
     <div className="mx-auto w-full max-w-4xl space-y-4 pb-8 pt-2 px-4">
 
@@ -411,7 +335,6 @@ export default function Dashboard({ avatarUrl, username, isPro, userId }: { avat
       <div className="relative overflow-hidden rounded-2xl px-4 pt-4 pb-6 border border-white/[0.07]" style={{ background: "rgba(28, 26, 32, 0.85)", backdropFilter: "blur(32px) saturate(180%)", boxShadow: "0 0 40px rgba(245,166,35,0.06), inset 0 1px 0 rgba(255,255,255,0.06)" }}>
         {/* Ambient glow behind glass */}
         <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 80% 60% at 50% 120%, rgba(245,166,35,0.10) 0%, transparent 70%)" }} />
-        <WaveformHero activeCount={activeCount} />
         <div className="relative z-10 space-y-4">
 
           {/* Row 1: Greeting + inline Fennec logo + username */}
