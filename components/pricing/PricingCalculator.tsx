@@ -215,10 +215,14 @@ const toNumber = (value: string) => {
 const sumValues = (values: Record<string, string>) =>
   Object.values(values).reduce((acc, value) => acc + toNumber(value), 0);
 
-const formatCOP = (value: number) =>
-  new Intl.NumberFormat("es-CO", {
+type CalcCurrency = "USD" | "MXN" | "COP";
+const CALC_CURRENCY_KEY = "fennec-calc-currency-v1";
+const CURRENCY_LOCALES: Record<CalcCurrency, string> = { USD: "en-US", MXN: "es-MX", COP: "es-CO" };
+
+const formatCurrency = (value: number, currency: CalcCurrency) =>
+  new Intl.NumberFormat(CURRENCY_LOCALES[currency], {
     style: "currency",
-    currency: "COP",
+    currency,
     maximumFractionDigits: 0,
   }).format(value);
 
@@ -323,6 +327,11 @@ export default function PricingCalculator() {
   const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState<ModuleTab>("dashboard");
   useEffect(() => { localStorage.setItem("fennec_active_tab", activeTab); }, [activeTab]);
+
+  const [calcCurrency, setCalcCurrency] = useState<CalcCurrency>(() => {
+    try { return (localStorage.getItem(CALC_CURRENCY_KEY) as CalcCurrency) || "USD"; } catch { return "USD"; }
+  });
+  const saveCurrency = (c: CalcCurrency) => { setCalcCurrency(c); try { localStorage.setItem(CALC_CURRENCY_KEY, c); } catch {} };
 
   const [pendingAudio, setPendingAudio] = useState<{ url: string; name: string } | null>(null);
   const [showSettings,    setShowSettings]    = useState(false);
@@ -575,16 +584,34 @@ export default function PricingCalculator() {
               </h1>
               <p className="mt-2 text-sm text-zinc-400">{t("calculatorSubtitle")}</p>
             </div>
-            <button
-              onClick={() => {
-                setState((prev) => ({ ...prev, step: 1 }));
-                setShowSetup((prev) => !prev);
-              }}
-              className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-zinc-200 transition hover:border-accent hover:text-white whitespace-nowrap"
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              {showSetup ? "Close" : "My expenses"}
-            </button>
+            <div className="flex flex-col items-end gap-2 shrink-0">
+              {/* Currency selector */}
+              <div className="flex rounded-xl border border-white/10 bg-black/30 overflow-hidden">
+                {(["USD", "MXN", "COP"] as CalcCurrency[]).map((c) => (
+                  <button
+                    key={c}
+                    onClick={() => saveCurrency(c)}
+                    className={`px-3 py-1.5 text-xs font-semibold transition ${
+                      calcCurrency === c
+                        ? "bg-accent text-black"
+                        : "text-zinc-500 hover:text-white"
+                    }`}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => {
+                  setState((prev) => ({ ...prev, step: 1 }));
+                  setShowSetup((prev) => !prev);
+                }}
+                className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-zinc-200 transition hover:border-accent hover:text-white whitespace-nowrap"
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                {showSetup ? "Close" : "My expenses"}
+              </button>
+            </div>
           </div>
           {showSetup ? (
             <div>
@@ -616,7 +643,7 @@ export default function PricingCalculator() {
                   </div>
                   <p className="mt-6 text-lg text-zinc-200">
                     {t("step1.total")}{" "}
-                    <span className="font-semibold text-accent">{formatCOP(personalTotal)}</span>
+                    <span className="font-semibold text-accent">{formatCurrency(personalTotal, calcCurrency)}</span>
                   </p>
                 </div>
               )}
@@ -641,7 +668,7 @@ export default function PricingCalculator() {
                   </div>
                   <p className="mt-6 text-lg text-zinc-200">
                     {t("step2.total")}{" "}
-                    <span className="font-semibold text-accent">{formatCOP(studioTotal)}</span>
+                    <span className="font-semibold text-accent">{formatCurrency(studioTotal, calcCurrency)}</span>
                   </p>
                 </div>
               )}
@@ -688,13 +715,13 @@ export default function PricingCalculator() {
                     />
                   </div>
                   <div className="mt-6 space-y-1 text-zinc-200">
-                    <p>{t("step3.base")} {formatCOP(baseMonthlyTotal)}</p>
-                    <p>{t("step3.impuestosMonto")} {formatCOP(taxAmount)}</p>
-                    <p>{t("step3.reinversionMonto")} {formatCOP(reinvestmentAmount)}</p>
+                    <p>{t("step3.base")} {formatCurrency(baseMonthlyTotal, calcCurrency)}</p>
+                    <p>{t("step3.impuestosMonto")} {formatCurrency(taxAmount, calcCurrency)}</p>
+                    <p>{t("step3.reinversionMonto")} {formatCurrency(reinvestmentAmount, calcCurrency)}</p>
                     <p className="text-lg">
                       {t("step3.totalObjetivo")}{" "}
                       <span className="font-semibold text-accent">
-                        {formatCOP(monthlyTotalCOP)}
+                        {formatCurrency(monthlyTotalCOP, calcCurrency)}
                       </span>
                     </p>
                   </div>
@@ -865,11 +892,11 @@ export default function PricingCalculator() {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <p className="text-xs text-zinc-500">Minimum</p>
-                          <p className="text-lg font-semibold text-zinc-200">{formatCOP(minPricePerProject)}</p>
+                          <p className="text-lg font-semibold text-zinc-200">{formatCurrency(minPricePerProject, calcCurrency)}</p>
                         </div>
                         <div>
                           <p className="text-xs text-zinc-500">Recommended</p>
-                          <p className="text-lg font-bold text-accent">{formatCOP(recommendedPrice)}</p>
+                          <p className="text-lg font-bold text-accent">{formatCurrency(recommendedPrice, calcCurrency)}</p>
                         </div>
                       </div>
                     </div>
@@ -882,11 +909,11 @@ export default function PricingCalculator() {
                       <div className="grid grid-cols-2 gap-4 mb-5">
                         <div>
                           <p className="text-xs text-zinc-500">Minimum total</p>
-                          <p className="text-lg font-semibold text-zinc-200">{formatCOP(monthlyMin)}</p>
+                          <p className="text-lg font-semibold text-zinc-200">{formatCurrency(monthlyMin, calcCurrency)}</p>
                         </div>
                         <div>
                           <p className="text-xs text-zinc-500">Recommended total</p>
-                          <p className="text-xl font-bold text-accent">{formatCOP(monthlyRec)}</p>
+                          <p className="text-xl font-bold text-accent">{formatCurrency(monthlyRec, calcCurrency)}</p>
                         </div>
                       </div>
 
@@ -894,7 +921,7 @@ export default function PricingCalculator() {
                       <div className="border-t border-white/10 pt-4 space-y-2">
                         <div className="flex items-center justify-between text-xs">
                           <span className="text-zinc-400">Your monthly target</span>
-                          <span className="font-semibold text-zinc-200">{formatCOP(monthlyTotalCOP)}</span>
+                          <span className="font-semibold text-zinc-200">{formatCurrency(monthlyTotalCOP, calcCurrency)}</span>
                         </div>
                         <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
                           <div

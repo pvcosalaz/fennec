@@ -316,45 +316,6 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
     </div>
   );
 
-  // ── Currency section ──
-  if (section === "currency") return (
-    <div className="mx-auto w-full max-w-lg space-y-5 px-4">
-      <div className="flex items-center gap-3">
-        <button onClick={() => setSection("main")} className="text-zinc-400 hover:text-accent transition">
-          <ArrowLeft className="h-5 w-5" />
-        </button>
-        <div>
-          <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">Settings</p>
-          <h1 className="text-2xl font-bold text-white">Currency</h1>
-        </div>
-      </div>
-
-      <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
-        {CURRENCIES.map((c, i) => (
-          <button
-            key={c.id}
-            onClick={() => saveCurrency(c.id)}
-            className={`w-full flex items-center justify-between px-5 py-4 text-left transition hover:bg-white/5 ${
-              i > 0 ? "border-t border-white/5" : ""
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-xl">{c.flag}</span>
-              <div>
-                <p className="text-sm font-medium text-white">{c.id}</p>
-                <p className="text-xs text-zinc-500">{c.label}</p>
-              </div>
-            </div>
-            {currency === c.id && <Check className="h-4 w-4 text-accent" />}
-          </button>
-        ))}
-      </div>
-
-      <p className="text-xs text-zinc-600 text-center">
-        Affects how prices are displayed in the Pricing Calculator.
-      </p>
-    </div>
-  );
 
   // ── Language section ──
   if (section === "language") return (
@@ -452,7 +413,6 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
 
   // ── Main settings menu ──
   const displayLang = language.startsWith("es") ? "Español" : "English";
-  const displayCurrency = CURRENCIES.find((c) => c.id === currency);
   const displayName = profile.name || "Not set";
 
   const menuItems = [
@@ -467,12 +427,6 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
       label: "Language",
       value: displayLang,
       section: "language" as Section,
-    },
-    {
-      icon: DollarSign,
-      label: "Currency",
-      value: `${displayCurrency?.flag} ${displayCurrency?.id}`,
-      section: "currency" as Section,
     },
     {
       icon: Trash2,
