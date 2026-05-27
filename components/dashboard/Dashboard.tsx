@@ -12,6 +12,7 @@ import {
 } from "@/lib/pricingData";
 import { getProjects, getQuotes, getClients } from "@/lib/businessDb";
 import { PROFILE_KEY, type UserProfile } from "@/components/settings/SettingsModule";
+import { fetchProfile } from "@/lib/communityDb";
 import FennecFox from "./FennecFox";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -217,12 +218,33 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
   const [youtubeToast,  setYoutubeToast]  = useState(false);
 
   useEffect(() => {
+    // Show cached profile instantly while Supabase loads
     try {
       const pr = localStorage.getItem(PROFILE_KEY);
       if (pr) setProfile(JSON.parse(pr));
     } catch {}
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!userId) return;
+    fetchProfile(userId).then((p) => {
+      if (!p) return;
+      const loaded: UserProfile = {
+        name:      p.display_name ?? "",
+        role:      p.role ?? "",
+        country:   p.country ?? "",
+        genres:    p.genres ?? [],
+        instagram: p.instagram ?? "",
+        spotify:   p.spotify ?? "",
+        youtube:   p.youtube_url ?? "",
+        tiktok:    p.tiktok ?? "",
+      };
+      setProfile(loaded);
+      // Keep cache fresh for next load
+      try { localStorage.setItem(PROFILE_KEY, JSON.stringify(loaded)); } catch {}
+    }).catch(() => {});
+  }, [userId]);
 
   useEffect(() => {
     if (!userId) return;
