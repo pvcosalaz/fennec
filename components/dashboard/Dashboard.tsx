@@ -384,7 +384,7 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
             <img
               src="/fennec-logo.png"
               alt=""
-              style={{ width: 44, height: "auto", filter: "brightness(0)", opacity: 0.12 }}
+              style={{ width: 64, height: "auto", filter: "brightness(0)", opacity: 0.22, marginRight: -8 }}
             />
           </div>
 
