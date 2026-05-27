@@ -506,7 +506,7 @@ export default function PricingCalculator() {
   if (!profile) {
     return (
       <div className="flex h-screen flex-col bg-black">
-        <UsernameSetup userId={authUser.id} avatarUrl={null} onComplete={setProfile} />
+        <UsernameSetup userId={authUser.id} avatarUrl={null} onComplete={(p) => { setActiveTab("dashboard"); setShowSettings(false); setProfile(p); }} />
       </div>
     );
   }
