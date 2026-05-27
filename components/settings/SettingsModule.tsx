@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   ArrowLeft, User, Globe, DollarSign, Trash2,
-  ChevronRight, Check, AlertTriangle, Bell,
+  ChevronRight, Check, AlertTriangle, Bell, Camera, Loader2,
 } from "lucide-react";
 import NotificationPreferences from "./NotificationPreferences";
 import { SiInstagram, SiSpotify, SiYoutube, SiTiktok } from "react-icons/si";
 import Select from "@/components/ui/Select";
 import { fetchProfile, updateProfile } from "@/lib/communityDb";
+import { supabase } from "@/lib/supabaseClient";
 
 export const PROFILE_KEY = "fennec-profile-v1";
 
@@ -62,16 +63,44 @@ type Props = {
   language: string;
   onLanguageChange: (lang: string) => void;
   avatarUrl?: string | null;
+  onAvatarChange?: (url: string) => void;
   onSignOut?: () => void;
   userId: string;
 };
 
-export default function SettingsModule({ onBack, language, onLanguageChange, avatarUrl, onSignOut, userId }: Props) {
-  const [section,  setSection]  = useState<Section>("main");
-  const [profile,  setProfile]  = useState<UserProfile>(DEFAULT_PROFILE);
-  const [currency, setCurrency] = useState<Currency>("COP");
-  const [saved,    setSaved]    = useState(false);
-  const [confirmReset, setConfirmReset] = useState<string | null>(null);
+export default function SettingsModule({ onBack, language, onLanguageChange, avatarUrl, onAvatarChange, onSignOut, userId }: Props) {
+  const [section,       setSection]       = useState<Section>("main");
+  const [profile,       setProfile]       = useState<UserProfile>(DEFAULT_PROFILE);
+  const [currency,      setCurrency]      = useState<Currency>("COP");
+  const [saved,         setSaved]         = useState(false);
+  const [confirmReset,  setConfirmReset]  = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [localAvatarUrl,  setLocalAvatarUrl]  = useState<string | null>(avatarUrl ?? null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingAvatar(true);
+    try {
+      const ext = file.name.split(".").pop() ?? "jpg";
+      const path = `avatars/${userId}.${ext}`;
+      const { error } = await supabase.storage
+        .from("community-images")
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (error) throw error;
+      const { data } = supabase.storage.from("community-images").getPublicUrl(path);
+      const url = data.publicUrl;
+      await updateProfile(userId, { avatar_url: url });
+      setLocalAvatarUrl(url);
+      onAvatarChange?.(url);
+    } catch (err) {
+      console.error("Avatar upload failed", err);
+    } finally {
+      setUploadingAvatar(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
 
   useEffect(() => {
     // Load currency from localStorage
@@ -146,6 +175,42 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
           <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">Settings</p>
           <h1 className="text-2xl font-bold text-white">Profile</h1>
         </div>
+      </div>
+
+      {/* Avatar upload */}
+      <div className="flex flex-col items-center gap-2">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleAvatarChange}
+        />
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className="relative group w-20 h-20 rounded-full overflow-hidden ring-2 ring-white/10 hover:ring-accent/50 transition"
+          disabled={uploadingAvatar}
+        >
+          {localAvatarUrl ? (
+            <img src={localAvatarUrl} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full bg-accent/20 flex items-center justify-center">
+              <span className="text-2xl font-bold text-accent">
+                {profile.name ? profile.name[0].toUpperCase() : "?"}
+              </span>
+            </div>
+          )}
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+            {uploadingAvatar
+              ? <Loader2 className="h-5 w-5 text-white animate-spin" />
+              : <Camera className="h-5 w-5 text-white" />
+            }
+          </div>
+        </button>
+        <p className="text-[11px] text-zinc-600">
+          {uploadingAvatar ? "Uploading…" : "Tap to change photo"}
+        </p>
       </div>
 
       <div className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
@@ -431,8 +496,8 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
       {/* Profile preview */}
       <div className="rounded-2xl border border-white/10 bg-white/5 p-5 flex items-center gap-4">
         <div className="h-14 w-14 rounded-2xl overflow-hidden flex-shrink-0">
-          {avatarUrl ? (
-            <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+          {localAvatarUrl ? (
+            <img src={localAvatarUrl} alt="" className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full bg-accent/20 flex items-center justify-center">
               <span className="text-2xl font-bold text-accent">

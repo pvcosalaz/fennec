@@ -538,6 +538,7 @@ export default function PricingCalculator() {
           language={i18n.resolvedLanguage ?? "en"}
           onLanguageChange={(lang) => { void i18n.changeLanguage(lang); }}
           avatarUrl={profile.avatar_url}
+          onAvatarChange={(url) => setProfile((p) => p ? { ...p, avatar_url: url } : p)}
           onSignOut={async () => { await supabase.auth.signOut(); }}
           userId={authUser.id}
         />
