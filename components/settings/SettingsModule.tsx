@@ -9,7 +9,7 @@ import NotificationPreferences from "./NotificationPreferences";
 import { SiInstagram, SiSpotify, SiYoutube, SiTiktok } from "react-icons/si";
 import Select from "@/components/ui/Select";
 import { fetchProfile, updateProfile } from "@/lib/communityDb";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/lib/supabase";
 
 export const PROFILE_KEY = "fennec-profile-v1";
 
