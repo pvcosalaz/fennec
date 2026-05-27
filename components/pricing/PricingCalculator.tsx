@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 function SplashScreen({ exiting }: { exiting: boolean }) {
   const chars = ["f", "e", "n", "n", "e", "c"];
-  const delays = [0.1, 0.25, 0.38, 0.51, 0.64, 0.76];
+  const delays = [0.05, 0.15, 0.24, 0.33, 0.42, 0.50];
 
   return (
     <div
@@ -18,57 +18,62 @@ function SplashScreen({ exiting }: { exiting: boolean }) {
       {/* Horizontal ambient glow line */}
       <div style={{
         position: "absolute",
-        bottom: "38%", left: 0, right: 0, height: 1,
+        top: "46%", left: 0, right: 0, height: 1,
         background: "linear-gradient(90deg, transparent 5%, rgba(245,166,35,0.45) 50%, transparent 95%)",
         boxShadow: "0 0 30px 8px rgba(245,166,35,0.1)",
-        animation: "bGlow 1.2s cubic-bezier(.16,1,.3,1) 0.2s both",
+        animation: "bGlow 0.8s cubic-bezier(.16,1,.3,1) 0.1s both",
       }} />
 
-      {/* "fennec" — letter by letter */}
-      <div style={{
-        display: "flex", alignItems: "baseline", gap: 1,
-        perspective: 600, position: "relative",
-      }}>
-        {chars.map((c, i) => (
-          <span key={i} style={{
-            fontSize: 64, fontWeight: 900, lineHeight: 1,
-            letterSpacing: "-0.03em", color: "#fff",
-            opacity: 0, display: "inline-block",
-            animation: `bChar 0.5s cubic-bezier(.16,1,.3,1) ${delays[i]}s both`,
-          }}>{c}</span>
-        ))}
+      {/* Content — shifted slightly above true center */}
+      <div style={{ transform: "translateY(-8%)", display: "flex", flexDirection: "column", alignItems: "center" }}>
 
-        {/* Amber dot */}
-        <span style={{
-          display: "inline-block",
-          width: 7, height: 7, borderRadius: "50%",
-          background: "#f5a623",
-          boxShadow: "0 0 10px rgba(245,166,35,0.9)",
-          opacity: 0, flexShrink: 0,
-          alignSelf: "flex-end",
-          marginLeft: 3, marginBottom: 10,
-          animation: "bDot 0.4s ease 1.35s forwards",
-        }} />
-
-        {/* Underline extending left→right */}
+        {/* "fennec" — letter by letter */}
         <div style={{
-          position: "absolute", bottom: -6, left: 0,
-          height: 2, borderRadius: 2, width: 0,
-          background: "#f5a623",
-          boxShadow: "0 0 10px rgba(245,166,35,0.6)",
-          animation: "bUnder 0.6s cubic-bezier(.16,1,.3,1) 1.05s both",
-        }} />
-      </div>
+          display: "flex", alignItems: "baseline", gap: 1,
+          perspective: 600, position: "relative",
+        }}>
+          {chars.map((c, i) => (
+            <span key={i} style={{
+              fontSize: 64, fontWeight: 900, lineHeight: 1,
+              letterSpacing: "-0.03em", color: "#fff",
+              opacity: 0, display: "inline-block",
+              animation: `bChar 0.35s cubic-bezier(.16,1,.3,1) ${delays[i]}s both`,
+            }}>{c}</span>
+          ))}
 
-      {/* Tagline */}
-      <p style={{
-        fontSize: 10, letterSpacing: "0.18em",
-        textTransform: "uppercase", color: "#444",
-        marginTop: 20, opacity: 0,
-        animation: "bDot 0.5s ease 1.65s forwards",
-      }}>
-        music business &amp; community hub
-      </p>
+          {/* Amber dot */}
+          <span style={{
+            display: "inline-block",
+            width: 7, height: 7, borderRadius: "50%",
+            background: "#f5a623",
+            boxShadow: "0 0 10px rgba(245,166,35,0.9)",
+            opacity: 0, flexShrink: 0,
+            alignSelf: "flex-end",
+            marginLeft: 3, marginBottom: 10,
+            animation: "bDot 0.3s ease 0.75s forwards",
+          }} />
+
+          {/* Underline extending left→right */}
+          <div style={{
+            position: "absolute", bottom: -6, left: 0,
+            height: 2, borderRadius: 2, width: 0,
+            background: "#f5a623",
+            boxShadow: "0 0 10px rgba(245,166,35,0.6)",
+            animation: "bUnder 0.45s cubic-bezier(.16,1,.3,1) 0.65s both",
+          }} />
+        </div>
+
+        {/* Tagline */}
+        <p style={{
+          fontSize: 10, letterSpacing: "0.18em",
+          textTransform: "uppercase", color: "#444",
+          marginTop: 20, opacity: 0,
+          animation: "bDot 0.4s ease 1.0s forwards",
+        }}>
+          music business &amp; community hub
+        </p>
+
+      </div>
 
       <style>{`
         @keyframes bGlow {
@@ -76,7 +81,7 @@ function SplashScreen({ exiting }: { exiting: boolean }) {
           to   { opacity: 1; transform: scaleX(1); }
         }
         @keyframes bChar {
-          from { opacity: 0; transform: translateY(24px) rotateX(90deg); }
+          from { opacity: 0; transform: translateY(20px) rotateX(90deg); }
           to   { opacity: 1; transform: translateY(0)    rotateX(0deg); }
         }
         @keyframes bUnder {
