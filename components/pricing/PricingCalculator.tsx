@@ -12,26 +12,41 @@ function SplashScreen({ exiting }: { exiting: boolean }) {
         transform: exiting ? "scale(1.08)" : "scale(1)",
       }}
     >
-      {/* Glow burst */}
+      {/* Ambient glow */}
       <div
         className="absolute rounded-full pointer-events-none"
         style={{
-          width: 280, height: 280,
-          background: "radial-gradient(circle, rgba(245,166,35,0.18) 0%, transparent 65%)",
-          animation: "fennecGlow 2.6s ease-in-out infinite",
+          width: 260, height: 260,
+          background: "radial-gradient(circle, rgba(245,166,35,0.2) 0%, transparent 65%)",
+          animation: "splashGlow 3s ease-in-out infinite alternate",
         }}
       />
 
-      {/* Logo */}
+      {/* Expanding rings */}
+      <div className="absolute" style={{
+        width: 180, height: 180, borderRadius: "50%",
+        border: "1px solid rgba(245,166,35,0.35)",
+        top: "50%", left: "50%",
+        transform: "translate(-50%,-50%) scale(0)",
+        animation: "splashRing 2.4s ease-out 0.7s infinite both",
+      }} />
+      <div className="absolute" style={{
+        width: 180, height: 180, borderRadius: "50%",
+        border: "1px solid rgba(245,166,35,0.18)",
+        top: "50%", left: "50%",
+        transform: "translate(-50%,-50%) scale(0)",
+        animation: "splashRing 2.4s ease-out 1.5s infinite both",
+      }} />
+
+      {/* Fox logo */}
       <img
         src="/fennec-logo.png"
         alt="Fennec"
-        className="relative z-10 mb-6"
+        className="relative z-10 mb-5"
         style={{
-          width: 120,
+          width: 150,
           filter: "brightness(0) invert(1)",
-          opacity: 0.9,
-          animation: "fennecFadeUp 0.9s cubic-bezier(.16,1,.3,1) 0.1s both",
+          animation: "splashFadeUp 0.9s cubic-bezier(.16,1,.3,1) 0.3s both",
         }}
       />
 
@@ -41,44 +56,24 @@ function SplashScreen({ exiting }: { exiting: boolean }) {
         style={{
           fontSize: 38,
           letterSpacing: "-0.04em",
-          animation: "fennecFadeUp 0.7s cubic-bezier(.16,1,.3,1) 0.35s both",
+          animation: "splashFadeUp 0.7s cubic-bezier(.16,1,.3,1) 0.65s both",
         }}
       >
         fennec
       </p>
 
-      {/* AUDIO */}
-      <p
-        className="relative z-10 text-accent font-bold tracking-[0.2em] uppercase mt-1"
-        style={{
-          fontSize: 11,
-          animation: "fennecFadeUp 0.7s cubic-bezier(.16,1,.3,1) 0.5s both",
-        }}
-      >
-        Audio
-      </p>
-
-      {/* tagline */}
-      <p
-        className="relative z-10 text-zinc-600 mt-5"
-        style={{
-          fontSize: 9,
-          letterSpacing: "0.12em",
-          textTransform: "uppercase",
-          animation: "fennecFadeUp 0.6s ease 0.75s both",
-        }}
-      >
-        music business &amp; community hub
-      </p>
-
       <style>{`
-        @keyframes fennecGlow {
-          0%,100% { transform: scale(.8); opacity: .45; }
-          50%      { transform: scale(1.2); opacity: 1; }
+        @keyframes splashGlow {
+          from { transform: scale(0.85); opacity: 0.35; }
+          to   { transform: scale(1.25); opacity: 0.85; }
         }
-        @keyframes fennecFadeUp {
-          from { opacity: 0; transform: translateY(12px); }
-          to   { opacity: 1; transform: translateY(0); }
+        @keyframes splashRing {
+          0%   { transform: translate(-50%,-50%) scale(0);   opacity: 0.7; }
+          100% { transform: translate(-50%,-50%) scale(1.9); opacity: 0; }
+        }
+        @keyframes splashFadeUp {
+          from { opacity: 0; transform: translateY(16px) scale(0.92); }
+          to   { opacity: 1; transform: translateY(0)    scale(1); }
         }
       `}</style>
     </div>
