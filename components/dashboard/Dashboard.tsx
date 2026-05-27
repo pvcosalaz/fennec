@@ -402,34 +402,58 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
               </div>
             </div>
 
-            {/* Signal components — fill the space to the right */}
-            <div className="flex flex-col gap-1.5 pt-0.5 flex-1">
-              {[
-                { label: "Active projects", value: activeCount,                                        color: "#4d96ff", connected: true  },
-                { label: "Clients",         value: clients.length,                                     color: "#c77dff", connected: true  },
-                { label: "Closed",          value: closedCount,                                        color: "#6bcb77", connected: true  },
-                { label: "Spotify",         value: spotifyData?.connected ? spotifyFollowers : null,   color: "#1DB954", connected: spotifyData?.connected ?? false },
-                { label: "YouTube",         value: youtubeData ? youtubeSubscribers : null,            color: "#FF0000", connected: !!youtubeData },
-                { label: "Reach",           value: null,                                               color: "#E1306C", connected: false },
-              ].map((row) => (
-                <div key={row.label} className="flex items-center gap-2">
-                  <div
-                    className="h-1.5 w-1.5 rounded-full shrink-0"
-                    style={{
-                      backgroundColor: row.value !== null && row.value > 0 ? row.color : "rgba(255,255,255,0.08)",
-                      boxShadow: row.value !== null && row.value > 0 ? `0 0 5px ${row.color}` : "none",
-                    }}
-                  />
-                  <span className="text-xs text-zinc-300 w-20">{row.label}</span>
-                  {row.value !== null ? (
-                    <span className={`text-[10px] font-medium ${row.value > 0 ? "text-white" : "text-zinc-700"}`}>
-                      {row.value > 0 ? row.value : "—"}
+            {/* Producer ID — right panel */}
+            <div className="flex flex-col gap-2 pt-0.5 flex-1 min-w-0">
+
+              {/* Role */}
+              {profile?.role ? (
+                <span className="inline-flex self-start items-center gap-1 px-2 py-0.5 rounded-full bg-white/6 border border-white/10 text-[10px] font-semibold text-zinc-300 uppercase tracking-wide">
+                  {profile.role}
+                </span>
+              ) : (
+                <button onClick={onOpenSettings} className="inline-flex self-start items-center gap-1 px-2 py-0.5 rounded-full bg-white/4 border border-dashed border-white/10 text-[10px] text-zinc-600 hover:text-zinc-400 transition">
+                  + add role
+                </button>
+              )}
+
+              {/* Country */}
+              {profile?.country ? (
+                <p className="text-[11px] text-zinc-500 leading-none">{profile.country}</p>
+              ) : null}
+
+              {/* Genre chips */}
+              {(profile?.genres ?? []).length > 0 ? (
+                <div className="flex flex-wrap gap-1">
+                  {(profile!.genres).map((g) => (
+                    <span key={g} className="px-1.5 py-0.5 rounded-md bg-accent/10 border border-accent/20 text-[9px] font-semibold text-accent/80 uppercase tracking-wide">
+                      {g}
                     </span>
-                  ) : (
-                    <span className="text-[10px] text-zinc-500 italic">connect soon</span>
-                  )}
+                  ))}
                 </div>
-              ))}
+              ) : (
+                <button onClick={onOpenSettings} className="inline-flex self-start items-center gap-1 px-2 py-0.5 rounded-full bg-white/4 border border-dashed border-white/10 text-[10px] text-zinc-600 hover:text-zinc-400 transition">
+                  + genres
+                </button>
+              )}
+
+              {/* Social icons — only show connected ones */}
+              <div className="flex items-center gap-2 mt-auto pt-1">
+                {profile?.instagram && (
+                  <SiInstagram className="h-3.5 w-3.5" style={{ color: "#E1306C", opacity: 0.7 }} />
+                )}
+                {spotifyData?.connected && (
+                  <SiSpotify className="h-3.5 w-3.5" style={{ color: "#1DB954", opacity: 0.7 }} />
+                )}
+                {youtubeData?.connected && (
+                  <SiYoutube className="h-3.5 w-3.5" style={{ color: "#FF0000", opacity: 0.7 }} />
+                )}
+                {profile?.tiktok && (
+                  <SiTiktok className="h-3.5 w-3.5 text-white/50" />
+                )}
+                {!profile?.instagram && !spotifyData?.connected && !youtubeData?.connected && !profile?.tiktok && (
+                  <button onClick={onOpenSettings} className="text-[10px] text-zinc-700 hover:text-zinc-500 transition">+ socials</button>
+                )}
+              </div>
             </div>
           </div>
 

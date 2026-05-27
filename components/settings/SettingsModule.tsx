@@ -16,6 +16,7 @@ export type UserProfile = {
   name: string;
   role: string;
   country: string;
+  genres: string[];
   instagram: string;
   spotify: string;
   youtube: string;
@@ -23,9 +24,16 @@ export type UserProfile = {
 };
 
 const DEFAULT_PROFILE: UserProfile = {
-  name: "", role: "", country: "",
+  name: "", role: "", country: "", genres: [],
   instagram: "", spotify: "", youtube: "", tiktok: "",
 };
+
+const GENRE_OPTIONS = [
+  "Trap", "Hip-Hop", "R&B", "Pop", "Reggaeton", "Latin",
+  "Electronic", "House", "Techno", "Ambient", "Lo-fi",
+  "Jazz", "Soul", "Funk", "Gospel", "Rock", "Indie",
+  "Cinematic", "Film/TV", "Experimental", "Classical",
+];
 
 export const CURRENCY_KEY = "fennec-currency-v1";
 export type Currency = "COP" | "MXN" | "USD";
@@ -73,15 +81,20 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
     } catch { /* ignore */ }
     // Load profile from Supabase
     fetchProfile(userId).then((p) => {
-      if (p) setProfile({
-        name:      p.display_name ?? "",
-        role:      p.role ?? "",
-        country:   p.country ?? "",
-        instagram: p.instagram ?? "",
-        spotify:   p.spotify ?? "",
-        youtube:   p.youtube_url ?? "",
-        tiktok:    p.tiktok ?? "",
-      });
+      if (p) {
+        const loaded: UserProfile = {
+          name:      p.display_name ?? "",
+          role:      p.role ?? "",
+          country:   p.country ?? "",
+          genres:    p.genres ?? [],
+          instagram: p.instagram ?? "",
+          spotify:   p.spotify ?? "",
+          youtube:   p.youtube_url ?? "",
+          tiktok:    p.tiktok ?? "",
+        };
+        setProfile(loaded);
+        try { localStorage.setItem(PROFILE_KEY, JSON.stringify(loaded)); } catch {}
+      }
     }).catch(console.error);
   }, [userId]);
 
@@ -91,11 +104,14 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
         display_name: profile.name || null,
         role:         profile.role || null,
         country:      profile.country || null,
+        genres:       profile.genres,
         instagram:    profile.instagram || null,
         spotify:      profile.spotify || null,
         youtube_url:  profile.youtube || null,
         tiktok:       profile.tiktok || null,
       });
+      // Keep localStorage in sync so Dashboard reads fresh data
+      try { localStorage.setItem(PROFILE_KEY, JSON.stringify(profile)); } catch {}
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (err) {
@@ -163,6 +179,36 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
             placeholder="e.g. Mexico, Colombia, USA"
             className="w-full h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-accent"
           />
+        </div>
+
+        <div className="space-y-2">
+          <p className="text-xs text-zinc-500">Genres <span className="text-zinc-700">(select up to 4)</span></p>
+          <div className="flex flex-wrap gap-2">
+            {GENRE_OPTIONS.map((g) => {
+              const selected = profile.genres.includes(g);
+              return (
+                <button
+                  key={g}
+                  type="button"
+                  onClick={() =>
+                    setProfile((p) => ({
+                      ...p,
+                      genres: selected
+                        ? p.genres.filter((x) => x !== g)
+                        : p.genres.length < 4 ? [...p.genres, g] : p.genres,
+                    }))
+                  }
+                  className={`px-3 py-1 rounded-full text-xs font-medium border transition ${
+                    selected
+                      ? "bg-accent/20 border-accent text-accent"
+                      : "bg-white/5 border-white/10 text-zinc-400 hover:border-white/25"
+                  }`}
+                >
+                  {g}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
