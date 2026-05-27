@@ -356,8 +356,8 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
       {/* ── Fennec dB ────────────────────────────────────────────────────── */}
       <style>{`
         @keyframes dbGlow {
-          from { box-shadow: 0 0 28px rgba(245,166,35,0.10), 0 0 56px rgba(245,166,35,0.04), inset 0 1px 0 rgba(255,255,255,0.06); }
-          to   { box-shadow: 0 0 44px rgba(245,166,35,0.20), 0 0 80px rgba(245,166,35,0.08), inset 0 1px 0 rgba(255,255,255,0.11); }
+          from { box-shadow: 0 4px 24px rgba(0,0,0,0.10), 0 0 40px rgba(245,166,35,0.08); }
+          to   { box-shadow: 0 4px 36px rgba(0,0,0,0.14), 0 0 60px rgba(245,166,35,0.16); }
         }
         @keyframes eqBar {
           from { transform: scaleY(0.2); }
@@ -366,9 +366,9 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
         .db-card-glow { animation: dbGlow 3.5s ease-in-out infinite alternate; }
         .eq-bar { display: inline-block; width: 2.5px; border-radius: 2px; background: #f5a623; margin: 0 1px; transform-origin: bottom; animation: eqBar 1.1s ease-in-out infinite alternate; opacity: 0.6; }
       `}</style>
-      <div className="db-card-glow relative overflow-hidden rounded-2xl px-4 pt-4 pb-6 border border-[rgba(245,166,35,0.10)]" style={{ background: "rgba(28, 26, 32, 0.85)", backdropFilter: "blur(32px) saturate(180%)" }}>
+      <div className="db-card-glow relative overflow-hidden rounded-2xl px-4 pt-4 pb-6 border border-black/8" style={{ background: "#ffffff" }}>
         {/* Ambient glow behind glass */}
-        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 80% 60% at 50% 120%, rgba(245,166,35,0.10) 0%, transparent 70%)" }} />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 80% 60% at 50% 120%, rgba(245,166,35,0.07) 0%, transparent 70%)" }} />
         <div className="relative z-10 space-y-4">
 
           {/* Row 1: Greeting + inline Fennec logo + username */}
@@ -376,9 +376,9 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
             <img
               src="/fennec-logo.png"
               alt=""
-              style={{ width: 22, height: "auto", filter: "brightness(0) invert(1)", opacity: 0.5 }}
+              style={{ width: 22, height: "auto", filter: "brightness(0)", opacity: 0.45 }}
             />
-            <p className="text-xs text-white font-medium uppercase tracking-widest">
+            <p className="text-xs text-zinc-800 font-medium uppercase tracking-widest">
               {greeting()}{firstName ? `, ${firstName}` : ""}
             </p>
           </div>
@@ -388,7 +388,7 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
 
             {/* Avatar */}
             {avatarUrl ? (
-              <img src={avatarUrl} alt="" className="w-20 h-20 rounded-full object-cover ring-2 ring-white/10 shrink-0 mt-1" />
+              <img src={avatarUrl} alt="" className="w-20 h-20 rounded-full object-cover ring-2 ring-black/10 shrink-0 mt-1" />
             ) : (
               <button
                 onClick={onOpenProfileSettings ?? onOpenSettings}
@@ -408,10 +408,10 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
                   <Info className="h-3 w-3" />
                 </button>
               </div>
-              <p className="text-6xl font-black text-white leading-none tracking-tighter tabular-nums">
+              <p className="text-6xl font-black text-zinc-900 leading-none tracking-tighter tabular-nums">
                 <AnimatedNumber value={fennecDb} />
               </p>
-              <p className="text-xs text-zinc-300">business signal</p>
+              <p className="text-xs text-zinc-500">business signal</p>
               {/* EQ bars below the score */}
               <div className="flex items-end gap-px" style={{ height: 18, marginTop: 4 }}>
                 {[10, 16, 8, 14, 10, 18, 7, 13, 16, 9].map((h, i) => (
@@ -429,11 +429,11 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
 
               {/* Role */}
               {profile?.role ? (
-                <span className="inline-flex self-start items-center gap-1 px-2 py-0.5 rounded-full bg-white/6 border border-white/10 text-[10px] font-semibold text-zinc-300 uppercase tracking-wide">
+                <span className="inline-flex self-start items-center gap-1 px-2 py-0.5 rounded-full bg-black/5 border border-black/10 text-[10px] font-semibold text-zinc-700 uppercase tracking-wide">
                   {profile.role}
                 </span>
               ) : (
-                <button onClick={onOpenSettings} className="inline-flex self-start items-center gap-1 px-2 py-0.5 rounded-full bg-white/4 border border-dashed border-white/10 text-[10px] text-zinc-600 hover:text-zinc-400 transition">
+                <button onClick={onOpenSettings} className="inline-flex self-start items-center gap-1 px-2 py-0.5 rounded-full bg-black/3 border border-dashed border-black/15 text-[10px] text-zinc-400 hover:text-zinc-600 transition">
                   + add role
                 </button>
               )}
@@ -453,7 +453,7 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
                   ))}
                 </div>
               ) : (
-                <button onClick={onOpenSettings} className="inline-flex self-start items-center gap-1 px-2 py-0.5 rounded-full bg-white/4 border border-dashed border-white/10 text-[10px] text-zinc-600 hover:text-zinc-400 transition">
+                <button onClick={onOpenSettings} className="inline-flex self-start items-center gap-1 px-2 py-0.5 rounded-full bg-black/3 border border-dashed border-black/15 text-[10px] text-zinc-400 hover:text-zinc-600 transition">
                   + genres
                 </button>
               )}
@@ -470,7 +470,7 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
                   <SiYoutube className="h-3.5 w-3.5" style={{ color: "#FF0000", opacity: 0.7 }} />
                 )}
                 {profile?.tiktok && (
-                  <SiTiktok className="h-3.5 w-3.5 text-white/50" />
+                  <SiTiktok className="h-3.5 w-3.5 text-zinc-400" />
                 )}
                 {!profile?.instagram && !spotifyData?.connected && !youtubeData?.connected && !profile?.tiktok && (
                   <button onClick={onOpenSettings} className="text-[10px] text-zinc-700 hover:text-zinc-500 transition">+ socials</button>
@@ -481,8 +481,8 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
 
           {/* Inline info — toggle with ⓘ */}
           {showDbInfo && (
-            <div className="rounded-xl border border-white/8 bg-white/[0.04] px-3 py-2.5 space-y-1.5">
-              <p className="text-[10px] text-zinc-400 leading-relaxed">
+            <div className="rounded-xl border border-black/8 bg-black/[0.04] px-3 py-2.5 space-y-1.5">
+              <p className="text-[10px] text-zinc-500 leading-relaxed">
                 A growing number that measures how active your music business is — like signal strength, but for your career.
               </p>
               <div className="flex flex-wrap gap-x-3 gap-y-1 pt-0.5">
@@ -492,8 +492,8 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
                   { label: "Client",         value: "×75"  },
                   { label: "Quote sent",     value: "×25"  },
                 ].map((r) => (
-                  <span key={r.label} className="text-[10px] text-zinc-400">
-                    <span className="text-white font-medium">{r.value}</span> {r.label}
+                  <span key={r.label} className="text-[10px] text-zinc-500">
+                    <span className="text-zinc-900 font-medium">{r.value}</span> {r.label}
                   </span>
                 ))}
               </div>
