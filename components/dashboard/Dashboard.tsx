@@ -334,8 +334,8 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
       {/* ── Fennec dB ────────────────────────────────────────────────────── */}
       <style>{`
         @keyframes dbGlow {
-          from { box-shadow: 0 0 20px rgba(245,166,35,0.04), inset 0 1px 0 rgba(255,255,255,0.05); border-color: rgba(245,166,35,0.08); }
-          to   { box-shadow: 0 0 52px rgba(245,166,35,0.16), 0 0 88px rgba(245,166,35,0.06), inset 0 1px 0 rgba(255,255,255,0.10); border-color: rgba(245,166,35,0.26); }
+          from { box-shadow: 0 0 20px rgba(245,166,35,0.04), inset 0 1px 0 rgba(255,255,255,0.05); }
+          to   { box-shadow: 0 0 52px rgba(245,166,35,0.16), 0 0 88px rgba(245,166,35,0.06), inset 0 1px 0 rgba(255,255,255,0.10); }
         }
         @keyframes eqBar {
           from { transform: scaleY(0.2); }
