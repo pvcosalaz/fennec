@@ -371,16 +371,21 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
         <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 80% 60% at 50% 120%, rgba(245,166,35,0.07) 0%, transparent 70%)" }} />
         <div className="relative z-10 space-y-4">
 
-          {/* Row 1: Greeting + inline Fennec logo + username */}
-          <div className="flex items-center gap-2">
+          {/* Row 1: Greeting + full name left, logo right */}
+          <div className="flex items-start justify-between">
+            <div className="flex flex-col gap-0.5">
+              <p className="text-[10px] text-zinc-400 font-medium uppercase tracking-widest">
+                {greeting()}
+              </p>
+              <p className="text-sm font-black text-zinc-900 uppercase tracking-wide leading-tight">
+                {profile?.name?.trim() || username || ""}
+              </p>
+            </div>
             <img
               src="/fennec-logo.png"
               alt=""
-              style={{ width: 22, height: "auto", filter: "brightness(0)", opacity: 0.45 }}
+              style={{ width: 44, height: "auto", filter: "brightness(0)", opacity: 0.12 }}
             />
-            <p className="text-xs text-zinc-800 font-medium uppercase tracking-widest">
-              {greeting()}{firstName ? `, ${firstName}` : ""}
-            </p>
           </div>
 
           {/* Row 2: photo + dB + metrics side by side */}
