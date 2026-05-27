@@ -79,6 +79,19 @@ function SplashScreen({ exiting }: { exiting: boolean }) {
           from { opacity: 0; transform: scale(0); }
           to   { opacity: 1; transform: scale(1); }
         }
+        @keyframes fennecNavGlow {
+          from { opacity: 0.5; transform: scale(0.9); }
+          to   { opacity: 1.0; transform: scale(1.15); }
+        }
+        @keyframes fennecNavScale {
+          from { transform: scale(1.0); }
+          to   { transform: scale(1.06); }
+        }
+        @keyframes fennecEntryGlow {
+          0%   { opacity: 0; }
+          30%  { opacity: 1; }
+          100% { opacity: 0; }
+        }
       `}</style>
     </div>
   );
@@ -1015,11 +1028,20 @@ export default function PricingCalculator() {
       ) : activeTab === "ideas" ? (
         <AudioModule userId={authUser.id} isPro={profile?.is_pro ?? false} />
       ) : activeTab === "noticias" ? (
-        <Community
-          profile={profile}
-          openComposerWith={pendingAudio}
-          onComposerConsumed={() => setPendingAudio(null)}
-        />
+        <div key="noticias" style={{ position: "relative" }}>
+          {/* Subtle amber entrance flash — fades in 0.8s, gone by 1.2s */}
+          <div style={{
+            position: "absolute", top: 0, left: 0, right: 0, height: 120,
+            background: "radial-gradient(ellipse 80% 100% at 50% 0%, rgba(245,166,35,0.1) 0%, transparent 100%)",
+            animation: "fennecEntryGlow 1.2s ease-out forwards",
+            pointerEvents: "none", zIndex: 1,
+          }} />
+          <Community
+            profile={profile}
+            openComposerWith={pendingAudio}
+            onComposerConsumed={() => setPendingAudio(null)}
+          />
+        </div>
       ) : null}
 
     </main>
@@ -1048,21 +1070,30 @@ export default function PricingCalculator() {
                   onClick={() => { setActiveTab(tab.id); setBusinessView("hub"); }}
                   className="flex flex-1 flex-col items-center justify-center py-3 transition"
                 >
-                  <img
-                    src="/fennec-icon.png"
-                    alt="Fennec"
-                    style={{
-                      width: 36,
-                      height: 36,
-                      objectFit: "contain",
-                      mixBlendMode: "screen",
-                      opacity: isActive ? 1 : 0.45,
-                      transition: "opacity 0.2s",
-                    }}
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).style.display = "none";
-                    }}
-                  />
+                  <div style={{ position: "relative", width: 36, height: 36 }}>
+                    {isActive && (
+                      <div style={{
+                        position: "absolute", inset: -6, borderRadius: "50%",
+                        background: "radial-gradient(circle, rgba(245,166,35,0.22) 0%, transparent 70%)",
+                        animation: "fennecNavGlow 2.6s ease-in-out infinite alternate",
+                        pointerEvents: "none",
+                      }} />
+                    )}
+                    <img
+                      src="/fennec-icon-transparent.png"
+                      alt="Fennec"
+                      style={{
+                        width: 36, height: 36,
+                        objectFit: "contain",
+                        filter: isActive
+                          ? "brightness(0) invert(1) drop-shadow(0 0 5px rgba(245,166,35,0.6))"
+                          : "brightness(0) invert(1)",
+                        opacity: isActive ? 1 : 0.35,
+                        transition: "opacity 0.2s, filter 0.3s",
+                        animation: isActive ? "fennecNavScale 2.6s ease-in-out infinite alternate" : undefined,
+                      }}
+                    />
+                  </div>
                   {isActive && <div className="mt-1.5 h-0.5 w-4 rounded-full bg-accent" />}
                 </button>
               );
