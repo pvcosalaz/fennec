@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Check, ArrowRight, Pencil } from "lucide-react";
-import { Player } from "@remotion/player";
 import InspireHero from "@/components/remotion/InspireHero";
 import { QuickIdeasCard, ContentLabCard, MyScriptsCard } from "@/components/remotion/ContentToolCards";
 
@@ -297,42 +296,25 @@ export default function CalendarHub({
       <div className="border-t border-zinc-800 pt-4 flex flex-col gap-3">
         <span className="text-xs uppercase tracking-widest text-zinc-500">Tools</span>
 
-        {/* Inspire — hero card with Remotion animation */}
+        {/* Inspire — hero card */}
         <button
           onClick={() => onOpenSheet("inspire")}
           className="relative w-full rounded-2xl overflow-hidden"
           style={{ height: 160 }}
         >
-          <Player
-            component={InspireHero}
-            durationInFrames={90}
-            fps={30}
-            compositionWidth={400}
-            compositionHeight={160}
-            style={{ width: "100%", height: "100%", pointerEvents: "none" }}
-            autoPlay
-            loop
-          />
+          <InspireHero />
         </button>
 
         {/* Quick Ideas · Music Content Lab · My Scripts */}
         <div className="flex gap-2 items-stretch">
           <button onClick={() => onOpenSheet("ideas")} className="relative rounded-2xl overflow-hidden flex-1" style={{ height: 110 }}>
-            <Player component={QuickIdeasCard} durationInFrames={90} fps={30}
-              compositionWidth={120} compositionHeight={110}
-              style={{ width: "100%", height: "100%", pointerEvents: "none" }} autoPlay loop />
+            <QuickIdeasCard />
           </button>
-
           <button onClick={() => onOpenSheet("lab")} className="relative rounded-2xl overflow-hidden flex-[1.6]" style={{ height: 110 }}>
-            <Player component={ContentLabCard} durationInFrames={90} fps={30}
-              compositionWidth={180} compositionHeight={110}
-              style={{ width: "100%", height: "100%", pointerEvents: "none" }} autoPlay loop />
+            <ContentLabCard />
           </button>
-
           <button onClick={() => onOpenSheet("scripts")} className="relative rounded-2xl overflow-hidden flex-1" style={{ height: 110 }}>
-            <Player component={MyScriptsCard} durationInFrames={90} fps={30}
-              compositionWidth={120} compositionHeight={110}
-              style={{ width: "100%", height: "100%", pointerEvents: "none" }} autoPlay loop />
+            <MyScriptsCard />
           </button>
         </div>
       </div>

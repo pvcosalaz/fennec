@@ -1,193 +1,217 @@
 "use client";
 
-import { AbsoluteFill, useCurrentFrame } from "remotion";
+// ─── Pure CSS animated cards — no Remotion frame counter ─────────────────────
+// Using CSS `animation-direction: alternate` so animations reverse smoothly
+// instead of snapping back to start (the root cause of the abrupt restart).
 
-// ─── Shared dark background ───────────────────────────────────────────────────
-function CardBase({ glowColor, children }: { glowColor: string; children: React.ReactNode }) {
-  const frame = useCurrentFrame();
-  const breathe = Math.sin(frame * 0.07) * 0.5 + 0.5;
-  const opacity = 0.06 + breathe * 0.09;
+const BASE_STYLES = `
+  @keyframes cardGlowAmber {
+    from { opacity: 0.05; }
+    to   { opacity: 0.18; }
+  }
+  @keyframes cardGlowGreen {
+    from { opacity: 0.05; }
+    to   { opacity: 0.16; }
+  }
+  @keyframes cardGlowPurple {
+    from { opacity: 0.04; }
+    to   { opacity: 0.15; }
+  }
+`;
 
-  return (
-    <AbsoluteFill style={{
-      background: "radial-gradient(ellipse 120% 120% at 50% 0%, #202020 0%, #141414 100%)",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: 8,
-      overflow: "hidden",
-      fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif",
-    }}>
-      {/* Breathing glow blob */}
-      <div style={{
-        position: "absolute",
-        width: "80%", height: "70%",
-        borderRadius: "50%",
-        background: `radial-gradient(circle, ${glowColor.replace(")", `,${opacity})`).replace("rgb", "rgba")} 0%, transparent 70%)`,
-        top: "5%", left: "10%",
-        pointerEvents: "none",
-      }} />
-      {children}
-    </AbsoluteFill>
-  );
-}
+// ─── Quick Ideas ──────────────────────────────────────────────────────────────
+const QUICK_IDEAS_CSS = `
+  @keyframes bulbScale {
+    from { transform: scale(0.94); filter: drop-shadow(0 0 6px rgba(251,191,36,0.5)); }
+    to   { transform: scale(1.05); filter: drop-shadow(0 0 20px rgba(251,191,36,0.95)); }
+  }
+  @keyframes sparkle {
+    0%,100% { opacity: 0; transform: scale(0) rotate(0deg); }
+    35%,65% { opacity: 1; transform: scale(1) rotate(20deg); }
+  }
+`;
 
-// ─── Quick Ideas — lightbulb with sparkles ────────────────────────────────────
-function Sparkle({ x, y, delay }: { x: number; y: number; delay: number }) {
-  const frame = useCurrentFrame();
-  const t = ((frame - delay) % 55 + 55) % 55;
-  const scale = t < 10 ? t / 10 : t < 35 ? 1 : Math.max(0, 1 - (t - 35) / 20);
-  const opacity = scale;
-  return (
-    <div style={{
-      position: "absolute",
-      left: x, top: y,
-      width: 4, height: 4,
-      borderRadius: "50%",
-      background: "#fbbf24",
-      opacity,
-      transform: `scale(${scale})`,
-      boxShadow: "0 0 6px rgba(251,191,36,0.9)",
-    }} />
-  );
-}
+const SPARKLE_POSITIONS = [
+  { top: "14%", left: "18%", delay: "0s",    dur: "3.2s" },
+  { top: "10%", left: "65%", delay: "0.9s",  dur: "2.8s" },
+  { top: "38%", left: "74%", delay: "1.7s",  dur: "3.6s" },
+  { top: "42%", left: "12%", delay: "2.4s",  dur: "3.0s" },
+];
 
 export function QuickIdeasCard() {
-  const frame = useCurrentFrame();
-  const glow = 10 + Math.sin(frame * 0.09) * 8;
-  const scale = 1 + Math.sin(frame * 0.08) * 0.04;
-
-  const sparkles = [
-    { x: "22%", y: "18%", delay: 0  },
-    { x: "68%", y: "12%", delay: 18 },
-    { x: "75%", y: "38%", delay: 9  },
-    { x: "15%", y: "42%", delay: 27 },
-  ];
-
   return (
-    <CardBase glowColor="rgb(251,191,36)">
-      {sparkles.map((s, i) => (
-        <Sparkle key={i} x={s.x as unknown as number} y={s.y as unknown as number} delay={s.delay} />
-      ))}
-      <span style={{
-        fontSize: 34,
-        lineHeight: 1,
-        display: "block",
-        transform: `scale(${scale})`,
-        filter: `drop-shadow(0 0 ${glow}px rgba(251,191,36,0.8))`,
-      }}>💡</span>
-      <span style={{
-        fontSize: 10,
-        fontWeight: 600,
-        color: "rgba(255,255,255,0.45)",
-        letterSpacing: "0.02em",
-        textAlign: "center",
-      }}>Quick Ideas</span>
-    </CardBase>
-  );
-}
+    <div style={{
+      width: "100%", height: "100%",
+      background: "radial-gradient(ellipse 120% 120% at 50% 0%, #202020 0%, #141414 100%)",
+      display: "flex", flexDirection: "column", alignItems: "center",
+      justifyContent: "center", gap: 8, overflow: "hidden", position: "relative",
+      fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif",
+    }}>
+      <style>{BASE_STYLES + QUICK_IDEAS_CSS}</style>
 
-// ─── Music Content Lab — bubbles rising ──────────────────────────────────────
-export function ContentLabCard() {
-  const frame = useCurrentFrame();
-  const glow = 12 + Math.sin(frame * 0.07) * 10;
-  const tilt = Math.sin(frame * 0.05) * 3;
+      {/* Ambient glow */}
+      <div style={{
+        position: "absolute", width: "75%", height: "65%",
+        borderRadius: "50%", top: "5%", left: "12%",
+        background: "radial-gradient(circle, rgba(251,191,36,1) 0%, transparent 70%)",
+        animation: "cardGlowAmber 5s ease-in-out infinite alternate",
+      }} />
 
-  return (
-    <CardBase glowColor="rgb(74,222,128)">
-      <style>{`
-        @keyframes bubble1 { 0%,100% { transform: translateY(0) scale(1); opacity: 0.7; }
-                              50% { transform: translateY(-28px) scale(0.7); opacity: 0; } }
-        @keyframes bubble2 { 0%,100% { transform: translateY(0) scale(0.8); opacity: 0.5; }
-                              50% { transform: translateY(-22px) scale(0.5); opacity: 0; } }
-        @keyframes bubble3 { 0%,100% { transform: translateY(0) scale(1.1); opacity: 0.6; }
-                              50% { transform: translateY(-32px) scale(0.6); opacity: 0; } }
-      `}</style>
-
-      {/* Bubbles */}
-      {[
-        { left: "36%", bottom: "44%", size: 5, anim: "bubble1", dur: "1.8s", delay: "0s"   },
-        { left: "48%", bottom: "44%", size: 4, anim: "bubble2", dur: "2.2s", delay: "0.6s" },
-        { left: "58%", bottom: "44%", size: 6, anim: "bubble3", dur: "1.6s", delay: "1.1s" },
-      ].map((b, i) => (
+      {/* Sparkles */}
+      {SPARKLE_POSITIONS.map((s, i) => (
         <div key={i} style={{
-          position: "absolute",
-          left: b.left, bottom: b.bottom,
-          width: b.size, height: b.size,
-          borderRadius: "50%",
-          background: "rgba(74,222,128,0.7)",
-          boxShadow: "0 0 4px rgba(74,222,128,0.6)",
-          animation: `${b.anim} ${b.dur} ease-in-out ${b.delay} infinite`,
+          position: "absolute", top: s.top, left: s.left,
+          width: 5, height: 5, borderRadius: "50%",
+          background: "#fbbf24",
+          boxShadow: "0 0 6px rgba(251,191,36,0.9)",
+          animation: `sparkle ${s.dur} ease-in-out ${s.delay} infinite`,
         }} />
       ))}
 
-      <span style={{
-        fontSize: 38,
-        lineHeight: 1,
-        display: "block",
-        transform: `rotate(${tilt}deg)`,
-        filter: `drop-shadow(0 0 ${glow}px rgba(74,222,128,0.7))`,
-      }}>🧪</span>
-      <span style={{
-        fontSize: 10,
-        fontWeight: 600,
-        color: "rgba(255,255,255,0.45)",
-        letterSpacing: "0.02em",
-        textAlign: "center",
-      }}>Music Content Lab</span>
-    </CardBase>
+      <span style={{ fontSize: 34, lineHeight: 1, display: "block",
+        animation: "bulbScale 4s ease-in-out infinite alternate" }}>💡</span>
+
+      <span style={{ fontSize: 10, fontWeight: 600,
+        color: "rgba(255,255,255,0.45)", letterSpacing: "0.02em" }}>
+        Quick Ideas
+      </span>
+    </div>
   );
 }
 
-// ─── My Scripts — text lines appearing ───────────────────────────────────────
-export function MyScriptsCard() {
-  const frame = useCurrentFrame();
-  const glow = 8 + Math.sin(frame * 0.08) * 6;
-  const penBob = Math.sin(frame * 0.1) * 2;
+// ─── Music Content Lab ────────────────────────────────────────────────────────
+const CONTENT_LAB_CSS = `
+  @keyframes tubeRock {
+    from { transform: rotate(-4deg); filter: drop-shadow(0 0 8px rgba(74,222,128,0.5)); }
+    to   { transform: rotate(4deg);  filter: drop-shadow(0 0 20px rgba(74,222,128,0.85)); }
+  }
+  @keyframes bubbleRise1 {
+    0%   { transform: translateY(0)   scale(1);   opacity: 0.7; }
+    100% { transform: translateY(-34px) scale(0.4); opacity: 0;   }
+  }
+  @keyframes bubbleRise2 {
+    0%   { transform: translateY(0)   scale(0.8); opacity: 0.55; }
+    100% { transform: translateY(-28px) scale(0.3); opacity: 0;   }
+  }
+  @keyframes bubbleRise3 {
+    0%   { transform: translateY(0)   scale(1.1); opacity: 0.65; }
+    100% { transform: translateY(-38px) scale(0.5); opacity: 0;   }
+  }
+`;
 
-  // Three text lines that cycle: grow → hold → shrink, staggered
-  const lineWidths = [0, 1, 2].map((i) => {
-    const period = 70;
-    const offset = i * 22;
-    const t = ((frame - offset) % period + period) % period;
-    if (t < 20) return (t / 20) * (55 + i * 10);
-    if (t < 45) return 55 + i * 10;
-    return Math.max(0, (55 + i * 10) * (1 - (t - 45) / 25));
-  });
-
+export function ContentLabCard() {
   return (
-    <CardBase glowColor="rgb(167,139,250)">
-      <span style={{
-        fontSize: 32,
-        lineHeight: 1,
-        display: "block",
-        transform: `translateY(${penBob}px)`,
-        filter: `drop-shadow(0 0 ${glow}px rgba(167,139,250,0.7))`,
-      }}>✍️</span>
+    <div style={{
+      width: "100%", height: "100%",
+      background: "radial-gradient(ellipse 120% 120% at 50% 0%, #1a231a 0%, #141414 100%)",
+      display: "flex", flexDirection: "column", alignItems: "center",
+      justifyContent: "center", gap: 8, overflow: "hidden", position: "relative",
+      fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif",
+    }}>
+      <style>{BASE_STYLES + CONTENT_LAB_CSS}</style>
+
+      {/* Ambient glow */}
+      <div style={{
+        position: "absolute", width: "75%", height: "65%",
+        borderRadius: "50%", top: "5%", left: "12%",
+        background: "radial-gradient(circle, rgba(74,222,128,1) 0%, transparent 70%)",
+        animation: "cardGlowGreen 5s ease-in-out infinite alternate",
+      }} />
+
+      {/* Bubbles — positioned relative to tube bottom */}
+      <div style={{ position: "relative" }}>
+        {[
+          { left: -14, anim: "bubbleRise1", dur: "3.2s", delay: "0s",    size: 5 },
+          { left:  -2, anim: "bubbleRise2", dur: "2.8s", delay: "1.1s",  size: 4 },
+          { left:  10, anim: "bubbleRise3", dur: "3.6s", delay: "0.55s", size: 6 },
+        ].map((b, i) => (
+          <div key={i} style={{
+            position: "absolute",
+            bottom: 32, left: `calc(50% + ${b.left}px)`,
+            width: b.size, height: b.size, borderRadius: "50%",
+            background: "rgba(74,222,128,0.75)",
+            boxShadow: "0 0 4px rgba(74,222,128,0.6)",
+            animation: `${b.anim} ${b.dur} ease-in ${b.delay} infinite`,
+          }} />
+        ))}
+
+        <span style={{ fontSize: 38, lineHeight: 1, display: "block",
+          animation: "tubeRock 5s ease-in-out infinite alternate" }}>🧪</span>
+      </div>
+
+      <span style={{ fontSize: 10, fontWeight: 600,
+        color: "rgba(255,255,255,0.45)", letterSpacing: "0.02em", textAlign: "center" }}>
+        Music Content Lab
+      </span>
+    </div>
+  );
+}
+
+// ─── My Scripts ───────────────────────────────────────────────────────────────
+const MY_SCRIPTS_CSS = `
+  @keyframes penBob {
+    from { transform: translateY(-3px) rotate(-3deg); filter: drop-shadow(0 0 6px rgba(167,139,250,0.5)); }
+    to   { transform: translateY(3px)  rotate(2deg);  filter: drop-shadow(0 0 16px rgba(167,139,250,0.85)); }
+  }
+  @keyframes lineGrow1 {
+    0%,100% { width: 0px;  opacity: 0;   }
+    20%,50% { width: 52px; opacity: 1;   }
+    75%     { width: 52px; opacity: 0.4; }
+  }
+  @keyframes lineGrow2 {
+    0%,100% { width: 0px;  opacity: 0;   }
+    20%,50% { width: 38px; opacity: 1;   }
+    75%     { width: 38px; opacity: 0.4; }
+  }
+  @keyframes lineGrow3 {
+    0%,100% { width: 0px;  opacity: 0;   }
+    20%,50% { width: 44px; opacity: 1;   }
+    75%     { width: 44px; opacity: 0.4; }
+  }
+`;
+
+export function MyScriptsCard() {
+  return (
+    <div style={{
+      width: "100%", height: "100%",
+      background: "radial-gradient(ellipse 120% 120% at 50% 0%, #1e1a23 0%, #141414 100%)",
+      display: "flex", flexDirection: "column", alignItems: "center",
+      justifyContent: "center", gap: 8, overflow: "hidden", position: "relative",
+      fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif",
+    }}>
+      <style>{BASE_STYLES + MY_SCRIPTS_CSS}</style>
+
+      {/* Ambient glow */}
+      <div style={{
+        position: "absolute", width: "75%", height: "65%",
+        borderRadius: "50%", top: "5%", left: "12%",
+        background: "radial-gradient(circle, rgba(167,139,250,1) 0%, transparent 70%)",
+        animation: "cardGlowPurple 5s ease-in-out infinite alternate",
+      }} />
+
+      <span style={{ fontSize: 32, lineHeight: 1, display: "block",
+        animation: "penBob 4s ease-in-out infinite alternate" }}>✍️</span>
 
       {/* Animated text lines */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 3, alignItems: "flex-start", width: 64 }}>
-        {lineWidths.map((w, i) => (
+      <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-start" }}>
+        {[
+          { anim: "lineGrow1", delay: "0s",    color: "rgba(167,139,250,0.7)", dur: "4.0s" },
+          { anim: "lineGrow2", delay: "0.8s",  color: "rgba(255,255,255,0.22)", dur: "4.0s" },
+          { anim: "lineGrow3", delay: "1.6s",  color: "rgba(255,255,255,0.18)", dur: "4.0s" },
+        ].map((l, i) => (
           <div key={i} style={{
-            height: 2.5,
-            width: w,
-            borderRadius: 2,
-            background: i === 0
-              ? "rgba(167,139,250,0.6)"
-              : "rgba(255,255,255,0.18)",
+            height: 2.5, borderRadius: 2,
+            background: l.color,
             boxShadow: i === 0 ? "0 0 5px rgba(167,139,250,0.4)" : "none",
+            animation: `${l.anim} ${l.dur} ease-in-out ${l.delay} infinite`,
           }} />
         ))}
       </div>
 
-      <span style={{
-        fontSize: 10,
-        fontWeight: 600,
-        color: "rgba(255,255,255,0.45)",
-        letterSpacing: "0.02em",
-        textAlign: "center",
-      }}>My Scripts</span>
-    </CardBase>
+      <span style={{ fontSize: 10, fontWeight: 600,
+        color: "rgba(255,255,255,0.45)", letterSpacing: "0.02em" }}>
+        My Scripts
+      </span>
+    </div>
   );
 }
