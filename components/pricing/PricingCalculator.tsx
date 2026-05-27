@@ -15,15 +15,6 @@ function SplashScreen({ exiting }: { exiting: boolean }) {
         transform: exiting ? "scale(1.08)" : "scale(1)",
       }}
     >
-      {/* Horizontal ambient glow line */}
-      <div style={{
-        position: "absolute",
-        top: "46%", left: 0, right: 0, height: 1,
-        background: "linear-gradient(90deg, transparent 5%, rgba(245,166,35,0.45) 50%, transparent 95%)",
-        boxShadow: "0 0 30px 8px rgba(245,166,35,0.1)",
-        animation: "bGlow 0.8s cubic-bezier(.16,1,.3,1) 0.1s both",
-      }} />
-
       {/* Content — shifted slightly above true center */}
       <div style={{ transform: "translateY(-8%)", display: "flex", flexDirection: "column", alignItems: "center" }}>
 
@@ -76,11 +67,7 @@ function SplashScreen({ exiting }: { exiting: boolean }) {
       </div>
 
       <style>{`
-        @keyframes bGlow {
-          from { opacity: 0; transform: scaleX(0.4); }
-          to   { opacity: 1; transform: scaleX(1); }
-        }
-        @keyframes bChar {
+@keyframes bChar {
           from { opacity: 0; transform: translateY(20px) rotateX(90deg); }
           to   { opacity: 1; transform: translateY(0)    rotateX(0deg); }
         }
