@@ -404,7 +404,7 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
             <img
               src="/fennec-logo.png"
               alt=""
-              style={{ width: 64, height: "auto", filter: "url(#db-logo-thicken) brightness(0)", opacity: 0.38, marginRight: -8 }}
+              style={{ width: 64, height: "auto", filter: "url(#db-logo-thicken) brightness(0)", opacity: 0.70, marginRight: -8 }}
             />
           </div>
 
