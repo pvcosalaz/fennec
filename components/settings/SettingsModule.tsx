@@ -56,7 +56,7 @@ const ROLES = [
   "Other",
 ];
 
-type Section = "main" | "profile" | "language" | "currency" | "data" | "notifications";
+export type Section = "main" | "profile" | "language" | "currency" | "data" | "notifications";
 
 type Props = {
   onBack: () => void;
@@ -66,10 +66,11 @@ type Props = {
   onAvatarChange?: (url: string) => void;
   onSignOut?: () => void;
   userId: string;
+  initialSection?: Section;
 };
 
-export default function SettingsModule({ onBack, language, onLanguageChange, avatarUrl, onAvatarChange, onSignOut, userId }: Props) {
-  const [section,       setSection]       = useState<Section>("main");
+export default function SettingsModule({ onBack, language, onLanguageChange, avatarUrl, onAvatarChange, onSignOut, userId, initialSection }: Props) {
+  const [section,       setSection]       = useState<Section>(initialSection ?? "main");
   const [profile,       setProfile]       = useState<UserProfile>(DEFAULT_PROFILE);
   const [currency,      setCurrency]      = useState<Currency>("COP");
   const [saved,         setSaved]         = useState(false);

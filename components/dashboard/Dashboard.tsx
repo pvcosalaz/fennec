@@ -204,7 +204,7 @@ function VUMeter({ platform, value = 0 }: { platform: typeof PLATFORMS[0]; value
 type SpotifyData = { connected: boolean; followers: number; displayName?: string; imageUrl?: string | null } | null;
 type YouTubeData = { connected: boolean; verified: boolean; subscriberCount: number; viewCount: number; videoCount: number; channelTitle: string; thumbnail?: string } | null;
 
-export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSettings }: { avatarUrl?: string | null; username?: string | null; isPro?: boolean; userId?: string | null; onOpenSettings?: () => void }) {
+export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSettings, onOpenProfileSettings }: { avatarUrl?: string | null; username?: string | null; isPro?: boolean; userId?: string | null; onOpenSettings?: () => void; onOpenProfileSettings?: () => void }) {
   const [projects,    setProjects]    = useState<Project[]>([]);
   const [quotes,      setQuotes]      = useState<Quote[]>([]);
   const [clients,     setClients]     = useState<Client[]>([]);
@@ -369,7 +369,7 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
               <img src={avatarUrl} alt="" className="w-20 h-20 rounded-full object-cover ring-2 ring-white/10 shrink-0 mt-1" />
             ) : (
               <button
-                onClick={onOpenSettings}
+                onClick={onOpenProfileSettings ?? onOpenSettings}
                 className="w-20 h-20 rounded-full bg-amber-500/20 border border-amber-500/20 flex flex-col items-center justify-center shrink-0 mt-1 hover:bg-amber-500/30 transition group"
                 title="Añade tu foto en Settings"
               >

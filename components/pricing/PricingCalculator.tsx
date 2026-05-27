@@ -95,7 +95,7 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import AudioModule from "@/components/audio/AudioModule";
-import SettingsModule from "@/components/settings/SettingsModule";
+import SettingsModule, { type Section as SettingsSection } from "@/components/settings/SettingsModule";
 import Dashboard from "@/components/dashboard/Dashboard";
 import BusinessHub, { type BusinessView } from "@/components/business/BusinessHub";
 import ClientsLeads from "@/components/business/ClientsLeads";
@@ -326,7 +326,8 @@ export default function PricingCalculator() {
   useEffect(() => { localStorage.setItem("fennec_active_tab", activeTab); }, [activeTab]);
 
   const [pendingAudio, setPendingAudio] = useState<{ url: string; name: string } | null>(null);
-  const [showSettings, setShowSettings] = useState(false);
+  const [showSettings,    setShowSettings]    = useState(false);
+  const [settingsSection, setSettingsSection] = useState<SettingsSection>("main");
   const [showSetup, setShowSetup] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [businessView, setBusinessView] = useState<BusinessView>("hub");
@@ -534,13 +535,14 @@ export default function PricingCalculator() {
       {/* wave removed */}
       {showSettings ? (
         <SettingsModule
-          onBack={() => setShowSettings(false)}
+          onBack={() => { setShowSettings(false); setSettingsSection("main"); }}
           language={i18n.resolvedLanguage ?? "en"}
           onLanguageChange={(lang) => { void i18n.changeLanguage(lang); }}
           avatarUrl={profile.avatar_url}
           onAvatarChange={(url) => setProfile((p) => p ? { ...p, avatar_url: url } : p)}
           onSignOut={async () => { await supabase.auth.signOut(); }}
           userId={authUser.id}
+          initialSection={settingsSection}
         />
       ) : activeTab === "pricing" && businessView === "hub" ? (
         <BusinessHub key={hubRefreshKey} onOpenView={setBusinessView} isPro={profile?.is_pro ?? true} userId={authUser.id} />
@@ -974,7 +976,14 @@ export default function PricingCalculator() {
           )}
         </section>
       ) : activeTab === "dashboard" ? (
-        <Dashboard avatarUrl={profile.avatar_url} username={profile.username} isPro={profile.is_pro} userId={authUser?.id} onOpenSettings={() => setShowSettings(true)} />
+        <Dashboard
+          avatarUrl={profile.avatar_url}
+          username={profile.username}
+          isPro={profile.is_pro}
+          userId={authUser?.id}
+          onOpenSettings={() => { setSettingsSection("main"); setShowSettings(true); }}
+          onOpenProfileSettings={() => { setSettingsSection("profile"); setShowSettings(true); }}
+        />
       ) : activeTab === "contenido" ? (
         <ContentModule />
       ) : activeTab === "ideas" ? (
