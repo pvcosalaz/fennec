@@ -73,10 +73,18 @@ export default function ReviewFeedback({ onSubmit, onClose }: Props) {
         className="w-full rounded-t-3xl bg-zinc-950 border-t border-white/10 p-5 space-y-4"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Header — close + post always visible above keyboard */}
         <div className="flex items-center justify-between">
-          <p className="text-sm font-semibold text-white">Leave Feedback</p>
           <button onClick={onClose}>
             <X className="h-5 w-5 text-zinc-500" />
+          </button>
+          <p className="text-sm font-semibold text-white">Leave Feedback</p>
+          <button
+            onClick={handleSubmit}
+            disabled={!body.trim() || loading}
+            className="text-sm font-semibold text-amber-400 disabled:opacity-30 transition"
+          >
+            {loading ? "Posting…" : "Post"}
           </button>
         </div>
         <p className="text-xs text-zinc-600">
@@ -91,14 +99,6 @@ export default function ReviewFeedback({ onSubmit, onClose }: Props) {
           className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-amber-500 resize-none"
         />
         {error && <p className="text-xs text-red-400">{error}</p>}
-        <button
-          onClick={handleSubmit}
-          disabled={!body.trim() || loading}
-          className="w-full flex items-center justify-center gap-2 h-11 rounded-xl bg-amber-500 text-black text-sm font-semibold disabled:opacity-40 transition"
-        >
-          <Send className="h-4 w-4" />
-          {loading ? "Posting..." : "Post Feedback"}
-        </button>
       </div>
     </div>
   );
