@@ -3,6 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 function SplashScreen({ exiting }: { exiting: boolean }) {
+  const chars = ["f", "e", "n", "n", "e", "c"];
+  const delays = [0.1, 0.25, 0.38, 0.51, 0.64, 0.76];
+
   return (
     <div
       className="flex h-screen flex-col items-center justify-center bg-[#0d0d0f] relative overflow-hidden"
@@ -12,68 +15,77 @@ function SplashScreen({ exiting }: { exiting: boolean }) {
         transform: exiting ? "scale(1.08)" : "scale(1)",
       }}
     >
-      {/* Ambient glow */}
-      <div
-        className="absolute rounded-full pointer-events-none"
-        style={{
-          width: 260, height: 260,
-          background: "radial-gradient(circle, rgba(245,166,35,0.2) 0%, transparent 65%)",
-          animation: "splashGlow 3s ease-in-out infinite alternate",
-        }}
-      />
-
-      {/* Expanding rings */}
-      <div className="absolute" style={{
-        width: 180, height: 180, borderRadius: "50%",
-        border: "1px solid rgba(245,166,35,0.35)",
-        top: "50%", left: "50%",
-        transform: "translate(-50%,-50%) scale(0)",
-        animation: "splashRing 2.4s ease-out 0.7s infinite both",
-      }} />
-      <div className="absolute" style={{
-        width: 180, height: 180, borderRadius: "50%",
-        border: "1px solid rgba(245,166,35,0.18)",
-        top: "50%", left: "50%",
-        transform: "translate(-50%,-50%) scale(0)",
-        animation: "splashRing 2.4s ease-out 1.5s infinite both",
+      {/* Horizontal ambient glow line */}
+      <div style={{
+        position: "absolute",
+        bottom: "38%", left: 0, right: 0, height: 1,
+        background: "linear-gradient(90deg, transparent 5%, rgba(245,166,35,0.45) 50%, transparent 95%)",
+        boxShadow: "0 0 30px 8px rgba(245,166,35,0.1)",
+        animation: "bGlow 1.2s cubic-bezier(.16,1,.3,1) 0.2s both",
       }} />
 
-      {/* Fox logo */}
-      <img
-        src="/fennec-logo.png"
-        alt="Fennec"
-        className="relative z-10 mb-5"
-        style={{
-          width: 150,
-          filter: "brightness(0) invert(1)",
-          animation: "splashFadeUp 0.9s cubic-bezier(.16,1,.3,1) 0.3s both",
-        }}
-      />
+      {/* "fennec" — letter by letter */}
+      <div style={{
+        display: "flex", alignItems: "baseline", gap: 1,
+        perspective: 600, position: "relative",
+      }}>
+        {chars.map((c, i) => (
+          <span key={i} style={{
+            fontSize: 64, fontWeight: 900, lineHeight: 1,
+            letterSpacing: "-0.03em", color: "#fff",
+            opacity: 0, display: "inline-block",
+            animation: `bChar 0.5s cubic-bezier(.16,1,.3,1) ${delays[i]}s both`,
+          }}>{c}</span>
+        ))}
 
-      {/* fennec */}
-      <p
-        className="relative z-10 text-white font-black leading-none"
-        style={{
-          fontSize: 38,
-          letterSpacing: "-0.04em",
-          animation: "splashFadeUp 0.7s cubic-bezier(.16,1,.3,1) 0.65s both",
-        }}
-      >
-        fennec
+        {/* Amber dot */}
+        <span style={{
+          display: "inline-block",
+          width: 7, height: 7, borderRadius: "50%",
+          background: "#f5a623",
+          boxShadow: "0 0 10px rgba(245,166,35,0.9)",
+          opacity: 0, flexShrink: 0,
+          alignSelf: "flex-end",
+          marginLeft: 3, marginBottom: 10,
+          animation: "bDot 0.4s ease 1.35s forwards",
+        }} />
+
+        {/* Underline extending left→right */}
+        <div style={{
+          position: "absolute", bottom: -6, left: 0,
+          height: 2, borderRadius: 2, width: 0,
+          background: "#f5a623",
+          boxShadow: "0 0 10px rgba(245,166,35,0.6)",
+          animation: "bUnder 0.6s cubic-bezier(.16,1,.3,1) 1.05s both",
+        }} />
+      </div>
+
+      {/* Tagline */}
+      <p style={{
+        fontSize: 10, letterSpacing: "0.18em",
+        textTransform: "uppercase", color: "#444",
+        marginTop: 20, opacity: 0,
+        animation: "bDot 0.5s ease 1.65s forwards",
+      }}>
+        music business &amp; community hub
       </p>
 
       <style>{`
-        @keyframes splashGlow {
-          from { transform: scale(0.85); opacity: 0.35; }
-          to   { transform: scale(1.25); opacity: 0.85; }
+        @keyframes bGlow {
+          from { opacity: 0; transform: scaleX(0.4); }
+          to   { opacity: 1; transform: scaleX(1); }
         }
-        @keyframes splashRing {
-          0%   { transform: translate(-50%,-50%) scale(0);   opacity: 0.7; }
-          100% { transform: translate(-50%,-50%) scale(1.9); opacity: 0; }
+        @keyframes bChar {
+          from { opacity: 0; transform: translateY(24px) rotateX(90deg); }
+          to   { opacity: 1; transform: translateY(0)    rotateX(0deg); }
         }
-        @keyframes splashFadeUp {
-          from { opacity: 0; transform: translateY(16px) scale(0.92); }
-          to   { opacity: 1; transform: translateY(0)    scale(1); }
+        @keyframes bUnder {
+          from { width: 0;    opacity: 0; }
+          to   { width: 100%; opacity: 1; }
+        }
+        @keyframes bDot {
+          from { opacity: 0; transform: scale(0); }
+          to   { opacity: 1; transform: scale(1); }
         }
       `}</style>
     </div>
