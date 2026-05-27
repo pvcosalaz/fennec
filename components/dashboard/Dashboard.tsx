@@ -332,7 +332,19 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
       )}
 
       {/* ── Fennec dB ────────────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden rounded-2xl px-4 pt-4 pb-6 border border-white/[0.07]" style={{ background: "rgba(28, 26, 32, 0.85)", backdropFilter: "blur(32px) saturate(180%)", boxShadow: "0 0 40px rgba(245,166,35,0.06), inset 0 1px 0 rgba(255,255,255,0.06)" }}>
+      <style>{`
+        @keyframes dbGlow {
+          0%,100% { box-shadow: 0 0 30px rgba(245,166,35,0.06), inset 0 1px 0 rgba(255,255,255,0.06); border-color: rgba(245,166,35,0.10); }
+          50%      { box-shadow: 0 0 55px rgba(245,166,35,0.18), 0 0 90px rgba(245,166,35,0.07), inset 0 1px 0 rgba(255,255,255,0.10); border-color: rgba(245,166,35,0.28); }
+        }
+        @keyframes eqBar {
+          0%,100% { transform: scaleY(0.2); }
+          50%      { transform: scaleY(1); }
+        }
+        .db-card-glow { animation: dbGlow 8s ease-in-out infinite; }
+        .eq-bar { display: inline-block; width: 2.5px; border-radius: 2px; background: #f5a623; margin: 0 1px; transform-origin: bottom; animation: eqBar 2.2s ease-in-out infinite; opacity: 0.6; }
+      `}</style>
+      <div className="db-card-glow relative overflow-hidden rounded-2xl px-4 pt-4 pb-6 border border-[rgba(245,166,35,0.10)]" style={{ background: "rgba(28, 26, 32, 0.85)", backdropFilter: "blur(32px) saturate(180%)" }}>
         {/* Ambient glow behind glass */}
         <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 80% 60% at 50% 120%, rgba(245,166,35,0.10) 0%, transparent 70%)" }} />
         <div className="relative z-10 space-y-4">
@@ -374,9 +386,21 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
                   <Info className="h-3 w-3" />
                 </button>
               </div>
-              <p className="text-6xl font-black text-white leading-none tracking-tighter tabular-nums">
-                <AnimatedNumber value={fennecDb} />
-              </p>
+              <div className="flex items-end gap-2">
+                <p className="text-6xl font-black text-white leading-none tracking-tighter tabular-nums">
+                  <AnimatedNumber value={fennecDb} />
+                </p>
+                {/* EQ bars */}
+                <div className="flex items-end pb-1" style={{ height: 28 }}>
+                  {[18, 26, 12, 22, 16, 28, 10].map((h, i) => (
+                    <span
+                      key={i}
+                      className="eq-bar"
+                      style={{ height: h, animationDelay: `${i * 0.18}s` }}
+                    />
+                  ))}
+                </div>
+              </div>
               <p className="text-xs text-zinc-300">business signal</p>
             </div>
 
