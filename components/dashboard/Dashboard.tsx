@@ -376,6 +376,14 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
         .db-card-glow { animation: borderAmber 3.5s ease-in-out infinite; }
         .eq-bar { display: inline-block; width: 2.5px; border-radius: 2px; background: #f5a623; margin: 0 1px; transform-origin: bottom; animation: eqBar 1.1s ease-in-out infinite alternate; opacity: 0.6; }
       `}</style>
+      {/* SVG filter to thicken logo strokes */}
+      <svg style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }}>
+        <defs>
+          <filter id="db-logo-thicken" x="-20%" y="-20%" width="140%" height="140%">
+            <feMorphology operator="dilate" radius="1.2" />
+          </filter>
+        </defs>
+      </svg>
       <div className="relative">
         <div className="db-card-halo" />
         <div className="db-card-glow relative overflow-hidden rounded-2xl px-4 pt-4 pb-6 border border-transparent" style={{ background: "#ffffff" }}>
@@ -396,7 +404,7 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
             <img
               src="/fennec-logo.png"
               alt=""
-              style={{ width: 64, height: "auto", filter: "brightness(0)", opacity: 0.22, marginRight: -8 }}
+              style={{ width: 64, height: "auto", filter: "url(#db-logo-thicken) brightness(0)", opacity: 0.38, marginRight: -8 }}
             />
           </div>
 
