@@ -1046,7 +1046,7 @@ export default function PricingCalculator() {
               return (
                 <button
                   key={tab.id}
-                  onClick={() => { setActiveTab(tab.id); setBusinessView("hub"); }}
+                  onClick={() => { setActiveTab(tab.id); setBusinessView("hub"); setShowSettings(false); setSettingsSection("main"); }}
                   className="flex flex-1 flex-col items-center justify-center py-3 transition"
                 >
                   <div className={`flex h-11 w-11 items-center justify-center rounded-full transition ${
