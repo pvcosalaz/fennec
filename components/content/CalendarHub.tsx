@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Check, ArrowRight, Pencil } from "lucide-react";
 import { Player } from "@remotion/player";
 import InspireHero from "@/components/remotion/InspireHero";
+import { QuickIdeasCard, ContentLabCard, MyScriptsCard } from "@/components/remotion/ContentToolCards";
 
 const TRENDING_CACHE_KEY = "fennec-trending-ideas-v3";
 
@@ -316,40 +317,22 @@ export default function CalendarHub({
 
         {/* Quick Ideas · Music Content Lab · My Scripts */}
         <div className="flex gap-2 items-stretch">
-          {/* Quick Ideas */}
-          <button
-            onClick={() => onOpenSheet("ideas")}
-            className="relative rounded-2xl overflow-hidden group flex-1"
-            style={{ background: "radial-gradient(ellipse 120% 120% at 50% 0%, #222 0%, #161616 100%)" }}
-          >
-            <div className="flex flex-col items-center gap-2 py-5 px-2">
-              <span className="text-4xl leading-none">💡</span>
-              <span className="text-[11px] font-semibold text-zinc-500 text-center leading-tight">Quick Ideas</span>
-            </div>
+          <button onClick={() => onOpenSheet("ideas")} className="relative rounded-2xl overflow-hidden flex-1" style={{ height: 110 }}>
+            <Player component={QuickIdeasCard} durationInFrames={90} fps={30}
+              compositionWidth={120} compositionHeight={110}
+              style={{ width: "100%", height: "100%", pointerEvents: "none" }} autoPlay loop />
           </button>
 
-          {/* Music Content Lab */}
-          <button
-            onClick={() => onOpenSheet("lab")}
-            className="relative rounded-2xl overflow-hidden group flex-[1.6]"
-            style={{ background: "radial-gradient(ellipse 120% 120% at 50% 0%, #222 0%, #161616 100%)" }}
-          >
-            <div className="flex flex-col items-center gap-2.5 py-5 px-3">
-              <span className="text-5xl leading-none">🧪</span>
-              <span className="text-[12px] font-semibold text-zinc-500 text-center leading-tight">Music Content Lab</span>
-            </div>
+          <button onClick={() => onOpenSheet("lab")} className="relative rounded-2xl overflow-hidden flex-[1.6]" style={{ height: 110 }}>
+            <Player component={ContentLabCard} durationInFrames={90} fps={30}
+              compositionWidth={180} compositionHeight={110}
+              style={{ width: "100%", height: "100%", pointerEvents: "none" }} autoPlay loop />
           </button>
 
-          {/* My Scripts */}
-          <button
-            onClick={() => onOpenSheet("scripts")}
-            className="relative rounded-2xl overflow-hidden group flex-1"
-            style={{ background: "radial-gradient(ellipse 120% 120% at 50% 0%, #222 0%, #161616 100%)" }}
-          >
-            <div className="flex flex-col items-center gap-2 py-5 px-2">
-              <span className="text-4xl leading-none">✍️</span>
-              <span className="text-[11px] font-semibold text-zinc-500 text-center leading-tight">My Scripts</span>
-            </div>
+          <button onClick={() => onOpenSheet("scripts")} className="relative rounded-2xl overflow-hidden flex-1" style={{ height: 110 }}>
+            <Player component={MyScriptsCard} durationInFrames={90} fps={30}
+              compositionWidth={120} compositionHeight={110}
+              style={{ width: "100%", height: "100%", pointerEvents: "none" }} autoPlay loop />
           </button>
         </div>
       </div>
