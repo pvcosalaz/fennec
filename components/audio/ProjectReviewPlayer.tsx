@@ -60,7 +60,10 @@ export default function ProjectReviewPlayer({
   onSkipStreakChange,
 }: Props) {
   const audioRef                = useRef<HTMLAudioElement | null>(null);
+  const analyserRef             = useRef<{ ctx: AudioContext; analyser: AnalyserNode; data: Uint8Array<ArrayBuffer> } | null>(null);
+  const ampRafRef               = useRef<number>(0);
   const [playing, setPlaying]   = useState(false);
+  const [amplitude, setAmplitude] = useState(0);
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [comments, setComments]       = useState<ReviewComment[]>([]);
@@ -103,17 +106,59 @@ export default function ProjectReviewPlayer({
     return () => { cancelled = true; };
   }, [track.audio_url]);
 
-  // Load audio
+  // Load audio + set up Web Audio analyser
   useEffect(() => {
     const audio = new Audio(track.audio_url);
+    audio.crossOrigin = "anonymous";
     audioRef.current = audio;
     audio.ontimeupdate = () => {
       setCurrentTime(audio.currentTime);
       setProgress(audio.currentTime / (audio.duration || 1));
     };
-    audio.onended = () => { setPlaying(false); setProgress(1); };
-    return () => { audio.pause(); audio.src = ""; };
+    audio.onended = () => { setPlaying(false); setProgress(1); setAmplitude(0); };
+
+    // Wire up AnalyserNode for real-time amplitude
+    try {
+      const ctx = new AudioContext();
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 128;
+      analyser.smoothingTimeConstant = 0.82;
+      const source = ctx.createMediaElementSource(audio);
+      source.connect(analyser);
+      analyser.connect(ctx.destination);
+      analyserRef.current = { ctx, analyser, data: new Uint8Array(analyser.frequencyBinCount) as Uint8Array<ArrayBuffer> };
+    } catch {
+      analyserRef.current = null; // graceful degradation
+    }
+
+    return () => {
+      audio.pause();
+      audio.src = "";
+      cancelAnimationFrame(ampRafRef.current);
+      analyserRef.current?.ctx.close();
+      analyserRef.current = null;
+      setAmplitude(0);
+    };
   }, [track.audio_url]);
+
+  // Drive amplitude from analyser while playing
+  useEffect(() => {
+    cancelAnimationFrame(ampRafRef.current);
+    if (!playing || !analyserRef.current) { setAmplitude(0); return; }
+    const { ctx, analyser, data } = analyserRef.current;
+    if (ctx.state === "suspended") ctx.resume();
+    const tick = () => {
+      analyser.getByteFrequencyData(data);
+      // Focus on bass / low-mids (first third of spectrum)
+      const end = Math.floor(data.length / 3);
+      let sum = 0;
+      for (let i = 0; i < end; i++) sum += data[i];
+      setAmplitude(Math.min(1, (sum / (end * 255)) * 2.8));
+      ampRafRef.current = requestAnimationFrame(tick);
+    };
+    ampRafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(ampRafRef.current);
+  }, [playing]);
 
   // Load comments
   useEffect(() => {
@@ -160,7 +205,10 @@ export default function ProjectReviewPlayer({
     onSkipStreakChange(0);
   }
 
-  const clipId = `clip-${track.id}`;
+  const clipId      = `clip-${track.id}`;
+  const glowOpacity = 0.04 + amplitude * 0.16;
+  const glowSize    = 18 + amplitude * 32;
+  const ringOpacity = 0.06 + amplitude * 0.18;
 
   return (
     <div className="flex flex-col gap-4 px-1">
@@ -172,6 +220,8 @@ export default function ProjectReviewPlayer({
           background: track.artwork_url
             ? undefined
             : (artGradients[track.category] ?? artGradients["Demo"]),
+          boxShadow: `0 0 ${glowSize}px rgba(245,166,35,${glowOpacity}), 0 8px 32px rgba(0,0,0,0.4)`,
+          transition: "box-shadow 0.08s",
         }}
       >
         {track.artwork_url && (
@@ -181,6 +231,20 @@ export default function ProjectReviewPlayer({
             className="absolute inset-0 w-full h-full object-cover"
           />
         )}
+
+        {/* Reactive glow rings — only when no artwork */}
+        {!track.artwork_url && [1, 0.5].map((intensity, i) => (
+          <div key={i} style={{
+            position: "absolute",
+            width:  `${52 + i * 18 + amplitude * 12}%`,
+            height: `${52 + i * 18 + amplitude * 12}%`,
+            borderRadius: "50%",
+            background: `radial-gradient(circle, rgba(245,166,35,${ringOpacity * intensity}) 0%, transparent 70%)`,
+            transition: "width 0.08s, height 0.08s",
+            pointerEvents: "none",
+          }} />
+        ))}
+
         <span
           className={`absolute top-3 left-3 text-[9px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest ${CATEGORY_COLORS[track.category]}`}
         >
@@ -194,6 +258,8 @@ export default function ProjectReviewPlayer({
             background: "rgba(255,255,255,0.12)",
             backdropFilter: "blur(8px)",
             border: "1px solid rgba(255,255,255,0.15)",
+            filter: `drop-shadow(0 0 ${8 + amplitude * 10}px rgba(245,166,35,${0.1 + amplitude * 0.25}))`,
+            transition: "filter 0.08s",
           }}
         >
           {playing
