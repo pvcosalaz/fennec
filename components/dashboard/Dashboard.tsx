@@ -386,33 +386,31 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
                   <Info className="h-3 w-3" />
                 </button>
               </div>
-              <div className="flex items-end gap-2">
-                <p className="text-6xl font-black text-white leading-none tracking-tighter tabular-nums">
-                  <AnimatedNumber value={fennecDb} />
-                </p>
-                {/* EQ bars */}
-                <div className="flex items-end pb-1" style={{ height: 28 }}>
-                  {[18, 26, 12, 22, 16, 28, 10].map((h, i) => (
-                    <span
-                      key={i}
-                      className="eq-bar"
-                      style={{ height: h, animationDelay: `${i * 0.18}s` }}
-                    />
-                  ))}
-                </div>
-              </div>
+              <p className="text-6xl font-black text-white leading-none tracking-tighter tabular-nums">
+                <AnimatedNumber value={fennecDb} />
+              </p>
               <p className="text-xs text-zinc-300">business signal</p>
+              {/* EQ bars below the score */}
+              <div className="flex items-end gap-px" style={{ height: 18, marginTop: 4 }}>
+                {[10, 16, 8, 14, 10, 18, 7, 13, 16, 9].map((h, i) => (
+                  <span
+                    key={i}
+                    className="eq-bar"
+                    style={{ height: h, animationDelay: `${i * 0.15}s` }}
+                  />
+                ))}
+              </div>
             </div>
 
             {/* Signal components — fill the space to the right */}
             <div className="flex flex-col gap-1.5 pt-0.5 flex-1">
               {[
-                { label: "Active projects", value: activeCount,       color: "#4d96ff", weight: 150,  connected: true  },
-                { label: "Clients",         value: clients.length,    color: "#c77dff", weight: 75,   connected: true  },
-                { label: "Closed",          value: closedCount,       color: "#6bcb77", weight: 50,   connected: true  },
-                { label: "Spotify",         value: spotifyData?.connected ? spotifyFollowers : null, color: "#1DB954", weight: 1, connected: spotifyData?.connected ?? false },
-                { label: "YouTube",         value: youtubeData ? youtubeSubscribers : null,           color: "#FF0000", weight: 1, connected: !!youtubeData },
-                { label: "Reach",           value: null,              color: "#E1306C", weight: null, connected: false },
+                { label: "Active projects", value: activeCount,                                        color: "#4d96ff", connected: true  },
+                { label: "Clients",         value: clients.length,                                     color: "#c77dff", connected: true  },
+                { label: "Closed",          value: closedCount,                                        color: "#6bcb77", connected: true  },
+                { label: "Spotify",         value: spotifyData?.connected ? spotifyFollowers : null,   color: "#1DB954", connected: spotifyData?.connected ?? false },
+                { label: "YouTube",         value: youtubeData ? youtubeSubscribers : null,            color: "#FF0000", connected: !!youtubeData },
+                { label: "Reach",           value: null,                                               color: "#E1306C", connected: false },
               ].map((row) => (
                 <div key={row.label} className="flex items-center gap-2">
                   <div
@@ -425,7 +423,7 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
                   <span className="text-xs text-zinc-300 w-20">{row.label}</span>
                   {row.value !== null ? (
                     <span className={`text-[10px] font-medium ${row.value > 0 ? "text-white" : "text-zinc-700"}`}>
-                      {row.value > 0 ? `${row.value} × ${row.weight}` : "—"}
+                      {row.value > 0 ? row.value : "—"}
                     </span>
                   ) : (
                     <span className="text-[10px] text-zinc-500 italic">connect soon</span>
