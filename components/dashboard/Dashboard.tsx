@@ -355,20 +355,32 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
 
       {/* ── Fennec dB ────────────────────────────────────────────────────── */}
       <style>{`
-        @keyframes dbGlow {
-          from { box-shadow: 0 4px 24px rgba(0,0,0,0.10), 0 0 40px rgba(245,166,35,0.08); }
-          to   { box-shadow: 0 4px 36px rgba(0,0,0,0.14), 0 0 60px rgba(245,166,35,0.16); }
+        @keyframes haloGlow {
+          0%,100% { opacity: 0.55; transform: scale(0.97); }
+          50%      { opacity: 1;    transform: scale(1.03); }
+        }
+        @keyframes borderAmber {
+          0%,100% { box-shadow: 0 4px 28px rgba(0,0,0,0.10), 0 0 0 1px rgba(245,166,35,0.30); }
+          50%      { box-shadow: 0 4px 36px rgba(0,0,0,0.12), 0 0 0 1px rgba(245,166,35,0.65); }
         }
         @keyframes eqBar {
           from { transform: scaleY(0.2); }
           to   { transform: scaleY(1); }
         }
-        .db-card-glow { animation: dbGlow 3.5s ease-in-out infinite alternate; }
+        .db-card-halo {
+          position: absolute; inset: -20px; border-radius: 32px;
+          background: radial-gradient(ellipse at 50% 50%, rgba(245,166,35,0.32) 0%, rgba(245,166,35,0.12) 42%, transparent 72%);
+          animation: haloGlow 3.5s ease-in-out infinite;
+          pointer-events: none; z-index: 0;
+        }
+        .db-card-glow { animation: borderAmber 3.5s ease-in-out infinite; }
         .eq-bar { display: inline-block; width: 2.5px; border-radius: 2px; background: #f5a623; margin: 0 1px; transform-origin: bottom; animation: eqBar 1.1s ease-in-out infinite alternate; opacity: 0.6; }
       `}</style>
-      <div className="db-card-glow relative overflow-hidden rounded-2xl px-4 pt-4 pb-6 border border-black/8" style={{ background: "#ffffff" }}>
-        {/* Ambient glow behind glass */}
-        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 80% 60% at 50% 120%, rgba(245,166,35,0.07) 0%, transparent 70%)" }} />
+      <div className="relative">
+        <div className="db-card-halo" />
+        <div className="db-card-glow relative overflow-hidden rounded-2xl px-4 pt-4 pb-6 border border-transparent" style={{ background: "#ffffff" }}>
+        {/* Ambient glow bottom */}
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 80% 50% at 50% 110%, rgba(245,166,35,0.05) 0%, transparent 70%)" }} />
         <div className="relative z-10 space-y-4">
 
           {/* Row 1: Greeting + full name left, logo right */}
@@ -505,6 +517,7 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
             </div>
           )}
         </div>
+      </div>
       </div>
 
       {/* ── KPIs ─────────────────────────────────────────────────────────── */}
