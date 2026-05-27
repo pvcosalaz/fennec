@@ -315,7 +315,7 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
   }, [projects, quotes]);
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-4 pb-8 pt-2 px-4">
+    <div className="mx-auto w-full max-w-4xl space-y-4 pb-8 pt-1 px-4">
 
       {/* ── Toasts ────────────────────────────────────────────────────────── */}
       {spotifyToast && (

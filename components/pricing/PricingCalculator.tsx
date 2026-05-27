@@ -514,9 +514,9 @@ export default function PricingCalculator() {
 
   return (
     <div className="flex h-screen flex-col bg-background">
-    <main id="scroll-root" className="flex-1 overflow-y-auto overscroll-none pb-6 pt-6" style={{ overscrollBehavior: "none" }}>
+    <main id="scroll-root" className="flex-1 overflow-y-auto overscroll-none pb-6 pt-10" style={{ overscrollBehavior: "none" }}>
       {/* Settings button */}
-      <div className={`flex w-full max-w-4xl items-center px-6 ${activeTab === "dashboard" ? "mb-0" : "mb-4"}`}>
+      <div className={`flex w-full max-w-4xl items-center px-6 ${activeTab === "dashboard" ? "mb-4" : "mb-4"}`}>
         <div className="flex-1 flex justify-start">
           <NotificationBell userId={authUser.id} />
         </div>
