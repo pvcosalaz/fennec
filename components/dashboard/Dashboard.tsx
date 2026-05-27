@@ -360,8 +360,8 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
           50%      { opacity: 1;   transform: scale(1.04); }
         }
         @keyframes borderAmber {
-          0%,100% { box-shadow: 0 6px 32px rgba(0,0,0,0.12), 0 0 0 1.5px rgba(245,166,35,0.35); }
-          50%      { box-shadow: 0 6px 40px rgba(0,0,0,0.14), 0 0 0 1.5px rgba(245,166,35,0.75); }
+          0%,100% { box-shadow: 0 6px 32px rgba(0,0,0,0.12), 0 0 0 1.5px rgba(245,166,35,0.25), 0 0 10px rgba(245,166,35,0.10); }
+          50%      { box-shadow: 0 6px 40px rgba(0,0,0,0.14), 0 0 0 2px   rgba(245,166,35,0.90), 0 0 22px rgba(245,166,35,0.40); }
         }
         @keyframes eqBar {
           from { transform: scaleY(0.2); }
@@ -380,7 +380,7 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
       <svg style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }}>
         <defs>
           <filter id="db-logo-thicken" x="-10%" y="-10%" width="120%" height="120%">
-            <feMorphology operator="dilate" radius="0.4" />
+            <feMorphology operator="dilate" radius="0.15" />
           </filter>
         </defs>
       </svg>
@@ -402,7 +402,7 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
             <img
               src="/fennec-logo.png"
               alt=""
-              style={{ width: 64, height: "auto", filter: "url(#db-logo-thicken) brightness(0)", opacity: 0.70, marginRight: -8 }}
+              style={{ width: 64, height: "auto", filter: "url(#db-logo-thicken) brightness(0)", marginRight: -8 }}
             />
           </div>
 
