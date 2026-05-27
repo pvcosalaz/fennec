@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Check, ArrowRight, Pencil } from "lucide-react";
+import { Player } from "@remotion/player";
+import InspireHero from "@/components/remotion/InspireHero";
 
 const TRENDING_CACHE_KEY = "fennec-trending-ideas-v3";
 
@@ -294,17 +296,22 @@ export default function CalendarHub({
       <div className="border-t border-zinc-800 pt-4 flex flex-col gap-3">
         <span className="text-xs uppercase tracking-widest text-zinc-500">Tools</span>
 
-        {/* Inspire — hero card, spotlight style */}
+        {/* Inspire — hero card with Remotion animation */}
         <button
           onClick={() => onOpenSheet("inspire")}
-          className="relative w-full rounded-2xl overflow-hidden group"
-          style={{ background: "radial-gradient(ellipse 80% 80% at 50% 0%, #2a2a2a 0%, #161616 100%)" }}
+          className="relative w-full rounded-2xl overflow-hidden"
+          style={{ height: 160 }}
         >
-          <div className="flex flex-col items-center gap-2 py-6 px-4">
-            <span className="text-5xl leading-none">⚡</span>
-            <p className="text-white font-bold text-base leading-tight">Inspire</p>
-            <p className="text-zinc-500 text-xs">Daily trends in music production</p>
-          </div>
+          <Player
+            component={InspireHero}
+            durationInFrames={90}
+            fps={30}
+            compositionWidth={400}
+            compositionHeight={160}
+            style={{ width: "100%", height: "100%", pointerEvents: "none" }}
+            autoPlay
+            loop
+          />
         </button>
 
         {/* Quick Ideas · Music Content Lab · My Scripts */}
