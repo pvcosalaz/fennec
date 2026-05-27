@@ -84,19 +84,25 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
     if (!file) return;
     setUploadingAvatar(true);
     try {
-      const ext = file.name.split(".").pop() ?? "jpg";
-      const path = `avatars/${userId}.${ext}`;
+      // Unique filename per upload → new URL every time → no browser cache issues
+      const ext = (file.name.split(".").pop() || file.type.split("/")[1] || "jpg").toLowerCase();
+      const path = `avatars/${userId}-${Date.now()}.${ext}`;
+      const contentType = file.type || `image/${ext}`;
+
       const { error } = await supabase.storage
         .from("community-images")
-        .upload(path, file, { upsert: true, contentType: file.type });
+        .upload(path, file, { contentType });
       if (error) throw error;
+
       const { data } = supabase.storage.from("community-images").getPublicUrl(path);
       const url = data.publicUrl;
+
       await updateProfile(userId, { avatar_url: url });
       setLocalAvatarUrl(url);
       onAvatarChange?.(url);
     } catch (err) {
       console.error("Avatar upload failed", err);
+      alert("No se pudo actualizar la foto. Intenta de nuevo.");
     } finally {
       setUploadingAvatar(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
