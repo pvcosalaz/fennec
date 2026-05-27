@@ -297,7 +297,10 @@ export default function Community({ profile, openComposerWith, onComposerConsume
   }
 
   return (
-    <div className="mx-auto w-full max-w-4xl -mt-6">
+    <div
+      className="mx-auto w-full max-w-4xl"
+      style={{ paddingTop: "env(safe-area-inset-top, 44px)" }}
+    >
 
       {/* SVG filter — thicken logo strokes */}
       <svg style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }}>

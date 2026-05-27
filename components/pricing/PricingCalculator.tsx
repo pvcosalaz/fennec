@@ -535,24 +535,26 @@ export default function PricingCalculator() {
 
   return (
     <div className="flex h-screen flex-col bg-background">
-    <main id="scroll-root" className="flex-1 overflow-y-auto overscroll-none pb-6 pt-10" style={{ overscrollBehavior: "none" }}>
-      {/* Settings button */}
-      <div className={`flex w-full max-w-4xl items-center px-6 ${activeTab === "dashboard" ? "mb-4" : "mb-4"}`}>
-        <div className="flex-1 flex justify-start">
-          <NotificationBell userId={authUser.id} />
+    <main id="scroll-root" className={`flex-1 overscroll-none pb-6 ${activeTab === "noticias" ? "pt-0" : "pt-10"} ${activeTab === "dashboard" && !showSettings ? "overflow-y-hidden" : "overflow-y-auto"}`} style={{ overscrollBehavior: "none" }}>
+      {/* Settings button — hidden on Community tab (has its own header) */}
+      {activeTab !== "noticias" && (
+        <div className={`flex w-full max-w-4xl items-center px-6 ${activeTab === "dashboard" ? "mb-4" : "mb-4"}`}>
+          <div className="flex-1 flex justify-start">
+            <NotificationBell userId={authUser.id} />
+          </div>
+          {activeTab === "dashboard" && profile.username && (
+            <span className="text-xl font-bold text-amber-400">@{profile.username}</span>
+          )}
+          <div className="flex-1 flex justify-end">
+            <button
+              onClick={() => setShowSettings(true)}
+              className="flex items-center justify-center h-8 w-8 rounded-xl border border-white/10 bg-white/5 text-zinc-400 hover:text-accent hover:border-accent/30 transition"
+            >
+              <Settings className="h-4 w-4" />
+            </button>
+          </div>
         </div>
-        {activeTab === "dashboard" && profile.username && (
-          <span className="text-xl font-bold text-amber-400">@{profile.username}</span>
-        )}
-        <div className="flex-1 flex justify-end">
-          <button
-            onClick={() => setShowSettings(true)}
-            className="flex items-center justify-center h-8 w-8 rounded-xl border border-white/10 bg-white/5 text-zinc-400 hover:text-accent hover:border-accent/30 transition"
-          >
-            <Settings className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
+      )}
       {/* wave removed */}
       {showSettings ? (
         <SettingsModule
@@ -1028,14 +1030,7 @@ export default function PricingCalculator() {
       ) : activeTab === "ideas" ? (
         <AudioModule userId={authUser.id} isPro={profile?.is_pro ?? false} />
       ) : activeTab === "noticias" ? (
-        <div key="noticias" style={{ position: "relative" }}>
-          {/* Subtle amber entrance flash — fades in 0.8s, gone by 1.2s */}
-          <div style={{
-            position: "absolute", top: 0, left: 0, right: 0, height: 120,
-            background: "radial-gradient(ellipse 80% 100% at 50% 0%, rgba(245,166,35,0.1) 0%, transparent 100%)",
-            animation: "fennecEntryGlow 1.2s ease-out forwards",
-            pointerEvents: "none", zIndex: 1,
-          }} />
+        <div key="noticias">
           <Community
             profile={profile}
             openComposerWith={pendingAudio}
@@ -1069,6 +1064,7 @@ export default function PricingCalculator() {
                   key={tab.id}
                   onClick={() => { setActiveTab(tab.id); setBusinessView("hub"); }}
                   className="flex flex-1 flex-col items-center justify-center py-3 transition"
+                  style={{ WebkitTapHighlightColor: "transparent" }}
                 >
                   <div style={{ position: "relative", width: 36, height: 36 }}>
                     {isActive && (
@@ -1085,14 +1081,29 @@ export default function PricingCalculator() {
                       style={{
                         width: 36, height: 36,
                         objectFit: "contain",
-                        filter: isActive
-                          ? "brightness(0) invert(1) drop-shadow(0 0 5px rgba(245,166,35,0.6))"
-                          : "brightness(0) invert(1)",
-                        opacity: isActive ? 1 : 0.35,
-                        transition: "opacity 0.2s, filter 0.3s",
+                        filter: "brightness(0) invert(1)",
+                        opacity: isActive ? 1 : 0.6,
+                        transition: "opacity 0.25s ease",
                         animation: isActive ? "fennecNavScale 2.6s ease-in-out infinite alternate" : undefined,
                       }}
                     />
+                    {/* Active glow overlay via pseudo-layer */}
+                    {isActive && (
+                      <img
+                        src="/fennec-icon-transparent.png"
+                        alt=""
+                        aria-hidden
+                        style={{
+                          position: "absolute", inset: 0,
+                          width: 36, height: 36,
+                          objectFit: "contain",
+                          filter: "brightness(0) invert(1) drop-shadow(0 0 5px rgba(245,166,35,0.7))",
+                          opacity: 1,
+                          pointerEvents: "none",
+                          animation: "fennecNavScale 2.6s ease-in-out infinite alternate",
+                        }}
+                      />
+                    )}
                   </div>
                   {isActive && <div className="mt-1.5 h-0.5 w-4 rounded-full bg-accent" />}
                 </button>
@@ -1135,3 +1146,4 @@ export default function PricingCalculator() {
     </div>
   );
 }
+
