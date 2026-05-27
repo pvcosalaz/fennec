@@ -45,8 +45,31 @@ export default function AudioModule({ userId, isPro }: Props) {
   return (
     <div className="relative w-full max-w-4xl mx-auto">
 
+      {/* ── Module header ─────────────────────────────────────── */}
+      <div className="flex items-center justify-between px-4 pb-4">
+        <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Feed</p>
+        <div className="flex items-center gap-2">
+          {/* Mic — Melody Bank */}
+          <button
+            onClick={() => setOverlay(overlay === "melody" ? null : "melody")}
+            className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition"
+            aria-label="Melody Bank"
+          >
+            <Mic className="h-4 w-4" />
+          </button>
+          {/* Plus — My Tracks */}
+          <button
+            onClick={() => setOverlay(overlay === "mine" ? null : "mine")}
+            className="w-9 h-9 rounded-xl bg-amber-500 flex items-center justify-center text-black hover:bg-amber-400 transition"
+            aria-label="My Tracks"
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
       {/* ── Main player ───────────────────────────────────────── */}
-      <div className="px-4 pb-32">
+      <div className="px-4 pb-8">
         {loadingQueue && (
           <p className="text-xs text-zinc-600 text-center py-16">Loading tracks...</p>
         )}
@@ -66,25 +89,6 @@ export default function AudioModule({ userId, isPro }: Props) {
           />
         )}
       </div>
-
-      {/* ── Floating action buttons ────────────────────────────── */}
-      {/* Mic — Melody Bank (top right) */}
-      <button
-        onClick={() => setOverlay(overlay === "melody" ? null : "melody")}
-        className="fixed bottom-52 right-4 z-40 w-10 h-10 rounded-full bg-white/8 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/12 transition"
-        aria-label="Melody Bank"
-      >
-        <Mic className="h-4 w-4" />
-      </button>
-
-      {/* Plus — My Tracks (bottom right, above nav) */}
-      <button
-        onClick={() => setOverlay(overlay === "mine" ? null : "mine")}
-        className="fixed bottom-32 right-4 z-40 w-12 h-12 rounded-full bg-amber-500 flex items-center justify-center text-black shadow-lg hover:bg-amber-400 transition"
-        aria-label="My Tracks"
-      >
-        <Plus className="h-5 w-5" />
-      </button>
 
       {/* ── Melody Bank overlay ────────────────────────────────── */}
       {overlay === "melody" && (
