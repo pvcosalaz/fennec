@@ -37,8 +37,8 @@ async function handler(req: NextRequest) {
     // Send industry_news notification for the top new item
     try {
       const serviceSupabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
+        process.env.NEXT_PUBLIC_SUPABASE_URL || "https://drmhwzxytwmkpfnjwmra.supabase.co",
+        process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
       );
       if (newsItems.length > 0) {
         const item = newsItems[0];

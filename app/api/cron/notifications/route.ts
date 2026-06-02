@@ -7,8 +7,8 @@ import { generateNotificationCopy } from "@/lib/notificationCopy";
 import { sendPushToMany } from "@/lib/pushSend";
 
 const serviceSupabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://drmhwzxytwmkpfnjwmra.supabase.co",
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
 );
 
 async function handler(req: NextRequest) {
