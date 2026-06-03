@@ -170,12 +170,12 @@ function ProjectTrack({ project, color }: { project: Project; color: string }) {
 function VUMeter({ platform, value = 0 }: { platform: typeof PLATFORMS[0]; value?: number }) {
   const [up, setUp] = useState(false);
   useEffect(() => { const t = setTimeout(() => setUp(true), 400); return () => clearTimeout(t); }, []);
-  const segments = 14;
-  const filled = up ? Math.max(Math.round(value * segments), value > 0 ? 3 : 0) : 0;
+  const segments = 10;
+  const filled = up ? Math.max(Math.round(value * segments), value > 0 ? 2 : 0) : 0;
 
   return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="flex flex-col-reverse gap-[3px]" style={{ height: 88 }}>
+    <div className="flex flex-col items-center gap-1.5">
+      <div className="flex flex-col-reverse gap-[3px]" style={{ height: 60 }}>
         {Array.from({ length: segments }, (_, i) => {
           const lit = i < filled;
           const segColor = i >= segments * 0.8 ? "#ef4444" : i >= segments * 0.6 ? "#fbbf24" : platform.color;
@@ -337,7 +337,7 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
   }, [projects, quotes]);
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-4 pb-8 pt-1 px-4">
+    <div className="mx-auto w-full max-w-4xl space-y-3 pb-2 pt-1 px-4">
 
       {/* ── Toasts ────────────────────────────────────────────────────────── */}
       {spotifyToast && (
@@ -527,97 +527,98 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
       </div>
 
       {/* ── KPIs ─────────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-4 gap-2 px-2 border-t border-white/5 pt-4">
+      <div className="grid grid-cols-4 gap-1 px-2 border-t border-white/5 pt-3">
         {[
           { label: "Active",  value: projects.filter((p) => p.status !== "paid").length, color: "#4d96ff"  },
           { label: "Closed",  value: projects.filter((p) => p.status === "paid").length,  color: "#6bcb77"  },
           { label: "Clients", value: clients.length,                                       color: "#c77dff"  },
           { label: "Quotes",  value: quotes.filter((q) => q.status === "sent").length,     color: "#f5a623"  },
         ].map((k) => (
-          <div key={k.label} className="p-3 text-center space-y-1">
+          <div key={k.label} className="py-2 text-center space-y-0.5">
             <p className="text-2xl font-black" style={{ color: k.color }}>
               <AnimatedNumber value={k.value} />
             </p>
-            <p className="text-xs text-zinc-300 font-medium uppercase tracking-wide">{k.label}</p>
+            <p className="text-[10px] text-zinc-400 font-medium uppercase tracking-wide">{k.label}</p>
           </div>
         ))}
       </div>
 
 
-      {/* ── Social VU meters ─────────────────────────────────────────────── */}
-      <div className="px-2 pt-4 pb-2 space-y-4 border-t border-white/5">
-        <div className="flex items-center justify-between">
-          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-300">Social Reach</p>
-          <div className="flex items-center gap-3">
+      {/* ── Social Reach + Activity — side by side ───────────────────────── */}
+      <div className="grid grid-cols-2 gap-0 border-t border-white/5 pt-3 px-2">
+
+        {/* Social Reach column */}
+        <div className="space-y-2 pr-3">
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">Social Reach</p>
+          </div>
+          <div className="flex items-end justify-around">
+            {PLATFORMS.map((p) => {
+              let value = 0;
+              if (p.key === "spotify" && spotifyData?.connected) {
+                value = Math.min(spotifyFollowers / 10000, 1);
+              }
+              if (p.key === "youtube" && youtubeData) {
+                value = Math.min(youtubeSubscribers / 5000, 1);
+              }
+              return <VUMeter key={p.key} platform={p} value={value} />;
+            })}
+          </div>
+          <div className="space-y-1">
             {userId && !spotifyData?.connected && (
-              <a href={`/api/spotify/connect?userId=${userId}`} className="flex items-center gap-1 text-[10px] text-[#1DB954]/80 hover:text-[#1DB954] transition">
-                <SiSpotify className="h-3 w-3" /> Connect Spotify
+              <a href={`/api/spotify/connect?userId=${userId}`} className="flex items-center gap-1 text-[9px] text-[#1DB954]/80 hover:text-[#1DB954] transition">
+                <SiSpotify className="h-2.5 w-2.5" /> Connect Spotify
               </a>
             )}
             {spotifyData?.connected && (
-              <span className="flex items-center gap-1 text-[10px] text-[#1DB954]/70">
-                <SiSpotify className="h-3 w-3" /> {spotifyData.displayName ?? "✓"}
-              </span>
+              <p className="text-[9px] text-[#1DB954]/70">
+                ♫ {spotifyFollowers.toLocaleString()} followers
+              </p>
             )}
             {userId && !youtubeData?.connected && (
-              <a href={`/api/youtube/connect?userId=${userId}`} className="flex items-center gap-1 text-[10px] text-[#FF0000]/80 hover:text-[#FF0000] transition">
-                <SiYoutube className="h-3 w-3" /> Connect YouTube
+              <a href={`/api/youtube/connect?userId=${userId}`} className="flex items-center gap-1 text-[9px] text-[#FF0000]/80 hover:text-[#FF0000] transition">
+                <SiYoutube className="h-2.5 w-2.5" /> Connect YouTube
               </a>
             )}
             {youtubeData?.connected && (
-              <span className="flex items-center gap-1 text-[10px] text-[#FF0000]/70">
-                <SiYoutube className="h-3 w-3" /> {youtubeData.channelTitle ?? "✓"} ✓
-              </span>
+              <p className="text-[9px] text-[#FF0000]/70">
+                ▶ {youtubeSubscribers.toLocaleString()} subs
+              </p>
+            )}
+            {!spotifyData?.connected && !youtubeData?.connected && !userId && (
+              <p className="text-[9px] text-zinc-600">Connect to see stats</p>
             )}
           </div>
         </div>
-        <div className="flex items-end justify-around px-2">
-          {PLATFORMS.map((p) => {
-            let value = 0;
-            if (p.key === "spotify" && spotifyData?.connected) {
-              value = Math.min(spotifyFollowers / 10000, 1);
-            }
-            if (p.key === "youtube" && youtubeData) {
-              value = Math.min(youtubeSubscribers / 5000, 1);
-            }
-            return <VUMeter key={p.key} platform={p} value={value} />;
-          })}
-        </div>
-        {(spotifyData?.connected || youtubeData) ? (
-          <p className="text-center text-[10px] text-zinc-500">
-            {spotifyData?.connected && <><span className="text-[#1DB954]">Spotify {spotifyFollowers.toLocaleString()}</span>{" "}</>}
-            {youtubeData && <><span className="text-[#FF0000]">· YT {youtubeSubscribers.toLocaleString()} subs</span></>}
-          </p>
-        ) : (
-          <p className="text-center text-[10px] text-zinc-500">
-            Connect Instagram &amp; Spotify to see live stats
-          </p>
-        )}
-      </div>
 
-      {/* ── Activity ─────────────────────────────────────────────────────── */}
-      {activity.length > 0 && (
-        <div className="px-2 pt-4 pb-2 space-y-3 border-t border-white/5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-300">Activity</p>
-          <div className="space-y-3">
-            {activity.map((item) => (
-              <div key={item.id} className="flex items-center gap-3">
-                <div className="h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: item.dot }} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-white leading-snug">{item.label}</p>
-                  {item.sub && <p className="text-xs text-zinc-300 truncate">{item.sub}</p>}
+        {/* Activity column */}
+        <div className="space-y-2 pl-3 border-l border-white/5">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">Activity</p>
+          {activity.length > 0 ? (
+            <div className="space-y-2.5">
+              {activity.map((item) => (
+                <div key={item.id} className="flex items-start gap-2">
+                  <div className="h-1.5 w-1.5 rounded-full shrink-0 mt-1" style={{ backgroundColor: item.dot }} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] text-white leading-tight truncate">{item.label}</p>
+                    {item.sub && <p className="text-[10px] text-zinc-500 truncate">{item.sub}</p>}
+                    <p className="text-[9px] text-zinc-600 mt-0.5">{timeAgo(item.ts)}</p>
+                  </div>
                 </div>
-                <span className="text-xs text-zinc-400 shrink-0">{timeAgo(item.ts)}</span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-[10px] text-zinc-600 leading-relaxed">
+              Your recent projects &amp; quotes will appear here
+            </p>
+          )}
         </div>
-      )}
+      </div>
 
       {/* ── Empty hint ────────────────────────────────────────────────────── */}
       {projects.length === 0 && quotes.length === 0 && (
-        <p className="text-center text-xs text-zinc-700 pb-2">
-          Add projects & quotes to bring the dashboard to life
+        <p className="text-center text-[10px] text-zinc-700 pb-1">
+          Add projects &amp; quotes to bring the dashboard to life
         </p>
       )}
 
