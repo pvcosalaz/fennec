@@ -74,11 +74,11 @@ function QrPlaceholder({ size = 50 }: { size?: number }) {
   );
 }
 
-const EQ_HEIGHTS = [10, 16, 8, 14, 10, 18, 7, 13, 16, 9];
+const EQ_HEIGHTS = [7, 11, 6, 10, 7, 13, 5, 9, 11, 6];
 
 function EqBars({ accent }: { accent: string }) {
   return (
-    <div style={{ display: "flex", alignItems: "flex-end", height: 18, marginTop: 3 }}>
+    <div style={{ display: "flex", alignItems: "flex-end", height: 13, marginTop: 2 }}>
       {EQ_HEIGHTS.map((h, i) => (
         <span
           key={`eq-${i}`}
@@ -160,18 +160,18 @@ export default function FennecIdCard({
         {/* Photo panel — circle avatar, vertically centered */}
         <div
           style={{
-            width: 106,
+            width: 82,
             flexShrink: 0,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            padding: "16px 10px 16px 16px",
+            padding: "12px 8px 12px 12px",
           }}
         >
           <div
             style={{
-              width: 80,
-              height: 80,
+              width: 60,
+              height: 60,
               borderRadius: "50%",
               overflow: "hidden",
               flexShrink: 0,
@@ -179,7 +179,7 @@ export default function FennecIdCard({
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: `0 4px 20px rgba(${glowRgb},0.5)`,
+              boxShadow: `0 4px 16px rgba(${glowRgb},0.5)`,
               border: `2px solid rgba(${glowRgb},0.35)`,
             }}
           >
@@ -191,7 +191,7 @@ export default function FennecIdCard({
                 style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
               />
             ) : (
-              <span style={{ fontSize: 24, fontWeight: 800, color: textOnAvatar === "white" ? "#fff" : "#000" }}>
+              <span style={{ fontSize: 18, fontWeight: 800, color: textOnAvatar === "white" ? "#fff" : "#000" }}>
                 {initials}
               </span>
             )}
@@ -202,11 +202,11 @@ export default function FennecIdCard({
         <div
           style={{
             flex: 1,
-            padding: "14px 14px 12px 10px",
+            padding: "10px 12px 10px 8px",
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
-            minHeight: 132,
+            minHeight: 100,
           }}
         >
           {/* Row 1: fennec ID + QR stacked on the right only */}
@@ -220,25 +220,25 @@ export default function FennecIdCard({
                   ID
                 </span>
               </div>
-              <QrPlaceholder size={38} />
+              <QrPlaceholder size={28} />
             </div>
           </div>
 
           {/* Row 2: role label above staggered name */}
           <div style={{ lineHeight: 1.0 }}>
-            <p style={{ fontSize: 8, color: `${accent}55`, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", margin: "0 0 5px 0" }}>
+            <p style={{ fontSize: 7, color: `${accent}55`, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", margin: "0 0 3px 0" }}>
               {role}
             </p>
-            <p style={{ fontSize: 28, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "-0.02em", margin: 0 }}>
+            <p style={{ fontSize: 21, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "-0.02em", margin: 0, lineHeight: 1.0 }}>
               {firstName}
             </p>
-            <p style={{ fontSize: 28, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "-0.02em", margin: 0, paddingLeft: 18 }}>
+            <p style={{ fontSize: 21, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "-0.02em", margin: 0, lineHeight: 1.0, paddingLeft: 14 }}>
               {lastName}
             </p>
           </div>
 
           {/* Row 3: genre + country */}
-          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap", marginTop: 5 }}>
             {primaryGenre && (
               <span
                 style={{
@@ -265,7 +265,7 @@ export default function FennecIdCard({
       {/* ── SCORE BAND — no divider line ── */}
       <div
         style={{
-          padding: "10px 16px 14px",
+          padding: "7px 14px 10px",
           display: "flex",
           alignItems: "flex-end",
           justifyContent: "space-between",
@@ -292,7 +292,7 @@ export default function FennecIdCard({
           </div>
           {/* Score + EQ bars side by side, aligned to baseline */}
           <div style={{ display: "flex", alignItems: "flex-end", gap: 10 }}>
-            <p style={{ fontSize: 36, fontWeight: 900, color: accent, lineHeight: 1, margin: 0 }}>
+            <p style={{ fontSize: 28, fontWeight: 900, color: accent, lineHeight: 1, margin: 0 }}>
               {fennecDb}
             </p>
             <EqBars accent={accent} />
