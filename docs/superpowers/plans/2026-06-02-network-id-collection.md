@@ -268,6 +268,8 @@ Create `components/network/FennecIdCard.tsx`:
 // components/network/FennecIdCard.tsx
 "use client";
 
+import { useState } from "react";
+import { SiInstagram, SiTiktok, SiSpotify, SiYoutube } from "@icons-pack/react-simple-icons";
 import type { FennecIdColor } from "@/lib/fennecIdPalette";
 
 export type FennecIdCardProps = {
@@ -289,6 +291,11 @@ export type FennecIdCardProps = {
   collectionNumber?: number;
   /** Two-letter initials for the avatar circle */
   initials: string;
+  /** Optional social handles — show icons if present */
+  instagram?: string | null;
+  tiktok?: string | null;
+  spotify?: string | null;
+  youtube?: string | null;
 };
 
 function pad4(n: number): string {
@@ -332,6 +339,40 @@ function QrPlaceholder({ accent }: { accent: string }) {
   );
 }
 
+// EQ soundwave bars — same pattern as Dashboard but accent-colored for dark card
+const EQ_HEIGHTS = [10, 16, 8, 14, 10, 18, 7, 13, 16, 9];
+
+function EqBars({ accent }: { accent: string }) {
+  return (
+    <>
+      <style>{`
+        @keyframes fennecEqBar {
+          from { transform: scaleY(0.2); }
+          to   { transform: scaleY(1); }
+        }
+        .fennec-eq-bar {
+          display: inline-block;
+          width: 2.5px;
+          border-radius: 2px;
+          margin: 0 1px;
+          transform-origin: bottom;
+          animation: fennecEqBar 1.1s ease-in-out infinite alternate;
+          opacity: 0.55;
+        }
+      `}</style>
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 0, height: 18, marginTop: 4 }}>
+        {EQ_HEIGHTS.map((h, i) => (
+          <span
+            key={i}
+            className="fennec-eq-bar"
+            style={{ height: h, background: accent, animationDelay: `${i * 0.15}s` }}
+          />
+        ))}
+      </div>
+    </>
+  );
+}
+
 export default function FennecIdCard({
   firstName,
   lastName,
@@ -342,9 +383,14 @@ export default function FennecIdCard({
   colorScheme,
   collectionNumber,
   initials,
+  instagram,
+  tiktok,
+  spotify,
+  youtube,
 }: FennecIdCardProps) {
   const { accent, dark1, dark2, glowRgb, textOnAvatar } = colorScheme;
   const primaryGenre = genres[0] ?? "";
+  const [showDbInfo, setShowDbInfo] = useState(false);
 
   return (
     <div
@@ -394,7 +440,6 @@ export default function FennecIdCard({
           {role}
         </p>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 5 }}>
-          {/* fennec ID label */}
           <div style={{ display: "flex", alignItems: "baseline", gap: 2 }}>
             <span style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 13, fontWeight: 900, color: "#fff", letterSpacing: "-0.06em" }}>
               fennec
@@ -417,9 +462,9 @@ export default function FennecIdCard({
         </p>
       </div>
 
-      {/* BOTTOM ROW: avatar + dB (left) · genre + country/#num (right) */}
-      <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", position: "relative" }}>
-        {/* Left */}
+      {/* MIDDLE ROW: avatar + dB score + EQ bars + (i) */}
+      <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", position: "relative", marginBottom: 12 }}>
+        {/* Left: avatar + score */}
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div
             style={{
@@ -440,12 +485,27 @@ export default function FennecIdCard({
             {initials}
           </div>
           <div>
+            {/* dB label + (i) button */}
+            <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 2 }}>
+              <p style={{ fontSize: 7, color: `${accent}60`, fontWeight: 700, letterSpacing: "0.14em", margin: 0 }}>FENNEC dB</p>
+              <button
+                onClick={() => setShowDbInfo((v) => !v)}
+                style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: `${accent}60`, lineHeight: 1 }}
+                aria-label="What is Fennec dB?"
+              >
+                <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
+                  <circle cx="8" cy="8" r="7.5" stroke="currentColor" strokeWidth="1" fill="none"/>
+                  <text x="8" y="12" textAnchor="middle" fontSize="10" fontWeight="700" fill="currentColor">i</text>
+                </svg>
+              </button>
+            </div>
             <p style={{ fontSize: 24, fontWeight: 900, color: accent, lineHeight: 1, margin: 0 }}>{fennecDb}</p>
-            <p style={{ fontSize: 7, color: `${accent}60`, fontWeight: 700, letterSpacing: "0.14em", margin: 0 }}>FENNEC dB</p>
+            {/* EQ soundwave animation */}
+            <EqBars accent={accent} />
           </div>
         </div>
 
-        {/* Right */}
+        {/* Right: genre + country/#num */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 5 }}>
           {primaryGenre && (
             <span
@@ -465,8 +525,44 @@ export default function FennecIdCard({
           <span style={{ fontSize: 7, color: "#333", letterSpacing: "0.1em", fontWeight: 600 }}>
             {country.toUpperCase()}{collectionNumber !== undefined ? ` · ${pad4(collectionNumber)}` : ""}
           </span>
+          {/* Social icons */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
+            {instagram && <SiInstagram size={10} style={{ color: "#E1306C", opacity: 0.7 }} />}
+            {spotify   && <SiSpotify   size={10} style={{ color: "#1DB954", opacity: 0.7 }} />}
+            {youtube   && <SiYoutube   size={10} style={{ color: "#FF0000", opacity: 0.7 }} />}
+            {tiktok    && <SiTiktok    size={10} style={{ color: "#fff",    opacity: 0.6 }} />}
+          </div>
         </div>
       </div>
+
+      {/* dB info panel — toggles with (i) */}
+      {showDbInfo && (
+        <div
+          style={{
+            borderRadius: 10,
+            border: `1px solid ${accent}20`,
+            background: `${accent}08`,
+            padding: "8px 10px",
+            position: "relative",
+          }}
+        >
+          <p style={{ fontSize: 9, color: `${accent}99`, lineHeight: 1.6, margin: 0 }}>
+            A growing number that measures how active your music business is — like signal strength, but for your career.
+          </p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 12px", marginTop: 6 }}>
+            {[
+              { label: "Active project", value: "×150" },
+              { label: "Closed project", value: "×50"  },
+              { label: "Client",         value: "×75"  },
+              { label: "Quote sent",     value: "×25"  },
+            ].map((r) => (
+              <span key={r.label} style={{ fontSize: 8, color: `${accent}70` }}>
+                {r.label} <strong style={{ color: accent }}>{r.value}</strong>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -625,6 +721,10 @@ export default function NetworkCollection({ contacts }: Props) {
                     colorScheme={scheme}
                     collectionNumber={1}
                     initials={getInitials(top)}
+                    instagram={top.instagram}
+                    tiktok={top.tiktok}
+                    spotify={top.spotify}
+                    youtube={top.youtube_url}
                   />
                 </div>
               );
@@ -662,6 +762,10 @@ export default function NetworkCollection({ contacts }: Props) {
                   colorScheme={scheme}
                   collectionNumber={i + 1}
                   initials={getInitials(contact)}
+                  instagram={contact.instagram}
+                  tiktok={contact.tiktok}
+                  spotify={contact.spotify}
+                  youtube={contact.youtube_url}
                 />
               </div>
             );
@@ -816,6 +920,10 @@ export default function NetworkSection({ profile, onColorAssigned, userId }: Pro
         fennecDb={profile.fennec_db_score}
         colorScheme={colorScheme}
         initials={getInitials(profile)}
+        instagram={profile.instagram}
+        tiktok={profile.tiktok}
+        spotify={profile.spotify}
+        youtube={profile.youtube_url}
         // No collectionNumber for own card
       />
 
