@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo, useRef } from "react";
-import { SiSpotify, SiInstagram, SiYoutube, SiTiktok } from "react-icons/si";
+import { SiSpotify, SiInstagram, SiYoutube } from "react-icons/si";
 import {
   type Project,
   type Quote,
@@ -29,7 +29,6 @@ const PLATFORMS = [
   { key: "instagram", name: "IG",      Icon: SiInstagram, color: "#E1306C" },
   { key: "spotify",   name: "Spotify", Icon: SiSpotify,   color: "#1DB954" },
   { key: "youtube",   name: "YT",      Icon: SiYoutube,   color: "#FF0000" },
-  { key: "tiktok",    name: "TikTok",  Icon: SiTiktok,    color: "#ffffff" },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -165,41 +164,6 @@ function ProjectTrack({ project, color }: { project: Project; color: string }) {
           <p className="text-[10px] text-zinc-700 truncate">{project.clientName}</p>
         )}
       </div>
-    </div>
-  );
-}
-
-// ─── VU Meter ─────────────────────────────────────────────────────────────────
-
-function VUMeter({ platform, value = 0 }: { platform: typeof PLATFORMS[0]; value?: number }) {
-  const [up, setUp] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setUp(true), 400); return () => clearTimeout(t); }, []);
-  const segments = 10;
-  const filled = up ? Math.max(Math.round(value * segments), value > 0 ? 2 : 0) : 0;
-
-  return (
-    <div className="flex flex-col items-center gap-1.5">
-      <div className="flex flex-col-reverse gap-[3px]" style={{ height: 60 }}>
-        {Array.from({ length: segments }, (_, i) => {
-          const lit = i < filled;
-          const segColor = i >= segments * 0.8 ? "#ef4444" : i >= segments * 0.6 ? "#fbbf24" : platform.color;
-          return (
-            <div
-              key={i}
-              className="rounded-sm transition-all"
-              style={{
-                width: 18,
-                height: 4,
-                backgroundColor: lit ? segColor : "rgba(255,255,255,0.05)",
-                boxShadow: lit ? `0 0 5px ${segColor}70` : "none",
-                transitionDelay: `${(segments - i) * 25}ms`,
-              }}
-            />
-          );
-        })}
-      </div>
-      <platform.Icon className="h-4 w-4" style={{ color: platform.color, opacity: 0.6 }} />
-      <span className="text-[9px] text-zinc-700 font-medium">{platform.name}</span>
     </div>
   );
 }
