@@ -439,45 +439,63 @@ export default function Dashboard({
         </div>
       )}
 
-      {/* ── Social Reach ─────────────────────────────────────────────────── */}
+      {/* ── Social Reach ────────────────────────────────────────────────────────────────── */}
       <div className="border-t border-white/5 pt-3 px-2 space-y-2">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">Social Reach</p>
-        <div className="flex items-end justify-around">
-          {PLATFORMS.map((p) => {
-            let value = 0;
-            if (p.key === "spotify" && spotifyData?.connected) {
-              value = Math.min(spotifyFollowers / 10000, 1);
-            }
-            if (p.key === "youtube" && youtubeData) {
-              value = Math.min(youtubeSubscribers / 5000, 1);
-            }
-            return <VUMeter key={p.key} platform={p} value={value} />;
-          })}
-        </div>
-        <div className="space-y-1">
-          {userId && !spotifyData?.connected && (
-            <a href={`/api/spotify/connect?userId=${userId}`} className="flex items-center gap-1 text-[9px] text-[#1DB954]/80 hover:text-[#1DB954] transition">
-              <SiSpotify className="h-2.5 w-2.5" /> Connect Spotify
-            </a>
-          )}
-          {spotifyData?.connected && (
-            <p className="text-[9px] text-[#1DB954]/70">
-              ♫ {spotifyFollowers.toLocaleString()} followers
-            </p>
-          )}
-          {userId && !youtubeData?.connected && (
-            <a href={`/api/youtube/connect?userId=${userId}`} className="flex items-center gap-1 text-[9px] text-[#FF0000]/80 hover:text-[#FF0000] transition">
-              <SiYoutube className="h-2.5 w-2.5" /> Connect YouTube
-            </a>
-          )}
-          {youtubeData?.connected && (
-            <p className="text-[9px] text-[#FF0000]/70">
-              ▶ {youtubeSubscribers.toLocaleString()} subs
-            </p>
-          )}
-          {!spotifyData?.connected && !youtubeData?.connected && !userId && (
-            <p className="text-[9px] text-zinc-600">Connect to see stats</p>
-          )}
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+          Social Reach
+        </p>
+        <div className="flex items-center gap-5">
+
+          {/* Instagram — handle display only, no OAuth */}
+          <div className="flex items-center gap-1.5">
+            <SiInstagram className="h-3 w-3" style={{ color: "#E1306C", opacity: 0.75 }} />
+            {networkProfile?.instagram ? (
+              <span className="text-[10px] text-zinc-400">
+                @{networkProfile.instagram}
+              </span>
+            ) : (
+              <span className="text-[10px] text-zinc-600">—</span>
+            )}
+          </div>
+
+          {/* Spotify */}
+          <div className="flex items-center gap-1.5">
+            <SiSpotify className="h-3 w-3" style={{ color: "#1DB954", opacity: 0.75 }} />
+            {spotifyData?.connected ? (
+              <span className="text-[10px] text-zinc-400">
+                {spotifyFollowers.toLocaleString()}
+              </span>
+            ) : userId ? (
+              <a
+                href={`/api/spotify/connect?userId=${userId}`}
+                className="text-[10px] text-[#1DB954]/70 hover:text-[#1DB954] transition"
+              >
+                Connect ↗
+              </a>
+            ) : (
+              <span className="text-[10px] text-zinc-600">—</span>
+            )}
+          </div>
+
+          {/* YouTube */}
+          <div className="flex items-center gap-1.5">
+            <SiYoutube className="h-3 w-3" style={{ color: "#FF0000", opacity: 0.75 }} />
+            {youtubeData?.connected ? (
+              <span className="text-[10px] text-zinc-400">
+                {youtubeSubscribers.toLocaleString()}
+              </span>
+            ) : userId ? (
+              <a
+                href={`/api/youtube/connect?userId=${userId}`}
+                className="text-[10px] text-[#FF0000]/70 hover:text-[#FF0000] transition"
+              >
+                Connect ↗
+              </a>
+            ) : (
+              <span className="text-[10px] text-zinc-600">—</span>
+            )}
+          </div>
+
         </div>
       </div>
 
