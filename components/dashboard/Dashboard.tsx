@@ -412,6 +412,13 @@ export default function Dashboard({
         ))}
       </div>
 
+      {/* ── Revenue ──────────────────────────────────────────────────────── */}
+      <div className="border-t border-white/5 pt-3 px-2 space-y-2">
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+          Revenue
+        </p>
+        <EqualizerBars months={months} revenues={revenues} />
+      </div>
 
       {/* ── Social Reach ─────────────────────────────────────────────────── */}
       <div className="border-t border-white/5 pt-3 px-2 space-y-2">
