@@ -160,7 +160,7 @@ export default function FennecIdCard({
         {/* Photo panel — circle avatar, vertically centered */}
         <div
           style={{
-            width: 100,
+            width: 106,
             flexShrink: 0,
             display: "flex",
             alignItems: "center",
@@ -170,8 +170,8 @@ export default function FennecIdCard({
         >
           <div
             style={{
-              width: 72,
-              height: 72,
+              width: 80,
+              height: 80,
               borderRadius: "50%",
               overflow: "hidden",
               flexShrink: 0,
@@ -191,46 +191,49 @@ export default function FennecIdCard({
                 style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
               />
             ) : (
-              <span style={{ fontSize: 22, fontWeight: 800, color: textOnAvatar === "white" ? "#fff" : "#000" }}>
+              <span style={{ fontSize: 24, fontWeight: 800, color: textOnAvatar === "white" ? "#fff" : "#000" }}>
                 {initials}
               </span>
             )}
           </div>
         </div>
 
-        {/* Info column — right of photo, leaves room for QR in bottom-right */}
+        {/* Info column: role + [fennec ID / QR] top-right · name · genre+country */}
         <div
           style={{
             flex: 1,
-            padding: "14px 52px 12px 14px",
+            padding: "14px 14px 12px 10px",
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
-            gap: 6,
-            minHeight: 110,
+            minHeight: 118,
           }}
         >
-          {/* Row 1: role label (left) · fennec ID (right) */}
+          {/* Row 1: role label (left) · fennec ID stacked above QR (right) */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-            <p style={{ fontSize: 8, color: `${accent}55`, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase" }}>
+            <p style={{ fontSize: 8, color: `${accent}55`, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", paddingTop: 3 }}>
               {role}
             </p>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 0 }}>
-              <span style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 12, fontWeight: 900, color: "#fff", letterSpacing: "-0.06em" }}>
-                fennec
-              </span>
-              <span style={{ fontSize: 8, fontWeight: 700, color: accent, letterSpacing: "0.06em", textTransform: "uppercase", marginLeft: 3 }}>
-                ID
-              </span>
+            {/* fennec ID label + QR stacked */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 5 }}>
+              <div style={{ display: "flex", alignItems: "baseline" }}>
+                <span style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 12, fontWeight: 900, color: "#fff", letterSpacing: "-0.06em" }}>
+                  fennec
+                </span>
+                <span style={{ fontSize: 8, fontWeight: 700, color: accent, letterSpacing: "0.06em", textTransform: "uppercase", marginLeft: 3 }}>
+                  ID
+                </span>
+              </div>
+              <QrPlaceholder size={38} />
             </div>
           </div>
 
-          {/* Row 2: staggered name */}
+          {/* Row 2: staggered name — 20px to match reference proportions */}
           <div style={{ lineHeight: 1.0 }}>
-            <p style={{ fontSize: 24, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "-0.02em", margin: 0 }}>
+            <p style={{ fontSize: 20, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "-0.02em", margin: 0 }}>
               {firstName}
             </p>
-            <p style={{ fontSize: 24, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "-0.02em", margin: 0, paddingLeft: 16 }}>
+            <p style={{ fontSize: 20, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "-0.02em", margin: 0, paddingLeft: 14 }}>
               {lastName}
             </p>
           </div>
@@ -257,11 +260,6 @@ export default function FennecIdCard({
               {collectionNumber !== undefined ? ` · ${pad4(collectionNumber)}` : ""}
             </span>
           </div>
-        </div>
-
-        {/* QR — absolute bottom-right corner of the top section */}
-        <div style={{ position: "absolute", bottom: 10, right: 10, zIndex: 2 }}>
-          <QrPlaceholder size={40} />
         </div>
       </div>
 
