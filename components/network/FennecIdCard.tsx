@@ -206,7 +206,7 @@ export default function FennecIdCard({
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
-            minHeight: 118,
+            minHeight: 132,
           }}
         >
           {/* Row 1: role label (left) · fennec ID stacked above QR (right) */}
@@ -228,12 +228,12 @@ export default function FennecIdCard({
             </div>
           </div>
 
-          {/* Row 2: staggered name — 20px to match reference proportions */}
+          {/* Row 2: staggered name */}
           <div style={{ lineHeight: 1.0 }}>
-            <p style={{ fontSize: 20, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "-0.02em", margin: 0 }}>
+            <p style={{ fontSize: 28, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "-0.02em", margin: 0 }}>
               {firstName}
             </p>
-            <p style={{ fontSize: 20, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "-0.02em", margin: 0, paddingLeft: 14 }}>
+            <p style={{ fontSize: 28, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "-0.02em", margin: 0, paddingLeft: 18 }}>
               {lastName}
             </p>
           </div>
