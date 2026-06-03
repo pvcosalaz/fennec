@@ -7,6 +7,8 @@ import {
   formatCOP, computePricing,
 } from "@/lib/pricingData";
 import { getProjects, getQuotes, getClients } from "@/lib/businessDb";
+import NetworkSection from "@/components/network/NetworkSection";
+import type { Profile } from "@/lib/communityTypes";
 
 export type BusinessView = "hub" | "calculator" | "quotes" | "projects" | "clients";
 
@@ -82,9 +84,11 @@ type Props = {
   onOpenView: (view: BusinessView) => void;
   isPro?: boolean;
   userId: string;
+  profile: Profile;
+  onColorAssigned: (colorId: string) => void;
 };
 
-export default function BusinessHub({ onOpenView, isPro = false, userId }: Props) {
+export default function BusinessHub({ onOpenView, isPro = false, userId, profile, onColorAssigned }: Props) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [quotes,   setQuotes]   = useState<Quote[]>([]);
   const [clients,  setClients]  = useState<Client[]>([]);
@@ -202,6 +206,15 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
           <p className="text-xs text-zinc-500">Revenue</p>
         </div>
         <EqualizerBars months={months} revenues={revenues} />
+      </div>
+
+      {/* ── Network section ── */}
+      <div className="border-t border-white/5 pt-4">
+        <NetworkSection
+          profile={profile}
+          userId={userId}
+          onColorAssigned={onColorAssigned}
+        />
       </div>
 
     </div>

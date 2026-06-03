@@ -341,13 +341,41 @@ export default function PricingCalculator() {
   const [activeTab, setActiveTab] = useState<ModuleTab>("dashboard");
   useEffect(() => { localStorage.setItem("fennec_active_tab", activeTab); }, [activeTab]);
 
+  const [showSettings,    setShowSettings]    = useState(false);
+
+  // Lock body scroll on tabs that should not scroll
+  useEffect(() => {
+    const locked = (activeTab === "dashboard" || activeTab === "contenido") && !showSettings;
+
+    const preventScroll = (e: Event) => { e.preventDefault(); };
+
+    if (locked) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+      // Block wheel (trackpad) and touch scroll at the event level
+      document.addEventListener("wheel",     preventScroll, { passive: false });
+      document.addEventListener("touchmove", preventScroll, { passive: false });
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+      document.removeEventListener("wheel",     preventScroll);
+      document.removeEventListener("touchmove", preventScroll);
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+      document.removeEventListener("wheel",     preventScroll);
+      document.removeEventListener("touchmove", preventScroll);
+    };
+  }, [activeTab, showSettings]);
+
   const [calcCurrency, setCalcCurrency] = useState<CalcCurrency>(() => {
     try { return (localStorage.getItem(CALC_CURRENCY_KEY) as CalcCurrency) || "USD"; } catch { return "USD"; }
   });
   const saveCurrency = (c: CalcCurrency) => { setCalcCurrency(c); try { localStorage.setItem(CALC_CURRENCY_KEY, c); } catch {} };
 
   const [pendingAudio, setPendingAudio] = useState<{ url: string; name: string } | null>(null);
-  const [showSettings,    setShowSettings]    = useState(false);
   const [settingsSection, setSettingsSection] = useState<SettingsSection>("main");
   const [showSetup, setShowSetup] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
@@ -535,7 +563,7 @@ export default function PricingCalculator() {
 
   return (
     <div className="flex h-screen flex-col bg-background">
-    <main id="scroll-root" className={`flex-1 overscroll-none pb-6 pt-10 ${activeTab === "dashboard" && !showSettings ? "overflow-y-hidden" : "overflow-y-auto"}`} style={{ overscrollBehavior: "none" }}>
+    <main id="scroll-root" className={`flex-1 overscroll-none pb-6 pt-10 ${(activeTab === "dashboard" || activeTab === "contenido") && !showSettings ? "overflow-y-hidden" : "overflow-y-auto"}`} style={{ overscrollBehavior: "none" }}>
       {/* Settings button — hidden on Community tab (has its own header) */}
       {activeTab !== "noticias" && (
         <div className={`flex w-full max-w-4xl items-center px-6 ${activeTab === "dashboard" ? "mb-4" : "mb-4"}`}>
@@ -568,7 +596,16 @@ export default function PricingCalculator() {
           initialSection={settingsSection}
         />
       ) : activeTab === "pricing" && businessView === "hub" ? (
-        <BusinessHub key={hubRefreshKey} onOpenView={setBusinessView} isPro={profile?.is_pro ?? true} userId={authUser.id} />
+        <BusinessHub
+          key={hubRefreshKey}
+          onOpenView={setBusinessView}
+          isPro={profile?.is_pro ?? true}
+          userId={authUser.id}
+          profile={profile!}
+          onColorAssigned={(colorId) =>
+            setProfile((prev) => prev ? { ...prev, color_id: colorId } : prev)
+          }
+        />
       ) : activeTab === "pricing" && businessView === "projects" ? (
         <ActiveProjects onBack={() => { setHubRefreshKey((k) => k + 1); setBusinessView("hub"); }} userId={authUser.id} />
       ) : activeTab === "pricing" && businessView === "clients" ? (
