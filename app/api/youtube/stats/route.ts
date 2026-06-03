@@ -28,6 +28,14 @@ export async function GET(req: NextRequest) {
 
   // ── Authenticated user: use their verified OAuth channel ──
   if (userId) {
+    // Verify the caller is the owner of this data
+    const authHeader = req.headers.get("authorization") ?? "";
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    if (authError || !user || user.id !== userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { data: integration } = await supabaseAdmin
       .from("user_integrations")
       .select("*")

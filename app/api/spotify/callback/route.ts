@@ -16,7 +16,17 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect("https://fennec-pi.vercel.app/?spotify=error");
   }
 
-  const userId = Buffer.from(state, "base64").toString("utf8");
+  // Decode state: format is base64("nonce:userId")
+  const decoded  = Buffer.from(state, "base64").toString("utf8");
+  const colonIdx = decoded.indexOf(":");
+  const nonce    = colonIdx !== -1 ? decoded.slice(0, colonIdx) : "";
+  const userId   = colonIdx !== -1 ? decoded.slice(colonIdx + 1) : "";
+
+  // Verify CSRF nonce against the HttpOnly cookie set in /connect
+  const cookieNonce = req.cookies.get("spotify_oauth_nonce")?.value ?? "";
+  if (!nonce || !cookieNonce || nonce !== cookieNonce || !userId) {
+    return NextResponse.redirect("https://fennec-pi.vercel.app/?spotify=error");
+  }
 
   // Exchange code for tokens
   const tokenRes = await fetch("https://accounts.spotify.com/api/token", {
@@ -50,5 +60,8 @@ export async function GET(req: NextRequest) {
     updated_at: new Date().toISOString(),
   }, { onConflict: "user_id,platform" });
 
-  return NextResponse.redirect("https://fennec-pi.vercel.app/?spotify=connected");
+  // Clear the nonce cookie after successful use
+  const response = NextResponse.redirect("https://fennec-pi.vercel.app/?spotify=connected");
+  response.cookies.delete("spotify_oauth_nonce");
+  return response;
 }

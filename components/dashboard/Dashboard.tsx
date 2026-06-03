@@ -13,6 +13,7 @@ import {
 import { getProjects, getQuotes, getClients } from "@/lib/businessDb";
 import { PROFILE_KEY, type UserProfile } from "@/components/settings/SettingsModule";
 import { fetchProfile } from "@/lib/communityDb";
+import { supabase } from "@/lib/supabase";
 import FennecFox from "./FennecFox";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -253,17 +254,22 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
     );
   }, [userId]);
 
-  // Fetch Spotify + YouTube stats on mount
+  // Fetch Spotify + YouTube stats on mount — pass auth token so API can verify ownership
   useEffect(() => {
     if (!userId) return;
-    fetch(`/api/spotify/stats?userId=${userId}`)
-      .then((r) => r.json())
-      .then((data) => setSpotifyData(data))
-      .catch(() => {});
-    fetch(`/api/youtube/stats?userId=${userId}`)
-      .then((r) => r.json())
-      .then((data) => { if (!data.error) setYoutubeData(data); })
-      .catch(() => {});
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const headers: HeadersInit = session?.access_token
+        ? { Authorization: `Bearer ${session.access_token}` }
+        : {};
+      fetch(`/api/spotify/stats?userId=${userId}`, { headers })
+        .then((r) => r.json())
+        .then((data) => setSpotifyData(data))
+        .catch(() => {});
+      fetch(`/api/youtube/stats?userId=${userId}`, { headers })
+        .then((r) => r.json())
+        .then((data) => { if (!data.error) setYoutubeData(data); })
+        .catch(() => {});
+    });
   }, [userId]);
 
   // Show success toasts if redirected back with ?spotify=connected or ?youtube=connected

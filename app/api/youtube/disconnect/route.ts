@@ -7,13 +7,18 @@ const supabaseAdmin = createClient(
 );
 
 export async function POST(req: NextRequest) {
-  const { userId } = await req.json();
-  if (!userId) return NextResponse.json({ error: "no userId" }, { status: 400 });
+  // Verify the caller owns the integration they're disconnecting
+  const authHeader = req.headers.get("authorization") ?? "";
+  const token = authHeader.replace("Bearer ", "");
+  const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+  if (authError || !user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   await supabaseAdmin
     .from("user_integrations")
     .delete()
-    .eq("user_id", userId)
+    .eq("user_id", user.id)  // always use the verified user, never trust body
     .eq("platform", "youtube");
 
   return NextResponse.json({ ok: true });

@@ -17,7 +17,17 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(`${BASE_URL}/?youtube=error`);
   }
 
-  const userId = Buffer.from(state, "base64").toString("utf8");
+  // Decode state: format is base64("nonce:userId")
+  const decoded  = Buffer.from(state, "base64").toString("utf8");
+  const colonIdx = decoded.indexOf(":");
+  const nonce    = colonIdx !== -1 ? decoded.slice(0, colonIdx) : "";
+  const userId   = colonIdx !== -1 ? decoded.slice(colonIdx + 1) : "";
+
+  // Verify CSRF nonce against the HttpOnly cookie set in /connect
+  const cookieNonce = req.cookies.get("youtube_oauth_nonce")?.value ?? "";
+  if (!nonce || !cookieNonce || nonce !== cookieNonce || !userId) {
+    return NextResponse.redirect(`${BASE_URL}/?youtube=error`);
+  }
 
   // Exchange code for tokens
   const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
@@ -70,5 +80,8 @@ export async function GET(req: NextRequest) {
     updated_at:     new Date().toISOString(),
   }, { onConflict: "user_id,platform" });
 
-  return NextResponse.redirect(`${BASE_URL}/?youtube=connected`);
+  // Clear the nonce cookie after successful use
+  const response = NextResponse.redirect(`${BASE_URL}/?youtube=connected`);
+  response.cookies.delete("youtube_oauth_nonce");
+  return response;
 }
