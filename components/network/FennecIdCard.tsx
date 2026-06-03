@@ -239,7 +239,7 @@ export default function FennecIdCard({
           </div>
 
           {/* Row 3: genre + country */}
-          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
             {primaryGenre && (
               <span
                 style={{
