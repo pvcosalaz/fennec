@@ -209,12 +209,8 @@ export default function FennecIdCard({
             minHeight: 132,
           }}
         >
-          {/* Row 1: role label (left) · fennec ID stacked above QR (right) */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-            <p style={{ fontSize: 8, color: `${accent}55`, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", paddingTop: 3 }}>
-              {role}
-            </p>
-            {/* fennec ID label + QR stacked */}
+          {/* Row 1: fennec ID + QR stacked on the right only */}
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 5 }}>
               <div style={{ display: "flex", alignItems: "baseline" }}>
                 <span style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 12, fontWeight: 900, color: "#fff", letterSpacing: "-0.06em" }}>
@@ -228,8 +224,11 @@ export default function FennecIdCard({
             </div>
           </div>
 
-          {/* Row 2: staggered name */}
+          {/* Row 2: role label above staggered name */}
           <div style={{ lineHeight: 1.0 }}>
+            <p style={{ fontSize: 8, color: `${accent}55`, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", margin: "0 0 5px 0" }}>
+              {role}
+            </p>
             <p style={{ fontSize: 28, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "-0.02em", margin: 0 }}>
               {firstName}
             </p>
