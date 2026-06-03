@@ -22,8 +22,10 @@ export type FennecIdCardProps = {
   colorScheme: FennecIdColor;
   /** Collection number shown at bottom right, e.g. 1 → "#0001". Omit for own card. */
   collectionNumber?: number;
-  /** Two-letter initials for the avatar circle */
+  /** Two-letter initials for the avatar circle — shown when no avatar photo */
   initials: string;
+  /** User's profile photo URL — shown instead of initials when present */
+  avatarUrl?: string | null;
   /**
    * Optional social handles — rendered as icons only (Phase 1).
    * Phase 2: wrap icons in <a href> links using these handle strings.
@@ -102,6 +104,7 @@ export default function FennecIdCard({
   colorScheme,
   collectionNumber,
   initials,
+  avatarUrl,
   instagram,
   tiktok,
   spotify,
@@ -199,9 +202,19 @@ export default function FennecIdCard({
               color: textOnAvatar === "white" ? "#fff" : "#000",
               boxShadow: `0 3px 12px rgba(${glowRgb},0.45)`,
               flexShrink: 0,
+              overflow: "hidden",
             }}
           >
-            {initials}
+            {avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={avatarUrl}
+                alt={initials}
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            ) : (
+              initials
+            )}
           </div>
           <div>
             {/* dB label + (i) button */}

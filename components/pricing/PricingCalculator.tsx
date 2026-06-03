@@ -601,10 +601,6 @@ export default function PricingCalculator() {
           onOpenView={setBusinessView}
           isPro={profile?.is_pro ?? true}
           userId={authUser.id}
-          profile={profile!}
-          onColorAssigned={(colorId) =>
-            setProfile((prev) => prev ? { ...prev, color_id: colorId } : prev)
-          }
         />
       ) : activeTab === "pricing" && businessView === "projects" ? (
         <ActiveProjects onBack={() => { setHubRefreshKey((k) => k + 1); setBusinessView("hub"); }} userId={authUser.id} />

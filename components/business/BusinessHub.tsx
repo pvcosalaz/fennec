@@ -8,7 +8,6 @@ import {
 } from "@/lib/pricingData";
 import { getProjects, getQuotes, getClients } from "@/lib/businessDb";
 import NetworkSection from "@/components/network/NetworkSection";
-import type { Profile } from "@/lib/communityTypes";
 
 export type BusinessView = "hub" | "calculator" | "quotes" | "projects" | "clients";
 
@@ -84,11 +83,9 @@ type Props = {
   onOpenView: (view: BusinessView) => void;
   isPro?: boolean;
   userId: string;
-  profile: Profile;
-  onColorAssigned: (colorId: string) => void;
 };
 
-export default function BusinessHub({ onOpenView, isPro = false, userId, profile, onColorAssigned }: Props) {
+export default function BusinessHub({ onOpenView, isPro = false, userId }: Props) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [quotes,   setQuotes]   = useState<Quote[]>([]);
   const [clients,  setClients]  = useState<Client[]>([]);
@@ -210,11 +207,7 @@ export default function BusinessHub({ onOpenView, isPro = false, userId, profile
 
       {/* ── Network section ── */}
       <div className="border-t border-white/5 pt-4">
-        <NetworkSection
-          profile={profile}
-          userId={userId}
-          onColorAssigned={onColorAssigned}
-        />
+        <NetworkSection userId={userId} />
       </div>
 
     </div>
