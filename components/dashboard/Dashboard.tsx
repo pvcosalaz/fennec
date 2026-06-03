@@ -420,6 +420,25 @@ export default function Dashboard({
         <EqualizerBars months={months} revenues={revenues} />
       </div>
 
+      {/* ── Active Projects ──────────────────────────────────────────────── */}
+      {projects.filter((p) => p.status !== "paid").length > 0 && (
+        <div className="border-t border-white/5 pt-3 px-2 space-y-3">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+            Active Projects
+          </p>
+          {projects
+            .filter((p) => p.status !== "paid")
+            .slice(0, 3)
+            .map((p, i) => (
+              <ProjectTrack
+                key={p.id}
+                project={p}
+                color={TRACK_COLORS[i % TRACK_COLORS.length]}
+              />
+            ))}
+        </div>
+      )}
+
       {/* ── Social Reach ─────────────────────────────────────────────────── */}
       <div className="border-t border-white/5 pt-3 px-2 space-y-2">
         <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">Social Reach</p>
