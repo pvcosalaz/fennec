@@ -72,5 +72,5 @@ input[type="number"] {
   margin: 0 1px;
   transform-origin: bottom;
   animation: fennecEqBar 1.1s ease-in-out infinite alternate;
-  opacity: 0.55;
+  opacity: 0.8;
 }

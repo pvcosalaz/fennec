@@ -74,11 +74,11 @@ function QrPlaceholder({ size = 50 }: { size?: number }) {
   );
 }
 
-const EQ_HEIGHTS = [7, 11, 6, 10, 7, 13, 5, 9, 11, 6];
+const EQ_HEIGHTS = [10, 18, 8, 15, 10, 22, 7, 13, 18, 9];
 
 function EqBars({ accent }: { accent: string }) {
   return (
-    <div style={{ display: "flex", alignItems: "flex-end", height: 13, marginTop: 2 }}>
+    <div style={{ display: "flex", alignItems: "flex-end", height: 22, marginTop: 2 }}>
       {EQ_HEIGHTS.map((h, i) => (
         <span
           key={`eq-${i}`}
