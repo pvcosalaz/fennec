@@ -120,7 +120,7 @@ export default function FennecIdCard({
         boxShadow: `0 12px 40px rgba(${glowRgb},0.15)`,
         position: "relative",
         overflow: "hidden",
-        height: 160,
+        height: 195,
         display: "flex",
         flexDirection: "column",
       }}
@@ -163,18 +163,18 @@ export default function FennecIdCard({
         {/* Photo panel — circle avatar, vertically centered */}
         <div
           style={{
-            width: 84,
+            width: 104,
             flexShrink: 0,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            padding: "10px 6px 10px 10px",
+            padding: "14px 8px 14px 14px",
           }}
         >
           <div
             style={{
-              width: 62,
-              height: 62,
+              width: 76,
+              height: 76,
               borderRadius: "50%",
               overflow: "hidden",
               flexShrink: 0,
@@ -194,7 +194,7 @@ export default function FennecIdCard({
                 style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
               />
             ) : (
-              <span style={{ fontSize: 18, fontWeight: 800, color: textOnAvatar === "white" ? "#fff" : "#000" }}>
+              <span style={{ fontSize: 22, fontWeight: 800, color: textOnAvatar === "white" ? "#fff" : "#000" }}>
                 {initials}
               </span>
             )}
@@ -216,14 +216,14 @@ export default function FennecIdCard({
           <div style={{ display: "flex", justifyContent: "flex-end" }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 5 }}>
               <div style={{ display: "flex", alignItems: "baseline" }}>
-                <span style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 11, fontWeight: 900, color: "#fff", letterSpacing: "-0.06em" }}>
+                <span style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 13, fontWeight: 900, color: "#fff", letterSpacing: "-0.06em" }}>
                   fennec
                 </span>
-                <span style={{ fontSize: 7, fontWeight: 700, color: accent, letterSpacing: "0.06em", textTransform: "uppercase", marginLeft: 3 }}>
+                <span style={{ fontSize: 8, fontWeight: 700, color: accent, letterSpacing: "0.06em", textTransform: "uppercase", marginLeft: 3 }}>
                   ID
                 </span>
               </div>
-              <QrPlaceholder size={30} />
+              <QrPlaceholder size={38} />
             </div>
           </div>
 
@@ -232,10 +232,10 @@ export default function FennecIdCard({
             <p style={{ fontSize: 7, color: `${accent}55`, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", margin: "0 0 3px 0" }}>
               {role}
             </p>
-            <p style={{ fontSize: 22, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "-0.02em", margin: 0, lineHeight: 1.0 }}>
+            <p style={{ fontSize: 27, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "-0.02em", margin: 0, lineHeight: 1.0 }}>
               {firstName}
             </p>
-            <p style={{ fontSize: 22, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "-0.02em", margin: 0, lineHeight: 1.0, paddingLeft: 14 }}>
+            <p style={{ fontSize: 27, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "-0.02em", margin: 0, lineHeight: 1.0, paddingLeft: 16 }}>
               {lastName}
             </p>
           </div>
@@ -268,7 +268,7 @@ export default function FennecIdCard({
       {/* ── SCORE BAND — no divider line ── */}
       <div
         style={{
-          padding: "7px 14px 10px",
+          padding: "9px 16px 12px",
           display: "flex",
           alignItems: "flex-end",
           justifyContent: "space-between",
@@ -295,7 +295,7 @@ export default function FennecIdCard({
           </div>
           {/* Score + EQ bars side by side, aligned to baseline */}
           <div style={{ display: "flex", alignItems: "flex-end", gap: 10 }}>
-            <p style={{ fontSize: 28, fontWeight: 900, color: accent, lineHeight: 1, margin: 0 }}>
+            <p style={{ fontSize: 34, fontWeight: 900, color: accent, lineHeight: 1, margin: 0 }}>
               {fennecDb}
             </p>
             <EqBars accent={accent} />
