@@ -157,48 +157,45 @@ export default function FennecIdCard({
       {/* ── TOP SECTION: photo (left) + info (right) ── */}
       <div style={{ display: "flex", alignItems: "stretch", position: "relative", zIndex: 1 }}>
 
-        {/* Photo panel — full height, bleeds to card edge, square */}
+        {/* Photo panel — circle avatar, vertically centered */}
         <div
           style={{
-            width: 90,
+            width: 100,
             flexShrink: 0,
-            position: "relative",
-            minHeight: 120,
-            background: accent,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "16px 10px 16px 16px",
           }}
         >
-          {avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={avatarUrl}
-              alt={initials}
-              style={{
-                position: "absolute",
-                inset: 0,
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                objectPosition: "center top",
-                borderRadius: 0,
-                display: "block",
-              }}
-            />
-          ) : (
-            <span
-              style={{
-                position: "absolute",
-                inset: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 22,
-                fontWeight: 800,
-                color: textOnAvatar === "white" ? "#fff" : "#000",
-              }}
-            >
-              {initials}
-            </span>
-          )}
+          <div
+            style={{
+              width: 72,
+              height: 72,
+              borderRadius: "50%",
+              overflow: "hidden",
+              flexShrink: 0,
+              background: accent,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: `0 4px 20px rgba(${glowRgb},0.5)`,
+              border: `2px solid rgba(${glowRgb},0.35)`,
+            }}
+          >
+            {avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={avatarUrl}
+                alt={initials}
+                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
+              />
+            ) : (
+              <span style={{ fontSize: 22, fontWeight: 800, color: textOnAvatar === "white" ? "#fff" : "#000" }}>
+                {initials}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Info column — right of photo, leaves room for QR in bottom-right */}
