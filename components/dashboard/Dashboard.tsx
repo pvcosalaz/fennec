@@ -409,7 +409,7 @@ export default function Dashboard({
 
       {/* ── Username ── */}
       {username && (
-        <p className="text-center text-xl font-bold text-amber-400">@{username}</p>
+        <p className="-mt-2 text-center text-xl font-bold text-amber-400">@{username}</p>
       )}
 
       {/* ── Fennec ID card ── */}
