@@ -120,6 +120,10 @@ export default function FennecIdCard({
         boxShadow: `0 12px 40px rgba(${glowRgb},0.15)`,
         position: "relative",
         overflow: "hidden",
+        /* Lock to credit-card proportions (85.6 × 53.98 mm) */
+        aspectRatio: "85.6 / 53.98",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       {/* Glow overlay */}
@@ -155,7 +159,7 @@ export default function FennecIdCard({
       </div>
 
       {/* ── TOP SECTION: photo (left) + info (right) ── */}
-      <div style={{ display: "flex", alignItems: "stretch", position: "relative", zIndex: 1 }}>
+      <div style={{ display: "flex", alignItems: "stretch", position: "relative", zIndex: 1, flex: 1, minHeight: 0 }}>
 
         {/* Photo panel — circle avatar, vertically centered */}
         <div
@@ -165,7 +169,7 @@ export default function FennecIdCard({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            padding: "12px 8px 12px 12px",
+            padding: "10px 6px 10px 10px",
           }}
         >
           <div
@@ -202,11 +206,11 @@ export default function FennecIdCard({
         <div
           style={{
             flex: 1,
-            padding: "10px 12px 10px 8px",
+            padding: "8px 10px 8px 6px",
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
-            minHeight: 100,
+            minHeight: 0,
           }}
         >
           {/* Row 1: fennec ID + QR stacked on the right only */}
