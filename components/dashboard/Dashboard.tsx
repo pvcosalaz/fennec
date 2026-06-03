@@ -513,12 +513,14 @@ export default function Dashboard({
           </p>
           <div className="flex gap-3">
             <button
+              type="button"
               onClick={() => onNavigate?.("pricing")}
               className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-[10px] font-semibold text-white hover:bg-white/10 transition"
             >
               + Crear proyecto
             </button>
             <button
+              type="button"
               onClick={() => onNavigate?.("pricing")}
               className="rounded-lg border border-accent/30 bg-accent/10 px-3 py-1.5 text-[10px] font-semibold text-accent hover:bg-accent/20 transition"
             >
