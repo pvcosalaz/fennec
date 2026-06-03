@@ -24,7 +24,10 @@ export type FennecIdCardProps = {
   collectionNumber?: number;
   /** Two-letter initials for the avatar circle */
   initials: string;
-  /** Optional social handles — show icons if present */
+  /**
+   * Optional social handles — rendered as icons only (Phase 1).
+   * Phase 2: wrap icons in <a href> links using these handle strings.
+   */
   instagram?: string | null;
   tiktok?: string | null;
   spotify?: string | null;
@@ -37,7 +40,7 @@ function pad4(n: number): string {
 
 // Simple QR-like grid — purely decorative placeholder
 // In Phase 2 this will be replaced with a real QR code library
-function QrPlaceholder({ accent }: { accent: string }) {
+function QrPlaceholder() {
   return (
     <div
       style={{
@@ -77,32 +80,15 @@ const EQ_HEIGHTS = [10, 16, 8, 14, 10, 18, 7, 13, 16, 9];
 
 function EqBars({ accent }: { accent: string }) {
   return (
-    <>
-      <style>{`
-        @keyframes fennecEqBar {
-          from { transform: scaleY(0.2); }
-          to   { transform: scaleY(1); }
-        }
-        .fennec-eq-bar {
-          display: inline-block;
-          width: 2.5px;
-          border-radius: 2px;
-          margin: 0 1px;
-          transform-origin: bottom;
-          animation: fennecEqBar 1.1s ease-in-out infinite alternate;
-          opacity: 0.55;
-        }
-      `}</style>
-      <div style={{ display: "flex", alignItems: "flex-end", gap: 0, height: 18, marginTop: 4 }}>
-        {EQ_HEIGHTS.map((h, i) => (
-          <span
-            key={i}
-            className="fennec-eq-bar"
-            style={{ height: h, background: accent, animationDelay: `${i * 0.15}s` }}
-          />
-        ))}
-      </div>
-    </>
+    <div style={{ display: "flex", alignItems: "flex-end", gap: 0, height: 18, marginTop: 4 }}>
+      {EQ_HEIGHTS.map((h, i) => (
+        <span
+          key={i}
+          className="fennec-eq-bar"
+          style={{ height: h, background: accent, animationDelay: `${i * 0.15}s` }}
+        />
+      ))}
+    </div>
   );
 }
 
@@ -181,17 +167,17 @@ export default function FennecIdCard({
               ID
             </span>
           </div>
-          <QrPlaceholder accent={accent} />
+          <QrPlaceholder />
         </div>
       </div>
 
       {/* NAME — staggered */}
       <div style={{ marginBottom: 16, lineHeight: 1.0, position: "relative" }}>
         <p style={{ fontSize: 28, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "-0.02em", margin: 0 }}>
-          {firstName.toUpperCase()}
+          {firstName}
         </p>
         <p style={{ fontSize: 28, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "-0.02em", margin: 0, paddingLeft: 20 }}>
-          {lastName.toUpperCase()}
+          {lastName}
         </p>
       </div>
 
@@ -255,7 +241,7 @@ export default function FennecIdCard({
               {primaryGenre}
             </span>
           )}
-          <span style={{ fontSize: 7, color: "#333", letterSpacing: "0.1em", fontWeight: 600 }}>
+          <span style={{ fontSize: 7, color: "rgba(255,255,255,0.35)", letterSpacing: "0.1em", fontWeight: 600 }}>
             {country.toUpperCase()}{collectionNumber !== undefined ? ` · ${pad4(collectionNumber)}` : ""}
           </span>
           {/* Social icons */}
