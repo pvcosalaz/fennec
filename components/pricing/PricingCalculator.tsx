@@ -1057,6 +1057,10 @@ export default function PricingCalculator() {
           userId={authUser?.id}
           onOpenSettings={() => { setSettingsSection("main"); setShowSettings(true); }}
           onOpenProfileSettings={() => { setSettingsSection("profile"); setShowSettings(true); }}
+          networkProfile={profile}
+          onColorAssigned={(colorId) =>
+            setProfile((prev) => prev ? { ...prev, color_id: colorId } : prev)
+          }
         />
       ) : activeTab === "contenido" ? (
         <ContentModule />

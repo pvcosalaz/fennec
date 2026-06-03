@@ -15,6 +15,10 @@ import { PROFILE_KEY, type UserProfile } from "@/components/settings/SettingsMod
 import { fetchProfile } from "@/lib/communityDb";
 import { supabase } from "@/lib/supabase";
 import FennecFox from "./FennecFox";
+import FennecIdCard from "@/components/network/FennecIdCard";
+import { getColorScheme } from "@/lib/fennecIdPalette";
+import { ensureColorAssigned } from "@/lib/networkDb";
+import type { Profile } from "@/lib/communityTypes";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -206,7 +210,25 @@ function VUMeter({ platform, value = 0 }: { platform: typeof PLATFORMS[0]; value
 type SpotifyData = { connected: boolean; followers: number; displayName?: string; imageUrl?: string | null } | null;
 type YouTubeData = { connected: boolean; verified: boolean; subscriberCount: number; viewCount: number; videoCount: number; channelTitle: string; thumbnail?: string } | null;
 
-export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSettings, onOpenProfileSettings }: { avatarUrl?: string | null; username?: string | null; isPro?: boolean; userId?: string | null; onOpenSettings?: () => void; onOpenProfileSettings?: () => void }) {
+export default function Dashboard({
+  avatarUrl,
+  username,
+  isPro,
+  userId,
+  onOpenSettings,
+  onOpenProfileSettings,
+  networkProfile,
+  onColorAssigned,
+}: {
+  avatarUrl?: string | null;
+  username?: string | null;
+  isPro?: boolean;
+  userId?: string | null;
+  onOpenSettings?: () => void;
+  onOpenProfileSettings?: () => void;
+  networkProfile?: Profile | null;
+  onColorAssigned?: (colorId: string) => void;
+}) {
   const [projects,    setProjects]    = useState<Project[]>([]);
   const [quotes,      setQuotes]      = useState<Quote[]>([]);
   const [clients,     setClients]     = useState<Client[]>([]);
@@ -293,6 +315,23 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
     }
   }, []);
 
+  // Resolve color for the Fennec ID card
+  const [resolvedColorId, setResolvedColorId] = useState<string | null>(networkProfile?.color_id ?? null);
+  const onColorAssignedRef = useRef(onColorAssigned);
+  useEffect(() => { onColorAssignedRef.current = onColorAssigned; });
+
+  useEffect(() => {
+    if (!userId || !networkProfile) return;
+    ensureColorAssigned(userId, networkProfile.color_id).then((colorId) => {
+      if (colorId !== networkProfile.color_id) {
+        setResolvedColorId(colorId);
+        onColorAssignedRef.current?.(colorId);
+      } else {
+        setResolvedColorId(colorId);
+      }
+    });
+  }, [userId, networkProfile?.color_id]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const months   = useMemo(() => getLastNMonths(6), []);
   const revenues = useMemo(() => months.map((m) => revenueForMonth(projects, m.month, m.year)), [projects, months]);
 
@@ -320,6 +359,16 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
   useEffect(() => {
     if (mounted) localStorage.setItem("fennec-db-score", String(fennecDb));
   }, [fennecDb, mounted]);
+
+  // Fennec ID card data
+  const cardColorScheme = getColorScheme(resolvedColorId);
+  const cardName   = networkProfile?.display_name || username || "";
+  const cardParts  = cardName.trim().split(/\s+/);
+  const cardFirst  = cardParts[0] ?? "";
+  const cardLast   = cardParts.slice(1).join(" ");
+  const cardInitials = cardParts.length >= 2
+    ? (cardParts[0][0] + cardParts[1][0]).toUpperCase()
+    : cardName.slice(0, 2).toUpperCase();
 
   type Act = { id: string; label: string; sub: string; ts: number; dot: string };
   const activity: Act[] = useMemo(() => {
@@ -620,6 +669,28 @@ export default function Dashboard({ avatarUrl, username, isPro, userId, onOpenSe
           )}
         </div>
       </div>
+
+      {/* ── Fennec ID card ── */}
+      {networkProfile && (
+        <div className="pt-1">
+          <p className="text-xs font-semibold tracking-[0.35em] text-zinc-500 uppercase mb-3">Tu Fennec ID</p>
+          <FennecIdCard
+            firstName={cardFirst}
+            lastName={cardLast}
+            role={networkProfile.role ?? "Producer"}
+            country={networkProfile.country ?? ""}
+            genres={networkProfile.genres ?? []}
+            fennecDb={fennecDb}
+            colorScheme={cardColorScheme}
+            initials={cardInitials}
+            avatarUrl={avatarUrl}
+            instagram={networkProfile.instagram}
+            tiktok={networkProfile.tiktok}
+            spotify={networkProfile.spotify}
+            youtube={networkProfile.youtube_url}
+          />
+        </div>
+      )}
 
       {/* ── Empty hint ────────────────────────────────────────────────────── */}
       {projects.length === 0 && quotes.length === 0 && (
