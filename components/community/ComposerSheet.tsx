@@ -1,5 +1,6 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X, Music2, ImageIcon, SmilePlus } from "lucide-react";
 import { createPost, uploadImage } from "@/lib/communityDb";
 import type { Profile, Post, PostCategory, MediaType } from "@/lib/communityTypes";
@@ -38,7 +39,10 @@ export default function ComposerSheet({ profile, onClose, onPostCreated, initial
   const [showMelody, setShowMelody] = useState(false);
   const [showGif, setShowGif]       = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => { setMounted(true); }, []);
 
   const canPost = content.trim().length > 0 || !!mediaUrl;
 
@@ -100,10 +104,15 @@ export default function ComposerSheet({ profile, onClose, onPostCreated, initial
     }
   }
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <>
-      <div className="fixed inset-0 z-40 bg-black/60" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl bg-zinc-950 border-t border-white/10 p-4 space-y-4">
+      <div className="fixed inset-0 z-[100] bg-black/60" onClick={onClose} />
+      <div
+        className="fixed bottom-0 left-0 right-0 z-[101] rounded-t-3xl bg-zinc-950 border-t border-white/10 p-4 space-y-4 max-h-[90vh] overflow-y-auto"
+        style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 16px)" }}
+      >
 
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -217,6 +226,7 @@ export default function ComposerSheet({ profile, onClose, onPostCreated, initial
           onClose={() => setShowGif(false)}
         />
       )}
-    </>
+    </>,
+    document.body
   );
 }

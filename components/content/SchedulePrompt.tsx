@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Calendar, Check } from "lucide-react";
 
 type Props = {
@@ -20,6 +21,9 @@ export default function SchedulePrompt({
 }: Props) {
   const [date, setDate] = useState<string>(toYMD(new Date()));
   const [done, setDone] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   const handleConfirm = () => {
     setDone(true);
@@ -28,16 +32,21 @@ export default function SchedulePrompt({
     }, 800);
   };
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+        className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm"
         onClick={onSkip}
       />
 
       {/* Sheet */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 max-w-lg mx-auto rounded-t-3xl border-t border-white/10 bg-zinc-950 p-6 space-y-5">
+      <div
+        className="fixed bottom-0 left-0 right-0 z-[101] max-w-lg mx-auto rounded-t-3xl border-t border-white/10 bg-zinc-950 p-6 space-y-5"
+        style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 24px)" }}
+      >
         {done ? (
           // Success state
           <div className="flex flex-col items-center gap-3 py-6">
@@ -95,6 +104,7 @@ export default function SchedulePrompt({
           </>
         )}
       </div>
-    </>
+    </>,
+    document.body
   );
 }
