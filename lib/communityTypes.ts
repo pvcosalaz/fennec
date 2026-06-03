@@ -23,6 +23,7 @@ export type Profile = {
   spotify: string | null;
   youtube_url: string | null;
   tiktok: string | null;
+  color_id: string | null;
 };
 
 export type Post = {

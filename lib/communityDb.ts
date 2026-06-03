@@ -60,6 +60,7 @@ export async function updateProfile(userId: string, updates: {
   spotify?: string | null;
   youtube_url?: string | null;
   tiktok?: string | null;
+  color_id?: string | null;
 }): Promise<Profile> {
   const { data, error } = await supabase
     .from("profiles")
