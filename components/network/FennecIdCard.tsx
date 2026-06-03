@@ -205,7 +205,7 @@ export default function FennecIdCard({
         <div
           style={{
             flex: 1,
-            padding: "22px 10px 8px 6px",
+            padding: "32px 10px 8px 6px",
             display: "flex",
             flexDirection: "column",
             justifyContent: "flex-start",
