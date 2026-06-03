@@ -218,6 +218,7 @@ export default function Dashboard({
   onOpenProfileSettings,
   networkProfile,
   onColorAssigned,
+  className,
 }: {
   avatarUrl?: string | null;
   username?: string | null;
@@ -227,6 +228,7 @@ export default function Dashboard({
   onOpenProfileSettings?: () => void;
   networkProfile?: Profile | null;
   onColorAssigned?: (colorId: string) => void;
+  className?: string;
 }) {
   const [projects,    setProjects]    = useState<Project[]>([]);
   const [quotes,      setQuotes]      = useState<Quote[]>([]);
@@ -389,7 +391,7 @@ export default function Dashboard({
   }, [projects, quotes]);
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-3 pb-2 pt-1 px-4">
+    <div className={`mx-auto w-full max-w-4xl space-y-3 pb-2 pt-1 px-4 ${className ?? ""}`}>
 
       {/* ── Toasts ────────────────────────────────────────────────────────── */}
       {spotifyToast && (
@@ -403,6 +405,11 @@ export default function Dashboard({
           <SiYoutube className="h-4 w-4 text-[#FF0000]" />
           <span className="text-sm text-white font-medium">YouTube connected!</span>
         </div>
+      )}
+
+      {/* ── Username ── */}
+      {username && (
+        <p className="text-center text-xl font-bold text-amber-400">@{username}</p>
       )}
 
       {/* ── Fennec ID card ── */}

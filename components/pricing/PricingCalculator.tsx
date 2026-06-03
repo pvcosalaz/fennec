@@ -570,9 +570,6 @@ export default function PricingCalculator() {
           <div className="flex-1 flex justify-start">
             <NotificationBell userId={authUser.id} />
           </div>
-          {activeTab === "dashboard" && profile.username && (
-            <span className="text-xl font-bold text-amber-400">@{profile.username}</span>
-          )}
           <div className="flex-1 flex justify-end">
             <button
               onClick={() => setShowSettings(true)}
@@ -1051,6 +1048,7 @@ export default function PricingCalculator() {
         </section>
       ) : activeTab === "dashboard" ? (
         <Dashboard
+          className="mt-8"
           avatarUrl={profile.avatar_url}
           username={profile.username}
           isPro={profile.is_pro}
