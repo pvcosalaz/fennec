@@ -468,6 +468,8 @@ export default function Dashboard({
             ) : userId ? (
               <a
                 href={`/api/spotify/connect?userId=${userId}`}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-[10px] text-[#1DB954]/70 hover:text-[#1DB954] transition"
               >
                 Connect ↗
@@ -487,6 +489,8 @@ export default function Dashboard({
             ) : userId ? (
               <a
                 href={`/api/youtube/connect?userId=${userId}`}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-[10px] text-[#FF0000]/70 hover:text-[#FF0000] transition"
               >
                 Connect ↗
