@@ -120,7 +120,7 @@ export default function FennecIdCard({
         boxShadow: `0 12px 40px rgba(${glowRgb},0.15)`,
         position: "relative",
         overflow: "hidden",
-        height: 130,
+        height: 160,
         display: "flex",
         flexDirection: "column",
       }}
