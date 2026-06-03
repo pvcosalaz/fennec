@@ -157,16 +157,14 @@ export default function FennecIdCard({
       {/* ── TOP SECTION: photo (left) + info (right) ── */}
       <div style={{ display: "flex", alignItems: "stretch", position: "relative", zIndex: 1 }}>
 
-        {/* Photo panel — full height, bleeds to card edge */}
+        {/* Photo panel — full height, bleeds to card edge, square */}
         <div
           style={{
             width: 90,
             flexShrink: 0,
-            overflow: "hidden",
+            position: "relative",
+            minHeight: 120,
             background: accent,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
           }}
         >
           {avatarUrl ? (
@@ -174,11 +172,25 @@ export default function FennecIdCard({
             <img
               src={avatarUrl}
               alt={initials}
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              style={{
+                position: "absolute",
+                inset: 0,
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                objectPosition: "center top",
+                borderRadius: 0,
+                display: "block",
+              }}
             />
           ) : (
             <span
               style={{
+                position: "absolute",
+                inset: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 fontSize: 22,
                 fontWeight: 800,
                 color: textOnAvatar === "white" ? "#fff" : "#000",
@@ -256,45 +268,45 @@ export default function FennecIdCard({
         </div>
       </div>
 
-      {/* ── SCORE BAND ── */}
+      {/* ── SCORE BAND — no divider line ── */}
       <div
         style={{
-          borderTop: `1px solid ${accent}18`,
-          padding: "10px 14px",
+          padding: "10px 16px 14px",
           display: "flex",
-          alignItems: "center",
+          alignItems: "flex-end",
           justifyContent: "space-between",
           position: "relative",
           zIndex: 1,
         }}
       >
-        {/* Left: label + (i) + score + EQ */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 1 }}>
-              <p style={{ fontSize: 7, color: `${accent}60`, fontWeight: 700, letterSpacing: "0.14em", margin: 0 }}>
-                FENNEC dB
-              </p>
-              <button
-                onClick={() => setShowDbInfo((v) => !v)}
-                style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: `${accent}60`, lineHeight: 1 }}
-                aria-label="What is Fennec dB?"
-              >
-                <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
-                  <circle cx="8" cy="8" r="7.5" stroke="currentColor" strokeWidth="1" fill="none" />
-                  <text x="8" y="12" textAnchor="middle" fontSize="10" fontWeight="700" fill="currentColor">i</text>
-                </svg>
-              </button>
-            </div>
-            <p style={{ fontSize: 24, fontWeight: 900, color: accent, lineHeight: 1, margin: 0 }}>
+        {/* Left: label + (i) · big score · EQ bars inline */}
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 3 }}>
+            <p style={{ fontSize: 7, color: `${accent}60`, fontWeight: 700, letterSpacing: "0.14em", margin: 0 }}>
+              FENNEC dB
+            </p>
+            <button
+              onClick={() => setShowDbInfo((v) => !v)}
+              style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: `${accent}60`, lineHeight: 1 }}
+              aria-label="What is Fennec dB?"
+            >
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
+                <circle cx="8" cy="8" r="7.5" stroke="currentColor" strokeWidth="1" fill="none" />
+                <text x="8" y="12" textAnchor="middle" fontSize="10" fontWeight="700" fill="currentColor">i</text>
+              </svg>
+            </button>
+          </div>
+          {/* Score + EQ bars side by side, aligned to baseline */}
+          <div style={{ display: "flex", alignItems: "flex-end", gap: 10 }}>
+            <p style={{ fontSize: 36, fontWeight: 900, color: accent, lineHeight: 1, margin: 0 }}>
               {fennecDb}
             </p>
+            <EqBars accent={accent} />
           </div>
-          <EqBars accent={accent} />
         </div>
 
         {/* Right: social icons */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 2 }}>
           {instagram && <SiInstagram size={11} style={{ color: "#E1306C", opacity: 0.75 }} />}
           {spotify   && <SiSpotify   size={11} style={{ color: "#1DB954", opacity: 0.75 }} />}
           {youtube   && <SiYoutube   size={11} style={{ color: "#FF0000", opacity: 0.75 }} />}
