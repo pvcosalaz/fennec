@@ -52,6 +52,11 @@ export default function NetworkCollection({ contacts }: Props) {
     );
   }
 
+  const topContact = contacts[0];
+  const topScheme = getColorScheme(topContact.color_id);
+  const { firstName: topFirstName, lastName: topLastName } = getFirstLast(topContact);
+  const topInitials = getInitials(topContact);
+
   return (
     <div>
       {/* Header */}
@@ -79,6 +84,7 @@ export default function NetworkCollection({ contacts }: Props) {
       {/* Collapsed: deck preview */}
       {!expanded && (
         <button
+          aria-label="Ver todos los productores en tu red"
           onClick={() => setExpanded(true)}
           style={{ width: "100%", background: "none", border: "none", cursor: "pointer", padding: 0 }}
         >
@@ -108,30 +114,23 @@ export default function NetworkCollection({ contacts }: Props) {
               );
             })}
             {/* Top card — fully visible */}
-            {(() => {
-              const top = contacts[0];
-              const scheme = getColorScheme(top.color_id);
-              const { firstName, lastName } = getFirstLast(top);
-              return (
-                <div style={{ position: "absolute", top: 0, left: 0, right: 0 }}>
-                  <FennecIdCard
-                    firstName={firstName}
-                    lastName={lastName}
-                    role={top.role ?? "Producer"}
-                    country={top.country ?? ""}
-                    genres={top.genres ?? []}
-                    fennecDb={top.fennec_db_score}
-                    colorScheme={scheme}
-                    collectionNumber={1}
-                    initials={getInitials(top)}
-                    instagram={top.instagram}
-                    tiktok={top.tiktok}
-                    spotify={top.spotify}
-                    youtube={top.youtube_url}
-                  />
-                </div>
-              );
-            })()}
+            <div style={{ position: "absolute", top: 0, left: 0, right: 0 }}>
+              <FennecIdCard
+                firstName={topFirstName}
+                lastName={topLastName}
+                role={topContact.role ?? "Producer"}
+                country={topContact.country ?? ""}
+                genres={topContact.genres ?? []}
+                fennecDb={topContact.fennec_db_score}
+                colorScheme={topScheme}
+                collectionNumber={1}
+                initials={topInitials}
+                instagram={topContact.instagram}
+                tiktok={topContact.tiktok}
+                spotify={topContact.spotify}
+                youtube={topContact.youtube_url}
+              />
+            </div>
           </div>
         </button>
       )}
