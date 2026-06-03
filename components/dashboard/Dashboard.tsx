@@ -182,6 +182,7 @@ export default function Dashboard({
   onOpenProfileSettings,
   networkProfile,
   onColorAssigned,
+  onNavigate,
   className,
 }: {
   avatarUrl?: string | null;
@@ -192,6 +193,7 @@ export default function Dashboard({
   onOpenProfileSettings?: () => void;
   networkProfile?: Profile | null;
   onColorAssigned?: (colorId: string) => void;
+  onNavigate?: (tab: "pricing" | "contenido" | "dashboard" | "ideas" | "noticias") => void;
   className?: string;
 }) {
   const [projects,    setProjects]    = useState<Project[]>([]);
@@ -503,11 +505,27 @@ export default function Dashboard({
         </div>
       </div>
 
-      {/* ── Empty hint ────────────────────────────────────────────────────── */}
+      {/* ── Empty state ───────────────────────────────────────────── */}
       {projects.length === 0 && quotes.length === 0 && (
-        <p className="text-center text-[10px] text-zinc-700 pb-1">
-          Add projects &amp; quotes to bring the dashboard to life
-        </p>
+        <div className="border-t border-white/5 pt-4 px-2 flex flex-col items-center gap-3 pb-2">
+          <p className="text-[11px] font-semibold text-zinc-400 text-center">
+            Tu negocio empieza aquí.
+          </p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => onNavigate?.("pricing")}
+              className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-[10px] font-semibold text-white hover:bg-white/10 transition"
+            >
+              + Crear proyecto
+            </button>
+            <button
+              onClick={() => onNavigate?.("pricing")}
+              className="rounded-lg border border-accent/30 bg-accent/10 px-3 py-1.5 text-[10px] font-semibold text-accent hover:bg-accent/20 transition"
+            >
+              + Enviar cotización
+            </button>
+          </div>
+        </div>
       )}
 
     </div>

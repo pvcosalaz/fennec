@@ -1059,6 +1059,7 @@ export default function PricingCalculator() {
           onColorAssigned={(colorId) =>
             setProfile((prev) => prev ? { ...prev, color_id: colorId } : prev)
           }
+          onNavigate={(tab) => { setActiveTab(tab); setBusinessView("hub"); }}
         />
       ) : activeTab === "contenido" ? (
         <ContentModule />
