@@ -1,12 +1,13 @@
 // components/network/NetworkSection.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import FennecIdCard from "./FennecIdCard";
 import NetworkCollection from "./NetworkCollection";
 import { ensureColorAssigned, getNetworkContacts } from "@/lib/networkDb";
 import { getColorScheme } from "@/lib/fennecIdPalette";
 import type { Profile } from "@/lib/communityTypes";
+import { getInitials, getFirstLast } from "./utils";
 
 type Props = {
   profile: Profile;
@@ -15,34 +16,25 @@ type Props = {
   userId: string;
 };
 
-function getInitials(profile: Profile): string {
-  const name = profile.display_name || profile.username || "?";
-  const parts = name.trim().split(/\s+/);
-  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-  return name.slice(0, 2).toUpperCase();
-}
-
-function getFirstLast(profile: Profile): { firstName: string; lastName: string } {
-  const name = profile.display_name || profile.username || "Unknown";
-  const parts = name.trim().split(/\s+/);
-  if (parts.length >= 2) return { firstName: parts[0], lastName: parts.slice(1).join(" ") };
-  return { firstName: name, lastName: "" };
-}
-
 export default function NetworkSection({ profile, onColorAssigned, userId }: Props) {
   const [resolvedColorId, setResolvedColorId] = useState<string | null>(profile.color_id);
   const [contacts, setContacts] = useState<Profile[]>([]);
   const [loadingContacts, setLoadingContacts] = useState(true);
+
+  const onColorAssignedRef = useRef(onColorAssigned);
+  useEffect(() => {
+    onColorAssignedRef.current = onColorAssigned;
+  });
 
   // Assign color on first load if not set
   useEffect(() => {
     ensureColorAssigned(userId, profile.color_id).then((colorId) => {
       if (colorId !== profile.color_id) {
         setResolvedColorId(colorId);
-        onColorAssigned(colorId);
+        onColorAssignedRef.current(colorId);
       }
     });
-  }, [userId, profile.color_id, onColorAssigned]);
+  }, [userId, profile.color_id]); // onColorAssigned intentionally excluded — stabilized via ref
 
   // Load network contacts
   useEffect(() => {

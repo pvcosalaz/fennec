@@ -5,26 +5,11 @@ import { useState } from "react";
 import FennecIdCard from "./FennecIdCard";
 import { getColorScheme } from "@/lib/fennecIdPalette";
 import type { Profile } from "@/lib/communityTypes";
+import { getInitials, getFirstLast } from "./utils";
 
 type Props = {
   contacts: Profile[];
 };
-
-function getInitials(profile: Profile): string {
-  const name = profile.display_name || profile.username || "?";
-  const parts = name.trim().split(/\s+/);
-  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-  return name.slice(0, 2).toUpperCase();
-}
-
-function getFirstLast(profile: Profile): { firstName: string; lastName: string } {
-  const name = profile.display_name || profile.username || "Unknown";
-  const parts = name.trim().split(/\s+/);
-  if (parts.length >= 2) {
-    return { firstName: parts[0], lastName: parts.slice(1).join(" ") };
-  }
-  return { firstName: name, lastName: "" };
-}
 
 export default function NetworkCollection({ contacts }: Props) {
   const [expanded, setExpanded] = useState(false);
