@@ -1,8 +1,30 @@
 // components/network/FennecIdCard.tsx
 "use client";
 
-import { useState } from "react";
-import { SiInstagram, SiTiktok, SiSpotify, SiYoutube } from "react-icons/si";
+import { useState, useEffect, useRef } from "react";
+
+function useCountUp(target: number, duration = 1200) {
+  const [display, setDisplay] = useState(0);
+  const rafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (target <= 0) { setDisplay(0); return; }
+    const start = performance.now();
+    const tick = (now: number) => {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      // ease-out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplay(Math.round(eased * target));
+      if (progress < 1) rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
+  }, [target, duration]);
+
+  return display;
+}
+import { SiInstagram, SiSpotify, SiYoutube } from "react-icons/si";
 import type { FennecIdColor } from "@/lib/fennecIdPalette";
 
 export type FennecIdCardProps = {
@@ -31,7 +53,6 @@ export type FennecIdCardProps = {
    * Phase 2: wrap icons in <a href> links using these handle strings.
    */
   instagram?: string | null;
-  tiktok?: string | null;
   spotify?: string | null;
   youtube?: string | null;
 };
@@ -102,13 +123,13 @@ export default function FennecIdCard({
   initials,
   avatarUrl,
   instagram,
-  tiktok,
   spotify,
   youtube,
 }: FennecIdCardProps) {
   const { accent, dark1, dark2, glowRgb, textOnAvatar } = colorScheme;
   const primaryGenre = genres[0] ?? "";
   const [showDbInfo, setShowDbInfo] = useState(false);
+  const animatedDb = useCountUp(fennecDb, 1400);
 
   return (
     <div
@@ -296,7 +317,7 @@ export default function FennecIdCard({
           {/* Score + EQ bars side by side, aligned to baseline */}
           <div style={{ display: "flex", alignItems: "flex-end", gap: 10 }}>
             <p style={{ fontSize: 34, fontWeight: 900, color: accent, lineHeight: 1, margin: 0 }}>
-              {fennecDb}
+              {animatedDb}
             </p>
             <EqBars accent={accent} />
           </div>
@@ -307,7 +328,6 @@ export default function FennecIdCard({
           {instagram && <SiInstagram size={11} style={{ color: "#E1306C", opacity: 0.75 }} />}
           {spotify   && <SiSpotify   size={11} style={{ color: "#1DB954", opacity: 0.75 }} />}
           {youtube   && <SiYoutube   size={11} style={{ color: "#FF0000", opacity: 0.75 }} />}
-          {tiktok    && <SiTiktok    size={11} style={{ color: "#fff",    opacity: 0.65 }} />}
         </div>
       </div>
 
