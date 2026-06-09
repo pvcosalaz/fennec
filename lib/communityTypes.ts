@@ -24,6 +24,11 @@ export type Profile = {
   youtube_url: string | null;
   tiktok: string | null;
   color_id: string | null;
+  // Social stats — synced via Apify
+  ig_followers?: number | null;
+  tiktok_followers?: number | null;
+  yt_subscribers?: number | null;
+  social_synced_at?: string | null;
 };
 
 export type Post = {
