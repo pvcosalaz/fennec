@@ -319,10 +319,15 @@ export default function Dashboard({
       </div>
 
       {/* Stat chips: Streams · Créditos · Proyectos */}
-      <div className="grid grid-cols-3 divide-x divide-white/5 border border-white/5 rounded-2xl overflow-hidden bg-white/[0.02]">
-        <StatChip label="Streams"   pending onConnect={onOpenSettings} />
-        <StatChip label="Créditos"  pending onConnect={onOpenSettings} />
-        <StatChip label="Proyectos" value={activeCount} />
+      <div>
+        <p className="text-[8px] font-bold uppercase tracking-widest text-zinc-600 mb-1.5 px-1">
+          Música &amp; Negocio
+        </p>
+        <div className="grid grid-cols-3 divide-x divide-white/[0.06]">
+          <StatChip label="Streams"   pending onConnect={onOpenSettings} />
+          <StatChip label="Créditos"  pending onConnect={onOpenSettings} />
+          <StatChip label="Proyectos" value={activeCount} />
+        </div>
       </div>
 
       {/* Social chips: Instagram · TikTok · YouTube */}
@@ -335,7 +340,7 @@ export default function Dashboard({
             {syncedAt ? timeAgo(syncedAt) : "actualizar"}
           </button>
         </div>
-        <div className="grid grid-cols-3 divide-x divide-white/5 border border-white/5 rounded-2xl overflow-hidden bg-white/[0.02]">
+        <div className="grid grid-cols-3 divide-x divide-white/[0.06]">
           <SocialChip icon={<SiInstagram size={13} />} count={igFollowers}
             label="Instagram" color="#E1306C" hasHandle={hasIg} />
           <SocialChip icon={<SiTiktok size={13} />}   count={ttFollowers}
