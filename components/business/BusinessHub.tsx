@@ -203,7 +203,7 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
       </div>{/* end top group */}
 
       {/* ── Revenue summary + bars — anchored to bottom ── */}
-      <div className="mt-auto space-y-2 pt-2 pb-3 border-t border-white/5">
+      <div className="mt-auto space-y-2 pt-2 pb-3">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[10px] text-zinc-500 uppercase tracking-widest">This month</p>
