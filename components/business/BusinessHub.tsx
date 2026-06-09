@@ -48,24 +48,33 @@ function EqualizerBars({ months, revenues }: { months: ReturnType<typeof getLast
   const max = Math.max(...revenues, 1);
 
   return (
-    <div className="flex items-end gap-1.5" style={{ height: 64 }}>
-      {months.map((m, i) => {
-        const hasRev = revenues[i] > 0;
-        const pct = hasRev ? Math.max((revenues[i] / max) * 100, 10) : 3;
-        return (
-          <div key={i} className="flex flex-1 flex-col items-center gap-2">
-            <div className="w-full rounded-sm overflow-hidden" style={{ height: 48, display: "flex", alignItems: "flex-end" }}>
+    <div className="flex flex-col gap-1.5">
+      {/* Bars */}
+      <div className="flex items-end gap-1.5" style={{ height: 48 }}>
+        {months.map((m, i) => {
+          const pct = revenues[i] > 0 ? Math.max((revenues[i] / max) * 100, 10) : 0;
+          return (
+            <div key={i} className="flex-1 flex flex-col justify-end" style={{ height: "100%" }}>
               <div
                 className={`w-full rounded-sm transition-all duration-700 ease-out ${m.isCurrent ? "bg-accent" : "bg-white/15"}`}
-                style={{ height: up ? `${pct}%` : "3%", transitionDelay: `${i * 60}ms` }}
+                style={{
+                  height: up ? (pct > 0 ? `${pct}%` : "4px") : "4px",
+                  minHeight: "4px",
+                  transitionDelay: `${i * 60}ms`,
+                }}
               />
             </div>
-            <span className={`text-[10px] font-medium ${m.isCurrent ? "text-accent" : "text-zinc-600"}`}>
-              {m.label}
-            </span>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
+      {/* Labels */}
+      <div className="flex gap-1.5">
+        {months.map((m, i) => (
+          <span key={i} className={`flex-1 text-center text-[10px] font-medium ${m.isCurrent ? "text-accent" : "text-zinc-600"}`}>
+            {m.label}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }
