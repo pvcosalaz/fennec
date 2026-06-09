@@ -238,21 +238,48 @@ export default function Dashboard({
 
         {/* info panel */}
         {showDbInfo && (
-          <div className="w-full rounded-xl border px-4 py-3 mt-1 text-[10px] leading-relaxed"
-               style={{ borderColor: `${cardColorScheme.accent}15`, background: `${cardColorScheme.accent}08`, color: `${cardColorScheme.accent}80` }}>
-            Mide qué tan activo está tu negocio musical — como una señal de fuerza, pero para tu carrera.
-            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
-              {[
-                ["Proyecto activo", "×150"],
-                ["Proyecto cerrado", "×50"],
-                ["Cliente", "×75"],
-                ["Cotización enviada", "×25"],
-              ].map(([label, pts]) => (
-                <span key={label}>
-                  {label}{" "}
-                  <strong style={{ color: cardColorScheme.accent }}>{pts}</strong>
+          <div className="w-full rounded-xl border px-4 py-3 mt-1 text-[10px] leading-relaxed space-y-3"
+               style={{ borderColor: `${cardColorScheme.accent}15`, background: `${cardColorScheme.accent}08`, color: `${cardColorScheme.accent}70` }}>
+            <p>Tu señal como artista y productor — crece con cada proyecto, cliente y escucha.</p>
+
+            {/* Negocio (activo) */}
+            <div>
+              <p className="text-[8px] font-bold uppercase tracking-widest mb-1.5"
+                 style={{ color: `${cardColorScheme.accent}45` }}>Negocio</p>
+              <div className="flex flex-wrap gap-x-5 gap-y-1">
+                {[
+                  ["Proyecto activo",   "×150"],
+                  ["Proyecto cerrado",  "×50"],
+                  ["Cliente",           "×75"],
+                  ["Cotización enviada","×25"],
+                ].map(([label, pts]) => (
+                  <span key={label}>
+                    {label} <strong style={{ color: cardColorScheme.accent }}>{pts}</strong>
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Muso.AI (próximamente) */}
+            <div>
+              <div className="flex items-center gap-2 mb-1.5">
+                <p className="text-[8px] font-bold uppercase tracking-widest"
+                   style={{ color: `${cardColorScheme.accent}45` }}>Alcance musical</p>
+                <span className="text-[7px] font-bold px-1.5 py-0.5 rounded-full"
+                      style={{ background: `${cardColorScheme.accent}15`, color: `${cardColorScheme.accent}70` }}>
+                  vía Muso.AI · próximamente
                 </span>
-              ))}
+              </div>
+              <div className="flex flex-wrap gap-x-5 gap-y-1" style={{ opacity: 0.5 }}>
+                {[
+                  ["Streams totales",     "por definir"],
+                  ["Créditos verificados","por definir"],
+                ].map(([label, pts]) => (
+                  <span key={label}>
+                    {label} <strong style={{ color: cardColorScheme.accent }}>{pts}</strong>
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         )}
