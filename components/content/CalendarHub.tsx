@@ -212,7 +212,7 @@ export default function CalendarHub({
       </div>
 
       {/* 4. Selected day tasks section */}
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2">
         <span className="text-xs font-medium text-zinc-400 uppercase tracking-wide">
           {selectedDay === todayYMD ? "Hoy" : formatDateES(selectedDay)}
         </span>
@@ -293,8 +293,8 @@ export default function CalendarHub({
       </div>
 
       {/* 5. Tools section */}
-      <div className="border-t border-zinc-800 pt-4 flex flex-col gap-3">
-        <span className="text-xs uppercase tracking-widest text-zinc-500">Tools</span>
+      <div className="border-t border-zinc-800 pt-3 pb-6 flex flex-col gap-2">
+        <span className="text-[10px] uppercase tracking-widest text-zinc-500">Tools</span>
 
         {/* Inspire — hero card */}
         <button
