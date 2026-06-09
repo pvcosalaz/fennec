@@ -113,8 +113,25 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
         <p className="mt-2 text-sm text-zinc-400">Price, quote, track your productions.</p>
       </div>
 
-      {/* ── Pricing Calculator — hero ── */}
+      {/* ── My Network — hero ── */}
       <button
+        type="button"
+        onClick={() => onOpenView("network")}
+        className="w-full text-left py-4 flex items-center gap-4 border border-white/10 rounded-2xl bg-white/[0.03] px-4"
+      >
+        <div className="h-11 w-11 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
+          <Wifi size={20} className="text-accent" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold text-white">My Network</p>
+          <p className="text-xs text-zinc-500 mt-0.5">Your music production network.</p>
+        </div>
+        <ArrowRight size={16} className="text-zinc-600 shrink-0" />
+      </button>
+
+      {/* ── Pricing Calculator ── */}
+      <button
+        type="button"
         onClick={() => onOpenView("calculator")}
         className="w-full text-left py-3 flex items-center gap-4 border-b border-white/5"
       >
@@ -205,21 +222,6 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
         <EqualizerBars months={months} revenues={revenues} />
       </div>
 
-      {/* ── Network ── */}
-      <button
-        type="button"
-        onClick={() => onOpenView("network")}
-        className="w-full text-left py-3 flex items-center gap-4 border-t border-white/5"
-      >
-        <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
-          <Wifi size={18} className="text-zinc-400" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-white">My Network</p>
-          <p className="text-xs text-zinc-500 mt-0.5">Productores en tu colección.</p>
-        </div>
-        <ArrowRight size={16} className="text-zinc-600 shrink-0" />
-      </button>
 
     </div>
   );
