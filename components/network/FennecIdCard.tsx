@@ -55,6 +55,11 @@ export type FennecIdCardProps = {
   instagram?: string | null;
   spotify?: string | null;
   youtube?: string | null;
+  /**
+   * When true: show dB as a small static badge (no count-up animation, no EQ bars).
+   * Use when a larger animated dB is displayed outside the card.
+   */
+  smallDb?: boolean;
 };
 
 function pad4(n: number): string {
@@ -125,6 +130,7 @@ export default function FennecIdCard({
   instagram,
   spotify,
   youtube,
+  smallDb = false,
 }: FennecIdCardProps) {
   const { accent, dark1, dark2, glowRgb, textOnAvatar } = colorScheme;
   const primaryGenre = genres[0] ?? "";
@@ -286,45 +292,56 @@ export default function FennecIdCard({
         </div>
       </div>
 
-      {/* ── SCORE BAND — no divider line ── */}
+      {/* ── SCORE BAND ── */}
       <div
         style={{
-          padding: "9px 16px 12px",
+          padding: smallDb ? "7px 16px 10px" : "9px 16px 12px",
           display: "flex",
-          alignItems: "flex-end",
+          alignItems: "center",
           justifyContent: "space-between",
           position: "relative",
           zIndex: 1,
         }}
       >
-        {/* Left: label + (i) · big score · EQ bars inline */}
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 3 }}>
-            <p style={{ fontSize: 7, color: `${accent}60`, fontWeight: 700, letterSpacing: "0.14em", margin: 0 }}>
+        {smallDb ? (
+          /* Small static badge — dB hero lives outside the card */
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{ fontSize: 7, color: `${accent}55`, fontWeight: 700, letterSpacing: "0.16em" }}>
               FENNEC dB
-            </p>
-            <button
-              onClick={() => setShowDbInfo((v) => !v)}
-              style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: `${accent}60`, lineHeight: 1 }}
-              aria-label="What is Fennec dB?"
-            >
-              <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
-                <circle cx="8" cy="8" r="7.5" stroke="currentColor" strokeWidth="1" fill="none" />
-                <text x="8" y="12" textAnchor="middle" fontSize="10" fontWeight="700" fill="currentColor">i</text>
-              </svg>
-            </button>
+            </span>
+            <span style={{ fontSize: 13, fontWeight: 900, color: `${accent}90`, lineHeight: 1 }}>
+              {fennecDb}
+            </span>
           </div>
-          {/* Score + EQ bars side by side, aligned to baseline */}
-          <div style={{ display: "flex", alignItems: "flex-end", gap: 10 }}>
-            <p style={{ fontSize: 34, fontWeight: 900, color: accent, lineHeight: 1, margin: 0 }}>
-              {animatedDb}
-            </p>
-            <EqBars accent={accent} />
+        ) : (
+          /* Full animated score + EQ bars */
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 3 }}>
+              <p style={{ fontSize: 7, color: `${accent}60`, fontWeight: 700, letterSpacing: "0.14em", margin: 0 }}>
+                FENNEC dB
+              </p>
+              <button
+                onClick={() => setShowDbInfo((v) => !v)}
+                style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: `${accent}60`, lineHeight: 1 }}
+                aria-label="What is Fennec dB?"
+              >
+                <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
+                  <circle cx="8" cy="8" r="7.5" stroke="currentColor" strokeWidth="1" fill="none" />
+                  <text x="8" y="12" textAnchor="middle" fontSize="10" fontWeight="700" fill="currentColor">i</text>
+                </svg>
+              </button>
+            </div>
+            <div style={{ display: "flex", alignItems: "flex-end", gap: 10 }}>
+              <p style={{ fontSize: 34, fontWeight: 900, color: accent, lineHeight: 1, margin: 0 }}>
+                {animatedDb}
+              </p>
+              <EqBars accent={accent} />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Right: social icons */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 2 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {instagram && <SiInstagram size={11} style={{ color: "#E1306C", opacity: 0.75 }} />}
           {spotify   && <SiSpotify   size={11} style={{ color: "#1DB954", opacity: 0.75 }} />}
           {youtube   && <SiYoutube   size={11} style={{ color: "#FF0000", opacity: 0.75 }} />}

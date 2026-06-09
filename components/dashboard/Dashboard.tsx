@@ -81,11 +81,12 @@ export default function Dashboard({
   onNavigate?: (tab: "pricing" | "contenido" | "dashboard" | "ideas" | "noticias") => void;
   className?: string;
 }) {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [quotes,   setQuotes]   = useState<Quote[]>([]);
-  const [clients,  setClients]  = useState<Client[]>([]);
-  const [profile,  setProfile]  = useState<UserProfile | null>(null);
-  const [mounted,  setMounted]  = useState(false);
+  const [projects,    setProjects]    = useState<Project[]>([]);
+  const [quotes,      setQuotes]      = useState<Quote[]>([]);
+  const [clients,     setClients]     = useState<Client[]>([]);
+  const [profile,     setProfile]     = useState<UserProfile | null>(null);
+  const [mounted,     setMounted]     = useState(false);
+  const [showDbInfo,  setShowDbInfo]  = useState(false);
 
   useEffect(() => {
     try {
@@ -168,7 +169,7 @@ export default function Dashboard({
         <p className="-mt-2 text-center text-xl font-bold text-amber-400">@{username}</p>
       )}
 
-      {/* ── Fennec ID card ── */}
+      {/* ── Fennec ID card (dB badge pequeño, sin animación) ── */}
       {networkProfile && (
         <FennecIdCard
           firstName={cardFirst}
@@ -183,8 +184,50 @@ export default function Dashboard({
           instagram={networkProfile.instagram}
           spotify={networkProfile.spotify}
           youtube={networkProfile.youtube_url}
+          smallDb
         />
       )}
+
+      {/* ── FENNEC dB hero: grande, centrado, animado ── */}
+      <div className="flex flex-col items-center gap-1 py-3">
+        <p className="text-[9px] font-bold tracking-[0.35em] uppercase"
+           style={{ color: `${cardColorScheme.accent}60` }}>
+          FENNEC dB
+        </p>
+        <p className="text-[72px] font-black leading-none tabular-nums"
+           style={{ color: cardColorScheme.accent }}>
+          <AnimatedNumber value={fennecDb} />
+        </p>
+        {/* (i) info tooltip */}
+        <button
+          type="button"
+          onClick={() => setShowDbInfo((v) => !v)}
+          className="text-[10px] transition"
+          style={{ color: `${cardColorScheme.accent}50` }}
+          aria-label="¿Qué es FENNEC dB?"
+        >
+          ¿Qué es esto?
+        </button>
+        {showDbInfo && (
+          <div className="w-full rounded-xl border px-4 py-3 text-[10px] leading-relaxed"
+               style={{ borderColor: `${cardColorScheme.accent}15`, background: `${cardColorScheme.accent}08`, color: `${cardColorScheme.accent}80` }}>
+            Mide qué tan activo está tu negocio musical — como una señal de fuerza, pero para tu carrera.
+            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
+              {[
+                ["Proyecto activo", "×150"],
+                ["Proyecto cerrado", "×50"],
+                ["Cliente", "×75"],
+                ["Cotización enviada", "×25"],
+              ].map(([label, pts]) => (
+                <span key={label}>
+                  {label}{" "}
+                  <strong style={{ color: cardColorScheme.accent }}>{pts}</strong>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* ── Stat chips: Streams · Créditos · Proyectos ── */}
       <div className="grid grid-cols-3 divide-x divide-white/5 border border-white/5 rounded-2xl overflow-hidden bg-white/[0.02]">
