@@ -1,13 +1,19 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
-import { Calculator, FileText, FolderOpen, Users, ArrowRight, Lock } from "lucide-react";
+import { useEffect, useState, useMemo } from "react";
+import { Lock } from "lucide-react";
 import {
   type Project, type Quote, type Client,
   formatCOP, computePricing,
 } from "@/lib/pricingData";
 import { getProjects, getQuotes, getClients } from "@/lib/businessDb";
-import { Wifi } from "lucide-react";
+import NetworkHero from "@/components/remotion/NetworkHero";
+import {
+  PricingCalculatorCard,
+  ClientsCard,
+  QuotesCard,
+  ProjectsCard,
+} from "@/components/remotion/BusinessToolCards";
 
 export type BusinessView = "hub" | "calculator" | "quotes" | "projects" | "clients" | "network";
 
@@ -48,14 +54,10 @@ function EqualizerBars({ months, revenues }: { months: ReturnType<typeof getLast
         const pct = hasRev ? Math.max((revenues[i] / max) * 100, 10) : 3;
         return (
           <div key={i} className="flex flex-1 flex-col items-center gap-2">
-            <div className="relative w-full flex items-end rounded-lg overflow-hidden bg-white/[0.04]" style={{ height: 76 }}>
+            <div className="w-full rounded-sm overflow-hidden" style={{ height: 80, display: "flex", alignItems: "flex-end" }}>
               <div
-                className={`w-full rounded-lg transition-all duration-700 ease-out ${m.isCurrent ? "bg-accent" : "bg-white/15"}`}
-                style={{
-                  height: up ? `${pct}%` : "0%",
-                  transitionDelay: `${i * 55}ms`,
-                  boxShadow: m.isCurrent && hasRev ? "0 0 16px rgba(245,166,35,0.45)" : "none",
-                }}
+                className={`w-full rounded-sm transition-all duration-700 ease-out ${m.isCurrent ? "bg-accent" : "bg-white/15"}`}
+                style={{ height: up ? `${pct}%` : "3%", transitionDelay: `${i * 60}ms` }}
               />
             </div>
             <span className={`text-[10px] font-medium ${m.isCurrent ? "text-accent" : "text-zinc-600"}`}>
@@ -97,14 +99,12 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
   }, [userId]);
 
   const { monthlyTarget } = computePricing();
-  const revenue      = useMemo(() => revenueThisMonth(projects), [projects]);
-  const activeCount  = useMemo(() => projects.filter((p) => p.status !== "paid").length, [projects]);
-  const quotesCount  = useMemo(() => quotes.filter((q) => q.status === "sent").length, [quotes]);
-  const months       = useMemo(() => getLastNMonths(6), []);
-  const revenues     = useMemo(() => months.map((m) => revenueForMonth(projects, m.month, m.year)), [projects, months]);
+  const revenue     = useMemo(() => revenueThisMonth(projects), [projects]);
+  const months      = useMemo(() => getLastNMonths(6), []);
+  const revenues    = useMemo(() => months.map((m) => revenueForMonth(projects, m.month, m.year)), [projects, months]);
 
   return (
-    <div className="mx-auto w-full max-w-4xl flex flex-col gap-5 pb-4 px-4">
+    <div className="mx-auto w-full max-w-4xl flex flex-col gap-4 pb-4 px-4">
 
       {/* ── Header ── */}
       <div className="space-y-1">
@@ -113,100 +113,81 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
         <p className="mt-2 text-sm text-zinc-400">Price, quote, track your productions.</p>
       </div>
 
-      {/* ── My Network — hero ── */}
+      {/* ── My Network — animated hero ── */}
       <button
         type="button"
         onClick={() => onOpenView("network")}
-        className="w-full text-left py-4 flex items-center gap-4 border border-white/10 rounded-2xl bg-white/[0.03] px-4"
+        className="relative w-full rounded-2xl overflow-hidden"
+        style={{ height: 160 }}
       >
-        <div className="h-11 w-11 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
-          <Wifi size={20} className="text-accent" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-white">My Network</p>
-          <p className="text-xs text-zinc-500 mt-0.5">Your music production network.</p>
-        </div>
-        <ArrowRight size={16} className="text-zinc-600 shrink-0" />
+        <NetworkHero />
       </button>
 
-      {/* ── Pricing Calculator ── */}
-      <button
-        type="button"
-        onClick={() => onOpenView("calculator")}
-        className="w-full text-left py-3 flex items-center gap-4 border-b border-white/5"
-      >
-        <div className="h-10 w-10 rounded-xl bg-amber-400/10 flex items-center justify-center shrink-0">
-          <Calculator size={20} className="text-amber-400" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-white">Pricing Calculator</p>
-          <p className="text-xs text-zinc-500 mt-0.5">Know your rate before saying yes.</p>
-        </div>
-        <ArrowRight size={16} className="text-zinc-600 shrink-0" />
-      </button>
+      {/* ── Tool grid: 2×2 ── */}
+      <div className="grid grid-cols-2 gap-3">
 
-      {/* ── Quotes + Projects — 2 columns ── */}
-      <div className="grid grid-cols-2 gap-6">
-        {/* Quotes */}
+        {/* Pricing Calculator */}
         <button
-          onClick={() => isPro ? onOpenView("quotes") : undefined}
-          className="text-left space-y-1 relative"
+          type="button"
+          onClick={() => onOpenView("calculator")}
+          className="relative rounded-2xl overflow-hidden"
+          style={{ height: 110 }}
+        >
+          <PricingCalculatorCard />
+        </button>
+
+        {/* Clients & Leads */}
+        <button
+          type="button"
+          onClick={() => isPro ? onOpenView("clients") : undefined}
+          className="relative rounded-2xl overflow-hidden"
+          style={{ height: 110 }}
         >
           {!isPro && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-[2px] rounded-xl z-10">
-              <Lock size={14} className="text-zinc-500" />
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50 backdrop-blur-[2px] rounded-2xl">
+              <div className="flex items-center gap-1.5 bg-accent text-black text-[10px] font-bold px-2.5 py-1 rounded-full">
+                <Lock size={10} /> Pro
+              </div>
             </div>
           )}
-          <div className="flex items-center justify-between">
-            <FileText size={16} className="text-zinc-500" />
-            <span className="text-2xl font-black text-white">{quotesCount}</span>
-          </div>
-          <p className="text-sm font-semibold text-white">Quotes</p>
-          <p className="text-xs text-zinc-500">Sent this month</p>
+          <ClientsCard />
+        </button>
+
+        {/* Quotes */}
+        <button
+          type="button"
+          onClick={() => isPro ? onOpenView("quotes") : undefined}
+          className="relative rounded-2xl overflow-hidden"
+          style={{ height: 110 }}
+        >
+          {!isPro && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50 backdrop-blur-[2px] rounded-2xl">
+              <div className="flex items-center gap-1.5 bg-accent text-black text-[10px] font-bold px-2.5 py-1 rounded-full">
+                <Lock size={10} /> Pro
+              </div>
+            </div>
+          )}
+          <QuotesCard />
         </button>
 
         {/* Active Projects */}
         <button
+          type="button"
           onClick={() => isPro ? onOpenView("projects") : undefined}
-          className="text-left space-y-1 relative"
+          className="relative rounded-2xl overflow-hidden"
+          style={{ height: 110 }}
         >
           {!isPro && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-[2px] rounded-xl z-10">
-              <Lock size={14} className="text-zinc-500" />
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50 backdrop-blur-[2px] rounded-2xl">
+              <div className="flex items-center gap-1.5 bg-accent text-black text-[10px] font-bold px-2.5 py-1 rounded-full">
+                <Lock size={10} /> Pro
+              </div>
             </div>
           )}
-          <div className="flex items-center justify-between">
-            <FolderOpen size={16} className="text-zinc-500" />
-            <span className="text-2xl font-black text-white">{activeCount}</span>
-          </div>
-          <p className="text-sm font-semibold text-white">Projects</p>
-          <p className="text-xs text-zinc-500">Active right now</p>
+          <ProjectsCard />
         </button>
-      </div>
 
-      {/* ── Clients & Leads ── */}
-      <button
-        onClick={() => isPro ? onOpenView("clients") : undefined}
-        className="w-full text-left py-3 flex items-center gap-3 border-t border-white/5 relative"
-      >
-        {!isPro && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-[2px] rounded-xl z-10">
-            <div className="flex items-center gap-1.5 bg-amber-400 text-black text-xs font-bold px-3 py-1.5 rounded-full">
-              <Lock size={12} /> Unlock Pro
-            </div>
-          </div>
-        )}
-        <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
-          <Users size={18} className="text-zinc-400" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-white">Clients & Leads</p>
-          <p className="text-xs text-zinc-500 mt-0.5">
-            {clients.length > 0 ? `${clients.length} contact${clients.length !== 1 ? "s" : ""}` : "Your contacts and prospects"}
-          </p>
-        </div>
-        <ArrowRight size={16} className="text-zinc-600 shrink-0" />
-      </button>
+      </div>
 
       {/* ── Revenue summary + bars ── */}
       <div className="space-y-4 pt-2 border-t border-white/5">
@@ -221,7 +202,6 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
         </div>
         <EqualizerBars months={months} revenues={revenues} />
       </div>
-
 
     </div>
   );
