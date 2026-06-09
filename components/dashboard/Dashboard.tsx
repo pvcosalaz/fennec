@@ -253,7 +253,7 @@ export default function Dashboard({
   const hasYt = !!(networkProfile?.youtube_url || profile?.youtube);
 
   return (
-    <div className={`mx-auto w-full max-w-4xl space-y-3 pb-2 pt-1 px-4 ${className ?? ""}`}>
+    <div className={`mx-auto w-full max-w-4xl space-y-2 pb-2 pt-1 px-4 ${className ?? ""}`}>
 
       {/* Username */}
       {username && (
@@ -277,7 +277,7 @@ export default function Dashboard({
       )}
 
       {/* FENNEC dB hero */}
-      <div className="flex flex-col items-center gap-1.5 py-3">
+      <div className="flex flex-col items-center gap-1.5 py-1">
         <div className="flex items-center gap-1.5">
           <p className="text-[9px] font-bold tracking-[0.35em] uppercase"
              style={{ color: `${cardColorScheme.accent}60` }}>FENNEC dB</p>
