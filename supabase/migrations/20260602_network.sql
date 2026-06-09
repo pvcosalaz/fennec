@@ -5,7 +5,7 @@ ALTER TABLE profiles ADD COLUMN IF NOT EXISTS color_id text DEFAULT NULL;
 CREATE TABLE IF NOT EXISTS network_connections (
   id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_id    uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-  contact_id  uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  contact_id  uuid REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   created_at  timestamptz DEFAULT now() NOT NULL,
   UNIQUE(owner_id, contact_id)
 );
