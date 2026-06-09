@@ -111,7 +111,6 @@ export default function NetworkCollection({ contacts }: Props) {
                 collectionNumber={1}
                 initials={topInitials}
                 instagram={topContact.instagram}
-                tiktok={topContact.tiktok}
                 spotify={topContact.spotify}
                 youtube={topContact.youtube_url}
               />
@@ -149,7 +148,6 @@ export default function NetworkCollection({ contacts }: Props) {
                   collectionNumber={i + 1}
                   initials={getInitials(contact)}
                   instagram={contact.instagram}
-                  tiktok={contact.tiktok}
                   spotify={contact.spotify}
                   youtube={contact.youtube_url}
                 />

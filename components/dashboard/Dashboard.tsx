@@ -391,7 +391,6 @@ export default function Dashboard({
           initials={cardInitials}
           avatarUrl={avatarUrl}
           instagram={networkProfile.instagram}
-          tiktok={networkProfile.tiktok}
           spotify={networkProfile.spotify}
           youtube={networkProfile.youtube_url}
         />
