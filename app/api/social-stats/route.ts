@@ -88,6 +88,24 @@ export async function POST(req: NextRequest) {
 
   console.log("[social-stats] handles →", { igHandle, ttHandle, ytHandle });
 
+  // If all handles null, return early with debug info
+  if (!igHandle && !ttHandle && !ytHandle) {
+    return NextResponse.json({
+      ig_followers: null, tiktok_followers: null, yt_subscribers: null,
+      synced_at: new Date().toISOString(),
+      _debug: "all handles null in profile",
+    });
+  }
+
+  // If token missing, return debug info
+  if (!APIFY_TOKEN) {
+    return NextResponse.json({
+      ig_followers: null, tiktok_followers: null, yt_subscribers: null,
+      synced_at: new Date().toISOString(),
+      _debug: "APIFY_API_TOKEN not set",
+    });
+  }
+
   // Run scrapers in parallel
   const [igResult, ttResult, ytResult] = await Promise.allSettled([
     igHandle
@@ -123,5 +141,11 @@ export async function POST(req: NextRequest) {
 
   if (updateError) console.error("[social-stats] DB update error:", updateError.message);
 
-  return NextResponse.json({ ig_followers: igFollowers, tiktok_followers: ttFollowers, yt_subscribers: ytSubs, synced_at: syncedAt });
+  return NextResponse.json({
+    ig_followers: igFollowers,
+    tiktok_followers: ttFollowers,
+    yt_subscribers: ytSubs,
+    synced_at: syncedAt,
+    _debug: { handles: { igHandle, ttHandle, ytHandle }, hasToken: !!APIFY_TOKEN },
+  });
 }
