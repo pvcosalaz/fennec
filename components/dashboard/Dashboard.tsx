@@ -219,28 +219,23 @@ export default function Dashboard({
   // Refresh social stats via Apify
   async function refreshSocial() {
     if (!userId || syncing) return;
-    console.log("[refreshSocial] starting, userId:", userId);
     setSyncing(true);
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      console.log("[refreshSocial] session:", session?.user?.email ?? "null", "error:", sessionError?.message ?? "none");
+      const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token ?? "";
-      console.log("[refreshSocial] fetching /api/social-stats...");
       const res = await fetch(`/api/social-stats?userId=${userId}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log("[refreshSocial] response status:", res.status);
       const data = await res.json();
-      console.log("[refreshSocial] response data:", data);
       if (res.ok) {
         if (data.ig_followers    != null) setIgFollowers(data.ig_followers);
         if (data.tiktok_followers != null) setTtFollowers(data.tiktok_followers);
         if (data.yt_subscribers  != null) setYtSubs(data.yt_subscribers);
         setSyncedAt(data.synced_at);
       }
-    } catch (err) {
-      console.error("[refreshSocial] error:", err);
+    } catch {
+      /* silent — keep last known values */
     }
     setSyncing(false);
   }

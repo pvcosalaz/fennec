@@ -88,21 +88,22 @@ export async function POST(req: NextRequest) {
 
   console.log("[social-stats] handles →", { igHandle, ttHandle, ytHandle });
 
-  // If all handles null, return early with debug info
+  // No handles saved → nothing to scrape
   if (!igHandle && !ttHandle && !ytHandle) {
     return NextResponse.json({
       ig_followers: null, tiktok_followers: null, yt_subscribers: null,
       synced_at: new Date().toISOString(),
-      _debug: "all handles null in profile",
+      error: "no_handles",
     });
   }
 
-  // If token missing, return debug info
+  // Apify token not configured on this environment
   if (!APIFY_TOKEN) {
+    console.error("[social-stats] APIFY_API_TOKEN not set");
     return NextResponse.json({
       ig_followers: null, tiktok_followers: null, yt_subscribers: null,
       synced_at: new Date().toISOString(),
-      _debug: "APIFY_API_TOKEN not set",
+      error: "apify_not_configured",
     });
   }
 
@@ -146,6 +147,5 @@ export async function POST(req: NextRequest) {
     tiktok_followers: ttFollowers,
     yt_subscribers: ytSubs,
     synced_at: syncedAt,
-    _debug: { handles: { igHandle, ttHandle, ytHandle }, hasToken: !!APIFY_TOKEN },
   });
 }
