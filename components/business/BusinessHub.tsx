@@ -113,7 +113,10 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
   const revenues    = useMemo(() => months.map((m) => revenueForMonth(projects, m.month, m.year)), [projects, months]);
 
   return (
-    <div className="mx-auto w-full max-w-4xl flex flex-col gap-3 pb-2 px-4">
+    <div className="mx-auto w-full max-w-4xl flex flex-col h-full px-4">
+
+      {/* ── Top group: header + hero + grid ── */}
+      <div className="flex flex-col gap-3">
 
       {/* ── Header ── */}
       <div>
@@ -197,8 +200,10 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
 
       </div>
 
-      {/* ── Revenue summary + bars ── */}
-      <div className="space-y-2 pt-2 border-t border-white/5">
+      </div>{/* end top group */}
+
+      {/* ── Revenue summary + bars — anchored to bottom ── */}
+      <div className="mt-auto space-y-2 pt-2 pb-3 border-t border-white/5">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[10px] text-zinc-500 uppercase tracking-widest">This month</p>

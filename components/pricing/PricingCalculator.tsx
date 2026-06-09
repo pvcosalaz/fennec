@@ -594,12 +594,14 @@ export default function PricingCalculator() {
           initialSection={settingsSection}
         />
       ) : activeTab === "pricing" && businessView === "hub" ? (
-        <BusinessHub
-          key={hubRefreshKey}
-          onOpenView={setBusinessView}
-          isPro={profile?.is_pro ?? true}
-          userId={authUser.id}
-        />
+        <div style={{ height: "calc(100vh - 120px)" }} className="flex flex-col">
+          <BusinessHub
+            key={hubRefreshKey}
+            onOpenView={setBusinessView}
+            isPro={profile?.is_pro ?? true}
+            userId={authUser.id}
+          />
+        </div>
       ) : activeTab === "pricing" && businessView === "projects" ? (
         <ActiveProjects onBack={() => { setHubRefreshKey((k) => k + 1); setBusinessView("hub"); }} userId={authUser.id} />
       ) : activeTab === "pricing" && businessView === "clients" ? (
