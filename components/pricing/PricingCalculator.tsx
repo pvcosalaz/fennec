@@ -113,6 +113,7 @@ import BusinessHub, { type BusinessView } from "@/components/business/BusinessHu
 import ClientsLeads from "@/components/business/ClientsLeads";
 import QuoteGenerator from "@/components/business/QuoteGenerator";
 import ActiveProjects from "@/components/business/ActiveProjects";
+import NetworkSection from "@/components/network/NetworkSection";
 import { getProjects, getQuotes, getClients } from "@/lib/businessDb";
 import Community from "@/components/community/Community";
 import NotificationBell from "@/components/notifications/NotificationBell";
@@ -611,6 +612,23 @@ export default function PricingCalculator() {
           onGoToProjects={() => setBusinessView("projects")}
           userId={authUser.id}
         />
+      ) : activeTab === "pricing" && businessView === "network" ? (
+        <div className="mx-auto w-full max-w-4xl px-4 pb-8">
+          <button
+            type="button"
+            onClick={() => setBusinessView("hub")}
+            className="mb-6 flex items-center gap-1.5 text-xs text-zinc-400 hover:text-accent transition"
+          >
+            ← Business Hub
+          </button>
+          <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase mb-1">
+            Network
+          </p>
+          <h1 className="text-2xl font-bold tracking-tight text-white mb-6">
+            Tu red de productores.
+          </h1>
+          <NetworkSection userId={authUser.id} />
+        </div>
       ) : activeTab === "pricing" && businessView === "calculator" ? (
         <section className="mx-auto w-full max-w-4xl rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/40 backdrop-blur-sm sm:p-10">
           <button

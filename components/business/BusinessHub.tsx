@@ -7,9 +7,9 @@ import {
   formatCOP, computePricing,
 } from "@/lib/pricingData";
 import { getProjects, getQuotes, getClients } from "@/lib/businessDb";
-import NetworkSection from "@/components/network/NetworkSection";
+import { Wifi } from "lucide-react";
 
-export type BusinessView = "hub" | "calculator" | "quotes" | "projects" | "clients";
+export type BusinessView = "hub" | "calculator" | "quotes" | "projects" | "clients" | "network";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -205,10 +205,21 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
         <EqualizerBars months={months} revenues={revenues} />
       </div>
 
-      {/* ── Network section ── */}
-      <div className="border-t border-white/5 pt-4">
-        <NetworkSection userId={userId} />
-      </div>
+      {/* ── Network ── */}
+      <button
+        type="button"
+        onClick={() => onOpenView("network")}
+        className="w-full text-left py-3 flex items-center gap-4 border-t border-white/5"
+      >
+        <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
+          <Wifi size={18} className="text-zinc-400" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-white">My Network</p>
+          <p className="text-xs text-zinc-500 mt-0.5">Productores en tu colección.</p>
+        </div>
+        <ArrowRight size={16} className="text-zinc-600 shrink-0" />
+      </button>
 
     </div>
   );
