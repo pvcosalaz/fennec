@@ -199,10 +199,19 @@ export default function Dashboard({
   }, [userId, networkProfile?.color_id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // FENNEC dB
-  const activeCount = projects.filter((p) => p.status !== "paid").length;
-  const closedCount = projects.filter((p) => p.status === "paid").length;
-  const quotesSent  = quotes.filter((q) => q.status === "sent").length;
-  const fennecDb = Math.round(activeCount * 150 + closedCount * 50 + clients.length * 75 + quotesSent * 25);
+  const activeCount     = projects.filter((p) => p.status !== "paid").length;
+  const closedCount     = projects.filter((p) => p.status === "paid").length;
+  const quotesSent      = quotes.filter((q) => q.status === "sent").length;
+  const totalFollowers  = (igFollowers ?? 0) + (ttFollowers ?? 0) + (ytSubs ?? 0);
+  const socialPoints    = Math.floor(totalFollowers / 100);
+
+  const fennecDb = Math.round(
+    activeCount    * 150 +
+    closedCount    * 50  +
+    clients.length * 75  +
+    quotesSent     * 25  +
+    socialPoints
+  );
   useEffect(() => {
     if (mounted) localStorage.setItem("fennec-db-score", String(fennecDb));
   }, [fennecDb, mounted]);
@@ -290,15 +299,40 @@ export default function Dashboard({
           <div className="w-full rounded-xl border px-4 py-3 mt-1 text-[10px] leading-relaxed space-y-3"
                style={{ borderColor: `${cardColorScheme.accent}15`, background: `${cardColorScheme.accent}08`, color: `${cardColorScheme.accent}70` }}>
             <p>Tu señal como artista y productor — crece con cada proyecto, cliente y escucha.</p>
+            {/* Negocio */}
             <div>
               <p className="text-[8px] font-bold uppercase tracking-widest mb-1.5"
                  style={{ color: `${cardColorScheme.accent}45` }}>Negocio</p>
               <div className="flex flex-wrap gap-x-5 gap-y-1">
-                {[["Proyecto activo","×150"],["Proyecto cerrado","×50"],["Cliente","×75"],["Cotización enviada","×25"]].map(([l,p]) => (
+                {[
+                  ["Proyecto activo",    "×150"],
+                  ["Proyecto cerrado",   "×50"],
+                  ["Cliente",            "×75"],
+                  ["Cotización enviada", "×25"],
+                ].map(([l, p]) => (
                   <span key={l}>{l} <strong style={{ color: cardColorScheme.accent }}>{p}</strong></span>
                 ))}
               </div>
             </div>
+
+            {/* Redes sociales */}
+            <div>
+              <p className="text-[8px] font-bold uppercase tracking-widest mb-1.5"
+                 style={{ color: `${cardColorScheme.accent}45` }}>Redes sociales</p>
+              <div className="flex flex-wrap gap-x-5 gap-y-1">
+                <span>
+                  Seguidores totales{" "}
+                  <strong style={{ color: cardColorScheme.accent }}>÷100 pts</strong>
+                </span>
+              </div>
+              {totalFollowers > 0 && (
+                <p className="mt-1 text-[9px]" style={{ color: `${cardColorScheme.accent}55` }}>
+                  {totalFollowers.toLocaleString()} seguidores → <strong style={{ color: cardColorScheme.accent }}>+{socialPoints} pts</strong>
+                </p>
+              )}
+            </div>
+
+            {/* Alcance musical (próximamente) */}
             <div>
               <div className="flex items-center gap-2 mb-1.5">
                 <p className="text-[8px] font-bold uppercase tracking-widest"
@@ -309,7 +343,7 @@ export default function Dashboard({
                 </span>
               </div>
               <div className="flex flex-wrap gap-x-5 gap-y-1" style={{ opacity: 0.5 }}>
-                {[["Streams totales","por definir"],["Créditos verificados","por definir"]].map(([l,p]) => (
+                {[["Streams totales", "por definir"], ["Créditos verificados", "por definir"]].map(([l, p]) => (
                   <span key={l}>{l} <strong style={{ color: cardColorScheme.accent }}>{p}</strong></span>
                 ))}
               </div>
