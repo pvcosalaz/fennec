@@ -48,13 +48,13 @@ function EqualizerBars({ months, revenues }: { months: ReturnType<typeof getLast
   const max = Math.max(...revenues, 1);
 
   return (
-    <div className="flex items-end gap-1.5" style={{ height: 100 }}>
+    <div className="flex items-end gap-1.5" style={{ height: 64 }}>
       {months.map((m, i) => {
         const hasRev = revenues[i] > 0;
         const pct = hasRev ? Math.max((revenues[i] / max) * 100, 10) : 3;
         return (
           <div key={i} className="flex flex-1 flex-col items-center gap-2">
-            <div className="w-full rounded-sm overflow-hidden" style={{ height: 80, display: "flex", alignItems: "flex-end" }}>
+            <div className="w-full rounded-sm overflow-hidden" style={{ height: 48, display: "flex", alignItems: "flex-end" }}>
               <div
                 className={`w-full rounded-sm transition-all duration-700 ease-out ${m.isCurrent ? "bg-accent" : "bg-white/15"}`}
                 style={{ height: up ? `${pct}%` : "3%", transitionDelay: `${i * 60}ms` }}
@@ -104,13 +104,12 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
   const revenues    = useMemo(() => months.map((m) => revenueForMonth(projects, m.month, m.year)), [projects, months]);
 
   return (
-    <div className="mx-auto w-full max-w-4xl flex flex-col gap-4 pb-4 px-4">
+    <div className="mx-auto w-full max-w-4xl flex flex-col gap-3 pb-2 px-4">
 
       {/* ── Header ── */}
-      <div className="space-y-1">
+      <div>
         <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">Business Hub</p>
-        <h1 className="mt-3 text-3xl font-bold tracking-tight text-white">Run your music business.</h1>
-        <p className="mt-2 text-sm text-zinc-400">Price, quote, track your productions.</p>
+        <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-white">Run your music business.</h1>
       </div>
 
       {/* ── My Network — animated hero ── */}
@@ -118,20 +117,20 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
         type="button"
         onClick={() => onOpenView("network")}
         className="relative w-full rounded-2xl overflow-hidden"
-        style={{ height: 160 }}
+        style={{ height: 130 }}
       >
         <NetworkHero />
       </button>
 
       {/* ── Tool grid: 2×2 ── */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2">
 
         {/* Pricing Calculator */}
         <button
           type="button"
           onClick={() => onOpenView("calculator")}
           className="relative rounded-2xl overflow-hidden"
-          style={{ height: 110 }}
+          style={{ height: 90 }}
         >
           <PricingCalculatorCard />
         </button>
@@ -141,7 +140,7 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
           type="button"
           onClick={() => isPro ? onOpenView("clients") : undefined}
           className="relative rounded-2xl overflow-hidden"
-          style={{ height: 110 }}
+          style={{ height: 90 }}
         >
           {!isPro && (
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50 backdrop-blur-[2px] rounded-2xl">
@@ -158,7 +157,7 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
           type="button"
           onClick={() => isPro ? onOpenView("quotes") : undefined}
           className="relative rounded-2xl overflow-hidden"
-          style={{ height: 110 }}
+          style={{ height: 90 }}
         >
           {!isPro && (
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50 backdrop-blur-[2px] rounded-2xl">
@@ -175,7 +174,7 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
           type="button"
           onClick={() => isPro ? onOpenView("projects") : undefined}
           className="relative rounded-2xl overflow-hidden"
-          style={{ height: 110 }}
+          style={{ height: 90 }}
         >
           {!isPro && (
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50 backdrop-blur-[2px] rounded-2xl">
@@ -190,7 +189,7 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
       </div>
 
       {/* ── Revenue summary + bars ── */}
-      <div className="space-y-4 pt-2 border-t border-white/5">
+      <div className="space-y-2 pt-2 border-t border-white/5">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[10px] text-zinc-500 uppercase tracking-widest">This month</p>
