@@ -10,6 +10,24 @@ import { getColorScheme } from "@/lib/fennecIdPalette";
 import { ensureColorAssigned } from "@/lib/networkDb";
 import type { Profile } from "@/lib/communityTypes";
 
+// ─── EQ bars (soundwave animation) ──────────────────────────────────────────
+
+const EQ_HEIGHTS = [10, 18, 8, 15, 10, 22, 7, 13, 18, 9];
+
+function EqBars({ accent }: { accent: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "flex-end", height: 22, gap: 2 }}>
+      {EQ_HEIGHTS.map((h, i) => (
+        <span
+          key={i}
+          className="fennec-eq-bar"
+          style={{ height: h, background: accent, animationDelay: `${i * 0.15}s` }}
+        />
+      ))}
+    </div>
+  );
+}
+
 // ─── AnimatedNumber ───────────────────────────────────────────────────────────
 
 function AnimatedNumber({ value }: { value: number }) {
@@ -189,27 +207,38 @@ export default function Dashboard({
       )}
 
       {/* ── FENNEC dB hero: grande, centrado, animado ── */}
-      <div className="flex flex-col items-center gap-1 py-3">
-        <p className="text-[9px] font-bold tracking-[0.35em] uppercase"
-           style={{ color: `${cardColorScheme.accent}60` }}>
-          FENNEC dB
-        </p>
+      <div className="flex flex-col items-center gap-1.5 py-3">
+        {/* label + (i) */}
+        <div className="flex items-center gap-1.5">
+          <p className="text-[9px] font-bold tracking-[0.35em] uppercase"
+             style={{ color: `${cardColorScheme.accent}60` }}>
+            FENNEC dB
+          </p>
+          <button
+            type="button"
+            onClick={() => setShowDbInfo((v) => !v)}
+            style={{ color: `${cardColorScheme.accent}55`, lineHeight: 1 }}
+            aria-label="¿Qué es FENNEC dB?"
+          >
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor">
+              <circle cx="8" cy="8" r="7.5" stroke="currentColor" strokeWidth="1" fill="none" />
+              <text x="8" y="12" textAnchor="middle" fontSize="10" fontWeight="700" fill="currentColor">i</text>
+            </svg>
+          </button>
+        </div>
+
+        {/* big number */}
         <p className="text-[72px] font-black leading-none tabular-nums"
            style={{ color: cardColorScheme.accent }}>
           <AnimatedNumber value={fennecDb} />
         </p>
-        {/* (i) info tooltip */}
-        <button
-          type="button"
-          onClick={() => setShowDbInfo((v) => !v)}
-          className="text-[10px] transition"
-          style={{ color: `${cardColorScheme.accent}50` }}
-          aria-label="¿Qué es FENNEC dB?"
-        >
-          ¿Qué es esto?
-        </button>
+
+        {/* soundwave below the number */}
+        <EqBars accent={cardColorScheme.accent} />
+
+        {/* info panel */}
         {showDbInfo && (
-          <div className="w-full rounded-xl border px-4 py-3 text-[10px] leading-relaxed"
+          <div className="w-full rounded-xl border px-4 py-3 mt-1 text-[10px] leading-relaxed"
                style={{ borderColor: `${cardColorScheme.accent}15`, background: `${cardColorScheme.accent}08`, color: `${cardColorScheme.accent}80` }}>
             Mide qué tan activo está tu negocio musical — como una señal de fuerza, pero para tu carrera.
             <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
