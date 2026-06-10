@@ -79,8 +79,8 @@ export function PricingCalculatorCard() {
 // ─── Clients & Leads ──────────────────────────────────────────────────────────
 const CLIENTS_CSS = `
   @keyframes personBob {
-    from { transform: translateY(-2px); filter: drop-shadow(0 0 6px rgba(34,211,238,0.5)); }
-    to   { transform: translateY(2px);  filter: drop-shadow(0 0 18px rgba(34,211,238,0.9)); }
+    from { transform: translateY(-2px); filter: drop-shadow(0 0 6px rgba(251,113,90,0.5)); }
+    to   { transform: translateY(2px);  filter: drop-shadow(0 0 18px rgba(251,113,90,0.9)); }
   }
   @keyframes ringExpand {
     0%   { transform: scale(0.5); opacity: 0.7; }
@@ -92,7 +92,7 @@ export function ClientsCard() {
   return (
     <div style={{
       width: "100%", height: "100%", position: "relative",
-      background: "radial-gradient(ellipse 120% 120% at 50% 0%, #0f2020 0%, #141414 100%)",
+      background: "radial-gradient(ellipse 120% 120% at 50% 0%, #201210 0%, #141414 100%)",
       display: "flex", flexDirection: "column", alignItems: "center",
       justifyContent: "center", gap: 8, overflow: "hidden",
       fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif",
@@ -103,7 +103,7 @@ export function ClientsCard() {
       <div style={{
         position: "absolute", width: "75%", height: "65%",
         borderRadius: "50%", top: "5%", left: "12%",
-        background: "radial-gradient(circle, rgba(34,211,238,1) 0%, transparent 70%)",
+        background: "radial-gradient(circle, rgba(251,113,90,1) 0%, transparent 70%)",
         animation: "glowTeal 5.5s ease-in-out infinite alternate",
       }} />
 
@@ -112,7 +112,7 @@ export function ClientsCard() {
         {[0, 1].map(i => (
           <div key={i} style={{
             position: "absolute", width: 28, height: 28, borderRadius: "50%",
-            border: "1.5px solid rgba(34,211,238,0.5)",
+            border: "1.5px solid rgba(251,113,90,0.5)",
             animation: `ringExpand 3s ease-out ${i * 1.2}s infinite`,
           }} />
         ))}
@@ -133,8 +133,8 @@ export function ClientsCard() {
 // ─── Quotes ───────────────────────────────────────────────────────────────────
 const QUOTES_CSS = `
   @keyframes docFloat {
-    from { transform: translateY(-2px) rotate(-1deg); filter: drop-shadow(0 0 6px rgba(74,222,128,0.5)); }
-    to   { transform: translateY(2px)  rotate(1deg);  filter: drop-shadow(0 0 18px rgba(74,222,128,0.9)); }
+    from { transform: translateY(-2px) rotate(-1deg); filter: drop-shadow(0 0 6px rgba(250,204,21,0.5)); }
+    to   { transform: translateY(2px)  rotate(1deg);  filter: drop-shadow(0 0 18px rgba(250,204,21,0.9)); }
   }
   @keyframes lineWrite1 { 0%,100%{width:0;opacity:0;} 25%,70%{width:44px;opacity:1;} 90%{width:44px;opacity:.3;} }
   @keyframes lineWrite2 { 0%,100%{width:0;opacity:0;} 25%,70%{width:32px;opacity:1;} 90%{width:32px;opacity:.3;} }
@@ -145,7 +145,7 @@ export function QuotesCard() {
   return (
     <div style={{
       width: "100%", height: "100%", position: "relative",
-      background: "radial-gradient(ellipse 120% 120% at 50% 0%, #111d14 0%, #141414 100%)",
+      background: "radial-gradient(ellipse 120% 120% at 50% 0%, #1d1a0f 0%, #141414 100%)",
       display: "flex", flexDirection: "column", alignItems: "center",
       justifyContent: "center", gap: 8, overflow: "hidden",
       fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif",
@@ -156,7 +156,7 @@ export function QuotesCard() {
       <div style={{
         position: "absolute", width: "75%", height: "65%",
         borderRadius: "50%", top: "5%", left: "12%",
-        background: "radial-gradient(circle, rgba(74,222,128,1) 0%, transparent 70%)",
+        background: "radial-gradient(circle, rgba(250,204,21,1) 0%, transparent 70%)",
         animation: "glowGreen 6s ease-in-out infinite alternate",
       }} />
 
@@ -168,14 +168,14 @@ export function QuotesCard() {
       {/* Animated text lines */}
       <div style={{ display: "flex", flexDirection: "column", gap: 3.5, alignItems: "flex-start" }}>
         {[
-          { anim: "lineWrite1", delay: "0s",    color: "rgba(74,222,128,0.75)", dur: "4.2s" },
+          { anim: "lineWrite1", delay: "0s",    color: "rgba(250,204,21,0.75)", dur: "4.2s" },
           { anim: "lineWrite2", delay: "0.7s",  color: "rgba(255,255,255,0.22)", dur: "4.2s" },
           { anim: "lineWrite3", delay: "1.4s",  color: "rgba(255,255,255,0.18)", dur: "4.2s" },
         ].map((l, i) => (
           <div key={i} style={{
             height: 2, borderRadius: 2,
             background: l.color,
-            boxShadow: i === 0 ? "0 0 5px rgba(74,222,128,0.4)" : "none",
+            boxShadow: i === 0 ? "0 0 5px rgba(250,204,21,0.4)" : "none",
             animation: `${l.anim} ${l.dur} ease-in-out ${l.delay} infinite`,
           }} />
         ))}

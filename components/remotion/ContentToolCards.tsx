@@ -82,8 +82,8 @@ export function QuickIdeasCard() {
 // ─── Music Content Lab ────────────────────────────────────────────────────────
 const CONTENT_LAB_CSS = `
   @keyframes tubeRock {
-    from { transform: rotate(-4deg); filter: drop-shadow(0 0 8px rgba(74,222,128,0.5)); }
-    to   { transform: rotate(4deg);  filter: drop-shadow(0 0 20px rgba(74,222,128,0.85)); }
+    from { transform: rotate(-4deg); filter: drop-shadow(0 0 8px rgba(251,113,90,0.5)); }
+    to   { transform: rotate(4deg);  filter: drop-shadow(0 0 20px rgba(251,113,90,0.85)); }
   }
   @keyframes bubbleRise1 {
     0%   { transform: translateY(0)   scale(1);   opacity: 0.7; }
@@ -103,7 +103,7 @@ export function ContentLabCard() {
   return (
     <div style={{
       width: "100%", height: "100%",
-      background: "radial-gradient(ellipse 120% 120% at 50% 0%, #1a231a 0%, #141414 100%)",
+      background: "radial-gradient(ellipse 120% 120% at 50% 0%, #231512 0%, #141414 100%)",
       display: "flex", flexDirection: "column", alignItems: "center",
       justifyContent: "center", gap: 8, overflow: "hidden", position: "relative",
       fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif",
@@ -114,7 +114,7 @@ export function ContentLabCard() {
       <div style={{
         position: "absolute", width: "75%", height: "65%",
         borderRadius: "50%", top: "5%", left: "12%",
-        background: "radial-gradient(circle, rgba(74,222,128,1) 0%, transparent 70%)",
+        background: "radial-gradient(circle, rgba(251,113,90,1) 0%, transparent 70%)",
         animation: "cardGlowGreen 9s ease-in-out infinite alternate",
       }} />
 
@@ -129,8 +129,8 @@ export function ContentLabCard() {
             position: "absolute",
             bottom: 32, left: `calc(50% + ${b.left}px)`,
             width: b.size, height: b.size, borderRadius: "50%",
-            background: "rgba(74,222,128,0.75)",
-            boxShadow: "0 0 4px rgba(74,222,128,0.6)",
+            background: "rgba(251,113,90,0.75)",
+            boxShadow: "0 0 4px rgba(251,113,90,0.6)",
             animation: `${b.anim} ${b.dur} ease-in ${b.delay} infinite`,
           }} />
         ))}
