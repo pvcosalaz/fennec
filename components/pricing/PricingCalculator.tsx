@@ -1077,7 +1077,7 @@ export default function PricingCalculator() {
         </section>
       ) : activeTab === "dashboard" ? (
         <Dashboard
-          className="mt-3"
+          className="flex-1 mt-3"
           avatarUrl={profile.avatar_url}
           username={profile.username}
           isPro={profile.is_pro}

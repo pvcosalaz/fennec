@@ -329,7 +329,7 @@ export default function Dashboard({
   const glowRgb = cardColorScheme.glowRgb;
 
   return (
-    <div className={`relative mx-auto w-full max-w-4xl space-y-2 pb-2 pt-1 px-4 ${className ?? ""}`}>
+    <div className={`relative mx-auto w-full max-w-4xl flex flex-col gap-2 pb-2 pt-1 px-4 ${className ?? ""}`}>
       <style>{`
         @keyframes dashRise {
           from { opacity: 0; transform: translateY(10px); }
@@ -454,6 +454,9 @@ export default function Dashboard({
           </div>
         )}
       </div>
+
+      {/* Spacer — pushes stat chips toward the bottom on tall screens */}
+      <div className="flex-1 min-h-[8px]" />
 
       {/* Stat chips: Streams · Créditos · Proyectos */}
       <div className="dash-rise" style={{ animationDelay: "0.2s" }}>
