@@ -1082,7 +1082,9 @@ export default function PricingCalculator() {
           onNavigate={(tab) => { setActiveTab(tab); setBusinessView("hub"); }}
         />
       ) : activeTab === "contenido" ? (
-        <ContentModule />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <ContentModule />
+        </div>
       ) : activeTab === "ideas" ? (
         <AudioModule userId={authUser.id} isPro={profile?.is_pro ?? false} />
       ) : activeTab === "noticias" ? (

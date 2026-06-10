@@ -712,7 +712,7 @@ export default function ContentModule() {
   }
 
   return (
-    <div className="relative">
+    <div className="relative flex-1 flex flex-col overflow-hidden">
       {/* Main calendar hub */}
       <CalendarHub
         tasks={tasks}

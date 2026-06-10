@@ -140,9 +140,9 @@ export default function CalendarHub({
 
   return (
     <>
-    <div className="mx-auto w-full max-w-4xl flex flex-col gap-3 px-4 text-white">
+    <div className="mx-auto w-full max-w-4xl flex flex-col flex-1 gap-3 px-4 pb-3 text-white">
       {/* 1. Greeting header */}
-      <div>
+      <div className="flex-shrink-0">
         <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">
           Music Content Creation Hub
         </p>
@@ -155,7 +155,7 @@ export default function CalendarHub({
       </div>
 
       {/* 2. Calendar (gráfica) */}
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3 flex-shrink-0">
       <div className="flex items-center justify-between">
         <button
           onClick={prevWeek}
@@ -218,21 +218,21 @@ export default function CalendarHub({
       {/* 3. Inspire — hero */}
       <button
         onClick={() => onOpenSheet("inspire")}
-        className="relative w-full rounded-2xl overflow-hidden"
-        style={{ height: 130 }}
+        className="relative w-full rounded-2xl overflow-hidden flex-shrink-0"
+        style={{ height: 150 }}
       >
         <InspireHero />
       </button>
 
-      {/* 4. Tool grid: 3 cols */}
-      <div className="grid grid-cols-3 gap-2">
-        <button onClick={() => onOpenSheet("ideas")} className="relative rounded-2xl overflow-hidden" style={{ height: 90 }}>
+      {/* 4. Tool grid: 3 cols — grows to fill remaining height */}
+      <div className="grid grid-cols-3 gap-2 flex-1" style={{ minHeight: 120 }}>
+        <button onClick={() => onOpenSheet("ideas")} className="relative rounded-2xl overflow-hidden h-full">
           <QuickIdeasCard />
         </button>
-        <button onClick={() => onOpenSheet("lab")} className="relative rounded-2xl overflow-hidden" style={{ height: 90 }}>
+        <button onClick={() => onOpenSheet("lab")} className="relative rounded-2xl overflow-hidden h-full">
           <ContentLabCard />
         </button>
-        <button onClick={() => onOpenSheet("scripts")} className="relative rounded-2xl overflow-hidden" style={{ height: 90 }}>
+        <button onClick={() => onOpenSheet("scripts")} className="relative rounded-2xl overflow-hidden h-full">
           <MyScriptsCard />
         </button>
       </div>
