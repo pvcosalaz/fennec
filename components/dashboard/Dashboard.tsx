@@ -15,6 +15,14 @@ import type { Profile } from "@/lib/communityTypes";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+/** Mix a hex color toward white (t 0→1). Used to build the dB number gradient. */
+function tint(hex: string, t: number): string {
+  const n = parseInt(hex.replace("#", ""), 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  const mix = (c: number) => Math.round(c + (255 - c) * t);
+  return `rgb(${mix(r)},${mix(g)},${mix(b)})`;
+}
+
 function fmtCount(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000)     return `${(n / 1_000).toFixed(1)}k`;
@@ -37,10 +45,17 @@ const EQ_HEIGHTS = [10, 18, 8, 15, 10, 22, 7, 13, 18, 9];
 
 function EqBars({ accent }: { accent: string }) {
   return (
-    <div style={{ display: "flex", alignItems: "flex-end", height: 22, gap: 2 }}>
+    <div style={{
+      display: "flex", alignItems: "flex-end", height: 22, gap: 2,
+      filter: `drop-shadow(0 0 5px ${accent}50)`,
+    }}>
       {EQ_HEIGHTS.map((h, i) => (
         <span key={i} className="fennec-eq-bar"
-          style={{ height: h, background: accent, animationDelay: `${i * 0.15}s` }} />
+          style={{
+            height: h,
+            background: `linear-gradient(180deg, ${tint(accent, 0.35)}, ${accent})`,
+            animationDelay: `${i * 0.15}s`,
+          }} />
       ))}
     </div>
   );
@@ -78,9 +93,9 @@ function StatChip({
   return (
     <div className="flex flex-col items-center gap-0.5 py-4">
       {pending || value == null ? (
-        <span className="text-2xl font-black text-zinc-600">—</span>
+        <span className="text-2xl font-black text-zinc-700">—</span>
       ) : (
-        <p className="text-2xl font-black text-white"><AnimatedNumber value={value} /></p>
+        <p className="text-2xl font-black text-white tabular-nums tracking-tight"><AnimatedNumber value={value} /></p>
       )}
       <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">{label}</p>
       {pending && onConnect && (
@@ -110,8 +125,8 @@ function SocialChip({
 }) {
   return (
     <div className="flex flex-col items-center gap-0.5 py-3">
-      <div style={{ color, opacity: 0.75 }}>{icon}</div>
-      <p className="text-xl font-black text-white mt-0.5">
+      <div style={{ color, opacity: 0.8, filter: `drop-shadow(0 0 6px ${color}40)` }}>{icon}</div>
+      <p className={`text-xl font-black mt-0.5 tabular-nums tracking-tight ${hasHandle && count != null ? "text-white" : "text-zinc-700"}`}>
         {hasHandle ? (count != null ? fmtCount(count) : "—") : "—"}
       </p>
       <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">{label}</p>
@@ -176,6 +191,17 @@ export default function Dashboard({
   const [ytSubs,       setYtSubs]       = useState<number | null>(null);
   const [syncedAt,     setSyncedAt]     = useState<string | null>(null);
   const [syncing,      setSyncing]      = useState(false);
+
+  // Seed counts from the already-fetched networkProfile for instant paint
+  // (own fetchProfile below refreshes them right after).
+  useEffect(() => {
+    const p = networkProfile;
+    if (!p) return;
+    if (p.ig_followers     != null) setIgFollowers((v) => v ?? p.ig_followers ?? null);
+    if (p.tiktok_followers != null) setTtFollowers((v) => v ?? p.tiktok_followers ?? null);
+    if (p.yt_subscribers   != null) setYtSubs((v) => v ?? p.yt_subscribers ?? null);
+    if (p.social_synced_at != null) setSyncedAt((v) => v ?? p.social_synced_at ?? null);
+  }, [networkProfile]);
 
   useEffect(() => {
     try {
@@ -299,49 +325,79 @@ export default function Dashboard({
   ];
   const onboardingComplete = checklistItems.every((i) => i.done);
 
+  const accent = cardColorScheme.accent;
+  const glowRgb = cardColorScheme.glowRgb;
+
   return (
-    <div className={`mx-auto w-full max-w-4xl space-y-2 pb-2 pt-1 px-4 ${className ?? ""}`}>
+    <div className={`relative mx-auto w-full max-w-4xl space-y-2 pb-2 pt-1 px-4 ${className ?? ""}`}>
+      <style>{`
+        @keyframes dashRise {
+          from { opacity: 0; transform: translateY(10px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .dash-rise { animation: dashRise 0.55s cubic-bezier(.16,1,.3,1) both; }
+        @media (prefers-reduced-motion: reduce) { .dash-rise { animation: none; } }
+      `}</style>
+
+      {/* Atmosphere — faint identity-color aura behind the meter */}
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-4 h-[460px]"
+        style={{ background: `radial-gradient(ellipse 70% 55% at 50% 38%, rgba(${glowRgb},0.07), transparent 70%)` }} />
 
       {/* Username */}
       {username && (
-        <p className="-mt-2 text-center text-xl font-bold text-amber-400">@{username}</p>
+        <p className="dash-rise -mt-2 text-center text-xl font-bold tracking-tight"
+           style={{ color: accent, textShadow: `0 0 24px rgba(${glowRgb},0.35)` }}>
+          @{username}
+        </p>
       )}
 
       {/* Fennec ID card */}
       {networkProfile && (
-        <FennecIdCard
-          firstName={cardFirst} lastName={cardLast}
-          role={networkProfile.role ?? "Producer"}
-          country={networkProfile.country ?? ""}
-          genres={networkProfile.genres ?? []}
-          fennecDb={fennecDb} colorScheme={cardColorScheme}
-          initials={cardInitials} avatarUrl={avatarUrl}
-          instagram={networkProfile.instagram}
-          spotify={networkProfile.spotify}
-          youtube={networkProfile.youtube_url}
-          smallDb
-        />
+        <div className="dash-rise" style={{ animationDelay: "0.05s" }}>
+          <FennecIdCard
+            firstName={cardFirst} lastName={cardLast}
+            role={networkProfile.role ?? "Producer"}
+            country={networkProfile.country ?? ""}
+            genres={networkProfile.genres ?? []}
+            fennecDb={fennecDb} colorScheme={cardColorScheme}
+            initials={cardInitials} avatarUrl={avatarUrl}
+            instagram={networkProfile.instagram}
+            spotify={networkProfile.spotify}
+            youtube={networkProfile.youtube_url}
+            smallDb
+          />
+        </div>
       )}
 
-      {/* FENNEC dB hero */}
-      <div className="flex flex-col items-center gap-1.5 py-1">
-        <div className="flex items-center gap-1.5">
-          <p className="text-[9px] font-bold tracking-[0.35em] uppercase"
-             style={{ color: `${cardColorScheme.accent}60` }}>FENNEC dB</p>
-          <button type="button" onClick={() => setShowDbInfo((v) => !v)}
-            style={{ color: `${cardColorScheme.accent}55`, lineHeight: 1 }}
-            aria-label="¿Qué es FENNEC dB?">
-            <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor">
-              <circle cx="8" cy="8" r="7.5" stroke="currentColor" strokeWidth="1" fill="none" />
-              <text x="8" y="12" textAnchor="middle" fontSize="10" fontWeight="700" fill="currentColor">i</text>
-            </svg>
-          </button>
+      {/* FENNEC dB hero — the signal meter */}
+      <div className="dash-rise relative flex flex-col items-center gap-1.5 py-1" style={{ animationDelay: "0.12s" }}>
+        <div className="flex w-full items-center gap-3 px-6">
+          <div className="h-px flex-1" style={{ background: `linear-gradient(90deg, transparent, ${accent}25)` }} />
+          <div className="flex items-center gap-1.5">
+            <p className="text-[9px] font-bold tracking-[0.35em] uppercase"
+               style={{ color: `${accent}60` }}>FENNEC dB</p>
+            <button type="button" onClick={() => setShowDbInfo((v) => !v)}
+              style={{ color: `${accent}55`, lineHeight: 1 }}
+              aria-label="¿Qué es FENNEC dB?">
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor">
+                <circle cx="8" cy="8" r="7.5" stroke="currentColor" strokeWidth="1" fill="none" />
+                <text x="8" y="12" textAnchor="middle" fontSize="10" fontWeight="700" fill="currentColor">i</text>
+              </svg>
+            </button>
+          </div>
+          <div className="h-px flex-1" style={{ background: `linear-gradient(90deg, ${accent}25, transparent)` }} />
         </div>
-        <p className="text-[72px] font-black leading-none tabular-nums"
-           style={{ color: cardColorScheme.accent }}>
+        <p className="text-[72px] font-black leading-none tabular-nums tracking-[-0.04em]"
+           style={{
+             background: `linear-gradient(180deg, ${tint(accent, 0.45)} 0%, ${accent} 60%, ${accent} 100%)`,
+             WebkitBackgroundClip: "text",
+             backgroundClip: "text",
+             color: "transparent",
+             filter: `drop-shadow(0 2px 18px rgba(${glowRgb},0.30))`,
+           }}>
           <AnimatedNumber value={fennecDb} />
         </p>
-        <EqBars accent={cardColorScheme.accent} />
+        <EqBars accent={accent} />
         {showDbInfo && (
           <div className="w-full rounded-xl border px-4 py-3 mt-1 text-[10px] leading-relaxed space-y-3"
                style={{ borderColor: `${cardColorScheme.accent}15`, background: `${cardColorScheme.accent}08`, color: `${cardColorScheme.accent}70` }}>
@@ -400,10 +456,13 @@ export default function Dashboard({
       </div>
 
       {/* Stat chips: Streams · Créditos · Proyectos */}
-      <div>
-        <p className="text-[8px] font-bold uppercase tracking-widest text-zinc-600 mb-1.5 px-1">
-          Música &amp; Negocio
-        </p>
+      <div className="dash-rise" style={{ animationDelay: "0.2s" }}>
+        <div className="flex items-center gap-2 mb-1.5 px-1">
+          <p className="text-[8px] font-bold uppercase tracking-widest text-zinc-600 flex-shrink-0">
+            Música &amp; Negocio
+          </p>
+          <div className="h-px flex-1 bg-gradient-to-r from-white/[0.07] to-transparent" />
+        </div>
         <div className="grid grid-cols-3 divide-x divide-white/[0.06]">
           <StatChip label="Streams"   pending onConnect={onOpenSettings} />
           <StatChip label="Créditos"  pending onConnect={onOpenSettings} />
@@ -412,9 +471,9 @@ export default function Dashboard({
       </div>
 
       {/* Social chips: Instagram · TikTok · YouTube */}
-      <div>
-        <div className="flex items-center justify-between mb-1.5 px-1">
-          <div className="flex items-center gap-1.5">
+      <div className="dash-rise" style={{ animationDelay: "0.28s" }}>
+        <div className="flex items-center gap-2 mb-1.5 px-1">
+          <div className="flex items-center gap-1.5 flex-shrink-0">
             <p className="text-[8px] font-bold uppercase tracking-widest text-zinc-600">Alcance social</p>
             <button type="button" onClick={() => setShowSocialInfo((v) => !v)}
               className="text-zinc-600 hover:text-zinc-400 transition leading-none"
@@ -425,7 +484,8 @@ export default function Dashboard({
               </svg>
             </button>
           </div>
-          {syncing && <span className="text-[9px] text-zinc-600 animate-spin inline-block">↻</span>}
+          <div className="h-px flex-1 bg-gradient-to-r from-white/[0.07] to-transparent" />
+          {syncing && <span className="text-[9px] text-zinc-600 animate-spin inline-block flex-shrink-0">↻</span>}
         </div>
         {showSocialInfo && (
           <p className="text-[9px] text-zinc-500 mb-1.5 px-1 leading-relaxed">
@@ -445,7 +505,7 @@ export default function Dashboard({
 
       {/* Onboarding checklist — replaces the old empty state, until all steps done */}
       {businessLoaded && !onboardingComplete && (
-        <div className="border-t border-white/5 pt-4 pb-2">
+        <div className="dash-rise border-t border-white/5 pt-4 pb-2" style={{ animationDelay: "0.36s" }}>
           <ChecklistCard items={checklistItems} onOpen={() => setShowWelcome(true)} />
         </div>
       )}
