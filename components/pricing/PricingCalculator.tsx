@@ -566,8 +566,8 @@ export default function PricingCalculator() {
   }
 
   return (
-    <div className="flex flex-col bg-background" style={{ height: "100dvh" }}>
-    <main id="scroll-root" className={`flex-1 flex flex-col overscroll-none pb-6 ${(activeTab === "contenido" || (activeTab === "pricing" && businessView === "hub")) && !showSettings ? "overflow-hidden" : "overflow-y-auto"}`} style={{ overscrollBehavior: "none", paddingTop: "calc(env(safe-area-inset-top) + 0.75rem)" }}>
+    <div className="flex flex-col bg-background" style={{ minHeight: "100dvh" }}>
+    <main id="scroll-root" className={`flex flex-col overscroll-none ${(activeTab === "contenido" || (activeTab === "pricing" && businessView === "hub")) && !showSettings ? "overflow-hidden" : "overflow-y-auto"}`} style={{ overscrollBehavior: "none", paddingTop: "calc(env(safe-area-inset-top) + 0.75rem)", paddingBottom: "calc(env(safe-area-inset-bottom) + 72px)" }}>
       {/* Settings button — hidden on Community tab (has its own header) */}
       {activeTab !== "noticias" && (
         <div className={`flex w-full max-w-4xl items-center px-6 ${activeTab === "dashboard" ? "mb-4" : "mb-4"}`}>
@@ -1107,11 +1107,15 @@ export default function PricingCalculator() {
       ) : null}
 
     </main>
-      <div className="shrink-0" style={{ background: "var(--background)" }}>
       <nav
         className="border-t border-white/[0.06] backdrop-blur-2xl"
         style={{
-          background: "rgba(17, 17, 20, 0.85)",
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 50,
+          background: "rgba(17, 17, 20, 0.92)",
           WebkitBackdropFilter: "blur(24px)",
           backdropFilter: "blur(24px)",
         }}
@@ -1209,7 +1213,6 @@ export default function PricingCalculator() {
           })}
         </div>
       </nav>
-      </div>
     </div>
   );
 }
