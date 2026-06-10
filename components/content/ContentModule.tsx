@@ -713,83 +713,17 @@ export default function ContentModule() {
 
   return (
     <div className="relative">
-
-      {/* ── Top section: header + calendar + grid (BusinessHub structure) ── */}
-      <div className="mx-auto w-full max-w-4xl flex flex-col px-4 pt-4 pb-2">
-        <div className="flex flex-col gap-3">
-
-          {/* Header */}
-          <div>
-            <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">Content</p>
-            <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-white">Quick Ideas</h1>
-            <p className="mt-2 text-sm text-zinc-400">Plan, create, and schedule your content across all platforms.</p>
-          </div>
-
-          {/* Calendar (gráfica) */}
-          <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden" style={{ height: 200 }}>
-            <CalendarHub
-              tasks={tasks}
-              onOpenSheet={openSheet}
-              onToggleDone={toggleDone}
-              onDeleteTask={deleteTask}
-              onEditScript={(taskTitle) => {
-                const brief = briefs.find((b) => b.title === taskTitle);
-                if (brief) setDetailBrief(brief);
-              }}
-            />
-          </div>
-
-          {/* Inspire (hero button) */}
-          <button
-            type="button"
-            onClick={() => openSheet("inspire")}
-            className="w-full rounded-2xl bg-gradient-to-br from-indigo-900/40 to-indigo-900/10 border border-indigo-400/20 flex items-center justify-center"
-            style={{ height: 130 }}
-          >
-            <div className="text-center">
-              <div className="text-4xl mb-2">✨</div>
-              <p className="text-sm font-semibold text-zinc-300">Inspire</p>
-            </div>
-          </button>
-
-          {/* Grid 3 cols */}
-          <div className="grid grid-cols-3 gap-2">
-            {/* Quick Ideas */}
-            <button
-              type="button"
-              onClick={() => openSheet("ideas")}
-              className="rounded-2xl bg-gradient-to-br from-amber-900/40 to-amber-900/10 border border-amber-400/20 flex flex-col items-center justify-center"
-              style={{ height: 90 }}
-            >
-              <div className="text-2xl mb-1">💡</div>
-              <p className="text-xs font-medium text-zinc-300">Quick Ideas</p>
-            </button>
-
-            {/* Music Content Lab */}
-            <button
-              type="button"
-              onClick={() => openSheet("lab")}
-              className="rounded-2xl bg-gradient-to-br from-green-900/40 to-green-900/10 border border-green-400/20 flex flex-col items-center justify-center"
-              style={{ height: 90 }}
-            >
-              <div className="text-2xl mb-1">🔧</div>
-              <p className="text-xs font-medium text-zinc-300">Content Lab</p>
-            </button>
-
-            {/* My Scripts */}
-            <button
-              type="button"
-              onClick={() => openSheet("scripts")}
-              className="rounded-2xl bg-gradient-to-br from-purple-900/40 to-purple-900/10 border border-purple-400/20 flex flex-col items-center justify-center"
-              style={{ height: 90 }}
-            >
-              <div className="text-2xl mb-1">✍️</div>
-              <p className="text-xs font-medium text-zinc-300">My Scripts</p>
-            </button>
-          </div>
-
-        </div>
-      </div>
+      {/* Main calendar hub */}
+      <CalendarHub
+        tasks={tasks}
+        onOpenSheet={openSheet}
+        onToggleDone={toggleDone}
+        onDeleteTask={deleteTask}
+        onEditScript={(taskTitle) => {
+          const brief = briefs.find((b) => b.title === taskTitle);
+          if (brief) setDetailBrief(brief);
+        }}
+      />
 
       {/* Bottom sheet overlay */}
       {sheet !== "none" && (

@@ -89,6 +89,7 @@ export default function CalendarHub({
 
   const [anchorDate, setAnchorDate] = useState<Date>(today);
   const [selectedDay, setSelectedDay] = useState<string>(todayYMD);
+  const [dayDetailOpen, setDayDetailOpen] = useState(false);
   const [inspireThumbnail, setInspireThumbnail] = useState<string | null>(null);
 
   useEffect(() => {
@@ -138,13 +139,14 @@ export default function CalendarHub({
   }
 
   return (
-    <div className="flex flex-col text-white gap-5 px-4">
-      {/* 1. Greeting section */}
-      <div className="flex flex-col gap-1">
+    <>
+    <div className="mx-auto w-full max-w-4xl flex flex-col gap-3 px-4 text-white">
+      {/* 1. Greeting header */}
+      <div>
         <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">
           Music Content Creation Hub
         </p>
-        <h1 className="mt-3 text-3xl font-bold tracking-tight text-white">
+        <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-white">
           {greetText} {greetEmoji}
         </h1>
         <p className="mt-2 text-sm text-zinc-400">
@@ -152,7 +154,8 @@ export default function CalendarHub({
         </p>
       </div>
 
-      {/* 2. Week nav */}
+      {/* 2. Calendar (gráfica) */}
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
       <div className="flex items-center justify-between">
         <button
           onClick={prevWeek}
@@ -192,7 +195,7 @@ export default function CalendarHub({
           return (
             <button
               key={ymd}
-              onClick={() => setSelectedDay(ymd)}
+              onClick={() => { setSelectedDay(ymd); setDayDetailOpen(true); }}
               className={buttonClass}
             >
               <span className="text-xs uppercase">{DAY_LABELS[i]}</span>
@@ -210,114 +213,134 @@ export default function CalendarHub({
           );
         })}
       </div>
+      </div>{/* end calendar card */}
 
-      {/* 4. Selected day tasks section */}
-      <div className="flex flex-col gap-2">
-        <span className="text-xs font-medium text-zinc-400 uppercase tracking-wide">
-          {selectedDay === todayYMD ? "Hoy" : formatDateES(selectedDay)}
-        </span>
+      {/* 3. Inspire — hero */}
+      <button
+        onClick={() => onOpenSheet("inspire")}
+        className="relative w-full rounded-2xl overflow-hidden"
+        style={{ height: 130 }}
+      >
+        <InspireHero />
+      </button>
 
-        {selectedTasks.length === 0 ? (
-          <p className="text-xs text-zinc-600">No tasks for this day.</p>
-        ) : (
-          <div className="flex flex-col gap-2">
-            {selectedTasks.map((task) => {
-              const isDone = task.status === "done";
-              return (
-                <div
-                  key={task.id}
-                  className={`flex items-start gap-3 p-3 rounded-xl bg-zinc-900 transition-opacity ${
-                    isDone ? "opacity-50" : ""
-                  }`}
-                >
-                  {/* Checkbox */}
-                  <button
-                    onClick={() => onToggleDone(task.id)}
-                    className={`mt-0.5 flex-shrink-0 h-5 w-5 rounded-full border-2 flex items-center justify-center transition-colors ${
-                      isDone
-                        ? "bg-amber-400 border-amber-400"
-                        : "border-zinc-600 hover:border-amber-400"
-                    }`}
-                    aria-label={isDone ? "Marcar pendiente" : "Marcar como hecha"}
-                  >
-                    {isDone && <Check size={12} className="text-black" strokeWidth={3} />}
-                  </button>
-
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <p
-                      className={`text-sm font-medium ${
-                        isDone ? "line-through text-zinc-600" : "text-white"
-                      }`}
-                    >
-                      {task.title}
-                    </p>
-                    {task.notes && (
-                      <p className="text-xs text-zinc-600 mt-0.5 line-clamp-2">
-                        {task.notes}
-                      </p>
-                    )}
-                    <span
-                      className={`inline-block mt-1.5 text-xs px-2 py-0.5 rounded-full font-medium ${
-                        SOURCE_COLORS[task.source]
-                      }`}
-                    >
-                      {SOURCE_LABELS[task.source]}
-                    </span>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 shrink-0 mt-0.5">
-                    {task.source === "scripts" && onEditScript && (
-                      <button
-                        onClick={() => onEditScript(task.title)}
-                        className="text-zinc-600 hover:text-amber-400 transition-colors"
-                        aria-label="Editar script"
-                      >
-                        <Pencil size={14} />
-                      </button>
-                    )}
-                    <button
-                      onClick={() => onDeleteTask(task.id)}
-                      className="text-zinc-600 hover:text-red-400 transition-colors text-sm leading-none"
-                      aria-label="Eliminar tarea"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* 5. Tools section */}
-      <div className="border-t border-zinc-800 pt-3 pb-6 flex flex-col gap-2">
-        <span className="text-[10px] uppercase tracking-widest text-zinc-500">Tools</span>
-
-        {/* Inspire — hero card */}
-        <button
-          onClick={() => onOpenSheet("inspire")}
-          className="relative w-full rounded-2xl overflow-hidden"
-          style={{ height: 160 }}
-        >
-          <InspireHero />
+      {/* 4. Tool grid: 3 cols */}
+      <div className="grid grid-cols-3 gap-2">
+        <button onClick={() => onOpenSheet("ideas")} className="relative rounded-2xl overflow-hidden" style={{ height: 90 }}>
+          <QuickIdeasCard />
         </button>
-
-        {/* Quick Ideas · Music Content Lab · My Scripts */}
-        <div className="flex gap-2 items-stretch">
-          <button onClick={() => onOpenSheet("ideas")} className="relative rounded-2xl overflow-hidden flex-1" style={{ height: 110 }}>
-            <QuickIdeasCard />
-          </button>
-          <button onClick={() => onOpenSheet("lab")} className="relative rounded-2xl overflow-hidden flex-[1.6]" style={{ height: 110 }}>
-            <ContentLabCard />
-          </button>
-          <button onClick={() => onOpenSheet("scripts")} className="relative rounded-2xl overflow-hidden flex-1" style={{ height: 110 }}>
-            <MyScriptsCard />
-          </button>
-        </div>
+        <button onClick={() => onOpenSheet("lab")} className="relative rounded-2xl overflow-hidden" style={{ height: 90 }}>
+          <ContentLabCard />
+        </button>
+        <button onClick={() => onOpenSheet("scripts")} className="relative rounded-2xl overflow-hidden" style={{ height: 90 }}>
+          <MyScriptsCard />
+        </button>
       </div>
     </div>
+
+    {/* ── Day detail overlay (al picar un día) ── */}
+    {dayDetailOpen && (
+      <>
+        <div
+          className="fixed inset-0 z-30 bg-black/70 backdrop-blur-sm"
+          onClick={() => setDayDetailOpen(false)}
+        />
+        <div className="fixed bottom-0 left-0 right-0 z-40 max-h-[70vh] rounded-t-3xl border-t border-white/10 bg-zinc-950 overflow-y-auto">
+          <div className="sticky top-0 z-10 flex items-center justify-center px-4 pt-3 pb-2 bg-zinc-950">
+            <div className="w-10 h-1 rounded-full bg-white/30" />
+          </div>
+          <div className="px-4 pb-8 pt-1 flex flex-col gap-3 text-white">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold text-white">
+                {selectedDay === todayYMD ? "Hoy" : formatDateES(selectedDay)}
+              </span>
+              <button
+                onClick={() => setDayDetailOpen(false)}
+                className="text-xs text-zinc-500 hover:text-white transition-colors"
+              >
+                Cerrar
+              </button>
+            </div>
+
+            {selectedTasks.length === 0 ? (
+              <p className="text-xs text-zinc-600 py-8 text-center">
+                No tienes nada programado este día.
+              </p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {selectedTasks.map((task) => {
+                  const isDone = task.status === "done";
+                  return (
+                    <div
+                      key={task.id}
+                      className={`flex items-start gap-3 p-3 rounded-xl bg-zinc-900 transition-opacity ${
+                        isDone ? "opacity-50" : ""
+                      }`}
+                    >
+                      {/* Checkbox */}
+                      <button
+                        onClick={() => onToggleDone(task.id)}
+                        className={`mt-0.5 flex-shrink-0 h-5 w-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                          isDone
+                            ? "bg-amber-400 border-amber-400"
+                            : "border-zinc-600 hover:border-amber-400"
+                        }`}
+                        aria-label={isDone ? "Marcar pendiente" : "Marcar como hecha"}
+                      >
+                        {isDone && <Check size={12} className="text-black" strokeWidth={3} />}
+                      </button>
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <p
+                          className={`text-sm font-medium ${
+                            isDone ? "line-through text-zinc-600" : "text-white"
+                          }`}
+                        >
+                          {task.title}
+                        </p>
+                        {task.notes && (
+                          <p className="text-xs text-zinc-600 mt-0.5 line-clamp-2">
+                            {task.notes}
+                          </p>
+                        )}
+                        <span
+                          className={`inline-block mt-1.5 text-xs px-2 py-0.5 rounded-full font-medium ${
+                            SOURCE_COLORS[task.source]
+                          }`}
+                        >
+                          {SOURCE_LABELS[task.source]}
+                        </span>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-2 shrink-0 mt-0.5">
+                        {task.source === "scripts" && onEditScript && (
+                          <button
+                            onClick={() => { onEditScript(task.title); setDayDetailOpen(false); }}
+                            className="text-zinc-600 hover:text-amber-400 transition-colors"
+                            aria-label="Editar script"
+                          >
+                            <Pencil size={14} />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => onDeleteTask(task.id)}
+                          className="text-zinc-600 hover:text-red-400 transition-colors text-sm leading-none"
+                          aria-label="Eliminar tarea"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      </>
+    )}
+    </>
   );
 }
