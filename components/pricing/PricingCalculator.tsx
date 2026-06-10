@@ -1109,12 +1109,11 @@ export default function PricingCalculator() {
     </main>
       <div className="shrink-0" style={{ background: "var(--background)" }}>
       <nav
-        className="border-t border-white/10 backdrop-blur-2xl"
+        className="border-t border-white/[0.06] backdrop-blur-2xl"
         style={{
-          background: "rgba(13, 13, 15, 0.72)",
-          WebkitBackdropFilter: "blur(24px) saturate(180%)",
-          backdropFilter: "blur(24px) saturate(180%)",
-          boxShadow: "0 -1px 0 rgba(255,255,255,0.06)",
+          background: "rgba(17, 17, 20, 0.85)",
+          WebkitBackdropFilter: "blur(24px)",
+          backdropFilter: "blur(24px)",
         }}
       >
         <div className="mx-auto flex w-full max-w-2xl items-center px-2 pb-3 pt-2">
