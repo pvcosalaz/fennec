@@ -1,9 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!url) throw new Error("NEXT_PUBLIC_SUPABASE_URL is not set");
-if (!key) throw new Error("SUPABASE_SERVICE_ROLE_KEY is not set — never fall back to anon key for admin ops");
-
-export const supabaseAdmin = createClient(url, key);
+// Service role client — bypasses RLS. Only used server-side.
+// Uses ! assertions instead of top-level throw so Next.js build doesn't crash
+// (env vars aren't available at build time, only at request time).
+// If the key is missing at runtime, Supabase auth will fail — never falls back to anon key.
+export const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
