@@ -98,23 +98,30 @@ function StatChip({
 // ─── Social chip ─────────────────────────────────────────────────────────────
 
 function SocialChip({
-  icon, count, label, color, hasHandle,
+  icon, count, label, color, hasHandle, onConnect,
 }: {
   icon: React.ReactNode;
   count?: number | null;
   label: string;
   color: string;
   hasHandle: boolean;
+  onConnect?: () => void;
 }) {
   return (
     <div className="flex flex-col items-center gap-0.5 py-3">
       <div style={{ color, opacity: 0.75 }}>{icon}</div>
       <p className="text-xl font-black text-white mt-0.5">
-        {count != null ? fmtCount(count) : "—"}
+        {hasHandle ? (count != null ? fmtCount(count) : "—") : "—"}
       </p>
       <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">{label}</p>
-      {!hasHandle && (
-        <p className="text-[8px] text-zinc-700 mt-0.5">sin handle</p>
+      {!hasHandle && onConnect && (
+        <button type="button" onClick={onConnect}
+          className="mt-0.5 text-[9px] font-semibold transition"
+          style={{ color: "rgba(245,166,35,0.55)" }}
+          onMouseEnter={e => (e.currentTarget.style.color = "rgba(245,166,35,0.9)")}
+          onMouseLeave={e => (e.currentTarget.style.color = "rgba(245,166,35,0.55)")}>
+          conectar →
+        </button>
       )}
     </div>
   );
@@ -400,11 +407,11 @@ export default function Dashboard({
         )}
         <div className="grid grid-cols-3 divide-x divide-white/[0.06]">
           <SocialChip icon={<SiInstagram size={13} />} count={igFollowers}
-            label="Instagram" color="#E1306C" hasHandle={hasIg} />
+            label="Instagram" color="#E1306C" hasHandle={hasIg} onConnect={onOpenSettings} />
           <SocialChip icon={<SiTiktok size={13} />}   count={ttFollowers}
-            label="TikTok"    color="#ffffff" hasHandle={hasTt} />
+            label="TikTok"    color="#ffffff" hasHandle={hasTt} onConnect={onOpenSettings} />
           <SocialChip icon={<SiYoutube size={13} />}  count={ytSubs}
-            label="YouTube"   color="#FF0000" hasHandle={hasYt} />
+            label="YouTube"   color="#FF0000" hasHandle={hasYt} onConnect={onOpenSettings} />
         </div>
       </div>
 
