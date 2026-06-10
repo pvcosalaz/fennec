@@ -587,7 +587,13 @@ export default function PricingCalculator() {
       {/* wave removed */}
       {showSettings ? (
         <SettingsModule
-          onBack={() => { setShowSettings(false); setSettingsSection("main"); }}
+          onBack={async () => {
+            setShowSettings(false);
+            setSettingsSection("main");
+            // Refresh profile so the Fennec ID card + dashboard reflect Settings changes
+            const p = await getProfile(authUser.id);
+            if (p) setProfile((prev) => prev ? { ...p, fennec_db_score: prev.fennec_db_score } : p);
+          }}
           language={i18n.resolvedLanguage ?? "en"}
           onLanguageChange={(lang) => { void i18n.changeLanguage(lang); }}
           avatarUrl={profile.avatar_url}
