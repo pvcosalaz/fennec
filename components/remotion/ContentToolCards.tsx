@@ -32,10 +32,10 @@ const QUICK_IDEAS_CSS = `
 `;
 
 const SPARKLE_POSITIONS = [
-  { top: "14%", left: "18%", delay: "0s",    dur: "3.2s" },
-  { top: "10%", left: "65%", delay: "0.9s",  dur: "2.8s" },
-  { top: "38%", left: "74%", delay: "1.7s",  dur: "3.6s" },
-  { top: "42%", left: "12%", delay: "2.4s",  dur: "3.0s" },
+  { top: "14%", left: "18%", delay: "0s",    dur: "5.8s" },
+  { top: "10%", left: "65%", delay: "1.6s",  dur: "5s" },
+  { top: "38%", left: "74%", delay: "3.1s",  dur: "6.5s" },
+  { top: "42%", left: "12%", delay: "4.3s",  dur: "5.4s" },
 ];
 
 export function QuickIdeasCard() {
@@ -54,7 +54,7 @@ export function QuickIdeasCard() {
         position: "absolute", width: "75%", height: "65%",
         borderRadius: "50%", top: "5%", left: "12%",
         background: "radial-gradient(circle, rgba(251,191,36,1) 0%, transparent 70%)",
-        animation: "cardGlowAmber 5s ease-in-out infinite alternate",
+        animation: "cardGlowAmber 9s ease-in-out infinite alternate",
       }} />
 
       {/* Sparkles */}
@@ -69,7 +69,7 @@ export function QuickIdeasCard() {
       ))}
 
       <span style={{ fontSize: 34, lineHeight: 1, display: "block",
-        animation: "bulbScale 4s ease-in-out infinite alternate" }}>💡</span>
+        animation: "bulbScale 7.2s ease-in-out infinite alternate" }}>💡</span>
 
       <span style={{ fontSize: 10, fontWeight: 600,
         color: "rgba(255,255,255,0.45)", letterSpacing: "0.02em" }}>
@@ -115,15 +115,15 @@ export function ContentLabCard() {
         position: "absolute", width: "75%", height: "65%",
         borderRadius: "50%", top: "5%", left: "12%",
         background: "radial-gradient(circle, rgba(74,222,128,1) 0%, transparent 70%)",
-        animation: "cardGlowGreen 5s ease-in-out infinite alternate",
+        animation: "cardGlowGreen 9s ease-in-out infinite alternate",
       }} />
 
       {/* Bubbles — positioned relative to tube bottom */}
       <div style={{ position: "relative" }}>
         {[
-          { left: -14, anim: "bubbleRise1", dur: "3.2s", delay: "0s",    size: 5 },
-          { left:  -2, anim: "bubbleRise2", dur: "2.8s", delay: "1.1s",  size: 4 },
-          { left:  10, anim: "bubbleRise3", dur: "3.6s", delay: "0.55s", size: 6 },
+          { left: -14, anim: "bubbleRise1", dur: "5.8s", delay: "0s",    size: 5 },
+          { left:  -2, anim: "bubbleRise2", dur: "5s", delay: "2s",  size: 4 },
+          { left:  10, anim: "bubbleRise3", dur: "6.5s", delay: "1s", size: 6 },
         ].map((b, i) => (
           <div key={i} style={{
             position: "absolute",
@@ -136,7 +136,7 @@ export function ContentLabCard() {
         ))}
 
         <span style={{ fontSize: 38, lineHeight: 1, display: "block",
-          animation: "tubeRock 5s ease-in-out infinite alternate" }}>🧪</span>
+          animation: "tubeRock 9s ease-in-out infinite alternate" }}>🧪</span>
       </div>
 
       <span style={{ fontSize: 10, fontWeight: 600,
@@ -186,18 +186,18 @@ export function MyScriptsCard() {
         position: "absolute", width: "75%", height: "65%",
         borderRadius: "50%", top: "5%", left: "12%",
         background: "radial-gradient(circle, rgba(167,139,250,1) 0%, transparent 70%)",
-        animation: "cardGlowPurple 5s ease-in-out infinite alternate",
+        animation: "cardGlowPurple 9s ease-in-out infinite alternate",
       }} />
 
       <span style={{ fontSize: 32, lineHeight: 1, display: "block",
-        animation: "penBob 4s ease-in-out infinite alternate" }}>✍️</span>
+        animation: "penBob 7.2s ease-in-out infinite alternate" }}>✍️</span>
 
       {/* Animated text lines */}
       <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-start" }}>
         {[
-          { anim: "lineGrow1", delay: "0s",    color: "rgba(167,139,250,0.7)", dur: "4.0s" },
-          { anim: "lineGrow2", delay: "0.8s",  color: "rgba(255,255,255,0.22)", dur: "4.0s" },
-          { anim: "lineGrow3", delay: "1.6s",  color: "rgba(255,255,255,0.18)", dur: "4.0s" },
+          { anim: "lineGrow1", delay: "0s",    color: "rgba(167,139,250,0.7)", dur: "7.2s" },
+          { anim: "lineGrow2", delay: "1.4s",  color: "rgba(255,255,255,0.22)", dur: "7.2s" },
+          { anim: "lineGrow3", delay: "2.9s",  color: "rgba(255,255,255,0.18)", dur: "7.2s" },
         ].map((l, i) => (
           <div key={i} style={{
             height: 2.5, borderRadius: 2,

@@ -1,7 +1,7 @@
 "use client";
+import { useRef, useEffect } from "react";
 
-// Pure CSS animated component — no Remotion frame counter.
-// CSS `alternate` direction = reverses smoothly, never snaps back to start.
+// Marquee uses a JS-measured pixel offset so the loop is perfectly seamless.
 
 const TAGS = [
   "Trap", "Lo-fi", "R&B", "House", "Cinematic",
@@ -24,24 +24,32 @@ const CSS = `
     100% { transform: translate(var(--tx), var(--ty))      scale(0);   opacity: 0;   }
   }
   @keyframes inspireScroll {
-    from { transform: translateX(0); }
-    to   { transform: translateX(-33.333%); }
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(var(--marquee-shift, -50%)); }
   }
 `;
 
 const SPARKS = [
-  { tx:  36, ty: -22, delay: "0s",    dur: "3.2s" },
-  { tx:  28, ty: -32, delay: "0.5s",  dur: "2.8s" },
-  { tx:  10, ty: -38, delay: "1.0s",  dur: "3.6s" },
-  { tx: -14, ty: -35, delay: "1.5s",  dur: "3.0s" },
-  { tx: -30, ty: -24, delay: "2.0s",  dur: "3.4s" },
-  { tx: -34, ty:  -8, delay: "2.5s",  dur: "2.6s" },
-  { tx:  -8, ty:  14, delay: "3.0s",  dur: "3.8s" },
-  { tx:  30, ty:   6, delay: "3.5s",  dur: "2.9s" },
+  { tx:  36, ty: -22, delay: "0s",    dur: "5.8s" },
+  { tx:  28, ty: -32, delay: "0.9s",  dur: "5s" },
+  { tx:  10, ty: -38, delay: "1.8s",  dur: "6.5s" },
+  { tx: -14, ty: -35, delay: "2.7s",  dur: "5.4s" },
+  { tx: -30, ty: -24, delay: "3.6s",  dur: "6.1s" },
+  { tx: -34, ty:  -8, delay: "4.5s",  dur: "4.7s" },
+  { tx:  -8, ty:  14, delay: "5.4s",  dur: "6.8s" },
+  { tx:  30, ty:   6, delay: "6.3s",  dur: "5.2s" },
 ];
 
 export default function InspireHero() {
-  const tripled = [...TAGS, ...TAGS, ...TAGS];
+  const doubled = [...TAGS, ...TAGS];
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!scrollRef.current) return;
+    // scrollWidth = full width of both copies; half = one copy exactly
+    const half = scrollRef.current.scrollWidth / 2;
+    scrollRef.current.style.setProperty("--marquee-shift", `-${half}px`);
+  }, []);
 
   return (
     <div style={{
@@ -49,6 +57,7 @@ export default function InspireHero() {
       background: "radial-gradient(ellipse 80% 80% at 50% 0%, #232323 0%, #141414 100%)",
       display: "flex", flexDirection: "column", alignItems: "center",
       justifyContent: "center", gap: 6, overflow: "hidden", position: "relative",
+      paddingBottom: 28,
       fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif",
     }}>
       <style>{CSS}</style>
@@ -58,7 +67,7 @@ export default function InspireHero() {
         position: "absolute", width: "70%", height: "60%",
         borderRadius: "50%", top: "10%", left: "15%",
         background: "radial-gradient(circle, rgba(245,166,35,1) 0%, transparent 70%)",
-        animation: "inspireGlow 6s ease-in-out infinite alternate",
+        animation: "inspireGlow 10.8s ease-in-out infinite alternate",
       }} />
 
       {/* Subtle grid */}
@@ -86,17 +95,13 @@ export default function InspireHero() {
         {/* Lightning bolt */}
         <span style={{
           fontSize: 38, lineHeight: 1, display: "block",
-          animation: "boltPulse 4s ease-in-out infinite alternate",
+          animation: "boltPulse 7.2s ease-in-out infinite alternate",
         }}>⚡</span>
       </div>
 
       {/* Title */}
       <p style={{ fontSize: 14, fontWeight: 800, color: "#fff",
         letterSpacing: "-0.01em", margin: 0 }}>Inspire</p>
-
-      {/* Subtitle */}
-      <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: 0,
-        letterSpacing: "0.01em" }}>Daily trends in music production</p>
 
       {/* Scrolling tags — CSS loop, unaffected by any frame restart */}
       <div style={{
@@ -105,11 +110,11 @@ export default function InspireHero() {
         maskImage: "linear-gradient(90deg, transparent 0%, black 12%, black 88%, transparent 100%)",
         WebkitMaskImage: "linear-gradient(90deg, transparent 0%, black 12%, black 88%, transparent 100%)",
       }}>
-        <div style={{
-          display: "flex", gap: 8, whiteSpace: "nowrap",
-          animation: "inspireScroll 10s linear infinite",
+        <div ref={scrollRef} style={{
+          display: "inline-flex", whiteSpace: "nowrap",
+          animation: "inspireScroll 36s linear infinite",
         }}>
-          {tripled.map((tag, i) => {
+          {doubled.map((tag, i) => {
             const hi = i % 3 === 0;
             return (
               <span key={i} style={{
@@ -120,6 +125,7 @@ export default function InspireHero() {
                 border: `1px solid ${hi ? "rgba(245,166,35,0.22)" : "rgba(255,255,255,0.07)"}`,
                 background: hi ? "rgba(245,166,35,0.07)" : "transparent",
                 flexShrink: 0,
+                marginRight: 8,
               }}>{tag}</span>
             );
           })}
