@@ -329,7 +329,7 @@ export default function Dashboard({
   const glowRgb = cardColorScheme.glowRgb;
 
   return (
-    <div className={`relative mx-auto w-full max-w-4xl flex flex-col gap-2 pb-2 pt-1 px-4 ${className ?? ""}`}>
+    <div className={`relative mx-auto w-full max-w-4xl flex flex-col overflow-y-auto min-h-0 pb-2 pt-1 px-4 ${className ?? ""}`}>
       <style>{`
         @keyframes dashRise {
           from { opacity: 0; transform: translateY(10px); }
@@ -342,6 +342,9 @@ export default function Dashboard({
       {/* Atmosphere — faint identity-color aura behind the meter */}
       <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-4 h-[460px]"
         style={{ background: `radial-gradient(ellipse 70% 55% at 50% 38%, rgba(${glowRgb},0.07), transparent 70%)` }} />
+
+      {/* Content — my-auto centers it when short, scrolls when tall (no clipping) */}
+      <div className="my-auto w-full flex flex-col gap-2">
 
       {/* Username */}
       {username && (
@@ -455,9 +458,6 @@ export default function Dashboard({
         )}
       </div>
 
-      {/* Spacer — pushes stat chips toward the bottom on tall screens */}
-      <div className="flex-1 min-h-[8px]" />
-
       {/* Stat chips: Streams · Créditos · Proyectos */}
       <div className="dash-rise" style={{ animationDelay: "0.2s" }}>
         <div className="flex items-center gap-2 mb-1.5 px-1">
@@ -512,6 +512,9 @@ export default function Dashboard({
           <ChecklistCard items={checklistItems} onOpen={() => setShowWelcome(true)} />
         </div>
       )}
+
+      </div>
+      {/* end centered content wrapper */}
 
       {/* Welcome modal — first visit */}
       {showWelcome && (
