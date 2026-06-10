@@ -1107,10 +1107,10 @@ export default function PricingCalculator() {
       ) : null}
 
     </main>
+      <div className="shrink-0" style={{ background: "var(--background)" }}>
       <nav
-        className="shrink-0 border-t border-white/10 backdrop-blur-2xl"
+        className="border-t border-white/10 backdrop-blur-2xl"
         style={{
-          paddingBottom: "env(safe-area-inset-bottom)",
           background: "rgba(13, 13, 15, 0.72)",
           WebkitBackdropFilter: "blur(24px) saturate(180%)",
           backdropFilter: "blur(24px) saturate(180%)",
@@ -1210,6 +1210,9 @@ export default function PricingCalculator() {
           })}
         </div>
       </nav>
+      {/* Solid filler for the home-indicator safe area — matches app bg (no gray strip) */}
+      <div style={{ height: "env(safe-area-inset-bottom)" }} />
+      </div>
     </div>
   );
 }
