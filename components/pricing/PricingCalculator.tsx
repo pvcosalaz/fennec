@@ -1110,7 +1110,7 @@ export default function PricingCalculator() {
       <nav
         className="shrink-0 border-t border-white/[0.06] backdrop-blur-2xl"
         style={{
-          background: "rgba(17, 17, 20, 0.92)",
+          background: "red",
           WebkitBackdropFilter: "blur(24px)",
           backdropFilter: "blur(24px)",
         }}
