@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Remotion — Dashboard</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0d0d0f; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 28px 20px; }
+h1 { font-size: 11px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: #f5a623; margin-bottom: 6px; }
+h2 { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+.sub { font-size: 12px; color: #555; margin-bottom: 24px; }
+
+.options { display: flex; flex-direction: column; gap: 12px; }
+.option { border: 1.5px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 16px; cursor: pointer; transition: all 0.2s; background: rgba(255,255,255,0.02); }
+.option:hover { border-color: rgba(245,166,35,0.4); background: rgba(245,166,35,0.03); }
+.option.selected { border-color: #f5a623; background: rgba(245,166,35,0.07); }
+.option-label { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 5px; }
+.option-desc { font-size: 12px; color: #777; line-height: 1.5; margin-top: 6px; }
+
+/* Mockup shared */
+.mock { background: #141416; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 14px; margin-bottom: 8px; overflow: hidden; }
+
+/* Option A — Score counter */
+.score-big { font-size: 52px; font-weight: 900; line-height: 1; }
+.score-label { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: #f5a623; opacity: 0.7; }
+@keyframes countUp { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+@keyframes glow { 0%,100% { text-shadow: 0 0 20px rgba(245,166,35,0.2); } 50% { text-shadow: 0 0 40px rgba(245,166,35,0.7), 0 0 80px rgba(245,166,35,0.3); } }
+.score-anim { animation: countUp 0.6s ease-out, glow 3s ease-in-out infinite; color: #fff; }
+@keyframes particleFly { 0% { transform: translate(0,0) scale(1); opacity:1; } 100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity:0; } }
+.particle { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: #f5a623; animation: particleFly 1.2s ease-out forwards; }
+.score-wrap { position: relative; display: inline-block; }
+
+/* Option B — Ambient glow card */
+@keyframes ambientPulse {
+  0%,100% { box-shadow: 0 0 30px rgba(245,166,35,0.08), inset 0 1px 0 rgba(255,255,255,0.06); }
+  50% { box-shadow: 0 0 60px rgba(245,166,35,0.22), 0 0 100px rgba(245,166,35,0.08), inset 0 1px 0 rgba(255,255,255,0.1); }
+}
+.card-glow { animation: ambientPulse 8s ease-in-out infinite; border-radius: 12px; padding: 14px; background: rgba(28,26,32,0.9); border: 1px solid rgba(245,166,35,0.15); }
+@keyframes barDance { 0%,100% { height: 6px; } 50% { height: var(--h); } }
+.bar { display: inline-block; width: 3px; border-radius: 2px; background: #f5a623; margin: 0 1px; vertical-align: bottom; animation: barDance 2.2s ease-in-out infinite; opacity: 0.7; }
+
+/* Option C — Cinematic number reveal */
+@keyframes scanline { 0% { top: -2px; } 100% { top: 100%; } }
+@keyframes revealScore { 0%,30% { opacity:0; letter-spacing: 0.3em; } 100% { opacity:1; letter-spacing: -0.02em; } }
+.cinematic-wrap { position: relative; padding: 10px 0; overflow: hidden; }
+.scan { position: absolute; left:0; right:0; height: 2px; background: linear-gradient(90deg, transparent, #f5a623, transparent); animation: scanline 1.5s ease-in-out infinite; top: 0; }
+.cinematic-score { font-size: 52px; font-weight: 900; animation: revealScore 1.5s cubic-bezier(0.16,1,0.3,1) forwards; font-variant-numeric: tabular-nums; color: #fff; }
+.kpi-row { display: flex; gap: 8px; margin-top: 8px; }
+.kpi-chip { flex: 1; background: rgba(255,255,255,0.04); border-radius: 8px; padding: 6px 8px; }
+.kpi-n { font-size: 18px; font-weight: 900; }
+.kpi-l { font-size: 8px; text-transform: uppercase; color: #555; }
+@keyframes slideUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+.kpi-chip:nth-child(1) { animation: slideUp 0.4s 0.8s ease-out both; }
+.kpi-chip:nth-child(2) { animation: slideUp 0.4s 1.0s ease-out both; }
+.kpi-chip:nth-child(3) { animation: slideUp 0.4s 1.2s ease-out both; }
+.kpi-chip:nth-child(4) { animation: slideUp 0.4s 1.4s ease-out both; }
+</style>
+</head>
+<body>
+  <h1>Remotion · Dashboard</h1>
+  <h2>¿Cómo se presenta el dB score?</h2>
+  <p class="sub">Esto es lo que verías cada vez que cargas el dashboard.</p>
+
+  <div class="options">
+
+    <div class="option" onclick="sel(this,'A')">
+      <div class="option-label">A — Counter animado + partículas</div>
+      <div class="mock" style="position:relative;">
+        <div class="score-label">Fennec dB</div>
+        <div class="score-wrap" style="margin-top:4px;">
+          <div class="score-big score-anim" id="counter">0</div>
+          <div style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;" id="particles"></div>
+        </div>
+        <div style="margin-top:6px;display:flex;gap:6px;">
+          <span style="font-size:10px;color:#4d96ff">● 1 activo</span>
+          <span style="font-size:10px;color:#c77dff">● 2 clientes</span>
+          <span style="font-size:10px;color:#6bcb77">● 0 cerrados</span>
+        </div>
+      </div>
+      <div class="option-desc">El número cuenta desde 0 hasta tu score real. Al llegar explota en partículas doradas. Simple, satisfactorio, te da orgullo ver tu número crecer cada día.</div>
+    </div>
+
+    <div class="option" onclick="sel(this,'B')">
+      <div class="option-label">B — Glow ambiental pulsante</div>
+      <div class="mock">
+        <div class="card-glow">
+          <div class="score-label">Fennec dB</div>
+          <div style="display:flex;align-items:flex-end;gap:12px;margin-top:4px;">
+            <div class="score-big" style="color:#fff;">847</div>
+            <div style="padding-bottom:8px;">
+              <div id="eqbars" style="display:flex;align-items:flex-end;height:28px;gap:1px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="option-desc">El card del dB respira con un glow dorado suave y continuo. Unas barras de EQ animan al lado del score. Sutil, siempre vivo, no distrae.</div>
+    </div>
+
+    <div class="option" onclick="sel(this,'C')">
+      <div class="option-label">C — Reveal cinemático al cargar</div>
+      <div class="mock">
+        <div class="cinematic-wrap">
+          <div class="scan"></div>
+          <div class="score-label">Fennec dB</div>
+          <div class="cinematic-score" id="cin-score">847</div>
+        </div>
+        <div class="kpi-row">
+          <div class="kpi-chip"><div class="kpi-n" style="color:#4d96ff">1</div><div class="kpi-l">Activos</div></div>
+          <div class="kpi-chip"><div class="kpi-n" style="color:#6bcb77">0</div><div class="kpi-l">Cerrados</div></div>
+          <div class="kpi-chip"><div class="kpi-n" style="color:#c77dff">2</div><div class="kpi-l">Clientes</div></div>
+          <div class="kpi-chip"><div class="kpi-n" style="color:#f5a623">0</div><div class="kpi-l">Quotes</div></div>
+        </div>
+      </div>
+      <div class="option-desc">Un scanline barre el card al cargar, revelando el score y los KPIs con un stagger suave. Se siente como abrir un briefing de misión. Los KPIs entran uno por uno de abajo hacia arriba.</div>
+    </div>
+
+  </div>
+
+  <script>
+    // Counter animation for A
+    let start = null;
+    const target = 847;
+    function animCounter(ts) {
+      if (!start) start = ts;
+      const p = Math.min((ts - start) / 1200, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      document.getElementById('counter').textContent = Math.floor(eased * target);
+      if (p < 1) requestAnimationFrame(animCounter);
+      else {
+        document.getElementById('counter').textContent = target;
+        // particles
+        const wrap = document.getElementById('particles');
+        for (let i = 0; i < 14; i++) {
+          const d = document.createElement('div');
+          d.className = 'particle';
+          const angle = (i / 14) * Math.PI * 2;
+          const dist = 30 + Math.random() * 40;
+          d.style.setProperty('--tx', Math.cos(angle)*dist + 'px');
+          d.style.setProperty('--ty', Math.sin(angle)*dist + 'px');
+          d.style.left = '40px'; d.style.top = '20px';
+          d.style.background = ['#f5a623','#fff','#f5a623','#ffd166'][i%4];
+          d.style.animationDelay = (Math.random() * 0.3) + 's';
+          wrap.appendChild(d);
+        }
+      }
+    }
+    requestAnimationFrame(animCounter);
+
+    // EQ bars for B
+    const eq = document.getElementById('eqbars');
+    const heights = [14,20,10,24,16,28,12,22,18,26,10,20,14];
+    heights.forEach((h, i) => {
+      const b = document.createElement('div');
+      b.className = 'bar';
+      b.style.setProperty('--h', h + 'px');
+      b.style.height = '6px';
+      b.style.animationDelay = (i * 0.08) + 's';
+      eq.appendChild(b);
+    });
+
+    function sel(el, val) {
+      document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+      el.classList.add('selected');
+      if (window.__companion_select) window.__companion_select(val, el.querySelector('.option-label').textContent);
+    }
+  </script>
+</body>
+</html>

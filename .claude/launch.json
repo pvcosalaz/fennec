@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "splash-proposals",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "4444", "--directory", "/Users/pacosalazar/Documents/Fennec App/fennec/.superpowers/splash-proposals"],
+      "port": 4444
+    },
+    {
+      "name": "card-proposals",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "4445", "--directory", "/Users/pacosalazar/Documents/Fennec App/fennec/.superpowers/splash-proposals"],
+      "port": 4445
+    }
+  ]
+}

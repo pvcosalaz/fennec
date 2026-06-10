@@ -1,11 +1,6 @@
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 
-// Requires SUPABASE_SERVICE_ROLE_KEY env var to bypass RLS for server-side reads
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://drmhwzxytwmkpfnjwmra.supabase.co",
-  process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 async function refreshAccessToken(refreshToken: string) {
   const res = await fetch("https://accounts.spotify.com/api/token", {

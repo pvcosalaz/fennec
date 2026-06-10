@@ -1,0 +1,7 @@
+{"type":"server-started","port":49474,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:49474","screen_dir":"/Users/pacosalazar/Documents/Fennec App/fennec/.superpowers/brainstorm/14964-1779858481/content","state_dir":"/Users/pacosalazar/Documents/Fennec App/fennec/.superpowers/brainstorm/14964-1779858481/state"}
+{"type":"screen-added","file":"/Users/pacosalazar/Documents/Fennec App/fennec/.superpowers/brainstorm/14964-1779858481/content/card-ui.html"}
+{"type":"screen-added","file":"/Users/pacosalazar/Documents/Fennec App/fennec/.superpowers/brainstorm/14964-1779858481/content/card-c-intensity.html"}
+{"type":"screen-added","file":"/Users/pacosalazar/Documents/Fennec App/fennec/.superpowers/brainstorm/14964-1779858481/content/card-aurora-v2.html"}
+{"type":"screen-added","file":"/Users/pacosalazar/Documents/Fennec App/fennec/.superpowers/brainstorm/14964-1779858481/content/card-aurora-v3.html"}
+{"type":"screen-added","file":"/Users/pacosalazar/Documents/Fennec App/fennec/.superpowers/brainstorm/14964-1779858481/content/card-white-glow.html"}
+{"type":"server-stopped","reason":"idle timeout"}

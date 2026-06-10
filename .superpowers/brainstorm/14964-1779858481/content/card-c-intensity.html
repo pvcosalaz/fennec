@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Card C — intensidad</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0a0a0c; font-family: -apple-system, BlinkMacSystemFont, sans-serif; color: #fff; padding: 28px 20px 48px; }
+h1 { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #f5a623; margin-bottom: 4px; }
+h2 { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
+.sub { font-size: 12px; color: #555; margin-bottom: 32px; }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.label { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #555; text-align: center; margin-top: 10px; }
+.desc { font-size: 9px; color: #444; text-align: center; margin-top: 3px; }
+.card-wrap { cursor: pointer; }
+.card-wrap.selected .card-outer { outline: 2px solid #f5a623; outline-offset: 3px; }
+.card-wrap.selected .label { color: #f5a623; }
+
+.card-outer { border-radius: 18px; padding: 14px; position: relative; overflow: hidden; }
+.card-row1 { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+.greeting { font-size: 9px; color: #aaa; text-transform: uppercase; letter-spacing: 0.1em; }
+.fullname { font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.03em; color: #111; }
+.card-body { display: flex; gap: 10px; align-items: flex-start; }
+.avatar { width: 48px; height: 48px; border-radius: 50%; background: #ddd; flex-shrink: 0; overflow: hidden; }
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
+.db-block { flex: 0; min-width: 72px; }
+.db-label { font-size: 7px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: #f5a623; }
+.db-num { font-size: 38px; font-weight: 900; line-height: 1; color: #111; }
+.db-sub { font-size: 8px; margin-top: 1px; color: #aaa; }
+.eq { display: flex; align-items: flex-end; gap: 2px; height: 14px; margin-top: 4px; }
+.bar { width: 3px; border-radius: 2px; background: #f5a623; opacity: 0.7; transform-origin: bottom; }
+@keyframes eq { 0%,100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
+.right-panel { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+.role-badge { display: inline-flex; align-self: flex-start; padding: 2px 9px; border-radius: 20px; font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.09); color: #555; }
+.country { font-size: 9px; color: #aaa; }
+.chips { display: flex; gap: 4px; flex-wrap: wrap; }
+.chip { font-size: 7px; font-weight: 700; padding: 2px 7px; border-radius: 5px; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(245,166,35,0.10); border: 1px solid rgba(245,166,35,0.22); color: #c47d10; }
+
+/* Shared white base */
+.card-white { background: #ffffff; border: 1px solid rgba(0,0,0,0.07); box-shadow: 0 4px 28px rgba(0,0,0,0.09); }
+
+/* ── SUAVE (original) ── */
+@keyframes meshMove  { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(8px,-6px) scale(1.05); } }
+@keyframes meshMove2 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-6px,8px) scale(1.04); } }
+.c-soft .mesh1 { position:absolute; top:-30px; right:-30px; width:140px; height:140px; border-radius:50%;
+  background: radial-gradient(circle, rgba(245,166,35,0.18) 0%, transparent 65%);
+  animation: meshMove 5s ease-in-out infinite; pointer-events:none; }
+.c-soft .mesh2 { position:absolute; bottom:-20px; left:-20px; width:100px; height:100px; border-radius:50%;
+  background: radial-gradient(circle, rgba(180,140,255,0.08) 0%, transparent 65%);
+  animation: meshMove2 6s ease-in-out infinite; pointer-events:none; }
+
+/* ── MEDIO ── */
+.c-mid .mesh1 { position:absolute; top:-40px; right:-40px; width:180px; height:180px; border-radius:50%;
+  background: radial-gradient(circle, rgba(245,166,35,0.30) 0%, rgba(245,166,35,0.10) 40%, transparent 70%);
+  animation: meshMove 5s ease-in-out infinite; pointer-events:none; }
+.c-mid .mesh2 { position:absolute; bottom:-30px; left:-30px; width:130px; height:130px; border-radius:50%;
+  background: radial-gradient(circle, rgba(160,100,255,0.18) 0%, rgba(160,100,255,0.06) 50%, transparent 70%);
+  animation: meshMove2 6s ease-in-out infinite; pointer-events:none; }
+.c-mid .mesh3 { position:absolute; bottom:10px; right:-10px; width:80px; height:80px; border-radius:50%;
+  background: radial-gradient(circle, rgba(245,166,35,0.12) 0%, transparent 70%);
+  animation: meshMove 7s ease-in-out infinite reverse; pointer-events:none; }
+
+/* ── FUERTE ── */
+@keyframes meshMoveF  { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(12px,-8px) scale(1.08); } }
+@keyframes meshMoveF2 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-10px,10px) scale(1.06); } }
+.c-strong .mesh1 { position:absolute; top:-50px; right:-50px; width:200px; height:200px; border-radius:50%;
+  background: radial-gradient(circle, rgba(245,166,35,0.42) 0%, rgba(245,166,35,0.18) 35%, transparent 65%);
+  animation: meshMoveF 4s ease-in-out infinite; pointer-events:none; }
+.c-strong .mesh2 { position:absolute; bottom:-40px; left:-40px; width:160px; height:160px; border-radius:50%;
+  background: radial-gradient(circle, rgba(140,80,255,0.28) 0%, rgba(140,80,255,0.08) 50%, transparent 70%);
+  animation: meshMoveF2 5s ease-in-out infinite; pointer-events:none; }
+.c-strong .mesh3 { position:absolute; top:20px; left:20px; width:70px; height:70px; border-radius:50%;
+  background: radial-gradient(circle, rgba(245,166,35,0.18) 0%, transparent 70%);
+  animation: meshMoveF 6s ease-in-out infinite reverse; pointer-events:none; }
+</style>
+</head>
+<body>
+<h1>Fennec App</h1>
+<h2>Card C — ¿Cuánta intensidad?</h2>
+<p class="sub">Las 3 son la misma idea, solo cambia qué tan visibles son las luces</p>
+
+<div class="grid">
+
+  <!-- SUAVE -->
+  <div class="card-wrap" id="wrapA" onclick="sel('A')">
+    <div class="card-outer card-white c-soft">
+      <div class="mesh1"></div><div class="mesh2"></div>
+      <div class="card-row1" style="position:relative;z-index:1">
+        <div><div class="greeting">Good evening</div><div class="fullname">Paco Salaz</div></div>
+        <img src="/fennec-logo.png" style="width:38px;filter:brightness(0);opacity:0.13" onerror="this.style.display='none'">
+      </div>
+      <div class="card-body" style="position:relative;z-index:1">
+        <div class="avatar"><img src="https://i.pravatar.cc/96?img=8" /></div>
+        <div class="db-block">
+          <div class="db-label">Fennec dB</div>
+          <div class="db-num">350</div>
+          <div class="db-sub">business signal</div>
+          <div class="eq">
+            <div class="bar" style="height:4px;animation:eq 1.1s ease-in-out infinite;animation-delay:0s"></div>
+            <div class="bar" style="height:8px;animation:eq 1.1s ease-in-out infinite;animation-delay:0.1s"></div>
+            <div class="bar" style="height:5px;animation:eq 1.1s ease-in-out infinite;animation-delay:0.2s"></div>
+            <div class="bar" style="height:11px;animation:eq 1.1s ease-in-out infinite;animation-delay:0.3s"></div>
+            <div class="bar" style="height:7px;animation:eq 1.1s ease-in-out infinite;animation-delay:0.4s"></div>
+            <div class="bar" style="height:13px;animation:eq 1.1s ease-in-out infinite;animation-delay:0.15s"></div>
+          </div>
+        </div>
+        <div class="right-panel">
+          <span class="role-badge">Composer</span>
+          <span class="country">Mexico</span>
+          <div class="chips">
+            <span class="chip">Cinematic</span><span class="chip">Film/TV</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="label">Suave (original)</p>
+    <p class="desc">Apenas perceptible, muy sutil</p>
+  </div>
+
+  <!-- MEDIO -->
+  <div class="card-wrap" id="wrapB" onclick="sel('B')">
+    <div class="card-outer card-white c-mid">
+      <div class="mesh1"></div><div class="mesh2"></div><div class="mesh3"></div>
+      <div class="card-row1" style="position:relative;z-index:1">
+        <div><div class="greeting">Good evening</div><div class="fullname">Paco Salaz</div></div>
+        <img src="/fennec-logo.png" style="width:38px;filter:brightness(0);opacity:0.13" onerror="this.style.display='none'">
+      </div>
+      <div class="card-body" style="position:relative;z-index:1">
+        <div class="avatar"><img src="https://i.pravatar.cc/96?img=8" /></div>
+        <div class="db-block">
+          <div class="db-label">Fennec dB</div>
+          <div class="db-num">350</div>
+          <div class="db-sub">business signal</div>
+          <div class="eq">
+            <div class="bar" style="height:4px;animation:eq 1.1s ease-in-out infinite;animation-delay:0s"></div>
+            <div class="bar" style="height:8px;animation:eq 1.1s ease-in-out infinite;animation-delay:0.1s"></div>
+            <div class="bar" style="height:5px;animation:eq 1.1s ease-in-out infinite;animation-delay:0.2s"></div>
+            <div class="bar" style="height:11px;animation:eq 1.1s ease-in-out infinite;animation-delay:0.3s"></div>
+            <div class="bar" style="height:7px;animation:eq 1.1s ease-in-out infinite;animation-delay:0.4s"></div>
+            <div class="bar" style="height:13px;animation:eq 1.1s ease-in-out infinite;animation-delay:0.15s"></div>
+          </div>
+        </div>
+        <div class="right-panel">
+          <span class="role-badge">Composer</span>
+          <span class="country">Mexico</span>
+          <div class="chips">
+            <span class="chip">Cinematic</span><span class="chip">Film/TV</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="label">Medio</p>
+    <p class="desc">Visible pero no distrae, 3 blobs</p>
+  </div>
+
+  <!-- FUERTE -->
+  <div class="card-wrap" id="wrapC" onclick="sel('C')">
+    <div class="card-outer card-white c-strong">
+      <div class="mesh1"></div><div class="mesh2"></div><div class="mesh3"></div>
+      <div class="card-row1" style="position:relative;z-index:1">
+        <div><div class="greeting">Good evening</div><div class="fullname">Paco Salaz</div></div>
+        <img src="/fennec-logo.png" style="width:38px;filter:brightness(0);opacity:0.13" onerror="this.style.display='none'">
+      </div>
+      <div class="card-body" style="position:relative;z-index:1">
+        <div class="avatar"><img src="https://i.pravatar.cc/96?img=8" /></div>
+        <div class="db-block">
+          <div class="db-label">Fennec dB</div>
+          <div class="db-num">350</div>
+          <div class="db-sub">business signal</div>
+          <div class="eq">
+            <div class="bar" style="height:4px;animation:eq 1.1s ease-in-out infinite;animation-delay:0s"></div>
+            <div class="bar" style="height:8px;animation:eq 1.1s ease-in-out infinite;animation-delay:0.1s"></div>
+            <div class="bar" style="height:5px;animation:eq 1.1s ease-in-out infinite;animation-delay:0.2s"></div>
+            <div class="bar" style="height:11px;animation:eq 1.1s ease-in-out infinite;animation-delay:0.3s"></div>
+            <div class="bar" style="height:7px;animation:eq 1.1s ease-in-out infinite;animation-delay:0.4s"></div>
+            <div class="bar" style="height:13px;animation:eq 1.1s ease-in-out infinite;animation-delay:0.15s"></div>
+          </div>
+        </div>
+        <div class="right-panel">
+          <span class="role-badge">Composer</span>
+          <span class="country">Mexico</span>
+          <div class="chips">
+            <span class="chip">Cinematic</span><span class="chip">Film/TV</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="label">Fuerte</p>
+    <p class="desc">Bien visible, amber + morado moviéndose</p>
+  </div>
+
+</div>
+
+<script>
+function sel(opt) {
+  ['A','B','C'].forEach(o => document.getElementById('wrap'+o).classList.remove('selected'));
+  document.getElementById('wrap'+opt).classList.add('selected');
+  if (window.recordChoice) recordChoice(opt, 'Intensity ' + opt);
+}
+</script>
+</body>
+</html>

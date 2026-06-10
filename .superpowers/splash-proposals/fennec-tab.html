@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fennec Tab — 2 propuestas</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #0a0a0c;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #fff;
+  padding: 24px 16px;
+}
+h1 { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #f5a623; margin-bottom: 4px; }
+h2 { font-size: 18px; font-weight: 800; margin-bottom: 20px; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.proposal { display: flex; flex-direction: column; gap: 10px; }
+.label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #555; text-align: center; }
+.screen {
+  width: 100%; aspect-ratio: 9/16; max-height: 580px;
+  border-radius: 28px; overflow: hidden; position: relative;
+  border: 1px solid rgba(255,255,255,0.06); background: #0d0d0f; cursor: pointer;
+}
+.screen:hover { border-color: rgba(245,166,35,0.3); }
+
+/* ── Shared mock UI ── */
+.mock-content {
+  position: absolute; inset: 0; padding: 28px 20px 90px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.mock-row {
+  height: 52px; border-radius: 16px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.mock-row.tall { height: 90px; }
+.mock-row.short { height: 36px; width: 60%; }
+
+/* ── Nav bar ── */
+.nav {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 80px;
+  background: rgba(13,13,15,0.92);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  display: flex; align-items: center; justify-content: space-around;
+  padding: 0 8px 12px;
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 3px;
+}
+.nav-icon { width: 24px; height: 24px; border-radius: 6px; background: rgba(255,255,255,0.12); }
+.nav-dot  { width: 4px; height: 4px; border-radius: 50%; background: transparent; }
+.nav-item.active .nav-dot { background: #f5a623; }
+
+/* ── Entrance overlay ── */
+.entrance {
+  position: absolute; inset: 0; background: #0d0d0f;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 10; pointer-events: none;
+}
+
+
+/* ════════════════════════════════════════
+   PROPUESTA 1 — Glow breath + fade-through
+   ════════════════════════════════════════ */
+
+/* Nav icon — active state */
+@keyframes p1GlowBreath {
+  from { box-shadow: 0 0 0px rgba(245,166,35,0);   transform: scale(1.0); }
+  to   { box-shadow: 0 0 14px rgba(245,166,35,0.5); transform: scale(1.07); }
+}
+@keyframes p1RingExpand {
+  0%   { transform: translate(-50%,-50%) scale(0.8); opacity: 0.5; }
+  100% { transform: translate(-50%,-50%) scale(1.7); opacity: 0;   }
+}
+.p1-fox {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: rgba(255,255,255,0.1);
+  overflow: hidden; position: relative;
+}
+.p1-fox img { width: 100%; height: 100%; object-fit: contain; }
+.p1-fox.active {
+  animation: p1GlowBreath 2.5s ease-in-out infinite alternate;
+}
+.p1-ring {
+  position: absolute; width: 38px; height: 38px; border-radius: 50%;
+  border: 1px solid rgba(245,166,35,0.4);
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%) scale(0.8);
+  animation: p1RingExpand 2.8s ease-out 0.3s infinite;
+}
+.p1-ring2 {
+  position: absolute; width: 38px; height: 38px; border-radius: 50%;
+  border: 1px solid rgba(245,166,35,0.2);
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%) scale(0.8);
+  animation: p1RingExpand 2.8s ease-out 1.4s infinite;
+}
+
+/* Entrance — fox fades in center, content slides up over it */
+@keyframes p1EntranceFox {
+  0%   { opacity: 0; transform: scale(0.85); }
+  35%  { opacity: 1; transform: scale(1.0); }
+  70%  { opacity: 1; transform: scale(1.0); }
+  100% { opacity: 0; transform: scale(1.05); }
+}
+@keyframes p1ContentSlide {
+  0%,50% { opacity: 0; transform: translateY(24px); }
+  100%   { opacity: 1; transform: translateY(0); }
+}
+.p1-entrance-fox {
+  width: 64px; height: 64px; border-radius: 18px;
+  overflow: hidden; margin-bottom: 12px;
+  animation: p1EntranceFox 2.2s ease-in-out 0.2s both;
+}
+.p1-entrance-fox img { width: 100%; height: 100%; object-fit: contain; }
+.p1-entrance-label {
+  font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.5);
+  letter-spacing: 0.08em;
+  animation: p1EntranceFox 2.2s ease-in-out 0.2s both;
+}
+.p1-content-reveal {
+  position: absolute; inset: 0; padding: 28px 20px 90px;
+  display: flex; flex-direction: column; gap: 12px;
+  animation: p1ContentSlide 0.6s ease 1.8s both;
+}
+
+
+/* ════════════════════════════════════════
+   PROPUESTA 2 — Dot orbit + scale pop
+   ════════════════════════════════════════ */
+
+@keyframes p2FoxScale {
+  0%   { transform: scale(1);    filter: brightness(1); }
+  50%  { transform: scale(1.12); filter: brightness(1.3) drop-shadow(0 0 6px rgba(245,166,35,0.6)); }
+  100% { transform: scale(1.06); filter: brightness(1.1) drop-shadow(0 0 3px rgba(245,166,35,0.3)); }
+}
+@keyframes p2OrbitDot {
+  from { transform: rotate(0deg)   translateX(22px) scale(1); }
+  to   { transform: rotate(360deg) translateX(22px) scale(1); }
+}
+.p2-fox-wrap {
+  position: relative; width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+}
+.p2-fox {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: rgba(255,255,255,0.1); overflow: hidden;
+}
+.p2-fox img { width: 100%; height: 100%; object-fit: contain; }
+.p2-fox.active { animation: p2FoxScale 0.4s ease forwards; }
+.p2-orbit-dot {
+  position: absolute; top: 50%; left: 50%;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: #f5a623;
+  box-shadow: 0 0 6px rgba(245,166,35,0.9);
+  margin-top: -2.5px; margin-left: -2.5px;
+  animation: p2OrbitDot 3s linear infinite;
+  transform-origin: 0 0;
+}
+
+/* Entrance — fox pops in with bounce, text types underneath, fades */
+@keyframes p2FoxBounce {
+  0%   { opacity: 0; transform: scale(0.5);  }
+  55%  { opacity: 1; transform: scale(1.12); }
+  75%  { transform: scale(0.96); }
+  100% { transform: scale(1.0); opacity: 1; }
+}
+@keyframes p2FadeOut {
+  0%,60% { opacity: 1; }
+  100%   { opacity: 0; }
+}
+@keyframes p2ContentIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes p2UnderBar {
+  from { width: 0; opacity: 0; }
+  to   { width: 52px; opacity: 1; }
+}
+.p2-entrance-fox {
+  width: 58px; height: 58px; border-radius: 16px; overflow: hidden;
+  animation: p2FoxBounce 0.55s cubic-bezier(.16,1,.3,1) 0.1s both,
+             p2FadeOut 0.4s ease 1.5s both;
+}
+.p2-entrance-fox img { width: 100%; height: 100%; object-fit: contain; }
+.p2-entrance-word {
+  font-size: 22px; font-weight: 900; letter-spacing: -0.03em;
+  color: #fff; position: relative; margin-top: 10px;
+  animation: p2FoxBounce 0.5s ease 0.5s both,
+             p2FadeOut 0.4s ease 1.5s both;
+}
+.p2-under {
+  position: absolute; bottom: -4px; left: 0;
+  height: 2px; border-radius: 2px; background: #f5a623;
+  box-shadow: 0 0 8px rgba(245,166,35,0.6);
+  animation: p2UnderBar 0.4s ease 0.9s both,
+             p2FadeOut 0.4s ease 1.5s both;
+}
+.p2-content-reveal {
+  position: absolute; inset: 0; padding: 28px 20px 90px;
+  display: flex; flex-direction: column; gap: 12px;
+  animation: p2ContentIn 0.5s ease 1.7s both;
+}
+
+</style>
+</head>
+<body>
+<h1>Fennec App</h1>
+<h2>Fennec tab — 2 propuestas</h2>
+<p style="font-size:10px;color:#444;margin-bottom:16px;">Toca cualquier pantalla para reiniciar</p>
+
+<div class="grid">
+
+  <!-- PROPUESTA 1 -->
+  <div class="proposal">
+    <div class="screen" id="s1" onclick="restart1()">
+
+      <!-- Entrance overlay -->
+      <div class="entrance" id="ent1">
+        <div class="p1-entrance-fox"><img src="fox.png" /></div>
+        <p class="p1-entrance-label">Community</p>
+        <div class="p1-content-reveal">
+          <div class="mock-row short"></div>
+          <div class="mock-row tall"></div>
+          <div class="mock-row"></div>
+          <div class="mock-row"></div>
+          <div class="mock-row short"></div>
+        </div>
+      </div>
+
+      <!-- Content (visible after entrance) -->
+      <div class="mock-content" style="opacity:0;animation:p1ContentSlide 0.6s ease 1.8s both">
+        <div class="mock-row short"></div>
+        <div class="mock-row tall"></div>
+        <div class="mock-row"></div>
+        <div class="mock-row"></div>
+      </div>
+
+      <!-- Nav bar -->
+      <div class="nav">
+        <div class="nav-item"><div class="nav-icon"></div></div>
+        <div class="nav-item"><div class="nav-icon"></div></div>
+        <div class="nav-item active">
+          <div style="position:relative;width:44px;height:44px;display:flex;align-items:center;justify-content:center;">
+            <div class="p1-ring"></div>
+            <div class="p1-ring2"></div>
+            <div class="p1-fox active"><img src="fox.png" /></div>
+          </div>
+          <div class="nav-dot"></div>
+        </div>
+        <div class="nav-item"><div class="nav-icon"></div></div>
+        <div class="nav-item"><div class="nav-icon"></div></div>
+      </div>
+    </div>
+    <p class="label">1 · Glow breath + fade through</p>
+  </div>
+
+  <!-- PROPUESTA 2 -->
+  <div class="proposal">
+    <div class="screen" id="s2" onclick="restart2()">
+
+      <!-- Entrance overlay -->
+      <div class="entrance" id="ent2" style="animation:p2FadeOut 0.4s ease 1.5s both">
+        <div class="p2-entrance-fox"><img src="fox.png" /></div>
+        <div class="p2-entrance-word">
+          fennec
+          <div class="p2-under"></div>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="p2-content-reveal">
+        <div class="mock-row short"></div>
+        <div class="mock-row tall"></div>
+        <div class="mock-row"></div>
+        <div class="mock-row"></div>
+      </div>
+
+      <!-- Nav bar -->
+      <div class="nav">
+        <div class="nav-item"><div class="nav-icon"></div></div>
+        <div class="nav-item"><div class="nav-icon"></div></div>
+        <div class="nav-item active">
+          <div class="p2-fox-wrap">
+            <div class="p2-fox active"><img src="fox.png" /></div>
+            <div class="p2-orbit-dot"></div>
+          </div>
+          <div class="nav-dot"></div>
+        </div>
+        <div class="nav-item"><div class="nav-icon"></div></div>
+        <div class="nav-item"><div class="nav-icon"></div></div>
+      </div>
+    </div>
+    <p class="label">2 · Orbit dot + bounce pop</p>
+  </div>
+
+</div>
+
+<script>
+function restart1() {
+  const s = document.getElementById('s1');
+  const clone = s.innerHTML;
+  s.innerHTML = clone;
+}
+function restart2() {
+  const s = document.getElementById('s2');
+  const clone = s.innerHTML;
+  s.innerHTML = clone;
+}
+</script>
+</body>
+</html>

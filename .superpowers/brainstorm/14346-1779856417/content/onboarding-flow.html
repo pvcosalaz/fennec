@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fennec Onboarding — Flow Proposals</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #0a0a0c;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #fff;
+  padding: 28px 20px 48px;
+  min-height: 100vh;
+}
+h1 { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #f5a623; margin-bottom: 4px; }
+h2 { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+.sub { font-size: 12px; color: #555; margin-bottom: 32px; }
+
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+
+/* ── Phone shell ───────────────────────── */
+.phone {
+  width: 100%;
+  aspect-ratio: 9/19;
+  border-radius: 36px;
+  background: #111113;
+  border: 1.5px solid rgba(255,255,255,0.08);
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.phone:hover { border-color: rgba(245,166,35,0.35); }
+.phone.selected { border-color: #f5a623; box-shadow: 0 0 0 3px rgba(245,166,35,0.18); }
+
+.phone-inner {
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Status bar */
+.status { width: 100%; display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 16px 4px; }
+.status-time { font-size: 9px; font-weight: 700; color: #fff; }
+.status-icons { font-size: 8px; color: #fff; letter-spacing: 2px; }
+
+.label-tag { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: #555; text-align: center; margin-top: 10px; }
+.badge { display: inline-block; background: rgba(245,166,35,0.12); border: 1px solid rgba(245,166,35,0.3);
+  color: #f5a623; font-size: 8px; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; padding: 2px 8px; border-radius: 20px; margin-bottom: 8px; }
+
+/* ─── OPTION A: Pantalla completa paso a paso con live card preview ─── */
+.a-bg {
+  position: absolute; inset: 0;
+  background: linear-gradient(160deg, #0d0d0f 0%, #111114 100%);
+}
+.a-card-preview {
+  width: calc(100% - 24px);
+  background: #fff;
+  border-radius: 14px;
+  padding: 10px;
+  margin: 8px 12px 6px;
+  position: relative;
+  z-index: 2;
+}
+.a-card-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.a-avatar { width: 26px; height: 26px; border-radius: 50%; background: #e8e0d0; }
+.a-name { font-size: 8px; font-weight: 900; color: #111; letter-spacing: 0.05em; text-transform: uppercase; }
+.a-sub { font-size: 6px; color: #aaa; text-transform: uppercase; letter-spacing: 0.08em; }
+.a-db { font-size: 22px; font-weight: 900; color: #111; line-height: 1; }
+.a-signal { font-size: 6px; color: #888; margin-top: 1px; }
+.a-chips { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 4px; }
+.a-chip { font-size: 5.5px; font-weight: 700; background: rgba(245,166,35,0.12); border: 1px solid rgba(245,166,35,0.3);
+  color: #f5a623; padding: 1.5px 5px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.06em; }
+.a-logo { position: absolute; top: 8px; right: 10px; font-size: 7px; opacity: 0.15; }
+
+.a-step {
+  width: calc(100% - 24px);
+  margin: 0 12px;
+  position: relative;
+  z-index: 2;
+  flex: 1;
+}
+.a-step-label { font-size: 7px; color: #f5a623; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 3px; }
+.a-step-q { font-size: 11px; font-weight: 800; color: #fff; margin-bottom: 8px; }
+.a-input { width: 100%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px; padding: 7px 9px; font-size: 9px; color: #fff; }
+.a-dots { display: flex; gap: 4px; justify-content: center; margin: 6px 0; }
+.a-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.15); }
+.a-dot.active { background: #f5a623; }
+.a-btn { width: 100%; background: #f5a623; border-radius: 8px; padding: 7px; font-size: 9px;
+  font-weight: 800; color: #000; text-align: center; margin-top: 6px; }
+
+/* ─── OPTION B: Wizard fullscreen sin preview, clean ─── */
+.b-bg { position: absolute; inset: 0; background: #0d0d0f; }
+.b-step {
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column;
+  padding: 0 14px 14px;
+  position: relative; z-index: 2;
+}
+.b-logo { font-size: 8px; color: rgba(255,255,255,0.2); text-align: center; margin: 6px 0 16px;
+  letter-spacing: 0.2em; text-transform: uppercase; }
+.b-progress { height: 2px; background: rgba(255,255,255,0.08); border-radius: 2px; margin-bottom: 20px; }
+.b-progress-fill { height: 100%; width: 40%; background: #f5a623; border-radius: 2px; }
+.b-q { font-size: 18px; font-weight: 900; color: #fff; line-height: 1.2; margin-bottom: 6px; }
+.b-hint { font-size: 9px; color: #555; margin-bottom: 16px; }
+.b-options { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.b-opt { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px; padding: 9px 11px; display: flex; align-items: center; gap: 8px; }
+.b-opt.sel { border-color: rgba(245,166,35,0.5); background: rgba(245,166,35,0.06); }
+.b-opt-icon { font-size: 14px; }
+.b-opt-text { font-size: 9px; font-weight: 600; color: #ddd; }
+.b-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+.b-skip { font-size: 8px; color: #444; }
+.b-next { background: #f5a623; border-radius: 7px; padding: 6px 14px; font-size: 9px; font-weight: 800; color: #000; }
+
+/* ─── OPTION C: Card flip / reveal progresivo ─── */
+.c-bg { position: absolute; inset: 0; background: #0d0d0f; }
+.c-inner {
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  position: relative; z-index: 2;
+  gap: 10px;
+}
+.c-title { font-size: 10px; color: #555; letter-spacing: 0.15em; text-transform: uppercase; align-self: flex-start; }
+.c-card {
+  width: 100%;
+  background: #fff;
+  border-radius: 16px;
+  padding: 12px;
+  position: relative;
+}
+.c-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.c-name-block {}
+.c-greeting { font-size: 7px; color: #aaa; text-transform: uppercase; letter-spacing: 0.1em; }
+.c-name { font-size: 11px; font-weight: 900; color: #111; text-transform: uppercase; }
+.c-logo { font-size: 11px; opacity: 0.18; }
+.c-body { display: flex; gap: 8px; }
+.c-avatar { width: 32px; height: 32px; border-radius: 50%; background: #e8e0d0; shrink: 0; }
+.c-db-block { flex: 0; min-width: 52px; }
+.c-db-label { font-size: 6px; color: #f5a623; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; }
+.c-db-num { font-size: 28px; font-weight: 900; color: #111; line-height: 1; }
+.c-db-sub { font-size: 6px; color: #aaa; }
+.c-right { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.c-role { background: rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.08); border-radius: 6px;
+  padding: 2px 7px; font-size: 7px; font-weight: 700; color: #333; text-transform: uppercase;
+  align-self: flex-start; letter-spacing: 0.06em; }
+.c-country { font-size: 7px; color: #aaa; }
+.c-chips { display: flex; gap: 3px; flex-wrap: wrap; }
+.c-chip { font-size: 5.5px; font-weight: 700; background: rgba(245,166,35,0.12); border: 1px solid rgba(245,166,35,0.3);
+  color: #c47d10; padding: 1.5px 5px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+.c-highlight {
+  border: 1.5px dashed rgba(245,166,35,0.6);
+  border-radius: 7px;
+  background: rgba(245,166,35,0.04);
+  padding: 5px 7px;
+  margin-bottom: 4px;
+}
+.c-highlight-label { font-size: 6px; color: #f5a623; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 3px; }
+.c-field { width: 100%; background: rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 6px; padding: 5px 7px; font-size: 8px; color: #333; }
+.c-btn { width: 100%; background: #f5a623; border-radius: 8px; padding: 7px;
+  font-size: 9px; font-weight: 800; color: #000; text-align: center; }
+
+/* Selected ring */
+.phone.selected::after {
+  content: "✓ SELECCIONADO";
+  position: absolute; bottom: -22px; left: 50%; transform: translateX(-50%);
+  font-size: 8px; font-weight: 700; color: #f5a623; letter-spacing: 0.1em; white-space: nowrap;
+}
+</style>
+</head>
+<body>
+  <h1>Fennec App — Onboarding</h1>
+  <h2>3 propuestas de flujo</h2>
+  <p class="sub">Toca una pantalla para seleccionarla</p>
+
+  <div class="grid">
+
+    <!-- OPTION A: Live card preview + steps -->
+    <div>
+      <div class="phone" id="phoneA" onclick="select('A')">
+        <div class="phone-inner">
+          <div class="a-bg"></div>
+          <div class="status"><span class="status-time">9:41</span><span class="status-icons">●●● ▲ ■</span></div>
+
+          <!-- Live card preview at top -->
+          <div class="a-card-preview">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+              <div>
+                <div style="font-size:6px;color:#aaa;text-transform:uppercase;letter-spacing:0.1em">Good evening</div>
+                <div style="font-size:9px;font-weight:900;color:#111;text-transform:uppercase">Paco Salaz</div>
+              </div>
+              <div style="font-size:10px;opacity:0.15">🦊</div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:flex-start">
+              <div style="width:22px;height:22px;border-radius:50%;background:#ddd;flex-shrink:0;margin-top:1px"></div>
+              <div style="flex:0;min-width:42px">
+                <div style="font-size:5px;color:#f5a623;font-weight:700;text-transform:uppercase;letter-spacing:0.1em">Fennec dB</div>
+                <div style="font-size:20px;font-weight:900;color:#111;line-height:1">350</div>
+                <div style="font-size:5px;color:#aaa">business signal</div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+                <div style="background:rgba(0,0,0,0.06);border:1px solid rgba(0,0,0,0.1);border-radius:5px;padding:1.5px 5px;font-size:6px;font-weight:700;color:#333;text-transform:uppercase;align-self:flex-start">Composer</div>
+                <div style="font-size:6px;color:#aaa">Mexico</div>
+                <div style="display:flex;gap:2px;flex-wrap:wrap">
+                  <div style="font-size:5px;font-weight:700;background:rgba(245,166,35,0.12);border:1px solid rgba(245,166,35,0.3);color:#c47d10;padding:1px 4px;border-radius:3px;text-transform:uppercase">Cinematic</div>
+                  <div style="font-size:5px;font-weight:700;background:rgba(245,166,35,0.12);border:1px solid rgba(245,166,35,0.3);color:#c47d10;padding:1px 4px;border-radius:3px;text-transform:uppercase">Film/TV</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Current step below -->
+          <div class="a-step">
+            <div style="font-size:6px;color:#f5a623;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:2px">Paso 2 de 6</div>
+            <div style="font-size:10px;font-weight:800;color:#fff;margin-bottom:6px">¿Qué haces?</div>
+            <div style="display:flex;flex-direction:column;gap:3px;margin-bottom:6px">
+              <div style="background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.35);border-radius:7px;padding:5px 8px;font-size:7.5px;font-weight:600;color:#f5a623">🎼 Compositor</div>
+              <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:7px;padding:5px 8px;font-size:7.5px;font-weight:600;color:#888">🎛 Productor</div>
+              <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:7px;padding:5px 8px;font-size:7.5px;font-weight:600;color:#888">🎤 Artista</div>
+            </div>
+            <div class="a-dots">
+              <div class="a-dot active"></div><div class="a-dot active"></div>
+              <div class="a-dot"></div><div class="a-dot"></div><div class="a-dot"></div><div class="a-dot"></div>
+            </div>
+            <div class="a-btn">Continuar →</div>
+          </div>
+        </div>
+      </div>
+      <p class="label-tag" style="margin-top:10px">A · Card en vivo + pasos abajo</p>
+      <p style="font-size:9px;color:#444;text-align:center;margin-top:4px">Ves tu ID actualizarse en tiempo real</p>
+    </div>
+
+    <!-- OPTION B: Fullscreen wizard, clean, una pregunta a la vez -->
+    <div>
+      <div class="phone" id="phoneB" onclick="select('B')">
+        <div class="phone-inner">
+          <div class="b-bg"></div>
+          <div class="status"><span class="status-time">9:41</span><span class="status-icons">●●● ▲ ■</span></div>
+          <div class="b-step">
+            <div class="b-logo">fennec</div>
+            <div class="b-progress"><div class="b-progress-fill"></div></div>
+            <div class="b-q">¿Qué tipo<br>de creador eres?</div>
+            <div class="b-hint">Esto define tu perfil en la comunidad</div>
+            <div class="b-options">
+              <div class="b-opt sel">
+                <span class="b-opt-icon">🎼</span>
+                <div>
+                  <div class="b-opt-text">Compositor</div>
+                  <div style="font-size:7px;color:#666">Cine, TV, publicidad</div>
+                </div>
+              </div>
+              <div class="b-opt">
+                <span class="b-opt-icon">🎛</span>
+                <div>
+                  <div class="b-opt-text">Productor</div>
+                  <div style="font-size:7px;color:#666">Beats, mezcla, máster</div>
+                </div>
+              </div>
+              <div class="b-opt">
+                <span class="b-opt-icon">🎤</span>
+                <div>
+                  <div class="b-opt-text">Artista</div>
+                  <div style="font-size:7px;color:#666">Canto, voz, performance</div>
+                </div>
+              </div>
+              <div class="b-opt">
+                <span class="b-opt-icon">🎸</span>
+                <div>
+                  <div class="b-opt-text">Sesionista</div>
+                  <div style="font-size:7px;color:#666">Live, grabación</div>
+                </div>
+              </div>
+            </div>
+            <div class="b-nav">
+              <span class="b-skip">Omitir</span>
+              <div class="b-next">Siguiente →</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="label-tag" style="margin-top:10px">B · Wizard fullscreen limpio</p>
+      <p style="font-size:9px;color:#444;text-align:center;margin-top:4px">Una pregunta a la vez, sin distracciones</p>
+    </div>
+
+    <!-- OPTION C: Card en el centro, campo activo resaltado en el card -->
+    <div>
+      <div class="phone" id="phoneC" onclick="select('C')">
+        <div class="phone-inner">
+          <div class="c-bg"></div>
+          <div class="status"><span class="status-time">9:41</span><span class="status-icons">●●● ▲ ■</span></div>
+          <div class="c-inner">
+            <div class="c-title">Tu Fennec ID</div>
+
+            <!-- Card con campo activo inline -->
+            <div class="c-card">
+              <div class="c-card-header">
+                <div class="c-name-block">
+                  <div class="c-greeting">Good evening</div>
+                  <div class="c-name">Paco Salaz</div>
+                </div>
+                <div class="c-logo">🦊</div>
+              </div>
+              <div class="c-body">
+                <div style="width:28px;height:28px;border-radius:50%;background:#ddd;flex-shrink:0;margin-top:1px"></div>
+                <div style="flex:0;min-width:46px">
+                  <div style="font-size:5px;color:#f5a623;font-weight:700;text-transform:uppercase;letter-spacing:0.1em">Fennec dB</div>
+                  <div style="font-size:22px;font-weight:900;color:#111;line-height:1">350</div>
+                  <div style="font-size:5px;color:#aaa">business signal</div>
+                </div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+                  <!-- Campo activo resaltado -->
+                  <div class="c-highlight">
+                    <div class="c-highlight-label">¿De dónde eres?</div>
+                    <input class="c-field" value="Mexico" readonly />
+                  </div>
+                  <div style="display:flex;gap:2px;flex-wrap:wrap">
+                    <div style="font-size:5px;font-weight:700;background:rgba(245,166,35,0.12);border:1px solid rgba(245,166,35,0.3);color:#c47d10;padding:1px 4px;border-radius:3px;text-transform:uppercase">Cinematic</div>
+                    <div style="font-size:5px;font-weight:700;background:rgba(245,166,35,0.12);border:1px solid rgba(245,166,35,0.3);color:#c47d10;padding:1px 4px;border-radius:3px;text-transform:uppercase">Film/TV</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="font-size:8px;color:#444;text-align:center">Paso 3 de 6 — llena cada campo en tu card</div>
+            <div class="c-btn">Continuar →</div>
+          </div>
+        </div>
+      </div>
+      <p class="label-tag" style="margin-top:10px">C · Card central, campo activo resaltado</p>
+      <p style="font-size:9px;color:#444;text-align:center;margin-top:4px">Llenas el card directamente, ves cada campo aparecer</p>
+    </div>
+
+  </div>
+
+  <div style="margin-top:32px;padding:16px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px">
+    <p style="font-size:10px;font-weight:700;color:#f5a623;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">Todos los flujos incluyen:</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+      <div style="font-size:9px;color:#666">📝 Nombre completo</div>
+      <div style="font-size:9px;color:#666">🎭 Rol (chips)</div>
+      <div style="font-size:9px;color:#666">🌎 País</div>
+      <div style="font-size:9px;color:#666">🎵 Géneros (multi)</div>
+      <div style="font-size:9px;color:#666">📸 Instagram</div>
+      <div style="font-size:9px;color:#666">🎵 TikTok</div>
+      <div style="font-size:9px;color:#666">▶️ YouTube</div>
+      <div style="font-size:9px;color:#666">🎧 Spotify (OAuth)</div>
+      <div style="font-size:9px;color:#666">📊 Fennec dB en vivo</div>
+    </div>
+  </div>
+
+  <p style="font-size:9px;color:#333;text-align:center;margin-top:20px">Toca cualquier pantalla para seleccionarla</p>
+
+<script>
+let selected = null;
+function select(opt) {
+  document.querySelectorAll('.phone').forEach(p => p.classList.remove('selected'));
+  document.getElementById('phone' + opt).classList.add('selected');
+  selected = opt;
+  if (window.recordChoice) recordChoice(opt, 'Option ' + opt);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fennec — Splash Proposals</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #0a0a0c;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #fff;
+  padding: 24px 16px;
+}
+h1 { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+     color: #f5a623; margin-bottom: 4px; }
+h2 { font-size: 18px; font-weight: 800; margin-bottom: 20px; color: #fff; }
+
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+.proposal { display: flex; flex-direction: column; gap: 10px; }
+.label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+         text-transform: uppercase; color: #555; text-align: center; }
+.screen {
+  width: 100%;
+  aspect-ratio: 9/16;
+  max-height: 520px;
+  border-radius: 28px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: #0d0d0f;
+  cursor: pointer;
+}
+.screen:hover { border-color: rgba(245,166,35,0.3); }
+.badge {
+  position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+  font-size: 9px; font-weight: 700; letter-spacing: 0.15em;
+  text-transform: uppercase; color: #f5a623;
+  background: rgba(245,166,35,0.1);
+  border: 1px solid rgba(245,166,35,0.25);
+  padding: 3px 10px; border-radius: 20px;
+  z-index: 10;
+}
+
+/* ─── SHARED ────────────────────────────────── */
+.inner {
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+}
+
+/* ─── PROPOSAL A — All 3 elements, cinematic ── */
+@keyframes aGlow {
+  0%,100% { transform: scale(0.85); opacity: 0.3; }
+  50%      { transform: scale(1.35); opacity: 0.85; }
+}
+@keyframes aRing {
+  0%   { transform: translate(-50%,-50%) scale(0); opacity: 0.6; }
+  100% { transform: translate(-50%,-50%) scale(1.8); opacity: 0; }
+}
+@keyframes aLogo {
+  from { opacity: 0; transform: translateY(18px) scale(0.85); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes aWord {
+  from { opacity: 0; transform: translateY(10px); letter-spacing: 0.25em; }
+  to   { opacity: 1; transform: translateY(0);    letter-spacing: -0.04em; }
+}
+@keyframes aTag {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes aScan {
+  0%   { top: -2px; opacity: 0.8; }
+  100% { top: 102%; opacity: 0; }
+}
+.a-glow {
+  position: absolute; width: 220px; height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(245,166,35,0.22) 0%, transparent 65%);
+  animation: aGlow 3s ease-in-out infinite;
+}
+.a-ring {
+  position: absolute; width: 160px; height: 160px;
+  border-radius: 50%;
+  border: 1px solid rgba(245,166,35,0.35);
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%) scale(0);
+  animation: aRing 2.4s ease-out 0.6s infinite both;
+}
+.a-ring2 {
+  position: absolute; width: 160px; height: 160px;
+  border-radius: 50%;
+  border: 1px solid rgba(245,166,35,0.2);
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%) scale(0);
+  animation: aRing 2.4s ease-out 1.4s infinite both;
+}
+.a-scan {
+  position: absolute; left: 0; right: 0; height: 1.5px;
+  background: linear-gradient(90deg, transparent, rgba(245,166,35,0.7), transparent);
+  animation: aScan 1.8s ease-in-out 0.1s 1 forwards;
+  box-shadow: 0 0 12px rgba(245,166,35,0.5);
+}
+.a-logo {
+  width: 160px;
+  filter: brightness(0) invert(1);
+  opacity: 0;
+  margin-bottom: 20px;
+  animation: aLogo 0.9s cubic-bezier(.16,1,.3,1) 0.5s forwards;
+  position: relative; z-index: 2;
+}
+.a-fennec {
+  font-size: 42px; font-weight: 900; line-height: 1;
+  letter-spacing: -0.04em; color: #fff;
+  opacity: 0;
+  animation: aWord 0.7s cubic-bezier(.16,1,.3,1) 0.85s forwards;
+  position: relative; z-index: 2;
+}
+.a-audio {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.22em;
+  text-transform: uppercase; color: #f5a623; margin-top: 4px;
+  opacity: 0;
+  animation: aTag 0.6s ease 1.1s forwards;
+  position: relative; z-index: 2;
+}
+.a-tagline {
+  font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: #444; margin-top: 20px;
+  opacity: 0;
+  animation: aTag 0.5s ease 1.4s forwards;
+  position: relative; z-index: 2;
+}
+
+/* ─── PROPOSAL B — solo "fennec" tipográfico ── */
+@keyframes bGlow {
+  from { opacity: 0.0; transform: scaleX(0.4); }
+  to   { opacity: 1.0; transform: scaleX(1); }
+}
+@keyframes bChar {
+  from { opacity: 0; transform: translateY(24px) rotateX(90deg); }
+  to   { opacity: 1; transform: translateY(0)   rotateX(0deg); }
+}
+@keyframes bUnder {
+  from { width: 0; opacity: 0; }
+  to   { width: 100%; opacity: 1; }
+}
+@keyframes bDot {
+  from { opacity: 0; transform: scale(0); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.b-glow {
+  position: absolute; bottom: 38%; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent 5%, rgba(245,166,35,0.5) 50%, transparent 95%);
+  box-shadow: 0 0 30px 8px rgba(245,166,35,0.12);
+  animation: bGlow 1.2s cubic-bezier(.16,1,.3,1) 0.2s both;
+}
+.b-word {
+  display: flex; align-items: baseline; gap: 1px;
+  perspective: 600px;
+  position: relative; z-index: 2;
+}
+.b-char {
+  font-size: 64px; font-weight: 900; line-height: 1;
+  letter-spacing: -0.03em; color: #fff;
+  opacity: 0;
+  animation: bChar 0.5s cubic-bezier(.16,1,.3,1) both;
+  display: inline-block;
+}
+.b-under {
+  position: absolute; bottom: -6px; left: 0;
+  height: 2px; border-radius: 2px;
+  background: #f5a623;
+  box-shadow: 0 0 10px rgba(245,166,35,0.6);
+  animation: bUnder 0.6s cubic-bezier(.16,1,.3,1) 1.1s both;
+}
+.b-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #f5a623; margin-left: 2px; margin-bottom: 8px;
+  box-shadow: 0 0 10px rgba(245,166,35,0.9);
+  opacity: 0;
+  animation: bDot 0.4s ease 1.4s forwards;
+  flex-shrink: 0;
+}
+
+/* ─── PROPOSAL C — el zorrito ─────────────── */
+@keyframes cBg {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes cFox {
+  0%   { opacity: 0; transform: scale(0.5) translateY(20px); filter: drop-shadow(0 0 0px rgba(245,166,35,0)); }
+  60%  { opacity: 1; transform: scale(1.08) translateY(-6px); filter: drop-shadow(0 0 30px rgba(245,166,35,0.9)); }
+  100% { opacity: 1; transform: scale(1) translateY(0); filter: drop-shadow(0 0 16px rgba(245,166,35,0.5)); }
+}
+@keyframes cGlowPulse {
+  from { transform: scale(0.9);  opacity: 0.3; }
+  to   { transform: scale(1.25); opacity: 0.7; }
+}
+@keyframes cRing {
+  0%   { transform: translate(-50%,-50%) scale(0.3); opacity: 0.7; }
+  100% { transform: translate(-50%,-50%) scale(2.2); opacity: 0; }
+}
+@keyframes cName {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes cParticle {
+  0%   { transform: translate(0,0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--px), var(--py)) scale(0); opacity: 0; }
+}
+.c-glow {
+  position: absolute; width: 200px; height: 200px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(245,166,35,0.25) 0%, transparent 65%);
+  animation: cGlowPulse 2.5s ease-in-out 1s infinite alternate;
+}
+.c-ring {
+  position: absolute; width: 140px; height: 140px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(245,166,35,0.5);
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%) scale(0.3);
+  animation: cRing 2s ease-out 1s infinite both;
+}
+.c-fox {
+  width: 140px;
+  border-radius: 28px;
+  position: relative; z-index: 2;
+  opacity: 0;
+  animation: cFox 1.1s cubic-bezier(.16,1,.3,1) 0.3s forwards;
+  margin-bottom: 16px;
+}
+.c-name {
+  font-size: 22px; font-weight: 900; letter-spacing: -0.02em; color: #fff;
+  opacity: 0; position: relative; z-index: 2;
+  animation: cName 0.6s ease 1.1s forwards;
+}
+.c-sub {
+  font-size: 9px; font-weight: 600; letter-spacing: 0.2em;
+  text-transform: uppercase; color: #f5a623; margin-top: 3px;
+  opacity: 0; position: relative; z-index: 2;
+  animation: cName 0.5s ease 1.4s forwards;
+}
+.c-particle {
+  position: absolute; width: 4px; height: 4px; border-radius: 50%;
+  background: #f5a623; box-shadow: 0 0 6px rgba(245,166,35,0.9);
+  top: 50%; left: 50%;
+  animation: cParticle 1s ease-out 1s 1 forwards;
+}
+</style>
+</head>
+<body>
+  <h1>Fennec App</h1>
+  <h2>Splash screen — 3 propuestas</h2>
+
+  <div class="grid">
+
+    <!-- A: Los 3 elementos, cinemático -->
+    <div class="proposal">
+      <div class="screen" id="screenA" onclick="restartA()">
+        <div class="inner">
+          <div class="a-glow"></div>
+          <div class="a-ring"></div>
+          <div class="a-ring2"></div>
+          <img src="fennec-logo.png" class="a-logo" id="logoA" />
+          <p class="a-fennec" id="wordA">fennec</p>
+        </div>
+      </div>
+      <p class="label">A · Logo + texto + tag</p>
+    </div>
+
+    <!-- B: Solo "fennec" tipográfico -->
+    <div class="proposal">
+      <div class="screen" id="screenB" onclick="restartB()">
+        <div class="inner">
+          <div class="b-glow" id="bGlow"></div>
+          <div class="b-word" id="bWord">
+            <!-- chars injected by JS -->
+          </div>
+          <p id="bSub" style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:#555;margin-top:18px;opacity:0;animation:bDot 0.5s ease 1.6s forwards;position:relative;z-index:2;">music business &amp; community hub</p>
+        </div>
+      </div>
+      <p class="label">B · Solo "fennec" tipográfico</p>
+    </div>
+
+    <!-- C: Solo el zorrito -->
+    <div class="proposal">
+      <div class="screen" id="screenC" onclick="restartC()">
+        <div class="inner" id="innerC">
+          <div class="c-glow"></div>
+          <div class="c-ring" id="ring1C"></div>
+          <div class="c-ring" style="animation-delay:1.5s;" id="ring2C"></div>
+          <img src="fox.png" class="c-fox" id="foxC" />
+          <p class="c-name" id="nameC">fennec</p>
+          <p class="c-sub" id="subC">Audio</p>
+        </div>
+      </div>
+      <p class="label">C · Solo el zorrito</p>
+    </div>
+
+  </div>
+
+  <p style="font-size:10px;color:#333;text-align:center;margin-top:20px;">
+    Toca cualquier pantalla para reiniciar la animación
+  </p>
+
+<script>
+// Build proposal B chars
+const CHARS = "fennec".split("");
+const delays = [0.1, 0.25, 0.38, 0.51, 0.64, 0.76];
+function buildB() {
+  const w = document.getElementById("bWord");
+  w.innerHTML = "";
+  CHARS.forEach((c, i) => {
+    const span = document.createElement("span");
+    span.className = "b-char";
+    span.textContent = c;
+    span.style.animationDelay = delays[i] + "s";
+    span.style.color = c === "n" && i === 5 ? "#f5a623" : "#fff";
+    w.appendChild(span);
+  });
+  // dot
+  const dot = document.createElement("span");
+  dot.className = "b-dot";
+  w.appendChild(dot);
+  // underline on container
+  const u = document.createElement("div");
+  u.className = "b-under";
+  u.style.position = "absolute";
+  u.style.bottom = "-6px";
+  u.style.left = "0";
+  w.style.position = "relative";
+  w.appendChild(u);
+}
+buildB();
+
+// Add particles to C
+function buildParticles() {
+  const inner = document.getElementById("innerC");
+  const angles = Array.from({length:12},(_, i) => (i/12)*Math.PI*2);
+  document.querySelectorAll(".c-particle").forEach(e=>e.remove());
+  angles.forEach((a,i) => {
+    const d = document.createElement("div");
+    d.className = "c-particle";
+    const dist = 55 + (i%3)*18;
+    d.style.setProperty("--px", Math.cos(a)*dist+"px");
+    d.style.setProperty("--py", Math.sin(a)*dist+"px");
+    d.style.animationDelay = (i*0.04)+"s";
+    inner.appendChild(d);
+  });
+}
+buildParticles();
+
+// Restart helpers — clone node to replay CSS animations
+function restartA() {
+  const s = document.getElementById("screenA");
+  const clone = s.querySelector(".inner").cloneNode(true);
+  s.querySelector(".inner").replaceWith(clone);
+}
+function restartB() {
+  buildB();
+  const glow = document.getElementById("bGlow");
+  glow.style.animation = "none";
+  glow.offsetWidth;
+  glow.style.animation = "";
+  const sub = document.getElementById("bSub");
+  sub.style.animation = "none"; sub.offsetWidth; sub.style.animation = "";
+}
+function restartC() {
+  document.querySelectorAll(".c-particle").forEach(e=>e.remove());
+  const s = document.getElementById("screenC");
+  const clone = s.querySelector(".inner").cloneNode(true);
+  s.querySelector(".inner").replaceWith(clone);
+  buildParticles();
+}
+</script>
+</body>
+</html>

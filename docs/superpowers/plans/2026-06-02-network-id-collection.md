@@ -269,7 +269,7 @@ Create `components/network/FennecIdCard.tsx`:
 "use client";
 
 import { useState } from "react";
-import { SiInstagram, SiTiktok, SiSpotify, SiYoutube } from "@icons-pack/react-simple-icons";
+import { SiInstagram, SiTiktok, SiSpotify, SiYoutube } from "react-icons/si";
 import type { FennecIdColor } from "@/lib/fennecIdPalette";
 
 export type FennecIdCardProps = {

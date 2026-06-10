@@ -16,7 +16,7 @@ async function checkYouTube(): Promise<Check> {
     const res  = await fetch(url.toString(), { signal: AbortSignal.timeout(8000) });
     const data = await res.json() as { items?: unknown[]; error?: { message: string } };
     if (data.error) return { name: "YouTube API", ok: false, detail: data.error.message };
-    return { name: "YouTube API", ok: true, detail: `OK — key ${key.length} chars, returned ${data.items?.length ?? 0} results` };
+    return { name: "YouTube API", ok: true, detail: "OK" };
   } catch (e) {
     return { name: "YouTube API", ok: false, detail: String(e) };
   }
@@ -27,7 +27,7 @@ async function checkAnthropic(): Promise<Check> {
   if (key.length < 80) {
     return { name: "Anthropic Key", ok: false, detail: `Key too short (${key.length} chars — likely truncated in Vercel)` };
   }
-  return { name: "Anthropic Key", ok: true, detail: `OK — key ${key.length} chars` };
+  return { name: "Anthropic Key", ok: true, detail: "OK" };
 }
 
 async function checkSupabase(): Promise<Check> {
@@ -54,7 +54,7 @@ async function checkSupabase(): Promise<Check> {
 async function checkCronSecret(): Promise<Check> {
   const secret = process.env.CRON_SECRET ?? "";
   if (!secret) return { name: "Cron Secret", ok: false, detail: "CRON_SECRET is empty — bot posts won't fire" };
-  return { name: "Cron Secret", ok: true, detail: `OK — ${secret.length} chars` };
+  return { name: "Cron Secret", ok: true, detail: "OK" };
 }
 
 export async function GET() {

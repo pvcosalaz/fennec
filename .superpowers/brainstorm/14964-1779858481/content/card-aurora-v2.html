@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Card Aurora v2</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0a0a0c; font-family: -apple-system, BlinkMacSystemFont, sans-serif; color: #fff; padding: 28px 20px 48px; }
+h1 { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #f5a623; margin-bottom: 4px; }
+h2 { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
+.sub { font-size: 12px; color: #555; margin-bottom: 32px; }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.label { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #555; text-align: center; margin-top: 10px; }
+.desc { font-size: 9px; color: #444; text-align: center; margin-top: 3px; }
+.card-wrap { cursor: pointer; }
+.card-wrap.selected .card-outer { outline: 2px solid #f5a623; outline-offset: 3px; }
+.card-wrap.selected .label { color: #f5a623; }
+
+.card-outer { border-radius: 18px; padding: 14px; position: relative; overflow: hidden; }
+.card-row1 { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; position:relative; z-index:2; }
+.card-body { display: flex; gap: 10px; align-items: flex-start; position:relative; z-index:2; }
+.greeting { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; }
+.fullname { font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.03em; }
+.avatar { width: 48px; height: 48px; border-radius: 50%; background: #ddd; flex-shrink: 0; overflow: hidden; }
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
+.db-block { flex: 0; min-width: 72px; }
+.db-label { font-size: 7px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: #f5a623; }
+.db-num { font-size: 38px; font-weight: 900; line-height: 1; }
+.db-sub { font-size: 8px; margin-top: 1px; }
+.eq { display: flex; align-items: flex-end; gap: 2px; height: 14px; margin-top: 4px; }
+.bar { width: 3px; border-radius: 2px; background: #f5a623; opacity: 0.7; transform-origin: bottom; }
+@keyframes eq { 0%,100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
+.right-panel { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+.role-badge { display: inline-flex; align-self: flex-start; padding: 2px 9px; border-radius: 20px; font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+.country { font-size: 9px; }
+.chips { display: flex; gap: 4px; flex-wrap: wrap; }
+.chip { font-size: 7px; font-weight: 700; padding: 2px 7px; border-radius: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* ── Shared mesh animations ── */
+@keyframes blobA  { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(10px,-8px) scale(1.1); } }
+@keyframes blobB  { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-8px,10px) scale(1.08); } }
+@keyframes blobC  { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(6px,6px) scale(1.06); } }
+
+/* ── OPCIÓN A: Blanco con aurora intensa (amber + rosa + morado) ── */
+.card-a {
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.07);
+  box-shadow: 0 4px 28px rgba(0,0,0,0.10);
+}
+.card-a .blob1 {
+  position:absolute; top:-50px; right:-50px; width:200px; height:200px; border-radius:50%;
+  background: radial-gradient(circle, rgba(245,166,35,0.55) 0%, rgba(245,166,35,0.25) 35%, transparent 65%);
+  animation: blobA 4s ease-in-out infinite;
+  pointer-events:none; z-index:1;
+}
+.card-a .blob2 {
+  position:absolute; bottom:-40px; left:-40px; width:160px; height:160px; border-radius:50%;
+  background: radial-gradient(circle, rgba(210,100,255,0.40) 0%, rgba(180,80,255,0.15) 45%, transparent 68%);
+  animation: blobB 5s ease-in-out infinite;
+  pointer-events:none; z-index:1;
+}
+.card-a .blob3 {
+  position:absolute; bottom:0px; right:20px; width:90px; height:90px; border-radius:50%;
+  background: radial-gradient(circle, rgba(255,80,120,0.22) 0%, transparent 65%);
+  animation: blobC 6s ease-in-out infinite;
+  pointer-events:none; z-index:1;
+}
+.card-a .greeting { color: #aaa; }
+.card-a .fullname { color: #111; }
+.card-a .db-num { color: #111; }
+.card-a .db-sub { color: #aaa; }
+.card-a .role-badge { background: rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.10); color: #555; }
+.card-a .country { color: #999; }
+.card-a .chip { background: rgba(245,166,35,0.12); border: 1px solid rgba(245,166,35,0.28); color: #b87010; }
+
+/* ── OPCIÓN B: Fondo oscuro con aurora tipo glassmorphism ── */
+.card-b {
+  background: rgba(14,13,18,0.95);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 4px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.card-b .blob1 {
+  position:absolute; top:-60px; right:-60px; width:220px; height:220px; border-radius:50%;
+  background: radial-gradient(circle, rgba(245,166,35,0.45) 0%, rgba(245,166,35,0.18) 38%, transparent 65%);
+  animation: blobA 4s ease-in-out infinite;
+  pointer-events:none; z-index:1;
+}
+.card-b .blob2 {
+  position:absolute; bottom:-50px; left:-50px; width:180px; height:180px; border-radius:50%;
+  background: radial-gradient(circle, rgba(130,80,255,0.50) 0%, rgba(100,60,220,0.18) 45%, transparent 68%);
+  animation: blobB 5s ease-in-out infinite;
+  pointer-events:none; z-index:1;
+}
+.card-b .blob3 {
+  position:absolute; top:30px; left:10px; width:70px; height:70px; border-radius:50%;
+  background: radial-gradient(circle, rgba(245,166,35,0.18) 0%, transparent 70%);
+  animation: blobC 7s ease-in-out infinite reverse;
+  pointer-events:none; z-index:1;
+}
+.card-b .greeting { color: #555; }
+.card-b .fullname { color: #fff; }
+.card-b .db-num { color: #fff; }
+.card-b .db-sub { color: #555; }
+.card-b .role-badge { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #aaa; }
+.card-b .country { color: #555; }
+.card-b .chip { background: rgba(245,166,35,0.12); border: 1px solid rgba(245,166,35,0.25); color: #f5a623; }
+
+/* ── OPCIÓN C: Fondo muy oscuro con tinte azul-morado + aurora ── */
+.card-c {
+  background: linear-gradient(140deg, #0f0e14 0%, #110e1a 100%);
+  border: 1px solid rgba(180,120,255,0.12);
+  box-shadow: 0 4px 32px rgba(0,0,0,0.5), 0 0 60px rgba(100,50,255,0.06);
+}
+.card-c .blob1 {
+  position:absolute; top:-50px; right:-50px; width:200px; height:200px; border-radius:50%;
+  background: radial-gradient(circle, rgba(245,166,35,0.50) 0%, rgba(245,180,60,0.20) 38%, transparent 65%);
+  animation: blobA 3.5s ease-in-out infinite;
+  pointer-events:none; z-index:1;
+}
+.card-c .blob2 {
+  position:absolute; bottom:-40px; left:-40px; width:170px; height:170px; border-radius:50%;
+  background: radial-gradient(circle, rgba(150,80,255,0.55) 0%, rgba(120,60,220,0.20) 45%, transparent 68%);
+  animation: blobB 4.5s ease-in-out infinite;
+  pointer-events:none; z-index:1;
+}
+.card-c .blob3 {
+  position:absolute; top:10px; left:-10px; width:100px; height:100px; border-radius:50%;
+  background: radial-gradient(circle, rgba(60,180,255,0.20) 0%, transparent 65%);
+  animation: blobC 6s ease-in-out infinite;
+  pointer-events:none; z-index:1;
+}
+.card-c .greeting { color: #555; }
+.card-c .fullname { color: #fff; }
+.card-c .db-num { color: #fff; }
+.card-c .db-sub { color: #555; }
+.card-c .role-badge { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #aaa; }
+.card-c .country { color: #555; }
+.card-c .chip { background: rgba(245,166,35,0.12); border: 1px solid rgba(245,166,35,0.25); color: #f5a623; }
+</style>
+</head>
+<body>
+<h1>Fennec App</h1>
+<h2>Card Aurora — fondo oscuro vs blanco</h2>
+<p class="sub">En blanco el efecto se "quema" — compara los 3 y dime cuál se siente mejor</p>
+
+<div class="grid">
+
+  <!-- A: Blanco con aurora intensa -->
+  <div class="card-wrap" id="wrapA" onclick="sel('A')">
+    <div class="card-outer card-a">
+      <div class="blob1"></div><div class="blob2"></div><div class="blob3"></div>
+      <div class="card-row1">
+        <div><div class="greeting">Good evening</div><div class="fullname">Paco Salaz</div></div>
+        <img src="/fennec-logo.png" style="width:38px;filter:brightness(0);opacity:0.14" onerror="this.style.display='none'">
+      </div>
+      <div class="card-body">
+        <div class="avatar"><img src="https://i.pravatar.cc/96?img=8"></div>
+        <div class="db-block">
+          <div class="db-label">Fennec dB</div>
+          <div class="db-num">350</div>
+          <div class="db-sub">business signal</div>
+          <div class="eq">
+            <div class="bar" style="height:4px;animation:eq 1.1s 0s   infinite ease-in-out"></div>
+            <div class="bar" style="height:8px;animation:eq 1.1s 0.1s infinite ease-in-out"></div>
+            <div class="bar" style="height:5px;animation:eq 1.1s 0.2s infinite ease-in-out"></div>
+            <div class="bar" style="height:11px;animation:eq 1.1s 0.3s infinite ease-in-out"></div>
+            <div class="bar" style="height:7px;animation:eq 1.1s 0.4s infinite ease-in-out"></div>
+            <div class="bar" style="height:13px;animation:eq 1.1s 0.15s infinite ease-in-out"></div>
+          </div>
+        </div>
+        <div class="right-panel">
+          <span class="role-badge card-a">Composer</span>
+          <span class="country">Mexico</span>
+          <div class="chips">
+            <span class="chip card-a">Cinematic</span><span class="chip card-a">Film/TV</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="label">A · Blanco + aurora fuerte</p>
+    <p class="desc">Se ve, pero los blobs se mezclan con el fondo</p>
+  </div>
+
+  <!-- B: Dark glass + aurora -->
+  <div class="card-wrap" id="wrapB" onclick="sel('B')">
+    <div class="card-outer card-b">
+      <div class="blob1"></div><div class="blob2"></div><div class="blob3"></div>
+      <div class="card-row1">
+        <div><div class="greeting">Good evening</div><div class="fullname">Paco Salaz</div></div>
+        <img src="/fennec-logo.png" style="width:38px;filter:brightness(0) invert(1);opacity:0.15" onerror="this.style.display='none'">
+      </div>
+      <div class="card-body">
+        <div class="avatar"><img src="https://i.pravatar.cc/96?img=8"></div>
+        <div class="db-block">
+          <div class="db-label">Fennec dB</div>
+          <div class="db-num">350</div>
+          <div class="db-sub">business signal</div>
+          <div class="eq">
+            <div class="bar" style="height:4px;animation:eq 1.1s 0s   infinite ease-in-out"></div>
+            <div class="bar" style="height:8px;animation:eq 1.1s 0.1s infinite ease-in-out"></div>
+            <div class="bar" style="height:5px;animation:eq 1.1s 0.2s infinite ease-in-out"></div>
+            <div class="bar" style="height:11px;animation:eq 1.1s 0.3s infinite ease-in-out"></div>
+            <div class="bar" style="height:7px;animation:eq 1.1s 0.4s infinite ease-in-out"></div>
+            <div class="bar" style="height:13px;animation:eq 1.1s 0.15s infinite ease-in-out"></div>
+          </div>
+        </div>
+        <div class="right-panel">
+          <span class="role-badge">Composer</span>
+          <span class="country">Mexico</span>
+          <div class="chips">
+            <span class="chip">Cinematic</span><span class="chip">Film/TV</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="label">B · Oscuro + aurora amber/morado</p>
+    <p class="desc">Los blobs se ven perfectos sobre oscuro</p>
+  </div>
+
+  <!-- C: Muy oscuro azul-morado + aurora -->
+  <div class="card-wrap" id="wrapC" onclick="sel('C')">
+    <div class="card-outer card-c">
+      <div class="blob1"></div><div class="blob2"></div><div class="blob3"></div>
+      <div class="card-row1">
+        <div><div class="greeting">Good evening</div><div class="fullname">Paco Salaz</div></div>
+        <img src="/fennec-logo.png" style="width:38px;filter:brightness(0) invert(1);opacity:0.15" onerror="this.style.display='none'">
+      </div>
+      <div class="card-body">
+        <div class="avatar"><img src="https://i.pravatar.cc/96?img=8"></div>
+        <div class="db-block">
+          <div class="db-label">Fennec dB</div>
+          <div class="db-num">350</div>
+          <div class="db-sub">business signal</div>
+          <div class="eq">
+            <div class="bar" style="height:4px;animation:eq 1.1s 0s   infinite ease-in-out"></div>
+            <div class="bar" style="height:8px;animation:eq 1.1s 0.1s infinite ease-in-out"></div>
+            <div class="bar" style="height:5px;animation:eq 1.1s 0.2s infinite ease-in-out"></div>
+            <div class="bar" style="height:11px;animation:eq 1.1s 0.3s infinite ease-in-out"></div>
+            <div class="bar" style="height:7px;animation:eq 1.1s 0.4s infinite ease-in-out"></div>
+            <div class="bar" style="height:13px;animation:eq 1.1s 0.15s infinite ease-in-out"></div>
+          </div>
+        </div>
+        <div class="right-panel">
+          <span class="role-badge">Composer</span>
+          <span class="country">Mexico</span>
+          <div class="chips">
+            <span class="chip">Cinematic</span><span class="chip">Film/TV</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="label">C · Noche + aurora amber/azul/morado</p>
+    <p class="desc">Tinte azul profundo, aurora más dramática</p>
+  </div>
+
+</div>
+
+<script>
+function sel(opt) {
+  ['A','B','C'].forEach(o => document.getElementById('wrap'+o).classList.remove('selected'));
+  document.getElementById('wrap'+opt).classList.add('selected');
+  if (window.recordChoice) recordChoice(opt, 'Aurora v2 ' + opt);
+}
+</script>
+</body>
+</html>

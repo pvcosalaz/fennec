@@ -1,11 +1,6 @@
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 
-// Requires SUPABASE_SERVICE_ROLE_KEY env var to bypass RLS for server-side writes
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://drmhwzxytwmkpfnjwmra.supabase.co",
-  process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get("code");

@@ -2,9 +2,21 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 
+const VALID_FORMATS = new Set(["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]);
+
 export async function POST(req: Request) {
   try {
-    const { format, line } = await req.json() as { format: string; line: string };
+    const body = await req.json() as { format?: unknown; line?: unknown };
+
+    const format = typeof body.format === "string" ? body.format.trim() : "";
+    const line   = typeof body.line   === "string" ? body.line.trim()   : "";
+
+    if (!format || !VALID_FORMATS.has(format)) {
+      return NextResponse.json({ error: "Invalid format" }, { status: 400 });
+    }
+    if (!line || line.length > 300) {
+      return NextResponse.json({ error: "Invalid line" }, { status: 400 });
+    }
 
     const client = new Anthropic({ apiKey: process.env.FENNEC_ANTHROPIC_KEY });
 
@@ -30,9 +42,19 @@ Respond ONLY with a valid JSON object with two keys: "angle" and "why". No markd
 
     let text = (message.content[0] as { type: string; text: string }).text.trim();
     text = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
-    const { angle, why } = JSON.parse(text) as { angle: string; why: string };
 
-    return NextResponse.json({ angle, why });
+    let parsed: { angle: string; why: string };
+    try {
+      parsed = JSON.parse(text) as { angle: string; why: string };
+      if (typeof parsed.angle !== "string" || typeof parsed.why !== "string") {
+        throw new Error("Missing angle or why");
+      }
+    } catch {
+      console.error("[lab-idea] JSON parse failed:", text.slice(0, 200));
+      return NextResponse.json({ error: "Failed to generate idea" }, { status: 500 });
+    }
+
+    return NextResponse.json({ angle: parsed.angle, why: parsed.why });
   } catch (err) {
     console.error("[lab-idea]", err);
     return NextResponse.json({ error: "Failed to generate idea" }, { status: 500 });

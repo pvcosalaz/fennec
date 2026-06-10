@@ -2,14 +2,10 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 300; // up to 5 min (Vercel Pro) — scraping is slow
 
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { scrapeSocialStats, hasApifyToken } from "@/lib/socialStats";
 
-const serviceSupabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://drmhwzxytwmkpfnjwmra.supabase.co",
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
-);
 
 const BATCH_SIZE = 3;        // profiles scraped concurrently
 const MAX_PROFILES = 60;     // hard cap per run
@@ -29,7 +25,7 @@ async function handler(req: NextRequest) {
 
   // Profiles with at least one social handle, stalest first so everyone
   // eventually gets refreshed even if we hit the per-run cap.
-  const { data: profiles, error } = await serviceSupabase
+  const { data: profiles, error } = await supabaseAdmin
     .from("profiles")
     .select("id, instagram, tiktok, youtube_url, social_synced_at")
     .or("instagram.not.is.null,tiktok.not.is.null,youtube_url.not.is.null")
@@ -64,7 +60,7 @@ async function handler(req: NextRequest) {
           skipped++;
           return;
         }
-        const { error: upErr } = await serviceSupabase
+        const { error: upErr } = await supabaseAdmin
           .from("profiles")
           .update({
             ig_followers:     stats.ig_followers,

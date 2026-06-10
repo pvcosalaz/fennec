@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Redesign</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d0d0f; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 32px 24px; min-height: 100vh; }
+  h1 { font-size: 13px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: #f5a623; margin-bottom: 8px; }
+  h2 { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 6px; line-height: 1.2; }
+  .sub { font-size: 13px; color: #666; margin-bottom: 32px; line-height: 1.5; }
+
+  .options { display: flex; flex-direction: column; gap: 14px; }
+  .option {
+    border: 1.5px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: rgba(255,255,255,0.02);
+    position: relative;
+  }
+  .option:hover { border-color: rgba(245,166,35,0.4); background: rgba(245,166,35,0.04); }
+  .option.selected { border-color: #f5a623; background: rgba(245,166,35,0.08); }
+
+  .option-label { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .option-desc { font-size: 13px; color: #888; line-height: 1.5; }
+
+  /* Mini mockup of current dB section */
+  .mockup {
+    border-radius: 12px;
+    background: rgba(28,26,32,0.85);
+    border: 1px solid rgba(255,255,255,0.07);
+    padding: 14px;
+    margin-bottom: 12px;
+    font-size: 11px;
+  }
+  .db-score { font-size: 40px; font-weight: 900; color: #fff; line-height: 1; }
+  .multiplier-row { display: flex; align-items: center; gap: 8px; padding: 2px 0; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .mul-label { color: #aaa; width: 90px; }
+  .mul-val { color: #fff; font-size: 10px; }
+  .mul-val.muted { color: #444; }
+  .section-tag { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: #f5a623; margin-bottom: 6px; opacity: 0.7; }
+</style>
+</head>
+<body>
+  <h1>Dashboard Redesign · Brainstorm</h1>
+  <h2>¿Qué tan prominente debe ser el Fennec dB?</h2>
+  <p class="sub">El dB es el "business signal score" — combina proyectos activos, clientes, quotes y redes sociales. ¿Qué papel debe jugar en el dashboard?</p>
+
+  <div class="options">
+
+    <div class="option" onclick="select(this, 'A')">
+      <div class="option-label">A — Hero principal, score grande</div>
+      <div class="mockup">
+        <div class="section-tag">Fennec dB</div>
+        <div class="db-score">847</div>
+        <div style="color:#aaa; font-size:10px; margin-top:2px;">business signal</div>
+        <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+          <span style="font-size:10px; color:#4d96ff;">● 1 activo</span>
+          <span style="font-size:10px; color:#c77dff;">● 2 clientes</span>
+          <span style="font-size:10px; color:#6bcb77;">● 0 cerrados</span>
+        </div>
+      </div>
+      <div class="option-desc">El score domina visualmente. Los multiplicadores desaparecen — solo se ven puntos de color con conteos simples. Perfecto si el dB es lo primero que quieres ver cada día.</div>
+    </div>
+
+    <div class="option" onclick="select(this, 'B')">
+      <div class="option-label">B — Score secundario, KPIs al frente</div>
+      <div class="mockup">
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:10px;">
+          <div style="text-align:center;">
+            <div style="font-size:22px; font-weight:900; color:#4d96ff;">1</div>
+            <div style="font-size:9px; color:#666; text-transform:uppercase;">Activos</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:22px; font-weight:900; color:#c77dff;">2</div>
+            <div style="font-size:9px; color:#666; text-transform:uppercase;">Clientes</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:22px; font-weight:900; color:#f5a623;">847</div>
+            <div style="font-size:9px; color:#f5a623; text-transform:uppercase;">dB</div>
+          </div>
+        </div>
+      </div>
+      <div class="option-desc">Los KPIs operativos (proyectos, clientes, quotes) son lo primero. El dB aparece junto a ellos como un número más, no como protagonista.</div>
+    </div>
+
+    <div class="option" onclick="select(this, 'C')">
+      <div class="option-label">C — Quitar el dB del dashboard, dejarlo solo en Business</div>
+      <div class="mockup">
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px;">
+          <div style="text-align:center;"><div style="font-size:20px; font-weight:900; color:#4d96ff;">1</div><div style="font-size:9px; color:#666;">Activos</div></div>
+          <div style="text-align:center;"><div style="font-size:20px; font-weight:900; color:#6bcb77;">0</div><div style="font-size:9px; color:#666;">Cerrados</div></div>
+          <div style="text-align:center;"><div style="font-size:20px; font-weight:900; color:#c77dff;">2</div><div style="font-size:9px; color:#666;">Clientes</div></div>
+          <div style="text-align:center;"><div style="font-size:20px; font-weight:900; color:#f5a623;">0</div><div style="font-size:9px; color:#666;">Quotes</div></div>
+        </div>
+      </div>
+      <div class="option-desc">El dashboard se vuelve puramente operativo — qué está pasando hoy. El score de dB se mueve al módulo de Business donde tiene más contexto.</div>
+    </div>
+
+  </div>
+
+  <script>
+    function select(el, val) {
+      document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+      el.classList.add('selected');
+      if (window.__companion_select) window.__companion_select(val, el.querySelector('.option-label').textContent);
+    }
+  </script>
+</body>
+</html>

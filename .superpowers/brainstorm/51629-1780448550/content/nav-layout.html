@@ -1,0 +1,107 @@
+<h2>¿Cómo queda el nav con el Network tab?</h2>
+<p class="subtitle">Actualmente hay 5 tabs. Para agregar Network hay que reorganizar. 3 opciones:</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0d0d0f; padding: 20px 12px 8px;">
+      <!-- Nav bar mockup A -->
+      <div style="display:flex; justify-content:space-around; align-items:center; background:#111; border-radius:16px; padding:12px 8px; border:1px solid #222;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <span style="font-size:18px;">💼</span>
+          <span style="font-size:9px;color:#666;">Business</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <span style="font-size:18px;">📷</span>
+          <span style="font-size:9px;color:#666;">Content</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px; background:#f5a623; border-radius:14px; padding:8px 14px;">
+          <span style="font-size:20px;">🔗</span>
+          <span style="font-size:9px;color:#000;font-weight:700;">Network</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <span style="font-size:18px;">🏠</span>
+          <span style="font-size:9px;color:#666;">Home</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <span style="font-size:18px;">🌐</span>
+          <span style="font-size:9px;color:#666;">Community</span>
+        </div>
+      </div>
+      <p style="color:#555;font-size:10px;text-align:center;margin-top:8px;">Audio/Ideas tab → se fusiona con Content</p>
+    </div>
+    <div class="card-body">
+      <h3>A — Network al centro</h3>
+      <p>Network es el tab principal. Audio/Ideas se fusiona con Content Hub. 5 tabs limpios.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0d0d0f; padding: 20px 12px 8px;">
+      <div style="display:flex; justify-content:space-around; align-items:center; background:#111; border-radius:16px; padding:12px 4px; border:1px solid #222;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <span style="font-size:16px;">💼</span>
+          <span style="font-size:8px;color:#666;">Business</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <span style="font-size:16px;">📷</span>
+          <span style="font-size:8px;color:#666;">Content</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px; background:#f5a623; border-radius:14px; padding:6px 10px;">
+          <span style="font-size:18px;">🔗</span>
+          <span style="font-size:8px;color:#000;font-weight:700;">Network</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <span style="font-size:16px;">🎵</span>
+          <span style="font-size:8px;color:#666;">Audio</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <span style="font-size:16px;">🌐</span>
+          <span style="font-size:8px;color:#666;">Community</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <span style="font-size:16px;">🏠</span>
+          <span style="font-size:8px;color:#666;">Home</span>
+        </div>
+      </div>
+      <p style="color:#555;font-size:10px;text-align:center;margin-top:8px;">6 tabs — todos se ven más pequeños</p>
+    </div>
+    <div class="card-body">
+      <h3>B — 6 tabs, todos presentes</h3>
+      <p>Se conservan todos los tabs actuales y se agrega Network. Nav más apretado.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0d0d0f; padding: 20px 12px 8px;">
+      <div style="display:flex; justify-content:space-around; align-items:center; background:#111; border-radius:16px; padding:12px 8px; border:1px solid #222;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <span style="font-size:18px;">💼</span>
+          <span style="font-size:9px;color:#666;">Business</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <span style="font-size:18px;">📷</span>
+          <span style="font-size:9px;color:#666;">Content</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px; background:#1a1a1a; border-radius:14px; padding:8px 14px; border:1px solid #333;">
+          <span style="font-size:20px;">🏠</span>
+          <span style="font-size:9px;color:#f5a623;font-weight:700;">Home</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <span style="font-size:18px;">🔗</span>
+          <span style="font-size:9px;color:#f5a623;">Network</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <span style="font-size:18px;">🌐</span>
+          <span style="font-size:9px;color:#666;">Community</span>
+        </div>
+      </div>
+      <p style="color:#555;font-size:10px;text-align:center;margin-top:8px;">Network reemplaza Audio — Home sigue al centro</p>
+    </div>
+    <div class="card-body">
+      <h3>C — Network reemplaza Audio</h3>
+      <p>Home sigue en el centro. Network reemplaza el tab de Audio/Ideas. Audio se integra al tab de Content.</p>
+    </div>
+  </div>
+
+</div>

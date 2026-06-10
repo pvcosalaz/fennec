@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Card blanco + glow + contorno</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0a0a0c; font-family: -apple-system, BlinkMacSystemFont, sans-serif; color: #fff; padding: 28px 20px 56px; }
+h1 { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #f5a623; margin-bottom: 4px; }
+h2 { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
+.sub { font-size: 12px; color: #555; margin-bottom: 36px; }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.label { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #555; text-align: center; margin-top: 10px; }
+.desc { font-size: 9px; color: #444; text-align: center; margin-top: 3px; }
+.card-wrap { cursor: pointer; }
+.card-wrap.selected .label { color: #f5a623; }
+.card-wrap.selected .glow-ring { box-shadow: 0 0 0 2px #f5a623; border-radius: 22px; }
+
+/* ── Glow behind card — shared ── */
+@keyframes glowPulse {
+  0%,100% { opacity: 0.55; transform: scale(0.97); }
+  50%      { opacity: 1;    transform: scale(1.03); }
+}
+.card-slot { position: relative; }
+.halo {
+  position: absolute;
+  inset: -18px;
+  border-radius: 32px;
+  background: radial-gradient(ellipse at 50% 50%,
+    rgba(245,166,35,0.35) 0%,
+    rgba(245,166,35,0.14) 40%,
+    transparent 72%);
+  animation: glowPulse 3.5s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── White card base ── */
+.card-outer {
+  position: relative; z-index: 1;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 14px;
+  border: 1px solid rgba(0,0,0,0.07);
+  overflow: hidden;
+}
+.card-row1 { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; position:relative; z-index:2; }
+.card-body { display: flex; gap: 10px; align-items: flex-start; position:relative; z-index:2; }
+.greeting { font-size: 9px; color:#bbb; text-transform: uppercase; letter-spacing: 0.1em; }
+.fullname { font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.03em; color:#111; }
+.avatar { width: 48px; height: 48px; border-radius: 50%; background: #ddd; flex-shrink: 0; overflow: hidden; }
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
+.db-block { flex: 0; min-width: 72px; }
+.db-label { font-size: 7px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: #f5a623; }
+.db-num { font-size: 38px; font-weight: 900; line-height: 1; color:#111; }
+.db-sub { font-size: 8px; margin-top: 1px; color:#bbb; }
+.eq { display: flex; align-items: flex-end; gap: 2px; height: 14px; margin-top: 4px; }
+.bar { width: 3px; border-radius: 2px; background: #f5a623; opacity: 0.7; transform-origin: bottom; }
+@keyframes eq { 0%,100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
+.right-panel { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+.role-badge { display: inline-flex; align-self: flex-start; padding: 2px 9px; border-radius: 20px; font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; background:rgba(0,0,0,0.05); border:1px solid rgba(0,0,0,0.09); color:#555; }
+.country { font-size: 9px; color:#bbb; }
+.chips { display: flex; gap: 4px; flex-wrap: wrap; }
+.chip { font-size: 7px; font-weight: 700; padding: 2px 7px; border-radius: 5px; text-transform: uppercase; letter-spacing: 0.05em; background:rgba(245,166,35,0.10); border:1px solid rgba(245,166,35,0.25); color:#c47d10; }
+
+/* ── CONTORNO A: Borde amber fino ── */
+@keyframes borderPulse { 0%,100%{opacity:0.35} 50%{opacity:0.75} }
+.border-amber { border: 1px solid rgba(245,166,35,0.5) !important; animation: borderPulse 3.5s ease-in-out infinite; }
+
+/* ── CONTORNO B: Arco decorativo top-right ── */
+.arc {
+  position: absolute; top: -40px; right: -40px;
+  width: 130px; height: 130px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(245,166,35,0.22);
+  pointer-events: none; z-index: 1;
+}
+.arc2 {
+  position: absolute; top: -20px; right: -20px;
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  border: 1px solid rgba(245,166,35,0.14);
+  pointer-events: none; z-index: 1;
+}
+
+/* ── CONTORNO C: Corner lines ── */
+.corner {
+  position: absolute;
+  width: 16px; height: 16px;
+  pointer-events: none; z-index: 1;
+}
+.corner-tl { top: 8px;  left: 8px;  border-top: 1.5px solid rgba(245,166,35,0.45); border-left: 1.5px solid rgba(245,166,35,0.45); border-radius: 3px 0 0 0; }
+.corner-tr { top: 8px;  right: 8px; border-top: 1.5px solid rgba(245,166,35,0.45); border-right: 1.5px solid rgba(245,166,35,0.45); border-radius: 0 3px 0 0; }
+.corner-bl { bottom: 8px; left: 8px;  border-bottom: 1.5px solid rgba(245,166,35,0.45); border-left: 1.5px solid rgba(245,166,35,0.45); border-radius: 0 0 0 3px; }
+.corner-br { bottom: 8px; right: 8px; border-bottom: 1.5px solid rgba(245,166,35,0.45); border-right: 1.5px solid rgba(245,166,35,0.45); border-radius: 0 0 3px 0; }
+</style>
+</head>
+<body>
+<h1>Fennec App</h1>
+<h2>Blanco + glow amber atrás</h2>
+<p class="sub">El halo amber de fondo vuelve. ¿Con qué contorno dentro?</p>
+
+<div class="grid">
+
+  <!-- A: solo borde amber pulsante -->
+  <div class="card-wrap" id="wrapA" onclick="sel('A')">
+    <div class="card-slot glow-ring" id="ringA">
+      <div class="halo"></div>
+      <div class="card-outer border-amber">
+        <div class="card-row1">
+          <div><div class="greeting">Good evening</div><div class="fullname">Paco Salaz</div></div>
+          <img src="/fennec-logo.png" style="width:40px;filter:brightness(0);opacity:0.18;margin-right:-4px" onerror="this.style.display='none'">
+        </div>
+        <div class="card-body">
+          <div class="avatar"><img src="https://i.pravatar.cc/96?img=8"></div>
+          <div class="db-block">
+            <div class="db-label">Fennec dB</div>
+            <div class="db-num">350</div>
+            <div class="db-sub">business signal</div>
+            <div class="eq">
+              <div class="bar" style="height:4px;animation:eq 1.1s 0s infinite ease-in-out"></div>
+              <div class="bar" style="height:8px;animation:eq 1.1s .1s infinite ease-in-out"></div>
+              <div class="bar" style="height:5px;animation:eq 1.1s .2s infinite ease-in-out"></div>
+              <div class="bar" style="height:11px;animation:eq 1.1s .3s infinite ease-in-out"></div>
+              <div class="bar" style="height:7px;animation:eq 1.1s .4s infinite ease-in-out"></div>
+              <div class="bar" style="height:13px;animation:eq 1.1s .15s infinite ease-in-out"></div>
+            </div>
+          </div>
+          <div class="right-panel">
+            <span class="role-badge">Composer</span>
+            <span class="country">Mexico</span>
+            <div class="chips"><span class="chip">Cinematic</span><span class="chip">Film/TV</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="label">A · Borde amber pulsante</p>
+    <p class="desc">El contorno de la card titila en amber</p>
+  </div>
+
+  <!-- B: arcos circulares top-right -->
+  <div class="card-wrap" id="wrapB" onclick="sel('B')">
+    <div class="card-slot glow-ring" id="ringB">
+      <div class="halo"></div>
+      <div class="card-outer">
+        <div class="arc"></div>
+        <div class="arc2"></div>
+        <div class="card-row1">
+          <div><div class="greeting">Good evening</div><div class="fullname">Paco Salaz</div></div>
+          <img src="/fennec-logo.png" style="width:40px;filter:brightness(0);opacity:0.18;margin-right:-4px" onerror="this.style.display='none'">
+        </div>
+        <div class="card-body">
+          <div class="avatar"><img src="https://i.pravatar.cc/96?img=8"></div>
+          <div class="db-block">
+            <div class="db-label">Fennec dB</div>
+            <div class="db-num">350</div>
+            <div class="db-sub">business signal</div>
+            <div class="eq">
+              <div class="bar" style="height:4px;animation:eq 1.1s 0s infinite ease-in-out"></div>
+              <div class="bar" style="height:8px;animation:eq 1.1s .1s infinite ease-in-out"></div>
+              <div class="bar" style="height:5px;animation:eq 1.1s .2s infinite ease-in-out"></div>
+              <div class="bar" style="height:11px;animation:eq 1.1s .3s infinite ease-in-out"></div>
+              <div class="bar" style="height:7px;animation:eq 1.1s .4s infinite ease-in-out"></div>
+              <div class="bar" style="height:13px;animation:eq 1.1s .15s infinite ease-in-out"></div>
+            </div>
+          </div>
+          <div class="right-panel">
+            <span class="role-badge">Composer</span>
+            <span class="country">Mexico</span>
+            <div class="chips"><span class="chip">Cinematic</span><span class="chip">Film/TV</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="label">B · Arcos en esquina</p>
+    <p class="desc">Dos anillos circulares top-right, muy sutiles</p>
+  </div>
+
+  <!-- C: corner bracket lines -->
+  <div class="card-wrap" id="wrapC" onclick="sel('C')">
+    <div class="card-slot glow-ring" id="ringC">
+      <div class="halo"></div>
+      <div class="card-outer">
+        <div class="corner corner-tl"></div>
+        <div class="corner corner-tr"></div>
+        <div class="corner corner-bl"></div>
+        <div class="corner corner-br"></div>
+        <div class="card-row1">
+          <div><div class="greeting">Good evening</div><div class="fullname">Paco Salaz</div></div>
+          <img src="/fennec-logo.png" style="width:40px;filter:brightness(0);opacity:0.18;margin-right:-4px" onerror="this.style.display='none'">
+        </div>
+        <div class="card-body">
+          <div class="avatar"><img src="https://i.pravatar.cc/96?img=8"></div>
+          <div class="db-block">
+            <div class="db-label">Fennec dB</div>
+            <div class="db-num">350</div>
+            <div class="db-sub">business signal</div>
+            <div class="eq">
+              <div class="bar" style="height:4px;animation:eq 1.1s 0s infinite ease-in-out"></div>
+              <div class="bar" style="height:8px;animation:eq 1.1s .1s infinite ease-in-out"></div>
+              <div class="bar" style="height:5px;animation:eq 1.1s .2s infinite ease-in-out"></div>
+              <div class="bar" style="height:11px;animation:eq 1.1s .3s infinite ease-in-out"></div>
+              <div class="bar" style="height:7px;animation:eq 1.1s .4s infinite ease-in-out"></div>
+              <div class="bar" style="height:13px;animation:eq 1.1s .15s infinite ease-in-out"></div>
+            </div>
+          </div>
+          <div class="right-panel">
+            <span class="role-badge">Composer</span>
+            <span class="country">Mexico</span>
+            <div class="chips"><span class="chip">Cinematic</span><span class="chip">Film/TV</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="label">C · Corner brackets</p>
+    <p class="desc">Líneas amber en las 4 esquinas, estilo tech</p>
+  </div>
+
+</div>
+
+<script>
+function sel(opt) {
+  ['A','B','C'].forEach(o => document.getElementById('wrap'+o).classList.remove('selected'));
+  document.getElementById('wrap'+opt).classList.add('selected');
+  if (window.recordChoice) recordChoice(opt, 'White glow ' + opt);
+}
+</script>
+</body>
+</html>

@@ -1,15 +1,11 @@
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { createNotification, fetchPushSubscriptionsForUser, deletePushSubscription } from "@/lib/notificationDb";
 import { generateNotificationCopy } from "@/lib/notificationCopy";
 import { sendPushToMany } from "@/lib/pushSend";
 
-const serviceSupabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://drmhwzxytwmkpfnjwmra.supabase.co",
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
-);
 
 async function handler(req: NextRequest) {
   const secret = process.env.CRON_SECRET;
@@ -28,7 +24,7 @@ async function handler(req: NextRequest) {
   let contentCount = 0;
 
   // ── Project deadlines ─────────────────────────────────────────
-  const { data: projects } = await serviceSupabase
+  const { data: projects } = await supabaseAdmin
     .from("business_projects")
     .select("id, name, user_id, deadline")
     .gte("deadline", tomorrowStr + "T00:00:00Z")
@@ -55,7 +51,7 @@ async function handler(req: NextRequest) {
   }
 
   // ── Content scheduled ─────────────────────────────────────────
-  const { data: contentTasks } = await serviceSupabase
+  const { data: contentTasks } = await supabaseAdmin
     .from("content_tasks")
     .select("id, title, user_id, date")
     .eq("date", todayStr);
