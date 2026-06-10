@@ -123,7 +123,7 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
       <div>
         <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">Business Hub</p>
         <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-white">Run your music business.</h1>
-        <p className="mt-2 text-sm text-zinc-400">Gestiona proyectos, cotizaciones, clientes y calcula tus ingresos musicales.</p>
+        <p className="mt-2 text-sm text-zinc-400">Manage your projects, quotes, clients, and track your music business revenue.</p>
       </div>
 
       {/* ── Revenue this month + bars ── */}
