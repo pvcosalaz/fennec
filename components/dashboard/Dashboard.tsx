@@ -10,6 +10,7 @@ import { supabase } from "@/lib/supabase";
 import FennecIdCard from "@/components/network/FennecIdCard";
 import { getColorScheme } from "@/lib/fennecIdPalette";
 import { ensureColorAssigned } from "@/lib/networkDb";
+import { WelcomeModal, ChecklistCard, type ChecklistItem } from "@/components/dashboard/WelcomeChecklist";
 import type { Profile } from "@/lib/communityTypes";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -153,6 +154,21 @@ export default function Dashboard({
   const [mounted,    setMounted]    = useState(false);
   const [showDbInfo, setShowDbInfo] = useState(false);
   const [showSocialInfo, setShowSocialInfo] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [marketingVisited, setMarketingVisited] = useState(false);
+
+  // First-visit welcome + marketing-visited flag
+  useEffect(() => {
+    try {
+      setMarketingVisited(localStorage.getItem("fennec_visited_marketing_v1") === "1");
+      if (localStorage.getItem("fennec_onboarding_seen_v1") !== "1") setShowWelcome(true);
+    } catch { /* ignore */ }
+  }, []);
+
+  function closeWelcome() {
+    setShowWelcome(false);
+    try { localStorage.setItem("fennec_onboarding_seen_v1", "1"); } catch { /* ignore */ }
+  }
 
   // Social stats
   const [igFollowers,  setIgFollowers]  = useState<number | null>(null);
@@ -270,6 +286,18 @@ export default function Dashboard({
   const hasIg = !!(networkProfile?.instagram || profile?.instagram);
   const hasTt = !!(networkProfile?.tiktok     || profile?.tiktok);
   const hasYt = !!(networkProfile?.youtube_url || profile?.youtube);
+
+  // ── Onboarding checklist ──
+  const profileDone = !!((networkProfile?.display_name || profile?.name) && (networkProfile?.role || profile?.role));
+  const socialDone  = hasIg || hasTt || hasYt;
+  const projectDone = projects.length >= 1;
+  const checklistItems: ChecklistItem[] = [
+    { id: "profile",  label: "Completa tu perfil",        desc: "Nombre, rol y país",            done: profileDone,     onClick: () => { closeWelcome(); onOpenSettings?.(); } },
+    { id: "social",   label: "Conecta tus redes",         desc: "Instagram, TikTok, YouTube",     done: socialDone,      onClick: () => { closeWelcome(); onOpenSettings?.(); } },
+    { id: "project",  label: "Crea tu primer proyecto",   desc: "Usa la calculadora y guárdalo",  done: projectDone,     onClick: () => { closeWelcome(); onNavigate?.("pricing"); } },
+    { id: "marketing",label: "Explora el Marketing Hub",  desc: "Calendario, ideas y scripts",    done: marketingVisited, onClick: () => { closeWelcome(); onNavigate?.("contenido"); } },
+  ];
+  const onboardingComplete = checklistItems.every((i) => i.done);
 
   return (
     <div className={`mx-auto w-full max-w-4xl space-y-2 pb-2 pt-1 px-4 ${className ?? ""}`}>
@@ -415,21 +443,20 @@ export default function Dashboard({
         </div>
       </div>
 
-      {/* Empty state — only after business data finished loading (avoids flash on tab switch) */}
-      {businessLoaded && projects.length === 0 && quotes.length === 0 && (
-        <div className="border-t border-white/5 pt-4 px-2 flex flex-col items-center gap-3 pb-2">
-          <p className="text-[11px] font-semibold text-zinc-400 text-center">Tu negocio empieza aquí.</p>
-          <div className="flex gap-3">
-            <button type="button" onClick={() => onNavigate?.("pricing")}
-              className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-[10px] font-semibold text-white hover:bg-white/10 transition">
-              + Crear proyecto
-            </button>
-            <button type="button" onClick={() => onNavigate?.("pricing")}
-              className="rounded-lg border border-accent/30 bg-accent/10 px-3 py-1.5 text-[10px] font-semibold text-accent hover:bg-accent/20 transition">
-              + Enviar cotización
-            </button>
-          </div>
+      {/* Onboarding checklist — replaces the old empty state, until all steps done */}
+      {businessLoaded && !onboardingComplete && (
+        <div className="border-t border-white/5 pt-4 pb-2">
+          <ChecklistCard items={checklistItems} onOpen={() => setShowWelcome(true)} />
         </div>
+      )}
+
+      {/* Welcome modal — first visit */}
+      {showWelcome && (
+        <WelcomeModal
+          userName={(networkProfile?.display_name || username || "").split(" ")[0]}
+          items={checklistItems}
+          onClose={closeWelcome}
+        />
       )}
 
     </div>

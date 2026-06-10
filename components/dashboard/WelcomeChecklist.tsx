@@ -1,0 +1,126 @@
+"use client";
+
+import { Check } from "lucide-react";
+import FennecFox from "@/components/dashboard/FennecFox";
+
+export type ChecklistItem = {
+  id: string;
+  label: string;
+  desc?: string;
+  done: boolean;
+  onClick: () => void;
+};
+
+// ─── Welcome modal — shown once on first visit ───────────────────────────────
+export function WelcomeModal({
+  userName,
+  items,
+  onClose,
+}: {
+  userName: string;
+  items: ChecklistItem[];
+  onClose: () => void;
+}) {
+  const doneCount = items.filter((i) => i.done).length;
+  const allDone = doneCount === items.length;
+
+  return (
+    <>
+      <div className="fixed inset-0 z-[60] bg-black/75 backdrop-blur-sm" onClick={onClose} />
+      <div
+        className="fixed inset-x-0 bottom-0 z-[70] mx-auto w-full max-w-md rounded-t-3xl border-t border-white/10 bg-zinc-950 px-6 pt-3"
+        style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 1.5rem)" }}
+      >
+        {/* drag handle */}
+        <div className="flex justify-center mb-3">
+          <div className="w-10 h-1 rounded-full bg-white/20" />
+        </div>
+
+        {/* Logo + welcome */}
+        <div className="flex flex-col items-center text-center gap-1 mb-5">
+          <FennecFox isActive={false} glow size={64} />
+          <h2 className="text-xl font-bold text-white mt-1">
+            ¡Bienvenido a Fennec{userName ? `, ${userName}` : ""}! 🦊
+          </h2>
+          <p className="text-sm text-zinc-400 max-w-xs">
+            Tu negocio musical, en orden. Completa estos pasos para arrancar:
+          </p>
+        </div>
+
+        {/* Checklist */}
+        <div className="flex flex-col gap-2">
+          {items.map((item) => (
+            <button
+              key={item.id}
+              onClick={item.onClick}
+              className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 text-left transition hover:bg-white/10 active:scale-[0.99]"
+            >
+              <span
+                className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border-2 transition ${
+                  item.done ? "bg-accent border-accent" : "border-zinc-600"
+                }`}
+              >
+                {item.done && <Check size={13} className="text-black" strokeWidth={3} />}
+              </span>
+              <span className="flex-1 min-w-0">
+                <span
+                  className={`block text-sm font-semibold ${
+                    item.done ? "text-zinc-500 line-through" : "text-white"
+                  }`}
+                >
+                  {item.label}
+                </span>
+                {item.desc && <span className="block text-xs text-zinc-500">{item.desc}</span>}
+              </span>
+              {!item.done && <span className="text-accent text-sm flex-shrink-0">→</span>}
+            </button>
+          ))}
+        </div>
+
+        {/* Progress + CTA */}
+        <p className="text-center text-xs text-zinc-500 mt-4">
+          {doneCount} de {items.length} completado
+        </p>
+        <button
+          onClick={onClose}
+          className="mt-3 w-full rounded-2xl bg-accent py-3.5 text-sm font-bold text-black transition hover:brightness-110 active:scale-[0.98]"
+        >
+          {allDone ? "¡Listo! 🎉" : "Empezar"}
+        </button>
+      </div>
+    </>
+  );
+}
+
+// ─── Persistent dashboard card — until all steps are done ────────────────────
+export function ChecklistCard({
+  items,
+  onOpen,
+}: {
+  items: ChecklistItem[];
+  onOpen: () => void;
+}) {
+  const doneCount = items.filter((i) => i.done).length;
+  const pct = Math.round((doneCount / items.length) * 100);
+
+  return (
+    <button
+      onClick={onOpen}
+      className="w-full rounded-2xl border border-accent/20 bg-accent/[0.06] p-4 flex items-center gap-4 text-left transition hover:bg-accent/[0.1] active:scale-[0.99]"
+    >
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-white">Primeros pasos</p>
+        <p className="text-[11px] text-zinc-500 mt-0.5">Termina de configurar tu Fennec</p>
+        <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+          <div
+            className="h-full rounded-full bg-accent transition-all duration-500"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+      </div>
+      <span className="text-sm font-black text-accent flex-shrink-0">
+        {doneCount}/{items.length}
+      </span>
+    </button>
+  );
+}
