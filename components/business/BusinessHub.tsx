@@ -171,8 +171,9 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
           style={{ height: 90 }}
         >
           {!isPro && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50 backdrop-blur-[2px] rounded-2xl">
-              <div className="flex items-center gap-1.5 bg-accent text-black text-[10px] font-bold px-2.5 py-1 rounded-full">
+            <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl backdrop-blur-[2px]"
+                 style={{ background: "linear-gradient(135deg, rgba(26,13,2,0.62), rgba(10,7,2,0.6))" }}>
+              <div className="flex items-center gap-1.5 bg-accent text-black text-[10px] font-bold px-2.5 py-1 rounded-full shadow-[0_0_16px_rgba(245,166,35,0.45)]">
                 <Lock size={10} /> Pro
               </div>
             </div>
@@ -188,8 +189,9 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
           style={{ height: 90 }}
         >
           {!isPro && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50 backdrop-blur-[2px] rounded-2xl">
-              <div className="flex items-center gap-1.5 bg-accent text-black text-[10px] font-bold px-2.5 py-1 rounded-full">
+            <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl backdrop-blur-[2px]"
+                 style={{ background: "linear-gradient(135deg, rgba(26,13,2,0.62), rgba(10,7,2,0.6))" }}>
+              <div className="flex items-center gap-1.5 bg-accent text-black text-[10px] font-bold px-2.5 py-1 rounded-full shadow-[0_0_16px_rgba(245,166,35,0.45)]">
                 <Lock size={10} /> Pro
               </div>
             </div>
@@ -205,8 +207,9 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
           style={{ height: 90 }}
         >
           {!isPro && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50 backdrop-blur-[2px] rounded-2xl">
-              <div className="flex items-center gap-1.5 bg-accent text-black text-[10px] font-bold px-2.5 py-1 rounded-full">
+            <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl backdrop-blur-[2px]"
+                 style={{ background: "linear-gradient(135deg, rgba(26,13,2,0.62), rgba(10,7,2,0.6))" }}>
+              <div className="flex items-center gap-1.5 bg-accent text-black text-[10px] font-bold px-2.5 py-1 rounded-full shadow-[0_0_16px_rgba(245,166,35,0.45)]">
                 <Lock size={10} /> Pro
               </div>
             </div>
