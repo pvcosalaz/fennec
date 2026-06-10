@@ -1116,7 +1116,7 @@ export default function PricingCalculator() {
           backdropFilter: "blur(24px)",
         }}
       >
-        <div className="mx-auto flex w-full max-w-2xl items-center px-2 pb-3 pt-2">
+        <div className="mx-auto flex w-full max-w-2xl items-center px-2 pt-2" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 0.75rem)" }}>
           {moduleTabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -1209,8 +1209,6 @@ export default function PricingCalculator() {
           })}
         </div>
       </nav>
-      {/* Solid filler for the home-indicator safe area — matches app bg (no gray strip) */}
-      <div style={{ height: "env(safe-area-inset-bottom)" }} />
       </div>
     </div>
   );
