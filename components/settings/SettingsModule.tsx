@@ -456,7 +456,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
 
       {/* Profile preview */}
       <div className="rounded-2xl border border-white/10 bg-white/5 p-5 flex items-center gap-4">
-        <div className="h-14 w-14 rounded-2xl overflow-hidden flex-shrink-0">
+        <div className="h-14 w-14 rounded-full overflow-hidden flex-shrink-0">
           {localAvatarUrl ? (
             <img src={localAvatarUrl} alt="" className="w-full h-full object-cover" />
           ) : (

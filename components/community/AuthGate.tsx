@@ -52,7 +52,9 @@ export default function AuthGate() {
     <div className="flex flex-col items-center justify-center min-h-screen px-6 gap-8">
       {/* Logo + branding */}
       <div className="flex flex-col items-center gap-1">
-        <FennecFox isActive size={100} />
+        <div style={{ marginTop: 10 }}>
+          <FennecFox isActive={false} glow={false} size={100} />
+        </div>
         <div className="text-center space-y-1">
           <p className="text-xs font-semibold tracking-[0.35em] text-amber-500 uppercase">Fennec</p>
           <h1 className="text-2xl font-bold text-white leading-tight">

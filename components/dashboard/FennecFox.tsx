@@ -1,8 +1,8 @@
 "use client";
 
-type Props = { isActive: boolean; size?: number };
+type Props = { isActive: boolean; size?: number; glow?: boolean };
 
-export default function FennecFox({ isActive, size = 120 }: Props) {
+export default function FennecFox({ isActive, size = 120, glow = true }: Props) {
   return (
     <>
       <style>{`
@@ -38,17 +38,19 @@ export default function FennecFox({ isActive, size = 120 }: Props) {
 
       <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
         {/* Glow behind logo */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(245,166,35,0.5) 0%, transparent 70%)",
-            animation: isActive ? "glowPulse 3.2s ease-in-out infinite" : "none",
-          }}
-        />
+        {glow && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              borderRadius: "50%",
+              background: "radial-gradient(circle, rgba(245,166,35,0.5) 0%, transparent 70%)",
+              animation: isActive ? "glowPulse 3.2s ease-in-out infinite" : "none",
+            }}
+          />
+        )}
 
-        {/* Logo image animated */}
+        {/* Logo image (optionally animated) */}
         <img
           src="/fennec-logo.png"
           alt="Fennec"
@@ -58,7 +60,9 @@ export default function FennecFox({ isActive, size = 120 }: Props) {
             position: "relative",
             zIndex: 1,
             animation: isActive ? "foxFloat 3.2s ease-in-out infinite" : "none",
-            filter: "url(#fennec-thicken) brightness(0) invert(1) drop-shadow(0 6px 16px rgba(245,166,35,0.4))",
+            filter: `url(#fennec-thicken) brightness(0) invert(1) drop-shadow(0 6px 16px ${
+              glow ? "rgba(245,166,35,0.4)" : "rgba(0,0,0,0.35)"
+            })`,
           }}
         />
       </div>
