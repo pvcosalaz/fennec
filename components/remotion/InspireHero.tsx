@@ -30,14 +30,14 @@ const CSS = `
 `;
 
 const SPARKS = [
-  { tx:  36, ty: -22, delay: "0s",    dur: "5.8s" },
-  { tx:  28, ty: -32, delay: "0.9s",  dur: "5s" },
-  { tx:  10, ty: -38, delay: "1.8s",  dur: "6.5s" },
-  { tx: -14, ty: -35, delay: "2.7s",  dur: "5.4s" },
-  { tx: -30, ty: -24, delay: "3.6s",  dur: "6.1s" },
-  { tx: -34, ty:  -8, delay: "4.5s",  dur: "4.7s" },
-  { tx:  -8, ty:  14, delay: "5.4s",  dur: "6.8s" },
-  { tx:  30, ty:   6, delay: "6.3s",  dur: "5.2s" },
+  { tx:  36, ty: -22, delay: "0s",    dur: "8.7s" },
+  { tx:  28, ty: -32, delay: "1.4s",  dur: "7.5s" },
+  { tx:  10, ty: -38, delay: "2.7s",  dur: "9.8s" },
+  { tx: -14, ty: -35, delay: "4.1s",  dur: "8.1s" },
+  { tx: -30, ty: -24, delay: "5.4s",  dur: "9.1s" },
+  { tx: -34, ty:  -8, delay: "6.8s",  dur: "7.1s" },
+  { tx:  -8, ty:  14, delay: "8.1s",  dur: "10.2s" },
+  { tx:  30, ty:   6, delay: "9.4s",  dur: "7.8s" },
 ];
 
 export default function InspireHero() {
@@ -67,7 +67,7 @@ export default function InspireHero() {
         position: "absolute", width: "70%", height: "60%",
         borderRadius: "50%", top: "10%", left: "15%",
         background: "radial-gradient(circle, rgba(245,166,35,1) 0%, transparent 70%)",
-        animation: "inspireGlow 10.8s ease-in-out infinite alternate",
+        animation: "inspireGlow 16.2s ease-in-out infinite alternate",
       }} />
 
       {/* Subtle grid */}
@@ -95,7 +95,7 @@ export default function InspireHero() {
         {/* Lightning bolt */}
         <span style={{
           fontSize: 38, lineHeight: 1, display: "block",
-          animation: "boltPulse 7.2s ease-in-out infinite alternate",
+          animation: "boltPulse 10.8s ease-in-out infinite alternate",
         }}>⚡</span>
       </div>
 
@@ -112,7 +112,7 @@ export default function InspireHero() {
       }}>
         <div ref={scrollRef} style={{
           display: "inline-flex", whiteSpace: "nowrap",
-          animation: "inspireScroll 36s linear infinite",
+          animation: "inspireScroll 54s linear infinite",
         }}>
           {doubled.map((tag, i) => {
             const hi = i % 3 === 0;

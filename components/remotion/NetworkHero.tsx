@@ -144,6 +144,13 @@ export default function NetworkHero() {
         My Network
       </p>
 
+      {/* Bottom mask — keeps the network animation from bleeding into the chips */}
+      <div style={{
+        position: "absolute", bottom: 0, left: 0, right: 0, height: 52,
+        background: "linear-gradient(to top, #0f0b05 55%, rgba(15,11,5,0.85) 80%, transparent 100%)",
+        pointerEvents: "none",
+      }} />
+
       {/* Scrolling tags */}
       <div style={{
         position: "absolute", bottom: 14, left: 0, right: 0,
