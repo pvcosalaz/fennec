@@ -566,7 +566,7 @@ export default function PricingCalculator() {
   }
 
   return (
-    <div className="flex h-screen flex-col bg-background">
+    <div className="flex flex-col bg-background" style={{ height: "100dvh" }}>
     <main id="scroll-root" className={`flex-1 flex flex-col overscroll-none pb-6 ${(activeTab === "dashboard" || activeTab === "contenido" || (activeTab === "pricing" && businessView === "hub")) && !showSettings ? "overflow-hidden" : "overflow-y-auto"}`} style={{ overscrollBehavior: "none", paddingTop: "calc(env(safe-area-inset-top) + 0.75rem)" }}>
       {/* Settings button — hidden on Community tab (has its own header) */}
       {activeTab !== "noticias" && (
