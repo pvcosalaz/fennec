@@ -268,19 +268,19 @@ export default function CalendarHub({
           <div className="px-4 pb-8 pt-1 flex flex-col gap-3 text-white">
             <div className="flex items-center justify-between">
               <span className="text-sm font-semibold text-white">
-                {selectedDay === todayYMD ? "Hoy" : formatDateES(selectedDay)}
+                {selectedDay === todayYMD ? "Today" : formatDateES(selectedDay)}
               </span>
               <button
                 onClick={() => setDayDetailOpen(false)}
                 className="text-xs text-zinc-500 hover:text-white transition-colors"
               >
-                Cerrar
+                Close
               </button>
             </div>
 
             {selectedTasks.length === 0 ? (
               <p className="text-xs text-zinc-600 py-8 text-center">
-                No tienes nada programado este día.
+                Nothing scheduled for this day.
               </p>
             ) : (
               <div className="flex flex-col gap-2">

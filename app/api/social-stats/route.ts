@@ -1,3 +1,6 @@
+export const dynamic = "force-dynamic";
+export const maxDuration = 60; // Apify scrapes take 15-25s — default 10s kills the function mid-scrape
+
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { scrapeSocialStats, normalizeHandles, hasApifyToken } from "@/lib/socialStats";
@@ -62,14 +65,17 @@ export async function POST(req: NextRequest) {
   const stats = await scrapeSocialStats(profile);
   const syncedAt = new Date().toISOString();
 
-  const { error: updateError } = await supabaseAdmin.from("profiles").update({
-    ig_followers:     stats.ig_followers,
-    tiktok_followers: stats.tiktok_followers,
-    yt_subscribers:   stats.yt_subscribers,
-    social_synced_at: syncedAt,
-  }).eq("id", userId);
-
-  if (updateError) console.error("[social-stats] DB update error:", updateError.message);
+  // Only persist platforms that actually returned data — never overwrite
+  // good counts with nulls from a failed scrape. Skip write if all failed.
+  const update: Record<string, number | string> = {};
+  if (stats.ig_followers     != null) update.ig_followers     = stats.ig_followers;
+  if (stats.tiktok_followers != null) update.tiktok_followers = stats.tiktok_followers;
+  if (stats.yt_subscribers   != null) update.yt_subscribers   = stats.yt_subscribers;
+  if (Object.keys(update).length > 0) {
+    update.social_synced_at = syncedAt;
+    const { error: updateError } = await supabaseAdmin.from("profiles").update(update).eq("id", userId);
+    if (updateError) console.error("[social-stats] DB update error:", updateError.message);
+  }
 
   return NextResponse.json({ ...stats, synced_at: syncedAt });
 }

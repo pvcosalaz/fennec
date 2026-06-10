@@ -40,10 +40,10 @@ export function WelcomeModal({
         <div className="flex flex-col items-center text-center gap-1 mb-5">
           <FennecFox isActive={false} glow size={64} />
           <h2 className="text-xl font-bold text-white mt-1">
-            ¡Bienvenido a Fennec{userName ? `, ${userName}` : ""}! 🦊
+            Welcome to Fennec{userName ? `, ${userName}` : ""}!
           </h2>
           <p className="text-sm text-zinc-400 max-w-xs">
-            Tu negocio musical, en orden. Completa estos pasos para arrancar:
+            Your music business, in order. Complete these steps to get started:
           </p>
         </div>
 
@@ -79,13 +79,13 @@ export function WelcomeModal({
 
         {/* Progress + CTA */}
         <p className="text-center text-xs text-zinc-500 mt-4">
-          {doneCount} de {items.length} completado
+          {doneCount} of {items.length} completed
         </p>
         <button
           onClick={onClose}
           className="mt-3 w-full rounded-2xl bg-accent py-3.5 text-sm font-bold text-black transition hover:brightness-110 active:scale-[0.98]"
         >
-          {allDone ? "¡Listo! 🎉" : "Empezar"}
+          {allDone ? "Done! 🎉" : "Get started"}
         </button>
       </div>
     </>
@@ -109,8 +109,8 @@ export function ChecklistCard({
       className="w-full rounded-2xl border border-accent/20 bg-accent/[0.06] p-4 flex items-center gap-4 text-left transition hover:bg-accent/[0.1] active:scale-[0.99]"
     >
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-white">Primeros pasos</p>
-        <p className="text-[11px] text-zinc-500 mt-0.5">Termina de configurar tu Fennec</p>
+        <p className="text-sm font-semibold text-white">Getting started</p>
+        <p className="text-[11px] text-zinc-500 mt-0.5">Finish setting up your Fennec</p>
         <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
           <div
             className="h-full rounded-full bg-accent transition-all duration-500"

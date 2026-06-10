@@ -89,7 +89,7 @@ function StatChip({
           style={{ color: "rgba(245,166,35,0.55)" }}
           onMouseEnter={e => (e.currentTarget.style.color = "rgba(245,166,35,0.9)")}
           onMouseLeave={e => (e.currentTarget.style.color = "rgba(245,166,35,0.55)")}>
-          conectar →
+          connect →
         </button>
       )}
     </div>
@@ -121,7 +121,7 @@ function SocialChip({
           style={{ color: "rgba(245,166,35,0.55)" }}
           onMouseEnter={e => (e.currentTarget.style.color = "rgba(245,166,35,0.9)")}
           onMouseLeave={e => (e.currentTarget.style.color = "rgba(245,166,35,0.55)")}>
-          conectar →
+          connect →
         </button>
       )}
     </div>
@@ -201,13 +201,13 @@ export default function Dashboard({
       if (p.ig_followers   != null) setIgFollowers(p.ig_followers);
       if (p.tiktok_followers != null) setTtFollowers(p.tiktok_followers);
       if (p.yt_subscribers != null) setYtSubs(p.yt_subscribers);
-      if (p.social_synced_at) {
-        setSyncedAt(p.social_synced_at);
-      } else if (p.instagram || p.tiktok || p.youtube_url) {
-        // Nunca sincronizado pero ya tiene handles → primer jale automático.
-        // De aquí en adelante el cron semanal hace todos los refresh.
-        refreshSocial();
-      }
+      if (p.social_synced_at) setSyncedAt(p.social_synced_at);
+
+      // Auto first-sync: has handles but no counts yet (never synced, or a
+      // previous sync failed and wrote nulls). Weekly cron handles the rest.
+      const hasHandles = !!(p.instagram || p.tiktok || p.youtube_url);
+      const noCounts = p.ig_followers == null && p.tiktok_followers == null && p.yt_subscribers == null;
+      if (hasHandles && noCounts) refreshSocial();
     }).catch(() => {});
   }, [userId]);
 
@@ -292,10 +292,10 @@ export default function Dashboard({
   const socialDone  = hasIg || hasTt || hasYt;
   const projectDone = projects.length >= 1;
   const checklistItems: ChecklistItem[] = [
-    { id: "profile",  label: "Completa tu perfil",        desc: "Nombre, rol y país",            done: profileDone,     onClick: () => { closeWelcome(); onOpenSettings?.(); } },
-    { id: "social",   label: "Conecta tus redes",         desc: "Instagram, TikTok, YouTube",     done: socialDone,      onClick: () => { closeWelcome(); onOpenSettings?.(); } },
-    { id: "project",  label: "Crea tu primer proyecto",   desc: "Usa la calculadora y guárdalo",  done: projectDone,     onClick: () => { closeWelcome(); onNavigate?.("pricing"); } },
-    { id: "marketing",label: "Explora el Marketing Hub",  desc: "Calendario, ideas y scripts",    done: marketingVisited, onClick: () => { closeWelcome(); onNavigate?.("contenido"); } },
+    { id: "profile",  label: "Complete your profile",     desc: "Name, role & country",           done: profileDone,     onClick: () => { closeWelcome(); onOpenProfileSettings?.(); } },
+    { id: "social",   label: "Connect your socials",      desc: "Instagram, TikTok, YouTube",      done: socialDone,      onClick: () => { closeWelcome(); onOpenProfileSettings?.(); } },
+    { id: "project",  label: "Create your first project", desc: "Use the calculator & save it",    done: projectDone,     onClick: () => { closeWelcome(); onNavigate?.("pricing"); } },
+    { id: "marketing",label: "Explore the Marketing Hub", desc: "Calendar, ideas & scripts",       done: marketingVisited, onClick: () => { closeWelcome(); onNavigate?.("contenido"); } },
   ];
   const onboardingComplete = checklistItems.every((i) => i.done);
 
@@ -429,17 +429,17 @@ export default function Dashboard({
         </div>
         {showSocialInfo && (
           <p className="text-[9px] text-zinc-500 mb-1.5 px-1 leading-relaxed">
-            Se actualiza automáticamente cada semana.
-            {syncedAt && <span className="text-zinc-600"> · Última: {timeAgo(syncedAt)}</span>}
+            Updates automatically every week.
+            {syncedAt && <span className="text-zinc-600"> · Last: {timeAgo(syncedAt)}</span>}
           </p>
         )}
         <div className="grid grid-cols-3 divide-x divide-white/[0.06]">
           <SocialChip icon={<SiInstagram size={13} />} count={igFollowers}
-            label="Instagram" color="#E1306C" hasHandle={hasIg} onConnect={onOpenSettings} />
+            label="Instagram" color="#E1306C" hasHandle={hasIg} onConnect={onOpenProfileSettings} />
           <SocialChip icon={<SiTiktok size={13} />}   count={ttFollowers}
-            label="TikTok"    color="#ffffff" hasHandle={hasTt} onConnect={onOpenSettings} />
+            label="TikTok"    color="#ffffff" hasHandle={hasTt} onConnect={onOpenProfileSettings} />
           <SocialChip icon={<SiYoutube size={13} />}  count={ytSubs}
-            label="YouTube"   color="#FF0000" hasHandle={hasYt} onConnect={onOpenSettings} />
+            label="YouTube"   color="#FF0000" hasHandle={hasYt} onConnect={onOpenProfileSettings} />
         </div>
       </div>
 
