@@ -11,6 +11,7 @@ import {
   Banknote,
   X,
   ChevronRight,
+  Lock,
 } from "lucide-react";
 import Select from "@/components/ui/Select";
 import {
@@ -135,6 +136,11 @@ function ProjectForm({
           placeholder="— No client —"
           options={clients.map((c) => ({ value: c.id, label: c.name + (c.company ? ` · ${c.company}` : "") }))}
         />
+        {clients.length === 0 && (
+          <p className="text-[11px] text-amber-500/70 flex items-center gap-1">
+            <Lock size={9} /> Add clients with Pro to track who pays you — optional
+          </p>
+        )}
       </div>
 
       {/* Type + Price */}
@@ -200,6 +206,9 @@ function ProjectForm({
           Save project
         </button>
       </div>
+      <p className="text-[11px] text-zinc-500 flex items-center gap-1 pt-0.5">
+        <Send size={9} className="text-amber-500/70" /> Send a quote &amp; get paid faster — available on Pro
+      </p>
     </div>
   );
 }
