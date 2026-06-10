@@ -1083,7 +1083,7 @@ export default function PricingCalculator() {
         />
       ) : activeTab === "contenido" ? (
         <div className="flex-1 flex flex-col overflow-hidden">
-          <ContentModule />
+          <ContentModule isPro={profile?.is_pro ?? true} />
         </div>
       ) : activeTab === "ideas" ? (
         <AudioModule userId={authUser.id} isPro={profile?.is_pro ?? false} />

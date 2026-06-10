@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Check, ArrowRight, Pencil } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, ArrowRight, Pencil, Lock } from "lucide-react";
 import InspireHero from "@/components/remotion/InspireHero";
 import { QuickIdeasCard, ContentLabCard, MyScriptsCard } from "@/components/remotion/ContentToolCards";
 
@@ -24,6 +24,7 @@ type Props = {
   onDeleteTask: (id: string) => void;
   onEditScript?: (taskTitle: string) => void;
   userName?: string;
+  isPro?: boolean;
 };
 
 function toYMD(d: Date): string {
@@ -76,6 +77,17 @@ function formatDateES(ymd: string): string {
   return `${day} de ${MONTH_NAMES_ES[month - 1]} ${year}`;
 }
 
+function ProLock() {
+  return (
+    <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl backdrop-blur-[2px]"
+         style={{ background: "linear-gradient(135deg, rgba(26,13,2,0.62), rgba(10,7,2,0.6))" }}>
+      <div className="flex items-center gap-1.5 bg-accent text-black text-[10px] font-bold px-2.5 py-1 rounded-full shadow-[0_0_16px_rgba(245,166,35,0.45)]">
+        <Lock size={10} /> Pro
+      </div>
+    </div>
+  );
+}
+
 export default function CalendarHub({
   tasks,
   onOpenSheet,
@@ -83,6 +95,7 @@ export default function CalendarHub({
   onDeleteTask,
   onEditScript,
   userName = "Paco",
+  isPro = false,
 }: Props) {
   const today = new Date();
   const todayYMD = toYMD(today);
@@ -215,13 +228,14 @@ export default function CalendarHub({
       </div>
       </div>{/* end calendar card */}
 
-      {/* 3. Inspire — hero */}
+      {/* 3. Inspire — hero (Pro) */}
       <button
-        onClick={() => onOpenSheet("inspire")}
+        onClick={() => { if (isPro) onOpenSheet("inspire"); }}
         className="relative w-full rounded-2xl overflow-hidden flex-shrink-0"
         style={{ height: 150 }}
       >
         <InspireHero />
+        {!isPro && <ProLock />}
       </button>
 
       {/* 4. Tool grid: 3 cols — grows to fill remaining height */}
@@ -229,8 +243,9 @@ export default function CalendarHub({
         <button onClick={() => onOpenSheet("ideas")} className="relative rounded-2xl overflow-hidden h-full">
           <QuickIdeasCard />
         </button>
-        <button onClick={() => onOpenSheet("lab")} className="relative rounded-2xl overflow-hidden h-full">
+        <button onClick={() => { if (isPro) onOpenSheet("lab"); }} className="relative rounded-2xl overflow-hidden h-full">
           <ContentLabCard />
+          {!isPro && <ProLock />}
         </button>
         <button onClick={() => onOpenSheet("scripts")} className="relative rounded-2xl overflow-hidden h-full">
           <MyScriptsCard />

@@ -611,7 +611,7 @@ function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule }: {
 
 // ─── Main module ──────────────────────────────────────────────────────────────
 
-export default function ContentModule() {
+export default function ContentModule({ isPro = false }: { isPro?: boolean }) {
   const [ideas,  setIdeas]  = useState<Idea[]>([]);
   const [briefs, setBriefs] = useState<Brief[]>([]);
   const [tasks,  setTasks]  = useState<ContentTask[]>([]);
@@ -623,7 +623,7 @@ export default function ContentModule() {
     title: string; notes?: string; source: ContentTask["source"];
   } | null>(null);
 
-  const isPro = true;
+  // isPro is received as a prop — Inspire & Music Content Lab are Pro features
 
   // ── Swipe-down to close sheet ──
   const sheetRef = useRef<HTMLDivElement>(null);
@@ -716,6 +716,7 @@ export default function ContentModule() {
       {/* Main calendar hub */}
       <CalendarHub
         tasks={tasks}
+        isPro={isPro}
         onOpenSheet={openSheet}
         onToggleDone={toggleDone}
         onDeleteTask={deleteTask}
