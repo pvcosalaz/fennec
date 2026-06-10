@@ -309,7 +309,7 @@ export default function Community({ profile, openComposerWith, onComposerConsume
       </svg>
 
       {/* ── Header — X-style ─────────────────────────────── */}
-      <div className="flex flex-col items-center pt-0 pb-0">
+      <div className="flex flex-col items-center pt-4 pb-0">
         <img
           src="/fennec-logo.png"
           alt="Fennec"
