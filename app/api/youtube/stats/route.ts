@@ -1,4 +1,4 @@
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextRequest, NextResponse } from "next/server";
 
 
@@ -27,12 +27,12 @@ export async function GET(req: NextRequest) {
     // Verify the caller is the owner of this data
     const authHeader = req.headers.get("authorization") ?? "";
     const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    const { data: { user }, error: authError } = await getSupabaseAdmin().auth.getUser(token);
     if (authError || !user || user.id !== userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { data: integration } = await supabaseAdmin
+    const { data: integration } = await getSupabaseAdmin()
       .from("user_integrations")
       .select("*")
       .eq("user_id", userId)
@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
       if (newTokens) {
         accessToken = newTokens.access_token;
         const expiresAt = new Date(Date.now() + newTokens.expires_in * 1000).toISOString();
-        await supabaseAdmin.from("user_integrations").update({
+        await getSupabaseAdmin().from("user_integrations").update({
           access_token: accessToken,
           expires_at:   expiresAt,
           updated_at:   new Date().toISOString(),
@@ -76,7 +76,7 @@ export async function GET(req: NextRequest) {
     const videoCount  = parseInt(channel.statistics?.videoCount ?? "0", 10);
 
     // Update cached stats in DB
-    await supabaseAdmin.from("user_integrations").update({
+    await getSupabaseAdmin().from("user_integrations").update({
       subscribers,
       view_count: viewCount,
       updated_at: new Date().toISOString(),

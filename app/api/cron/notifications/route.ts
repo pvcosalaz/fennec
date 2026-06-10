@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextRequest, NextResponse } from "next/server";
 import { createNotification, fetchPushSubscriptionsForUser, deletePushSubscription } from "@/lib/notificationDb";
 import { generateNotificationCopy } from "@/lib/notificationCopy";
@@ -24,7 +24,7 @@ async function handler(req: NextRequest) {
   let contentCount = 0;
 
   // ── Project deadlines ─────────────────────────────────────────
-  const { data: projects } = await supabaseAdmin
+  const { data: projects } = await getSupabaseAdmin()
     .from("business_projects")
     .select("id, name, user_id, deadline")
     .gte("deadline", tomorrowStr + "T00:00:00Z")
@@ -51,7 +51,7 @@ async function handler(req: NextRequest) {
   }
 
   // ── Content scheduled ─────────────────────────────────────────
-  const { data: contentTasks } = await supabaseAdmin
+  const { data: contentTasks } = await getSupabaseAdmin()
     .from("content_tasks")
     .select("id, title, user_id, date")
     .eq("date", todayStr);

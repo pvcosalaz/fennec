@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 export const maxDuration = 60; // Apify scrapes take 15-25s — default 10s kills the function mid-scrape
 
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextRequest, NextResponse } from "next/server";
 import { scrapeSocialStats, normalizeHandles, hasApifyToken } from "@/lib/socialStats";
 
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No auth token" }, { status: 401 });
   }
 
-  const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+  const { data: { user }, error: authError } = await getSupabaseAdmin().auth.getUser(token);
   if (authError || !user) {
     return NextResponse.json({ error: "Unauthorized", detail: authError?.message }, { status: 401 });
   }
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Get handles from profile
-  const { data: profile, error: profileError } = await supabaseAdmin
+  const { data: profile, error: profileError } = await getSupabaseAdmin()
     .from("profiles")
     .select("instagram, tiktok, youtube_url")
     .eq("id", userId)
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
   if (stats.yt_subscribers   != null) update.yt_subscribers   = stats.yt_subscribers;
   if (Object.keys(update).length > 0) {
     update.social_synced_at = syncedAt;
-    const { error: updateError } = await supabaseAdmin.from("profiles").update(update).eq("id", userId);
+    const { error: updateError } = await getSupabaseAdmin().from("profiles").update(update).eq("id", userId);
     if (updateError) console.error("[social-stats] DB update error:", updateError.message);
   }
 

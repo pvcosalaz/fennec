@@ -1,4 +1,4 @@
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextRequest, NextResponse } from "next/server";
 
 
@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
   const viewCount    = parseInt(channel.statistics?.viewCount ?? "0", 10);
 
   // Save integration + channel info
-  await supabaseAdmin.from("user_integrations").upsert({
+  await getSupabaseAdmin().from("user_integrations").upsert({
     user_id:        userId,
     platform:       "youtube",
     access_token:   tokens.access_token,

@@ -1,4 +1,4 @@
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextRequest, NextResponse } from "next/server";
 
 
@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
   const tokens = await tokenRes.json();
   const expiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
 
-  await supabaseAdmin.from("user_integrations").upsert({
+  await getSupabaseAdmin().from("user_integrations").upsert({
     user_id: userId,
     platform: "spotify",
     access_token: tokens.access_token,

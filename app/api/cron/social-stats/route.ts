@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 300; // up to 5 min (Vercel Pro) — scraping is slow
 
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextRequest, NextResponse } from "next/server";
 import { scrapeSocialStats, hasApifyToken } from "@/lib/socialStats";
 
@@ -25,7 +25,7 @@ async function handler(req: NextRequest) {
 
   // Profiles with at least one social handle, stalest first so everyone
   // eventually gets refreshed even if we hit the per-run cap.
-  const { data: profiles, error } = await supabaseAdmin
+  const { data: profiles, error } = await getSupabaseAdmin()
     .from("profiles")
     .select("id, instagram, tiktok, youtube_url, social_synced_at")
     .or("instagram.not.is.null,tiktok.not.is.null,youtube_url.not.is.null")
@@ -60,7 +60,7 @@ async function handler(req: NextRequest) {
           skipped++;
           return;
         }
-        const { error: upErr } = await supabaseAdmin
+        const { error: upErr } = await getSupabaseAdmin()
           .from("profiles")
           .update({
             ig_followers:     stats.ig_followers,
