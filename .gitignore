@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Dev tooling — not part of the app
+.superpowers/
+.claude/
+docs/superpowers/
