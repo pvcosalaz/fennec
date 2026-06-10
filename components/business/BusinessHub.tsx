@@ -56,11 +56,12 @@ function EqualizerBars({ months, revenues }: { months: ReturnType<typeof getLast
           return (
             <div key={i} className="flex-1 flex flex-col justify-end" style={{ height: "100%" }}>
               <div
-                className={`w-full rounded-sm transition-all duration-700 ease-out ${m.isCurrent ? "bg-accent" : "bg-white/15"}`}
+                className={`w-full rounded-sm transition-all ease-out ${m.isCurrent ? "bg-accent" : "bg-white/15"}`}
                 style={{
                   height: up ? (pct > 0 ? `${pct}%` : "4px") : "4px",
                   minHeight: "4px",
-                  transitionDelay: `${i * 60}ms`,
+                  transitionDuration: "1400ms",
+                  transitionDelay: `${i * 120}ms`,
                 }}
               />
             </div>
@@ -122,6 +123,21 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
       <div>
         <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">Business Hub</p>
         <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-white">Run your music business.</h1>
+        <p className="mt-2 text-sm text-zinc-400">Gestiona proyectos, cotizaciones, clientes y calcula tus ingresos musicales.</p>
+      </div>
+
+      {/* ── Revenue this month + bars ── */}
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[10px] text-zinc-500 uppercase tracking-widest">This month</p>
+            <p className="text-xl font-black text-white mt-0.5">
+              {revenue > 0 ? formatCOP(revenue) : "$0"}
+            </p>
+          </div>
+          <p className="text-xs text-zinc-500">Revenue</p>
+        </div>
+        <EqualizerBars months={months} revenues={revenues} />
       </div>
 
       {/* ── My Network — animated hero ── */}
@@ -201,20 +217,6 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
       </div>
 
       </div>{/* end top group */}
-
-      {/* ── Revenue summary + bars — anchored to bottom ── */}
-      <div className="mt-auto space-y-2 pt-2 pb-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[10px] text-zinc-500 uppercase tracking-widest">This month</p>
-            <p className="text-xl font-black text-white mt-0.5">
-              {revenue > 0 ? formatCOP(revenue) : "$0"}
-            </p>
-          </div>
-          <p className="text-xs text-zinc-500">Revenue</p>
-        </div>
-        <EqualizerBars months={months} revenues={revenues} />
-      </div>
 
     </div>
   );
