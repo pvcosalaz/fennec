@@ -141,9 +141,11 @@ export default function Dashboard({
   const [projects,   setProjects]   = useState<Project[]>([]);
   const [quotes,     setQuotes]     = useState<Quote[]>([]);
   const [clients,    setClients]    = useState<Client[]>([]);
+  const [businessLoaded, setBusinessLoaded] = useState(false);
   const [profile,    setProfile]    = useState<UserProfile | null>(null);
   const [mounted,    setMounted]    = useState(false);
   const [showDbInfo, setShowDbInfo] = useState(false);
+  const [showSocialInfo, setShowSocialInfo] = useState(false);
 
   // Social stats
   const [igFollowers,  setIgFollowers]  = useState<number | null>(null);
@@ -176,14 +178,22 @@ export default function Dashboard({
       if (p.ig_followers   != null) setIgFollowers(p.ig_followers);
       if (p.tiktok_followers != null) setTtFollowers(p.tiktok_followers);
       if (p.yt_subscribers != null) setYtSubs(p.yt_subscribers);
-      if (p.social_synced_at) setSyncedAt(p.social_synced_at);
+      if (p.social_synced_at) {
+        setSyncedAt(p.social_synced_at);
+      } else if (p.instagram || p.tiktok || p.youtube_url) {
+        // Nunca sincronizado pero ya tiene handles → primer jale automático.
+        // De aquí en adelante el cron semanal hace todos los refresh.
+        refreshSocial();
+      }
     }).catch(() => {});
   }, [userId]);
 
   useEffect(() => {
     if (!userId) return;
     Promise.all([getProjects(userId), getQuotes(userId), getClients(userId)])
-      .then(([p, q, c]) => { setProjects(p); setQuotes(q); setClients(c); });
+      .then(([p, q, c]) => { setProjects(p); setQuotes(q); setClients(c); })
+      .catch(() => {})
+      .finally(() => setBusinessLoaded(true));
   }, [userId]);
 
   // Color for FennecIdCard
@@ -369,13 +379,25 @@ export default function Dashboard({
       {/* Social chips: Instagram · TikTok · YouTube */}
       <div>
         <div className="flex items-center justify-between mb-1.5 px-1">
-          <p className="text-[8px] font-bold uppercase tracking-widest text-zinc-600">Alcance social</p>
-          <button type="button" onClick={refreshSocial} disabled={syncing}
-            className="flex items-center gap-1 text-[9px] font-semibold text-zinc-600 hover:text-zinc-400 transition disabled:opacity-40">
-            <span className={syncing ? "animate-spin inline-block" : ""}>↻</span>
-            {syncedAt ? timeAgo(syncedAt) : "actualizar"}
-          </button>
+          <div className="flex items-center gap-1.5">
+            <p className="text-[8px] font-bold uppercase tracking-widest text-zinc-600">Alcance social</p>
+            <button type="button" onClick={() => setShowSocialInfo((v) => !v)}
+              className="text-zinc-600 hover:text-zinc-400 transition leading-none"
+              aria-label="¿Cómo se actualiza?">
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
+                <circle cx="8" cy="8" r="7.5" stroke="currentColor" strokeWidth="1" fill="none" />
+                <text x="8" y="12" textAnchor="middle" fontSize="10" fontWeight="700" fill="currentColor">i</text>
+              </svg>
+            </button>
+          </div>
+          {syncing && <span className="text-[9px] text-zinc-600 animate-spin inline-block">↻</span>}
         </div>
+        {showSocialInfo && (
+          <p className="text-[9px] text-zinc-500 mb-1.5 px-1 leading-relaxed">
+            Se actualiza automáticamente cada semana.
+            {syncedAt && <span className="text-zinc-600"> · Última: {timeAgo(syncedAt)}</span>}
+          </p>
+        )}
         <div className="grid grid-cols-3 divide-x divide-white/[0.06]">
           <SocialChip icon={<SiInstagram size={13} />} count={igFollowers}
             label="Instagram" color="#E1306C" hasHandle={hasIg} />
@@ -386,8 +408,8 @@ export default function Dashboard({
         </div>
       </div>
 
-      {/* Empty state */}
-      {projects.length === 0 && quotes.length === 0 && (
+      {/* Empty state — only after business data finished loading (avoids flash on tab switch) */}
+      {businessLoaded && projects.length === 0 && quotes.length === 0 && (
         <div className="border-t border-white/5 pt-4 px-2 flex flex-col items-center gap-3 pb-2">
           <p className="text-[11px] font-semibold text-zinc-400 text-center">Tu negocio empieza aquí.</p>
           <div className="flex gap-3">
