@@ -567,7 +567,7 @@ export default function PricingCalculator() {
 
   return (
     <div className="flex flex-col bg-background" style={{ height: "100dvh" }}>
-    <main id="scroll-root" className={`flex-1 flex flex-col overscroll-none pb-6 ${(activeTab === "dashboard" || activeTab === "contenido" || (activeTab === "pricing" && businessView === "hub")) && !showSettings ? "overflow-hidden" : "overflow-y-auto"}`} style={{ overscrollBehavior: "none", paddingTop: "calc(env(safe-area-inset-top) + 0.75rem)" }}>
+    <main id="scroll-root" className={`flex-1 flex flex-col overscroll-none pb-6 ${(activeTab === "contenido" || (activeTab === "pricing" && businessView === "hub")) && !showSettings ? "overflow-hidden" : "overflow-y-auto"}`} style={{ overscrollBehavior: "none", paddingTop: "calc(env(safe-area-inset-top) + 0.75rem)" }}>
       {/* Settings button — hidden on Community tab (has its own header) */}
       {activeTab !== "noticias" && (
         <div className={`flex w-full max-w-4xl items-center px-6 ${activeTab === "dashboard" ? "mb-4" : "mb-4"}`}>
