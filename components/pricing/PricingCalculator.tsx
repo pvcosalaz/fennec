@@ -1116,7 +1116,7 @@ export default function PricingCalculator() {
           backdropFilter: "blur(24px)",
         }}
       >
-        <div className="mx-auto flex w-full max-w-2xl items-center px-2 pt-2" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 0.75rem)" }}>
+        <div className="mx-auto flex w-full max-w-2xl items-center px-2 pt-2" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 4px)" }}>
           {moduleTabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
