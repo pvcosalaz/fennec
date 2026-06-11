@@ -452,27 +452,34 @@ export default function PricingCalculator() {
   }, []);
 
   async function loadProfile(userId: string) {
-    const [p, projects, quotes, clients] = await Promise.all([
-      getProfile(userId),
-      getProjects(userId),
-      getQuotes(userId),
-      getClients(userId),
-    ]);
-    setAuthLoading(false);
-    if (p) {
-      const active = projects.filter((pr) => pr.status !== "paid").length;
-      const closed = projects.filter((pr) => pr.status === "paid").length;
-      const sent   = quotes.filter((q)  => q.status === "sent").length;
-      const computedScore = Math.round(active * 150 + closed * 50 + clients.length * 75 + sent * 25);
+    try {
+      const [p, projects, quotes, clients] = await Promise.all([
+        getProfile(userId),
+        getProjects(userId),
+        getQuotes(userId),
+        getClients(userId),
+      ]);
+      if (p) {
+        const active = projects.filter((pr) => pr.status !== "paid").length;
+        const closed = projects.filter((pr) => pr.status === "paid").length;
+        const sent   = quotes.filter((q)  => q.status === "sent").length;
+        const computedScore = Math.round(active * 150 + closed * 50 + clients.length * 75 + sent * 25);
 
-      if (computedScore !== p.fennec_db_score) {
-        updateDbScore(userId, computedScore);
-        setProfile({ ...p, fennec_db_score: computedScore });
+        if (computedScore !== p.fennec_db_score) {
+          updateDbScore(userId, computedScore);
+          setProfile({ ...p, fennec_db_score: computedScore });
+        } else {
+          setProfile(p);
+        }
       } else {
-        setProfile(p);
+        setProfile(null);
       }
-    } else {
+    } catch (err) {
+      // A failed query must never trap the user on the splash screen.
+      console.error("[loadProfile]", err);
       setProfile(null);
+    } finally {
+      setAuthLoading(false);
     }
   }
   const [quantity, setQuantity] = useState<number | null>(null);
