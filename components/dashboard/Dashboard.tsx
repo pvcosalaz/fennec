@@ -343,8 +343,9 @@ export default function Dashboard({
       <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-4 h-[460px]"
         style={{ background: `radial-gradient(ellipse 70% 55% at 50% 38%, rgba(${glowRgb},0.07), transparent 70%)` }} />
 
-      {/* Content — my-auto centers it when short, scrolls when tall (no clipping) */}
-      <div className="my-auto w-full flex flex-col gap-2">
+      {/* Content — fills top-to-bottom (justify-between) so there's never a black
+          gap; scrolls instead of clipping when content is taller than the frame. */}
+      <div className="flex-1 w-full flex flex-col justify-between gap-2">
 
       {/* Username */}
       {username && (
