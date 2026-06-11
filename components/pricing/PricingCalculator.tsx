@@ -120,6 +120,7 @@ import NotificationBell from "@/components/notifications/NotificationBell";
 import ContentModule from "@/components/content/ContentModule";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/lib/supabase";
+import { track, trackSessionStart } from "@/lib/track";
 import { getProfile, updateDbScore } from "@/lib/communityDb";
 import type { Profile } from "@/lib/communityTypes";
 import AuthGate from "@/components/community/AuthGate";
@@ -451,6 +452,14 @@ export default function PricingCalculator() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ── CRM activity tracking — session start + module navigation ──
+  useEffect(() => {
+    if (!authUser) return;
+    trackSessionStart();
+    void track("module_view", { tab: activeTab });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authUser?.id, activeTab]);
+
   async function loadProfile(userId: string) {
     try {
       const [p, projects, quotes, clients] = await Promise.all([
@@ -583,7 +592,7 @@ export default function PricingCalculator() {
           </div>
           <div className="flex-1 flex justify-end">
             <button
-              onClick={() => setShowSettings(true)}
+              onClick={() => { void track("settings_open"); setShowSettings(true); }}
               className="flex items-center justify-center h-8 w-8 rounded-xl border border-white/10 bg-white/5 text-zinc-400 hover:text-accent hover:border-accent/30 transition"
             >
               <Settings className="h-4 w-4" />
@@ -605,7 +614,7 @@ export default function PricingCalculator() {
           onLanguageChange={(lang) => { void i18n.changeLanguage(lang); }}
           avatarUrl={profile.avatar_url}
           onAvatarChange={(url) => setProfile((p) => p ? { ...p, avatar_url: url } : p)}
-          onSignOut={async () => { await supabase.auth.signOut(); }}
+          onSignOut={async () => { await track("sign_out"); await supabase.auth.signOut(); }}
           userId={authUser.id}
           initialSection={settingsSection}
         />
