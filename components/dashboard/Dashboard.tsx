@@ -5,7 +5,7 @@ import { SiInstagram, SiTiktok, SiYoutube } from "react-icons/si";
 import { type Project, type Quote, type Client } from "@/lib/pricingData";
 import { getProjects, getQuotes, getClients } from "@/lib/businessDb";
 import { PROFILE_KEY, type UserProfile } from "@/components/settings/SettingsModule";
-import { fetchProfile } from "@/lib/communityDb";
+import { fetchProfile, updateDbScore } from "@/lib/communityDb";
 import { supabase } from "@/lib/supabase";
 import FennecIdCard from "@/components/network/FennecIdCard";
 import { getColorScheme } from "@/lib/fennecIdPalette";
@@ -272,8 +272,10 @@ export default function Dashboard({
     socialPoints
   );
   useEffect(() => {
-    if (mounted) localStorage.setItem("fennec-db-score", String(fennecDb));
-  }, [fennecDb, mounted]);
+    if (!mounted) return;
+    localStorage.setItem("fennec-db-score", String(fennecDb));
+    if (userId) updateDbScore(userId, fennecDb);
+  }, [fennecDb, mounted, userId]);
 
   // Refresh social stats via Apify
   async function refreshSocial() {

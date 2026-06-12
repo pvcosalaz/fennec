@@ -120,18 +120,20 @@ export default function PostCard({ post, currentProfile, onOpenThread, onLoop, o
     <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] overflow-hidden transition-colors hover:border-white/[0.13]">
 
       {/* Top row: category · user info · time + menu */}
-      <div className="flex items-center justify-between gap-2 px-4 pt-3 pb-2">
-        {/* Category chip — colored dot + label */}
-        <span className="shrink-0 flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.12em] px-2.5 py-1 rounded-full border"
-          style={{ color: `${cat.color}cc`, borderColor: `${cat.color}26`, background: `${cat.color}0d` }}>
-          <span className="w-1.5 h-1.5 rounded-full" style={{ background: cat.color, boxShadow: `0 0 5px ${cat.color}99` }} />
-          {cat.label}
-        </span>
+      <div className="flex items-center px-4 pt-3 pb-2">
+        {/* Left: category chip — flex-1 so center stays truly centered */}
+        <div className="flex-1">
+          <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.12em] px-2.5 py-1 rounded-full border"
+            style={{ color: `${cat.color}cc`, borderColor: `${cat.color}26`, background: `${cat.color}0d` }}>
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: cat.color, boxShadow: `0 0 5px ${cat.color}99` }} />
+            {cat.label}
+          </span>
+        </div>
 
-        {/* User info — centered, tappable */}
+        {/* Center: user info */}
         <button
           onClick={() => onOpenProfile(post.user_id)}
-          className="flex items-center gap-1.5 min-w-0 hover:opacity-80 transition"
+          className="flex items-center gap-1.5 hover:opacity-80 transition"
         >
           <div
             className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 overflow-hidden"
@@ -140,17 +142,19 @@ export default function PostCard({ post, currentProfile, onOpenThread, onLoop, o
               boxShadow: p.is_pro && !p.is_bot ? "0 0 0 1.5px rgba(245,166,35,0.55), 0 0 8px rgba(245,166,35,0.25)" : "none",
             }}
           >
-            {p.avatar_url
-              ? <img src={p.avatar_url} className="w-full h-full rounded-full object-cover" alt="" />
-              : avatarInitial(p)}
+            {p.username === "fennec"
+              ? <img src="/fennec-icon-transparent.png" className="w-full h-full rounded-full object-cover" alt="Fennec" />
+              : p.avatar_url
+                ? <img src={p.avatar_url} className="w-full h-full rounded-full object-cover" alt="" />
+                : avatarInitial(p)}
           </div>
-          <span className={`text-xs font-semibold truncate ${p.is_pro ? "text-amber-400" : "text-zinc-300"}`}>@{p.username}</span>
-          {p.is_pro && !p.is_bot && <ProBadge />}
+          <span className={`text-xs font-semibold ${p.is_pro ? "text-amber-400" : "text-zinc-300"}`}>@{p.username}</span>
+          {p.is_pro && !p.is_bot && p.username !== currentProfile?.username && <ProBadge />}
           <span className="text-[10px] tabular-nums text-zinc-600 shrink-0">{p.fennec_db_score} dB</span>
         </button>
 
-        {/* Time + owner menu */}
-        <div className="flex items-center gap-2 shrink-0">
+        {/* Right: time + owner menu — flex-1 so it mirrors the left */}
+        <div className="flex-1 flex items-center justify-end gap-2">
           <span className="text-[10px] text-zinc-600">{timeAgo(post.created_at)}</span>
           {isOwner && (
             <div className="relative">

@@ -117,7 +117,7 @@ export default function UserProfilePage({ userId, currentProfile, onBack, onOpen
         )}
         <div className="flex items-center gap-2">
           <span className={`text-sm font-medium ${profile.is_pro ? "text-amber-400" : "text-zinc-400"}`}>@{profile.username}</span>
-          {profile.is_pro && <ProBadge />}
+          {profile.is_pro && !isOwnProfile && <ProBadge />}
           <span className="text-sm font-bold text-amber-500">{profile.fennec_db_score} <span className="text-xs font-normal text-zinc-500">dB</span></span>
         </div>
         {/* Role + Country */}

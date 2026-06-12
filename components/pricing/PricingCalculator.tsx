@@ -452,6 +452,12 @@ export default function PricingCalculator() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Reset scroll to top on every tab switch to avoid the "jump" glitch
+  useEffect(() => {
+    const el = document.getElementById("scroll-root");
+    if (el) el.scrollTop = 0;
+  }, [activeTab]);
+
   // ── CRM activity tracking — session start + module navigation ──
   useEffect(() => {
     if (!authUser) return;
