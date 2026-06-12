@@ -37,6 +37,42 @@ function avatarColor(username: string) {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
+// Per-category accent — colored dot + label, no emojis
+const CATEGORY_META: Record<string, { label: string; color: string }> = {
+  music:    { label: "Music",          color: "#f5a623" },
+  gear:     { label: "Gear & Tools",   color: "#a78bfa" },
+  sync:     { label: "Sync & Scoring", color: "#34d399" },
+  business: { label: "Business",       color: "#60a5fa" },
+  mindset:  { label: "Mindset",        color: "#f472b6" },
+  general:  { label: "General",        color: "#a1a1aa" },
+};
+
+// Animated EQ icon — the "vibe" action, audio-native instead of a heart
+function VibeIcon({ active }: { active: boolean }) {
+  return (
+    <span className="flex items-end gap-[2px] h-[14px]" aria-hidden>
+      <style>{`
+        @keyframes vibeBar1 { from { height: 5px; } to { height: 13px; } }
+        @keyframes vibeBar2 { from { height: 12px; } to { height: 6px; } }
+        @keyframes vibeBar3 { from { height: 7px; } to { height: 11px; } }
+      `}</style>
+      {[
+        { h: 8,  anim: "vibeBar1", dur: "0.55s" },
+        { h: 13, anim: "vibeBar2", dur: "0.7s"  },
+        { h: 6,  anim: "vibeBar3", dur: "0.6s"  },
+      ].map((b, i) => (
+        <span key={i} className="w-[3px] rounded-full"
+          style={{
+            height: b.h,
+            background: active ? "#f5a623" : "currentColor",
+            boxShadow: active ? "0 0 6px rgba(245,166,35,0.6)" : "none",
+            animation: active ? `${b.anim} ${b.dur} ease-in-out infinite alternate` : "none",
+          }} />
+      ))}
+    </span>
+  );
+}
+
 export default function PostCard({ post, currentProfile, onOpenThread, onLoop, onOpenProfile, onDelete }: Props) {
   const [vibed, setVibed]           = useState(post.user_vibed);
   const [vibeCount, setVibeCount]   = useState(post.vibe_count);
@@ -78,19 +114,18 @@ export default function PostCard({ post, currentProfile, onOpenThread, onLoop, o
 
   const p = post.profile;
 
+  const cat = CATEGORY_META[post.category] ?? CATEGORY_META.general;
+
   return (
-    <div className="rounded-2xl border border-white/8 bg-white/[0.03] overflow-hidden">
+    <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] overflow-hidden transition-colors hover:border-white/[0.13]">
 
       {/* Top row: category · user info · time + menu */}
       <div className="flex items-center justify-between gap-2 px-4 pt-3 pb-2">
-        {/* Category chip */}
-        <span className="shrink-0 text-[10px] text-zinc-500 bg-white/5 px-2.5 py-1 rounded-full">
-          {post.category === "music"    && "🎵 Music"}
-          {post.category === "gear"     && "🎛️ Gear & Tools"}
-          {post.category === "sync"     && "🎬 Sync & Scoring"}
-          {post.category === "business" && "💼 Business"}
-          {post.category === "mindset"  && "🧠 Mindset"}
-          {post.category === "general"  && "💬 General"}
+        {/* Category chip — colored dot + label */}
+        <span className="shrink-0 flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.12em] px-2.5 py-1 rounded-full border"
+          style={{ color: `${cat.color}cc`, borderColor: `${cat.color}26`, background: `${cat.color}0d` }}>
+          <span className="w-1.5 h-1.5 rounded-full" style={{ background: cat.color, boxShadow: `0 0 5px ${cat.color}99` }} />
+          {cat.label}
         </span>
 
         {/* User info — centered, tappable */}
@@ -100,7 +135,10 @@ export default function PostCard({ post, currentProfile, onOpenThread, onLoop, o
         >
           <div
             className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 overflow-hidden"
-            style={{ backgroundColor: p.is_bot ? "#000000" : avatarColor(p.username) }}
+            style={{
+              backgroundColor: p.is_bot ? "#000000" : avatarColor(p.username),
+              boxShadow: p.is_pro && !p.is_bot ? "0 0 0 1.5px rgba(245,166,35,0.55), 0 0 8px rgba(245,166,35,0.25)" : "none",
+            }}
           >
             {p.avatar_url
               ? <img src={p.avatar_url} className="w-full h-full rounded-full object-cover" alt="" />
@@ -108,7 +146,7 @@ export default function PostCard({ post, currentProfile, onOpenThread, onLoop, o
           </div>
           <span className={`text-xs font-semibold truncate ${p.is_pro ? "text-amber-400" : "text-zinc-300"}`}>@{p.username}</span>
           {p.is_pro && !p.is_bot && <ProBadge />}
-          <span className="text-[10px] text-zinc-600 shrink-0">{p.fennec_db_score} dB</span>
+          <span className="text-[10px] tabular-nums text-zinc-600 shrink-0">{p.fennec_db_score} dB</span>
         </button>
 
         {/* Time + owner menu */}
@@ -182,10 +220,11 @@ export default function PostCard({ post, currentProfile, onOpenThread, onLoop, o
       <div className="border-t border-white/5 flex items-center justify-around px-4 py-3.5">
         <button
           onClick={handleVibe}
-          className={`flex items-center gap-2 text-sm transition ${vibed ? "text-amber-500" : "text-zinc-500 hover:text-zinc-300"}`}
+          aria-label="Vibe"
+          className={`flex items-center gap-2 text-sm transition active:scale-90 duration-150 ${vibed ? "text-amber-500" : "text-zinc-500 hover:text-zinc-300"}`}
         >
-          <span className="text-base">🎵</span>
-          <span>{vibeCount > 0 ? vibeCount : ""}</span>
+          <VibeIcon active={vibed} />
+          <span className="tabular-nums">{vibeCount > 0 ? vibeCount : ""}</span>
         </button>
 
         <button

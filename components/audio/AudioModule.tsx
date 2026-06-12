@@ -47,12 +47,18 @@ export default function AudioModule({ userId, isPro }: Props) {
 
       {/* ── Module header ─────────────────────────────────────── */}
       <div className="flex items-center justify-between px-4 pb-4">
-        <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Feed</p>
+        <div className="flex-1 min-w-0 mr-3">
+          <div className="flex items-center gap-2.5">
+            <p className="text-[10px] font-bold tracking-[0.18em] text-accent/70 uppercase flex-shrink-0">Track Reviews</p>
+            <div className="h-px flex-1 bg-gradient-to-r from-accent/20 to-transparent" />
+          </div>
+          <p className="mt-1 text-[10px] text-zinc-600 tracking-wide">Give feedback · earn karma · get heard</p>
+        </div>
         <div className="flex items-center gap-2">
           {/* Mic — Melody Bank */}
           <button
             onClick={() => setOverlay(overlay === "melody" ? null : "melody")}
-            className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition"
+            className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 active:scale-90 transition"
             aria-label="Melody Bank"
           >
             <Mic className="h-4 w-4" />
@@ -60,7 +66,7 @@ export default function AudioModule({ userId, isPro }: Props) {
           {/* Plus — My Tracks */}
           <button
             onClick={() => setOverlay(overlay === "mine" ? null : "mine")}
-            className="w-9 h-9 rounded-xl bg-amber-500 flex items-center justify-center text-black hover:bg-amber-400 transition"
+            className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center text-black hover:bg-amber-400 active:scale-90 transition shadow-[0_0_14px_rgba(245,166,35,0.3)]"
             aria-label="My Tracks"
           >
             <Plus className="h-4 w-4" />

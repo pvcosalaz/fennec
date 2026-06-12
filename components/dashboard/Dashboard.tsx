@@ -463,14 +463,14 @@ export default function Dashboard({
       <div className="dash-rise" style={{ animationDelay: "0.2s" }}>
         <div className="flex items-center gap-2 mb-1.5 px-1">
           <p className="text-[8px] font-bold uppercase tracking-widest text-zinc-600 flex-shrink-0">
-            Música &amp; Negocio
+            Music &amp; Business
           </p>
           <div className="h-px flex-1 bg-gradient-to-r from-white/[0.07] to-transparent" />
         </div>
         <div className="grid grid-cols-3 divide-x divide-white/[0.06]">
-          <StatChip label="Streams"   pending onConnect={onOpenSettings} />
-          <StatChip label="Créditos"  pending onConnect={onOpenSettings} />
-          <StatChip label="Proyectos" value={activeCount} />
+          <StatChip label="Streams"  pending onConnect={onOpenSettings} />
+          <StatChip label="Credits"  pending onConnect={onOpenSettings} />
+          <StatChip label="Projects" value={activeCount} />
         </div>
       </div>
 
@@ -478,7 +478,7 @@ export default function Dashboard({
       <div className="dash-rise" style={{ animationDelay: "0.28s" }}>
         <div className="flex items-center gap-2 mb-1.5 px-1">
           <div className="flex items-center gap-1.5 flex-shrink-0">
-            <p className="text-[8px] font-bold uppercase tracking-widest text-zinc-600">Alcance social</p>
+            <p className="text-[8px] font-bold uppercase tracking-widest text-zinc-600">Social Reach</p>
             <button type="button" onClick={() => setShowSocialInfo((v) => !v)}
               className="text-zinc-600 hover:text-zinc-400 transition leading-none"
               aria-label="¿Cómo se actualiza?">

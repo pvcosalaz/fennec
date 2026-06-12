@@ -121,21 +121,30 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
 
       {/* ── Header ── */}
       <div>
-        <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">Business Hub</p>
+        <div className="flex items-center gap-2.5">
+          <p className="text-[10px] font-bold tracking-[0.18em] text-accent/70 uppercase flex-shrink-0">Business Hub</p>
+          <div className="h-px flex-1 bg-gradient-to-r from-accent/20 to-transparent" />
+        </div>
         <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-white">Run your music business.</h1>
-        <p className="mt-2 text-sm text-zinc-400">Manage your projects, quotes, clients, and track your music business revenue.</p>
+        <p className="mt-1.5 text-sm text-zinc-500 leading-relaxed">Projects, quotes, clients — and the revenue they bring in.</p>
       </div>
 
       {/* ── Revenue this month + bars ── */}
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
-        <div className="flex items-center justify-between">
+      <div className="relative rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4 space-y-3 overflow-hidden">
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-8 h-24"
+          style={{ background: "radial-gradient(ellipse 60% 100% at 50% 0%, rgba(245,166,35,0.06), transparent 70%)" }} />
+        <div className="relative flex items-end justify-between">
           <div>
-            <p className="text-[10px] text-zinc-500 uppercase tracking-widest">This month</p>
-            <p className="text-xl font-black text-white mt-0.5">
+            <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-[0.2em]">Revenue · This month</p>
+            <p className="text-[26px] leading-tight font-black tabular-nums tracking-tight mt-0.5"
+               style={{
+                 background: "linear-gradient(180deg, #ffffff 0%, #d4d4d8 100%)",
+                 WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent",
+               }}>
               {revenue > 0 ? formatCOP(revenue) : "$0"}
             </p>
           </div>
-          <p className="text-xs text-zinc-500">Revenue</p>
+          <p className="text-[9px] font-bold text-zinc-700 uppercase tracking-[0.2em] pb-1">Last 6 months</p>
         </div>
         <EqualizerBars months={months} revenues={revenues} />
       </div>
@@ -144,7 +153,7 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
       <button
         type="button"
         onClick={() => onOpenView("network")}
-        className="relative w-full rounded-2xl overflow-hidden"
+        className="relative w-full rounded-2xl overflow-hidden ring-1 ring-white/[0.06] active:scale-[0.985] transition-transform duration-150"
         style={{ height: 130 }}
       >
         <NetworkHero />
@@ -157,7 +166,7 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
         <button
           type="button"
           onClick={() => onOpenView("calculator")}
-          className="relative rounded-2xl overflow-hidden"
+          className="relative rounded-2xl overflow-hidden active:scale-[0.97] transition-transform duration-150"
           style={{ height: 90 }}
         >
           <PricingCalculatorCard />
@@ -167,7 +176,7 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
         <button
           type="button"
           onClick={() => isPro ? onOpenView("clients") : undefined}
-          className="relative rounded-2xl overflow-hidden"
+          className="relative rounded-2xl overflow-hidden active:scale-[0.97] transition-transform duration-150"
           style={{ height: 90 }}
         >
           {!isPro && (
@@ -185,7 +194,7 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
         <button
           type="button"
           onClick={() => isPro ? onOpenView("quotes") : undefined}
-          className="relative rounded-2xl overflow-hidden"
+          className="relative rounded-2xl overflow-hidden active:scale-[0.97] transition-transform duration-150"
           style={{ height: 90 }}
         >
           {!isPro && (
@@ -203,7 +212,7 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
         <button
           type="button"
           onClick={() => onOpenView("projects")}
-          className="relative rounded-2xl overflow-hidden"
+          className="relative rounded-2xl overflow-hidden active:scale-[0.97] transition-transform duration-150"
           style={{ height: 90 }}
         >
           <ProjectsCard />

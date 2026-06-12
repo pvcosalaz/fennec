@@ -157,19 +157,22 @@ export default function CalendarHub({
     <div className="mx-auto w-full max-w-4xl flex flex-col flex-1 gap-3 px-4 pb-3 text-white">
       {/* 1. Greeting header */}
       <div className="flex-shrink-0">
-        <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">
-          Music Content Creation Hub
-        </p>
+        <div className="flex items-center gap-2.5">
+          <p className="text-[10px] font-bold tracking-[0.18em] text-accent/70 uppercase flex-shrink-0">
+            Content Hub
+          </p>
+          <div className="h-px flex-1 bg-gradient-to-r from-accent/20 to-transparent" />
+        </div>
         <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-white">
           {greetText} {greetEmoji}
         </h1>
-        <p className="mt-2 text-sm text-zinc-400">
-          Inspire, create and organize your content for your music personal brand.
+        <p className="mt-1.5 text-sm text-zinc-500 leading-relaxed">
+          Inspire, create and organize content for your personal brand.
         </p>
       </div>
 
       {/* 2. Calendar (gráfica) */}
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3 flex-shrink-0">
+      <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4 space-y-3 flex-shrink-0">
       <div className="flex items-center justify-between">
         <button
           onClick={prevWeek}
@@ -199,9 +202,9 @@ export default function CalendarHub({
           let buttonClass =
             "flex flex-col items-center gap-1 py-2 rounded-xl transition-colors ";
           if (isSelected) {
-            buttonClass += "bg-amber-400 text-black";
+            buttonClass += "bg-accent text-black shadow-[0_0_14px_rgba(245,166,35,0.3)]";
           } else if (isToday) {
-            buttonClass += "border border-amber-400/50 text-amber-400";
+            buttonClass += "border border-accent/50 text-accent";
           } else {
             buttonClass += "text-zinc-500 hover:bg-zinc-800";
           }

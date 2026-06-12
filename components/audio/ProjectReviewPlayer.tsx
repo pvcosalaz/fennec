@@ -319,7 +319,7 @@ export default function ProjectReviewPlayer({
 
       {/* Karma gate alert */}
       {karmaBlocked && (
-        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-xs text-amber-400 text-center font-medium">
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-xs text-amber-400 text-center font-medium shadow-[0_0_18px_rgba(245,166,35,0.12)]">
           Other producers need your help — leave a comment to keep listening
         </div>
       )}
@@ -329,18 +329,33 @@ export default function ProjectReviewPlayer({
         <button
           onClick={handlePass}
           disabled={karmaBlocked}
-          className="flex-1 h-12 rounded-xl border border-white/10 bg-white/5 text-sm font-semibold text-zinc-400 disabled:opacity-30 disabled:cursor-not-allowed transition hover:bg-white/10"
+          className="flex-1 h-12 rounded-xl border border-white/10 bg-white/5 text-sm font-semibold text-zinc-400 disabled:opacity-30 disabled:cursor-not-allowed transition hover:bg-white/10 active:scale-[0.97]"
         >
           Pass
         </button>
         <button
           onClick={() => setShowFeedback(true)}
-          className="flex-[2] h-12 rounded-xl bg-amber-500 text-black text-sm font-bold flex items-center justify-center gap-2 hover:bg-amber-400 transition"
+          className="flex-[2] h-12 rounded-xl text-black text-sm font-bold flex items-center justify-center gap-2 transition active:scale-[0.98] hover:brightness-110"
+          style={{
+            background: "linear-gradient(180deg, #ffc25c 0%, #f5a623 100%)",
+            boxShadow: "0 0 20px rgba(245,166,35,0.3), inset 0 1px 0 rgba(255,255,255,0.35)",
+          }}
         >
           <MessageSquare className="h-4 w-4" />
           Leave Feedback
         </button>
       </div>
+
+      {/* Skips remaining — the karma economy made visible */}
+      {skipStreak > 0 && !karmaBlocked && (
+        <div className="flex items-center justify-center gap-1.5 -mt-1">
+          {Array.from({ length: MAX_SKIPS }).map((_, i) => (
+            <span key={i} className="w-1 h-1 rounded-full transition-colors"
+              style={{ background: i < MAX_SKIPS - skipStreak ? "rgba(245,166,35,0.75)" : "rgba(255,255,255,0.12)" }} />
+          ))}
+          <span className="text-[9px] text-zinc-600 ml-1 uppercase tracking-wider">skips left</span>
+        </div>
+      )}
 
       {/* Comment feed */}
       {comments.length > 0 && (

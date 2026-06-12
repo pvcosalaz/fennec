@@ -22,6 +22,16 @@ function avatarColor(username: string) {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
+// Per-category accent for the filter chips — mirrors PostCard's palette
+const CHIP_COLORS: Record<string, string> = {
+  music:    "#f5a623",
+  gear:     "#a78bfa",
+  sync:     "#34d399",
+  business: "#60a5fa",
+  mindset:  "#f472b6",
+  general:  "#a1a1aa",
+};
+
 export default function FeedView({ profile, onOpenThread, onOpenProfile, openComposerWith, onComposerConsumed }: Props) {
   const [category, setCategory]         = useState<PostCategory | null>(null);
   const [posts, setPosts]               = useState<Post[]>([]);
@@ -177,35 +187,43 @@ export default function FeedView({ profile, onOpenThread, onOpenProfile, openCom
           {/* Compose */}
           <button
             onClick={() => setComposerOpen(true)}
-            className="w-10 h-10 rounded-2xl bg-amber-500 flex items-center justify-center hover:bg-amber-400 transition"
+            className="w-10 h-10 rounded-2xl bg-accent flex items-center justify-center hover:bg-amber-400 active:scale-90 transition shadow-[0_0_16px_rgba(245,166,35,0.35)]"
+            aria-label="New post"
           >
             <Plus className="h-5 w-5 text-black" />
           </button>
         </div>
       </div>
 
-      {/* Category chips */}
+      {/* Category chips — colored dot per category, no emojis */}
       <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
         <button
           onClick={() => setCategory(null)}
-          className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium transition ${
-            category === null ? "bg-amber-500 text-black" : "bg-white/5 text-zinc-400 hover:text-white"
+          className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition border ${
+            category === null
+              ? "bg-accent text-black border-accent shadow-[0_0_12px_rgba(245,166,35,0.35)]"
+              : "bg-white/[0.04] text-zinc-400 border-transparent hover:text-white"
           }`}
         >
           All
         </button>
-        {CATEGORIES.map((cat) => (
-          <button
-            key={cat.id}
-            onClick={() => setCategory(cat.id)}
-            className={`shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition ${
-              category === cat.id ? "bg-amber-500 text-black" : "bg-white/5 text-zinc-400 hover:text-white"
-            }`}
-          >
-            <span>{cat.emoji}</span>
-            {cat.label}
-          </button>
-        ))}
+        {CATEGORIES.map((cat) => {
+          const c = CHIP_COLORS[cat.id] ?? "#a1a1aa";
+          const active = category === cat.id;
+          return (
+            <button
+              key={cat.id}
+              onClick={() => setCategory(cat.id)}
+              className="shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition border"
+              style={active
+                ? { color: c, borderColor: `${c}59`, background: `${c}1a`, boxShadow: `0 0 12px ${c}26` }
+                : { color: "#a1a1aa", borderColor: "transparent", background: "rgba(255,255,255,0.04)" }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: c, boxShadow: active ? `0 0 5px ${c}` : "none", opacity: active ? 1 : 0.55 }} />
+              {cat.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* New posts banner */}
@@ -228,7 +246,7 @@ export default function FeedView({ profile, onOpenThread, onOpenProfile, openCom
 
         {!loading && posts.length === 0 && (
           <div className="text-center py-16 text-zinc-600 text-sm">
-            No hay posts todavía. ¡Sé el primero! ✍️
+            No posts yet — be the first to drop something.
           </div>
         )}
 
@@ -259,7 +277,7 @@ export default function FeedView({ profile, onOpenThread, onOpenProfile, openCom
             }}
             className="w-full py-3 text-xs text-zinc-600 hover:text-zinc-400 transition"
           >
-            {loading ? "Cargando..." : "Ver más"}
+            {loading ? "Loading…" : "Load more"}
           </button>
         )}
       </div>

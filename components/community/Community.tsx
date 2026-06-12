@@ -332,7 +332,7 @@ export default function Community({ profile, openComposerWith, onComposerConsume
         >
           Feed
           {fennecTab === "community" && (
-            <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-[3px] rounded-full bg-amber-500" />
+            <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-[3px] rounded-full bg-accent shadow-[0_0_10px_rgba(245,166,35,0.55)]" />
           )}
         </button>
 
@@ -344,7 +344,7 @@ export default function Community({ profile, openComposerWith, onComposerConsume
         >
           News
           {fennecTab === "news" && (
-            <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-[3px] rounded-full bg-amber-500" />
+            <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-[3px] rounded-full bg-accent shadow-[0_0_10px_rgba(245,166,35,0.55)]" />
           )}
         </button>
       </div>

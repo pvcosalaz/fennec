@@ -2,6 +2,13 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "fennec",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "/Users/pacosalazar/Documents/Fennec App/fennec",
+      "port": 3000
+    },
+    {
       "name": "splash-proposals",
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "4444", "--directory", "/Users/pacosalazar/Documents/Fennec App/fennec/.superpowers/splash-proposals"],
