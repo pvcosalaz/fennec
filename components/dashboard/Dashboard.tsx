@@ -377,7 +377,13 @@ export default function Dashboard({
               requestAnimationFrame(() => requestAnimationFrame(() => setCardAnimating(true)));
             }}
             className="w-full text-left"
-            style={{ display: "block", transition: "transform 0.15s cubic-bezier(.16,1,.3,1)" }}
+            style={{
+              display: "block",
+              transition: "transform 0.15s cubic-bezier(.16,1,.3,1), opacity 0.12s ease",
+              // Hide the source card while the overlay copy is flying (Apple Wallet behavior)
+              opacity: cardExpanded ? 0 : 1,
+              pointerEvents: cardExpanded ? "none" : "auto",
+            }}
             onMouseDown={(e)  => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(0.97)"; }}
             onMouseUp={(e)    => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
             onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
@@ -414,7 +420,10 @@ export default function Dashboard({
         const sx    = cardRect.width  / targetW;
         const sy    = cardRect.height / targetH;
 
-        const SPRING = "0.52s cubic-bezier(.16,1,.3,1)";
+        // Exits faster than entrances — the open spring settles, the close gets out of the way
+        const SPRING = cardAnimating
+          ? "0.52s cubic-bezier(.16,1,.3,1)"
+          : "0.38s cubic-bezier(.3,0,.66,1)";
 
         return (
           <>
@@ -422,7 +431,7 @@ export default function Dashboard({
             <div
               onClick={() => {
                 setCardAnimating(false);
-                setTimeout(() => { setCardExpanded(false); setCardRect(null); }, 300);
+                setTimeout(() => { setCardExpanded(false); setCardRect(null); }, 400);
               }}
               style={{
                 position: "fixed", inset: 0, zIndex: 99,
@@ -446,7 +455,9 @@ export default function Dashboard({
                   ? "translate(0,0) scale(1) perspective(700px) rotateX(0deg) rotateY(0deg)"
                   : `translate(${dx}px,${dy}px) scale(${sx},${sy}) perspective(700px) rotateX(6deg) rotateY(-4deg)`,
                 transformOrigin: "top left",
-                transition: cardAnimating ? `transform ${SPRING}` : "none",
+                // Always animated: CSS transitions don't fire on initial mount, so the
+                // overlay paints at the card rect, then springs in — and springs back on close.
+                transition: `transform ${SPRING}`,
                 willChange: "transform",
               }}
             >
@@ -491,7 +502,7 @@ export default function Dashboard({
                 <button
                   onClick={() => {
                     setCardAnimating(false);
-                    setTimeout(() => { setCardExpanded(false); setCardRect(null); }, 300);
+                    setTimeout(() => { setCardExpanded(false); setCardRect(null); }, 400);
                   }}
                   style={{
                     flex: 1, padding: "13px 0", borderRadius: 14,
