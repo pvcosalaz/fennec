@@ -93,12 +93,6 @@ export default function NetworkHero() {
         }}>
           My Network
         </p>
-        <p style={{
-          fontSize: 10, fontWeight: 500, color: "rgba(255,255,255,0.55)",
-          margin: "3px 0 0",
-        }}>
-          Find your collaborators
-        </p>
       </div>
 
       {/* Bottom mask */}

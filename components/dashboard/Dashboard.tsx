@@ -171,6 +171,10 @@ export default function Dashboard({
   const [showSocialInfo, setShowSocialInfo] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [marketingVisited, setMarketingVisited] = useState(false);
+  const [cardExpanded, setCardExpanded] = useState(false);
+  const [cardAnimating, setCardAnimating] = useState(false);
+  const [cardRect, setCardRect] = useState<DOMRect | null>(null);
+  const cardButtonRef = useRef<HTMLButtonElement>(null);
 
   // First-visit welcome + marketing-visited flag
   useEffect(() => {
@@ -357,23 +361,161 @@ export default function Dashboard({
         </p>
       )}
 
-      {/* Fennec ID card */}
+      {/* Fennec ID card — FLIP animation tap to expand */}
       {networkProfile && (
         <div className="dash-rise" style={{ animationDelay: "0.05s" }}>
-          <FennecIdCard
-            firstName={cardFirst} lastName={cardLast}
-            role={networkProfile.role ?? "Producer"}
-            country={networkProfile.country ?? ""}
-            genres={networkProfile.genres ?? []}
-            fennecDb={fennecDb} colorScheme={cardColorScheme}
-            initials={cardInitials} avatarUrl={avatarUrl}
-            instagram={networkProfile.instagram}
-            spotify={networkProfile.spotify}
-            youtube={networkProfile.youtube_url}
-            smallDb
-          />
+          <button
+            ref={cardButtonRef}
+            type="button"
+            onClick={() => {
+              const rect = cardButtonRef.current?.getBoundingClientRect();
+              if (!rect) return;
+              setCardRect(rect);
+              setCardExpanded(true);
+              setCardAnimating(false);
+              // Double rAF: let browser paint the overlay at card position first
+              requestAnimationFrame(() => requestAnimationFrame(() => setCardAnimating(true)));
+            }}
+            className="w-full text-left"
+            style={{ display: "block", transition: "transform 0.15s cubic-bezier(.16,1,.3,1)" }}
+            onMouseDown={(e)  => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(0.97)"; }}
+            onMouseUp={(e)    => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
+            onTouchStart={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(0.97)"; }}
+            onTouchEnd={(e)   => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
+          >
+            <FennecIdCard
+              firstName={cardFirst} lastName={cardLast}
+              role={networkProfile.role ?? "Producer"}
+              country={networkProfile.country ?? ""}
+              genres={networkProfile.genres ?? []}
+              fennecDb={fennecDb} colorScheme={cardColorScheme}
+              initials={cardInitials} avatarUrl={avatarUrl}
+              instagram={networkProfile.instagram}
+              spotify={networkProfile.spotify}
+              youtube={networkProfile.youtube_url}
+              smallDb
+            />
+          </button>
         </div>
       )}
+
+      {/* FLIP-animated Wallet overlay — starts at card rect, springs to center */}
+      {cardExpanded && networkProfile && cardRect && (() => {
+        const PAD = 20;
+        const targetW = Math.min(380, window.innerWidth - PAD * 2);
+        const targetH = 260; // approx full card height (no smallDb)
+        const targetX = (window.innerWidth  - targetW) / 2;
+        const targetY = (window.innerHeight - targetH) / 2 - 40;
+
+        // FLIP: invert transform = where overlay should start (card coords)
+        const dx    = cardRect.left - targetX;
+        const dy    = cardRect.top  - targetY;
+        const sx    = cardRect.width  / targetW;
+        const sy    = cardRect.height / targetH;
+
+        const SPRING = "0.52s cubic-bezier(.16,1,.3,1)";
+
+        return (
+          <>
+            {/* Backdrop */}
+            <div
+              onClick={() => {
+                setCardAnimating(false);
+                setTimeout(() => { setCardExpanded(false); setCardRect(null); }, 300);
+              }}
+              style={{
+                position: "fixed", inset: 0, zIndex: 99,
+                background: "rgba(0,0,0,0.72)",
+                backdropFilter: "blur(14px)",
+                WebkitBackdropFilter: "blur(14px)",
+                opacity: cardAnimating ? 1 : 0,
+                transition: cardAnimating ? `opacity 0.32s ease` : "opacity 0.28s ease",
+              }}
+            />
+
+            {/* Card — morphs from its original position to center */}
+            <div
+              style={{
+                position: "fixed",
+                top: targetY,
+                left: targetX,
+                width: targetW,
+                zIndex: 100,
+                transform: cardAnimating
+                  ? "translate(0,0) scale(1) perspective(700px) rotateX(0deg) rotateY(0deg)"
+                  : `translate(${dx}px,${dy}px) scale(${sx},${sy}) perspective(700px) rotateX(6deg) rotateY(-4deg)`,
+                transformOrigin: "top left",
+                transition: cardAnimating ? `transform ${SPRING}` : "none",
+                willChange: "transform",
+              }}
+            >
+              <FennecIdCard
+                firstName={cardFirst} lastName={cardLast}
+                role={networkProfile.role ?? "Producer"}
+                country={networkProfile.country ?? ""}
+                genres={networkProfile.genres ?? []}
+                fennecDb={fennecDb} colorScheme={cardColorScheme}
+                initials={cardInitials} avatarUrl={avatarUrl}
+                instagram={networkProfile.instagram}
+                spotify={networkProfile.spotify}
+                youtube={networkProfile.youtube_url}
+              />
+
+              {/* Action buttons — fade in after card lands */}
+              <div style={{
+                display: "flex", gap: 10, marginTop: 12,
+                opacity: cardAnimating ? 1 : 0,
+                transform: cardAnimating ? "translateY(0)" : "translateY(8px)",
+                transition: `opacity 0.3s ease ${cardAnimating ? "0.28s" : "0s"}, transform 0.3s cubic-bezier(.16,1,.3,1) ${cardAnimating ? "0.28s" : "0s"}`,
+              }}>
+                <button
+                  onClick={() => {
+                    if (navigator.share) void navigator.share({ title: "My Fennec ID", text: `@${username} — ${fennecDb} dB on Fennec` });
+                  }}
+                  style={{
+                    flex: 1, padding: "13px 0", borderRadius: 14,
+                    background: `${cardColorScheme.accent}18`,
+                    border: `1px solid ${cardColorScheme.accent}30`,
+                    color: cardColorScheme.accent,
+                    fontSize: 13, fontWeight: 700, cursor: "pointer",
+                    transition: "transform 0.12s cubic-bezier(.16,1,.3,1)",
+                  }}
+                  onMouseDown={(e)  => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(0.96)"; }}
+                  onMouseUp={(e)    => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
+                  onTouchStart={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(0.96)"; }}
+                  onTouchEnd={(e)   => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
+                >
+                  Share
+                </button>
+                <button
+                  onClick={() => {
+                    setCardAnimating(false);
+                    setTimeout(() => { setCardExpanded(false); setCardRect(null); }, 300);
+                  }}
+                  style={{
+                    flex: 1, padding: "13px 0", borderRadius: 14,
+                    background: "rgba(255,255,255,0.06)",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    color: "rgba(255,255,255,0.7)",
+                    fontSize: 13, fontWeight: 700, cursor: "pointer",
+                    transition: "transform 0.12s cubic-bezier(.16,1,.3,1)",
+                  }}
+                  onMouseDown={(e)  => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(0.96)"; }}
+                  onMouseUp={(e)    => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
+                  onTouchStart={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(0.96)"; }}
+                  onTouchEnd={(e)   => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+
+            {/* Reduced motion fallback */}
+            <style>{`@media(prefers-reduced-motion:reduce){.fennec-wallet-card{transition:none!important}}`}</style>
+          </>
+        );
+      })()}
 
       {/* FENNEC dB hero — the signal meter */}
       <div className="dash-rise relative flex flex-col items-center gap-1.5 py-1" style={{ animationDelay: "0.12s" }}>
@@ -393,7 +535,7 @@ export default function Dashboard({
           </div>
           <div className="h-px flex-1" style={{ background: `linear-gradient(90deg, ${accent}25, transparent)` }} />
         </div>
-        <p className="text-[72px] font-black leading-none tabular-nums tracking-[-0.04em]"
+        <p className="text-[72px] font-black leading-none tabular-nums tracking-[-0.04em] pr-1"
            style={{
              background: `linear-gradient(180deg, ${tint(accent, 0.45)} 0%, ${accent} 60%, ${accent} 100%)`,
              WebkitBackgroundClip: "text",

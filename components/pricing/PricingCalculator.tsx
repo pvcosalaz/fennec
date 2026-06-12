@@ -416,6 +416,8 @@ export default function PricingCalculator() {
   }, []);
 
   useEffect(() => {
+    // Hard ceiling: no matter what, unblock the UI after 6s
+    const masterTimeout = setTimeout(() => setAuthLoading(false), 6000);
     const timeout = setTimeout(() => setAuthLoading(false), 4000);
 
     // Handle OAuth redirect: if there's a ?code= in the URL, exchange it for a session
@@ -436,10 +438,11 @@ export default function PricingCalculator() {
       clearTimeout(timeout);
       const user = session?.user ?? null;
       setAuthUser(user ? { id: user.id } : null);
-      if (user) loadProfile(user.id);
-      else setAuthLoading(false);
+      if (user) loadProfile(user.id).finally(() => clearTimeout(masterTimeout));
+      else { setAuthLoading(false); clearTimeout(masterTimeout); }
     }
     init();
+    return () => { clearTimeout(timeout); clearTimeout(masterTimeout); };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const user = session?.user ?? null;
