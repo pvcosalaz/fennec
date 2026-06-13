@@ -152,10 +152,14 @@ h1 .amber { color:var(--amber); text-shadow:0 0 40px rgba(245,166,35,.4); }
 /* kinetic type — each word settles from condensed to wide on Archivo's
    width axis. First-visit-only delight (after splash), 70ms stagger. */
 h1 .w {
-  display:inline-block; opacity:0; transform:translateY(12px);
-  animation: wIn .6s cubic-bezier(.16,1,.3,1) calc(.1s + var(--d) * .07s) both;
+  display:inline-block; opacity:0; filter:blur(14px);
+  animation: wIn .8s cubic-bezier(.16,1,.3,1) calc(.1s + var(--d) * .09s) both;
 }
-@keyframes wIn { to { opacity:1; transform:translateY(0); } }
+@keyframes wIn { to { opacity:1; filter:blur(0px); } }
+@media (prefers-reduced-motion: reduce) {
+  h1 .w { animation: wInSimple .4s ease calc(.1s + var(--d) * .05s) both; }
+  @keyframes wInSimple { to { opacity:1; filter:none; } }
+}
 .hero p.lead {
   font-size:18px; color:var(--mut); max-width:480px; line-height:1.65; margin-bottom:40px;
 }
