@@ -317,61 +317,159 @@ h2 {
 .rv.on { opacity:1; transform:none; }
 
 /* ════════════════════════════════════════════════════════════════
-   CONSOLE — feature channel strips
+   ROOMS — bento showcase (the part that sells)
    ════════════════════════════════════════════════════════════════ */
-.console { margin-top:70px; border:1px solid var(--line); border-radius:24px; overflow:hidden; background:var(--bg-deep); }
-.strip {
-  display:grid; grid-template-columns:78px 1fr; gap:0 4px; align-items:center;
-  padding:34px 38px; border-top:1px solid var(--line); position:relative;
-  transition:background .35s ease;
-}
-.strip:first-child { border-top:none; }
-.strip:hover { background:rgba(245,166,35,.025); }
-/* warm glyph tile — same surface + hand-drawn icon language as the app's tool cards */
-.strip .glyph {
-  width:50px; height:50px; border-radius:14px;
-  background:linear-gradient(180deg,#1c1915 0%,#161310 100%);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.06), inset 0 0 0 1px rgba(255,255,255,.05);
-  display:grid; place-items:center;
-}
-.strip .glyph svg { width:26px; height:26px; }
-.strip h3 { font-size:24px; font-weight:800; letter-spacing:-.02em; margin-bottom:6px; }
-.strip p { color:var(--mut); font-size:15px; max-width:560px; line-height:1.6; }
-
-/* featured rooms — Community feed + Karma loop live inside the list */
-.strip.feat { grid-template-columns:78px 1fr 370px; gap:0 34px; align-items:center; }
-.strip.feat h3 .sub { font-family:var(--mono); font-size:9px; font-weight:500; letter-spacing:.22em; color:var(--amber); text-transform:uppercase; margin-left:12px; vertical-align:middle; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
-.feedmock { border:1px solid var(--line); border-radius:16px; background:#100e0b; padding:13px; display:flex; flex-direction:column; gap:9px; }
-.feedmock .fhead, .trackmock .fhead { display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:9px; letter-spacing:.24em; color:var(--dim); text-transform:uppercase; padding:0 2px 1px; }
-.feedmock .fhead .live, .trackmock .fhead .live { width:6px; height:6px; border-radius:50%; background:#4ade80; box-shadow:0 0 8px rgba(74,222,128,.8); animation:pulse 1.6s ease-in-out infinite; }
-.post { display:flex; gap:10px; border:1px solid var(--line-soft); background:rgba(255,255,255,.015); border-radius:12px; padding:10px 12px; }
-.post .pav { width:26px; height:26px; border-radius:50%; flex-shrink:0; display:grid; place-items:center; font-size:9px; font-weight:800; color:#000; overflow:hidden; }
-.post .pav img { width:100%; height:100%; object-fit:cover; display:block; }
-.post .pn { font-family:var(--mono); font-size:9px; color:var(--dim); margin-bottom:3px; }
-.post .pn b { color:#cfcfd6; font-weight:600; }
-.post .pn .tagn { font-size:8px; letter-spacing:.14em; color:var(--amber); border:1px solid rgba(245,166,35,.3); border-radius:99px; padding:1px 8px; margin-left:6px; }
-.post .pt { font-size:12.5px; color:#b9b9c2; line-height:1.45; }
-.post .pm { display:flex; gap:14px; margin-top:6px; font-family:var(--mono); font-size:9px; color:var(--dim); }
-/* track-review simulation — mirrors the app's ProjectReviewPlayer (waveform,
-   amber timestamp links, karma chips) so people see exactly what they'd do */
-.trackmock { border:1px solid var(--line); border-radius:16px; background:#100e0b; padding:13px; display:flex; flex-direction:column; gap:10px; }
-.trackmock .trow { display:flex; align-items:center; gap:10px; }
-.trackmock .tcover { width:38px; height:38px; border-radius:9px; flex-shrink:0; background:linear-gradient(135deg,#2e2214,#1a1209); border:1px solid rgba(245,166,35,.32); display:grid; place-items:center; color:var(--amber); font-size:11px; text-shadow:0 0 8px rgba(245,166,35,.7); }
-.trackmock .tt { font-family:var(--mono); font-size:11.5px; font-weight:600; color:#e8e8ec; }
-.trackmock .ta { font-family:var(--mono); font-size:9px; color:var(--dim); margin-top:2px; }
-.trackmock .kbal { margin-left:auto; font-family:var(--mono); font-size:9px; color:var(--amber); border:1px solid rgba(245,166,35,.35); border-radius:99px; padding:3px 10px; background:rgba(245,166,35,.07); white-space:nowrap; }
-.trackmock .wavebox { position:relative; padding:6px 0 8px; }
-.trackmock .wavebars { display:flex; align-items:center; gap:2px; height:42px; }
-.trackmock .wavebars i { flex:1; border-radius:2px; background:rgba(255,255,255,.12); }
-.trackmock .wavebars i.on { background:var(--amber); box-shadow:0 0 5px rgba(245,166,35,.35); }
-.trackmock .playhead { position:absolute; left:38%; top:2px; bottom:4px; width:1.5px; background:#fff; opacity:.85; box-shadow:0 0 6px rgba(255,255,255,.6); }
-.trackmock .pin { position:absolute; top:-2px; width:7px; height:7px; border-radius:50%; background:var(--amber); border:1.5px solid #0c0c0f; box-shadow:0 0 8px rgba(245,166,35,.8); animation:pulse 2.2s ease-in-out infinite; }
-.trackmock .tstamp { color:var(--amber); font-family:var(--mono); }
-.trackmock .kplus { font-family:var(--mono); font-size:8px; font-weight:600; color:#0d0d0f; background:var(--amber); border-radius:99px; padding:1.5px 7px; margin-left:6px; box-shadow:0 0 10px rgba(245,166,35,.5); }
-.trackmock .kloop { margin-top:2px; padding-top:9px; border-top:1px solid var(--line-soft); font-family:var(--mono); font-size:9px; letter-spacing:.2em; color:rgba(245,166,35,.65); text-transform:uppercase; display:flex; align-items:center; gap:8px; }
-.trackmock .kloop svg { width:11px; height:11px; animation:spin 4s linear infinite; }
-@keyframes spin { to{transform:rotate(360deg)} }
+@keyframes spin  { to{transform:rotate(360deg)} }
+@keyframes wave  { 0%,100%{transform:scaleY(.32)} 50%{transform:scaleY(1)} }
+@keyframes scan  { 0%{left:4%} 100%{left:78%} }
+@keyframes floatUp {
+  0%{opacity:0; transform:translateY(6px) scale(.6)}
+  16%{opacity:1; transform:translateY(-2px) scale(1)}
+  78%{opacity:.9}
+  100%{opacity:0; transform:translateY(-52px) scale(1.1)}
+}
+@keyframes commentIn { from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:translateY(0)} }
+
+.rooms-sec { position:relative; overflow:hidden; }
+/* warm ambient field — not flat black */
+.rooms-sec::before {
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 65% 45% at 50% -6%, rgba(245,166,35,.13), transparent 60%),
+    radial-gradient(ellipse 46% 46% at 6% 80%, rgba(245,166,35,.06), transparent 70%),
+    radial-gradient(ellipse 44% 42% at 94% 52%, rgba(77,150,255,.06), transparent 72%);
+}
+/* faint dot grid texture, masked to fade at the edges */
+.rooms-sec::after {
+  content:""; position:absolute; inset:0; pointer-events:none; opacity:.55;
+  background-image:radial-gradient(rgba(255,255,255,.05) 1px, transparent 1.4px);
+  background-size:32px 32px;
+  -webkit-mask-image:radial-gradient(ellipse 78% 68% at 50% 34%, #000, transparent 80%);
+          mask-image:radial-gradient(ellipse 78% 68% at 50% 34%, #000, transparent 80%);
+}
+.rooms-grid { position:relative; margin-top:58px; display:flex; flex-direction:column; gap:22px; }
+
+/* ── SHOWCASE: merged Community + Track Reviews (the heart) ── */
+.showcase {
+  position:relative; border-radius:26px; overflow:hidden;
+  border:1px solid rgba(245,166,35,.22);
+  background:linear-gradient(158deg,#191510 0%,#110e0a 52%,#0c0a08 100%);
+  box-shadow:0 44px 120px rgba(0,0,0,.62), 0 0 90px rgba(245,166,35,.08), inset 0 1px 0 rgba(255,255,255,.05);
+  display:grid; grid-template-columns:1.1fr .9fr;
+}
+.showcase::before { content:""; position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(ellipse 78% 70% at 22% -12%, rgba(245,166,35,.15), transparent 58%); }
+.sc-head { position:absolute; top:22px; left:30px; right:30px; z-index:5; display:flex; align-items:center; gap:10px;
+  font-family:var(--mono); font-size:10px; letter-spacing:.24em; text-transform:uppercase; color:var(--dim); }
+.sc-head .live { width:7px; height:7px; border-radius:50%; background:#4ade80; box-shadow:0 0 9px rgba(74,222,128,.9); animation:pulse 1.6s ease-in-out infinite; }
+.sc-head .ttl  { color:#cfccc6; font-weight:600; }
+.sc-head .heart { margin-left:auto; color:rgba(245,166,35,.85); letter-spacing:.2em; }
+
+/* left — now playing + waveform + floating reactions */
+.sc-player { position:relative; z-index:1; min-width:0; padding:64px 30px 30px; display:flex; flex-direction:column; gap:20px; border-right:1px solid rgba(255,255,255,.05); }
+.np { display:flex; align-items:center; gap:14px; }
+.np .cover { width:60px; height:60px; border-radius:14px; flex-shrink:0; position:relative;
+  background:linear-gradient(135deg,#3a2a14,#1c1308); border:1px solid rgba(245,166,35,.38);
+  display:grid; place-items:center; box-shadow:0 12px 32px rgba(245,166,35,.2); }
+.np .cover .play { width:0; height:0; border-left:14px solid var(--amber); border-top:9px solid transparent; border-bottom:9px solid transparent; margin-left:5px; filter:drop-shadow(0 0 8px rgba(245,166,35,.85)); }
+.np .meta { flex:1; min-width:0; }
+.np .meta .t { font-family:var(--mono); font-size:15px; font-weight:600; color:#f2f0ec; letter-spacing:-.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.np .meta .a { font-family:var(--mono); font-size:11px; color:var(--dim); margin-top:4px; }
+.np .karma { font-family:var(--mono); font-size:10.5px; color:var(--amber); border:1px solid rgba(245,166,35,.4); border-radius:99px; padding:6px 13px; background:rgba(245,166,35,.08); white-space:nowrap; box-shadow:0 0 20px rgba(245,166,35,.16); }
+
+.wave { position:relative; height:104px; }
+.wave .bars { display:flex; align-items:center; gap:3px; height:100%; }
+.wave .bars i { flex:1; border-radius:3px; background:rgba(255,255,255,.12); transform-origin:center; }
+.wave .bars i.on { background:linear-gradient(180deg,#ffd27a,var(--amber)); box-shadow:0 0 8px rgba(245,166,35,.45); animation:wave 1.25s ease-in-out infinite; }
+.wave .head { position:absolute; top:0; bottom:0; width:2px; background:#fff; box-shadow:0 0 12px rgba(255,255,255,.75); animation:scan 9s linear infinite; }
+.wave .mk { position:absolute; top:-7px; width:11px; height:11px; border-radius:50%; background:var(--amber); border:2.5px solid #100d0a; box-shadow:0 0 11px rgba(245,166,35,.9); animation:pulse 2s ease-in-out infinite; }
+.wave .reacts { position:absolute; inset:0; pointer-events:none; }
+.wave .reacts span { position:absolute; bottom:18px; font-size:19px; opacity:0; animation:floatUp 3.4s ease-in-out infinite; }
+.sc-stats { display:flex; flex-wrap:wrap; gap:10px 20px; font-family:var(--mono); font-size:10px; letter-spacing:.06em; color:var(--dim); }
+.sc-stats b { color:#e6e4df; font-weight:700; }
+.sc-stats .amb { color:var(--amber); }
+
+/* right — live feed of comments + discussion */
+.sc-feed { position:relative; z-index:1; min-width:0; padding:58px 22px 22px; display:flex; flex-direction:column; gap:9px; background:rgba(0,0,0,.2); }
+.fb { display:flex; gap:10px; border:1px solid var(--line-soft); background:rgba(255,255,255,.022); border-radius:13px; padding:11px 13px; animation:commentIn .7s cubic-bezier(.16,1,.3,1) both; }
+.fb:nth-child(2){animation-delay:.15s} .fb:nth-child(3){animation-delay:.3s} .fb:nth-child(4){animation-delay:.45s}
+.fb .av { width:30px; height:30px; border-radius:50%; flex-shrink:0; overflow:hidden; }
+.fb .av img { width:100%; height:100%; object-fit:cover; display:block; }
+.fb .bd { min-width:0; flex:1; }
+.fb .nm { font-family:var(--mono); font-size:9.5px; color:var(--dim); margin-bottom:4px; }
+.fb .nm b { color:#d8d6d1; font-weight:600; }
+.fb .nm .k { color:#0d0d0f; background:var(--amber); border-radius:99px; padding:1px 7px; font-size:8px; font-weight:700; margin-left:7px; box-shadow:0 0 10px rgba(245,166,35,.45); }
+.fb .nm .tagn { font-size:8px; letter-spacing:.12em; color:var(--amber); border:1px solid rgba(245,166,35,.32); border-radius:99px; padding:1px 7px; margin-left:7px; }
+.fb .tx { font-size:13px; color:#c3c1bb; line-height:1.45; }
+.fb .tx .ts { color:var(--amber); font-family:var(--mono); font-size:11.5px; }
+.fb .rx { display:flex; gap:7px; margin-top:8px; }
+.fb .rx span { font-family:var(--mono); font-size:9px; color:var(--mut); border:1px solid var(--line); border-radius:99px; padding:2px 9px; }
+.sc-typing { display:flex; align-items:center; gap:8px; padding:7px 6px 2px; font-family:var(--mono); font-size:10px; color:var(--dim); }
+.sc-typing .dots { display:flex; gap:4px; }
+.sc-typing .dots i { width:5px; height:5px; border-radius:50%; background:var(--dim); animation:pulse 1s ease-in-out infinite; }
+.sc-typing .dots i:nth-child(2){animation-delay:.2s} .sc-typing .dots i:nth-child(3){animation-delay:.4s}
+
+/* karma loop footer spanning the full card */
+.sc-loop { grid-column:1/-1; position:relative; z-index:1; border-top:1px solid rgba(255,255,255,.06);
+  padding:15px 30px; display:flex; align-items:center; gap:11px; flex-wrap:wrap;
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase;
+  color:rgba(245,166,35,.72); background:rgba(245,166,35,.035); }
+.sc-loop svg { width:14px; height:14px; animation:spin 5s linear infinite; flex-shrink:0; }
+.sc-loop .step { color:#c6c4be; }
+.sc-loop .arr { color:var(--dim); }
+
+/* ── supporting room cards (each with a real mini-mockup) ── */
+.room-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:22px; }
+.rcard { position:relative; border-radius:20px; overflow:hidden; border:1px solid var(--line);
+  background:linear-gradient(168deg,#141109,#0e0c0a); padding:25px 23px 23px;
+  transition:transform .45s cubic-bezier(.16,1,.3,1), border-color .4s ease, box-shadow .4s ease; }
+.rcard::before { content:""; position:absolute; inset:0; pointer-events:none; opacity:0; transition:opacity .4s ease;
+  background:radial-gradient(ellipse 75% 60% at 50% 0%, rgba(245,166,35,.1), transparent 60%); }
+.rcard:hover { transform:translateY(-6px); border-color:rgba(245,166,35,.3); box-shadow:0 26px 64px rgba(0,0,0,.5), 0 0 56px rgba(245,166,35,.09); }
+.rcard:hover::before { opacity:1; }
+.rcard .rtag { font-family:var(--mono); font-size:9px; letter-spacing:.22em; text-transform:uppercase; color:var(--amber); }
+.rcard h3 { font-size:21px; font-weight:800; letter-spacing:-.02em; margin:9px 0 7px; }
+.rcard p { color:var(--mut); font-size:13.5px; line-height:1.55; }
+.rcard .mini { margin-top:20px; position:relative; z-index:1; }
+
+/* Business Hub — quote readout */
+.m-quote { border:1px solid var(--line); border-radius:13px; background:#100e0a; padding:13px 15px; }
+.m-quote .qh { display:flex; justify-content:space-between; font-family:var(--mono); font-size:8.5px; color:var(--dim); letter-spacing:.14em; text-transform:uppercase; margin-bottom:9px; }
+.m-quote .qh .ok { color:#6bcb77; }
+.m-quote .qrow { display:flex; justify-content:space-between; font-size:11.5px; color:#bdbbb5; padding:5px 0; border-bottom:1px solid var(--line-soft); }
+.m-quote .qrow b { color:#e8e8ec; font-variant-numeric:tabular-nums; }
+.m-quote .qtot { display:flex; justify-content:space-between; align-items:baseline; margin-top:11px; }
+.m-quote .qtot .lb { font-family:var(--mono); font-size:8.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--dim); }
+.m-quote .qtot .vl { font-size:23px; font-weight:900; color:var(--amber); text-shadow:0 0 18px rgba(245,166,35,.4); font-variant-numeric:tabular-nums; letter-spacing:-.02em; }
+
+/* Content Lab — content calendar */
+.m-cal .days { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; }
+.m-cal .d { aspect-ratio:1; border-radius:7px; border:1px solid var(--line); background:rgba(255,255,255,.02);
+  position:relative; display:grid; place-items:center; font-family:var(--mono); font-size:8px; color:var(--dim); }
+.m-cal .d.has { border-color:rgba(245,166,35,.42); background:rgba(245,166,35,.09); color:var(--amber); }
+.m-cal .d .dot { position:absolute; bottom:3px; left:50%; transform:translateX(-50%); width:4px; height:4px; border-radius:50%; background:var(--amber); box-shadow:0 0 6px rgba(245,166,35,.85); }
+.m-cal .cap { margin-top:11px; font-size:11px; color:#bdbbb5; line-height:1.45; border:1px solid var(--line); border-radius:9px; padding:9px 11px; background:#100e0a; }
+.m-cal .cap .hl { color:var(--amber); }
+.m-cal .cap .cur { color:var(--amber); animation:pulse 1.1s steps(1) infinite; }
+
+/* Fennec ID — collectible mini card */
+.m-id { position:relative; border-radius:13px; padding:14px; overflow:hidden;
+  background:linear-gradient(135deg,#2e1a1a,#160d0d); border:1px solid rgba(255,107,107,.3);
+  box-shadow:0 12px 32px rgba(255,107,107,.14); }
+.m-id .idtop { display:flex; align-items:center; gap:11px; }
+.m-id .idav { width:40px; height:40px; border-radius:50%; overflow:hidden; flex-shrink:0; border:1.5px solid rgba(255,107,107,.5); box-shadow:0 3px 10px rgba(255,107,107,.4); }
+.m-id .idav img { width:100%; height:100%; object-fit:cover; display:block; }
+.m-id .role { font-family:var(--mono); font-size:7px; letter-spacing:.22em; color:rgba(255,107,107,.65); text-transform:uppercase; margin-bottom:2px; }
+.m-id .nm { font-size:13px; font-weight:900; text-transform:uppercase; letter-spacing:-.01em; line-height:1.05; color:#fff; }
+.m-id .qr { position:absolute; top:13px; right:13px; width:26px; height:26px; opacity:.92; }
+.m-id .qr svg { width:100%; height:100%; }
+.m-id .idband { display:flex; align-items:center; justify-content:space-between; margin-top:13px; }
+.m-id .db { font-family:var(--mono); font-size:8px; letter-spacing:.16em; text-transform:uppercase; color:rgba(255,107,107,.6); }
+.m-id .db b { font-size:15px; color:#ff8a8a; margin-left:6px; letter-spacing:-.02em; }
+.m-id .soc { display:flex; gap:5px; }
+.m-id .soc i { width:8px; height:8px; border-radius:2px; }
+.m-id .soc i:nth-child(1){ background:#E1306C; } .m-id .soc i:nth-child(2){ background:#1DB954; border-radius:50%; } .m-id .soc i:nth-child(3){ background:#FF0000; }
 
 /* ════════════════════════════════════════════════════════════════
    FENNEC dB
@@ -531,10 +629,10 @@ footer { border-top:1px solid var(--line); padding:46px 28px; }
   .hero p.lead { margin-left:auto; margin-right:auto; }
   .id-grid { grid-template-columns:1fr; gap:54px; }
   .id-colors { justify-content:center; }
-  .strip { grid-template-columns:66px 1fr; }
-  .strip .glyph { width:44px; height:44px; border-radius:12px; }
-  .strip .glyph svg { width:23px; height:23px; }
-  .strip.feat .feedmock, .strip.feat .trackmock { grid-column:1/-1; margin-top:18px; }
+  .showcase { grid-template-columns:1fr; }
+  .sc-player { border-right:none; border-bottom:1px solid rgba(255,255,255,.05); }
+  .room-cards { grid-template-columns:1fr 1fr; }
+  .room-cards .rcard:last-child { grid-column:1/-1; }
 }
 @media (max-width: 700px) {
   section.block { padding:90px 20px; }
@@ -542,7 +640,11 @@ footer { border-top:1px solid var(--line); padding:46px 28px; }
   .phone { transform:none; width:280px; }
   .screen { height:580px; }
   .nav-in { padding:0 20px; }
-  .strip { padding:28px 24px; }
+  .room-cards { grid-template-columns:1fr; }
+  .room-cards .rcard:last-child { grid-column:auto; }
+  .sc-player { padding:60px 22px 26px; }
+  .sc-feed { padding:22px; }
+  .sc-loop { padding:14px 22px; font-size:9.5px; gap:8px; }
   .hero { padding:110px 20px 70px; }
   .hero-meta { flex-direction:column; gap:10px; align-items:center; }
 }
@@ -643,118 +745,150 @@ footer { border-top:1px solid var(--line); padding:46px 28px; }
   </div>
 </div>
 
-<!-- ═══ CONSOLE / FEATURES ═══ -->
-<section class="block">
+<!-- ═══ ROOMS / FEATURES ═══ -->
+<section class="block rooms-sec">
   <div class="in">
     <p class="sec-eyebrow rv">Inside the app</p>
     <h2 class="rv">Five rooms.<br>Every side of your career.</h2>
     <p class="sec-sub rv">You already master the music. Fennec is the studio for everything else — money, clients, content and community.</p>
 
-    <div class="console rv">
-      <div class="strip">
-        <div class="glyph" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" style="transform:rotate(-6deg)">
-            <path d="M12.59 2.59A2 2 0 0 0 11.17 2H4a2 2 0 0 0-2 2v7.17a2 2 0 0 0 .59 1.42l8.7 8.7a2.43 2.43 0 0 0 3.42 0l6.58-6.58a2.43 2.43 0 0 0 0-3.42z" stroke="rgba(255,255,255,.68)" stroke-width="1.5" stroke-linejoin="round"/>
-            <circle cx="7.2" cy="7.2" r="1.4" fill="#f5a623"/>
-            <text x="12.6" y="15.6" font-size="7.5" font-weight="700" fill="#f5a623" text-anchor="middle" font-family="-apple-system,system-ui,sans-serif">$</text>
-          </svg>
+    <div class="rooms-grid">
+
+      <!-- THE SHOWCASE: Community + Track Reviews merged -->
+      <div class="showcase rv">
+        <div class="sc-head">
+          <span class="live"></span><span class="ttl">Community + Track Reviews</span>
+          <span class="heart">♦ The heart of Fennec</span>
         </div>
-        <div><h3>Business Hub</h3><p>Price your work with confidence, send quotes, track clients and projects — and stop guessing what your sound is worth.</p></div>
-      </div>
-      <div class="strip">
-        <div class="glyph" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none">
-            <rect x="3" y="5" width="18" height="14" rx="3" stroke="rgba(255,255,255,.68)" stroke-width="1.5"/>
-            <line x1="7.5" y1="5" x2="7.5" y2="8" stroke="rgba(255,255,255,.30)" stroke-width="1.2"/>
-            <line x1="16.5" y1="5" x2="16.5" y2="8" stroke="rgba(255,255,255,.30)" stroke-width="1.2"/>
-            <path d="M10.4 10.4v4.4l4-2.2z" fill="#f5a623"/>
-          </svg>
-        </div>
-        <div><h3>Content Lab</h3><p>Calendar, ideas and scripts engineered for music creators. Never stare at a blank caption again.</p></div>
-      </div>
-      <div class="strip feat">
-        <div class="glyph" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none">
-            <path d="M4 7a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3H10l-4.4 3.6c-.5.4-1.1 0-1.1-.6V16" stroke="rgba(255,255,255,.68)" stroke-width="1.5" stroke-linejoin="round"/>
-            <circle cx="9" cy="10" r="1.15" fill="#f5a623"/>
-            <circle cx="13" cy="10" r="1.15" fill="#f5a623"/>
-            <circle cx="17" cy="10" r="1.15" fill="rgba(255,255,255,.40)"/>
-          </svg>
-        </div>
-        <div><h3>Community<span class="sub">The heart of Fennec</span></h3><p>Real people, real talk. A live feed of producers discussing what actually matters — royalties, sync deals, releases, industry news. No algorithm deciding what you see. Just the conversation.</p></div>
-        <div class="feedmock" aria-hidden="true">
-          <div class="fhead"><span class="live"></span>Community · live</div>
-          <div class="post">
-            <div class="pav" style="box-shadow:0 0 0 1.5px rgba(77,150,255,.55)"><img src="avatars/13.jpg" alt=""></div>
-            <div><p class="pn"><b>Marco Ruiz</b> · Producer · 12 min ago</p>
-            <p class="pt">Did you see Spotify's new royalty model? This changes everything for indies…</p>
-            <p class="pm"><span>💬 24</span><span>⚡ 56</span></p></div>
-          </div>
-          <div class="post">
-            <div class="pav" style="box-shadow:0 0 0 1.5px rgba(255,110,180,.55)"><img src="avatars/07.jpg" alt=""></div>
-            <div><p class="pn"><b>Lola Ferrer</b> · DJ · 41 min ago</p>
-            <p class="pt">Just closed my first sync placement for a series 🎬 — ask me anything.</p>
-            <p class="pm"><span>💬 41</span><span>⚡ 89</span></p></div>
-          </div>
-          <div class="post">
-            <div class="pav" style="background:#f5a623">F</div>
-            <div><p class="pn"><b>fennec</b><span class="tagn">NEWS</span></p>
-            <p class="pt">Universal x AI: what the new deal means for producers.</p>
-            <p class="pm"><span>💬 67</span><span>⚡ 132</span></p></div>
-          </div>
-        </div>
-      </div>
-      <div class="strip feat">
-        <div class="glyph" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none">
-            <line x1="4.5" y1="9.5" x2="4.5" y2="14.5" stroke="rgba(255,255,255,.35)" stroke-width="2" stroke-linecap="round"/>
-            <line x1="8.25" y1="7" x2="8.25" y2="17" stroke="rgba(255,255,255,.55)" stroke-width="2" stroke-linecap="round"/>
-            <line x1="12" y1="4.5" x2="12" y2="19.5" stroke="#f5a623" stroke-width="2" stroke-linecap="round"/>
-            <line x1="15.75" y1="8" x2="15.75" y2="16" stroke="rgba(255,255,255,.55)" stroke-width="2" stroke-linecap="round"/>
-            <line x1="19.5" y1="10.5" x2="19.5" y2="13.5" stroke="rgba(255,255,255,.35)" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <div><h3>Track Reviews<span class="sub">Karma economy</span></h3><p>Feedback runs on karma: review other producers' tracks to earn it, spend it to get real ears on yours — timestamped, structured, honest. Upload, feedback, repeat. Everybody levels up.</p></div>
-        <div class="trackmock" aria-hidden="true">
-          <div class="fhead"><span class="live" style="background:var(--amber);box-shadow:0 0 8px rgba(245,166,35,.8)"></span>Track review · karma</div>
-          <div class="trow">
-            <div class="tcover">▶</div>
-            <div><p class="tt">midnight_demo_v2.wav</p><p class="ta">@theo.banks · Drill · 2:47</p></div>
-            <span class="kbal">⚡ 340 karma</span>
-          </div>
-          <div class="wavebox">
-            <div class="wavebars">
-              <i class="on" style="height:28%"></i><i class="on" style="height:55%"></i><i class="on" style="height:40%"></i><i class="on" style="height:75%"></i><i class="on" style="height:60%"></i><i class="on" style="height:90%"></i><i class="on" style="height:45%"></i><i class="on" style="height:70%"></i><i class="on" style="height:35%"></i><i class="on" style="height:82%"></i><i class="on" style="height:50%"></i><i class="on" style="height:95%"></i><i class="on" style="height:65%"></i><i class="on" style="height:38%"></i><i class="on" style="height:72%"></i><i style="height:48%"></i><i style="height:88%"></i><i style="height:58%"></i><i style="height:30%"></i><i style="height:78%"></i><i style="height:42%"></i><i style="height:92%"></i><i style="height:62%"></i><i style="height:46%"></i><i style="height:80%"></i><i style="height:36%"></i><i style="height:68%"></i><i style="height:52%"></i><i style="height:86%"></i><i style="height:44%"></i><i style="height:74%"></i><i style="height:32%"></i><i style="height:60%"></i><i style="height:84%"></i><i style="height:40%"></i><i style="height:66%"></i><i style="height:50%"></i><i style="height:76%"></i><i style="height:34%"></i><i style="height:56%"></i>
+
+        <!-- left: now playing + waveform + live reactions -->
+        <div class="sc-player">
+          <div class="np">
+            <div class="cover"><span class="play"></span></div>
+            <div class="meta">
+              <p class="t">midnight_demo_v2.wav</p>
+              <p class="a">@theo.banks · Drill · 2:47</p>
             </div>
-            <span class="playhead"></span>
-            <span class="pin" style="left:36%"></span>
-            <span class="pin" style="left:72%;animation-delay:.8s"></span>
+            <span class="karma">⚡ 340 karma</span>
           </div>
-          <div class="post">
-            <div class="pav" style="box-shadow:0 0 0 1.5px rgba(107,203,119,.55)"><img src="avatars/02.jpg" alt=""></div>
-            <div><p class="pn"><b>Kai Duarte</b> · Beatmaker<span class="kplus">+25 KARMA</span></p>
-            <p class="pt"><span class="tstamp">1:24</span> — the drop hits two bars late. Tighten the build and it slaps.</p></div>
+
+          <div class="wave" aria-hidden="true">
+            <div class="bars">
+              <i class="on" style="height:26%;animation-delay:0s"></i><i class="on" style="height:52%;animation-delay:.1s"></i><i class="on" style="height:38%;animation-delay:.2s"></i><i class="on" style="height:74%;animation-delay:.05s"></i><i class="on" style="height:58%;animation-delay:.25s"></i><i class="on" style="height:90%;animation-delay:.15s"></i><i class="on" style="height:44%;animation-delay:.3s"></i><i class="on" style="height:68%;animation-delay:.1s"></i><i class="on" style="height:34%;animation-delay:.35s"></i><i class="on" style="height:80%;animation-delay:.2s"></i><i class="on" style="height:50%;animation-delay:.4s"></i><i class="on" style="height:94%;animation-delay:.12s"></i><i class="on" style="height:62%;animation-delay:.28s"></i><i class="on" style="height:36%;animation-delay:.18s"></i><i class="on" style="height:72%;animation-delay:.33s"></i><i style="height:46%"></i><i style="height:86%"></i><i style="height:56%"></i><i style="height:30%"></i><i style="height:76%"></i><i style="height:42%"></i><i style="height:90%"></i><i style="height:60%"></i><i style="height:44%"></i><i style="height:78%"></i><i style="height:34%"></i><i style="height:66%"></i><i style="height:50%"></i><i style="height:84%"></i><i style="height:42%"></i><i style="height:72%"></i><i style="height:30%"></i><i style="height:58%"></i><i style="height:82%"></i><i style="height:38%"></i><i style="height:64%"></i><i style="height:48%"></i><i style="height:74%"></i><i style="height:32%"></i><i style="height:54%"></i>
+            </div>
+            <span class="head"></span>
+            <span class="mk" style="left:34%"></span>
+            <span class="mk" style="left:70%;animation-delay:.8s"></span>
+            <div class="reacts">
+              <span style="left:30%;animation-delay:0s">🔥</span>
+              <span style="left:52%;animation-delay:1.1s">⚡</span>
+              <span style="left:68%;animation-delay:2.2s">🎧</span>
+              <span style="left:44%;animation-delay:1.7s">🔥</span>
+            </div>
           </div>
-          <div class="post">
-            <div class="pav" style="box-shadow:0 0 0 1.5px rgba(129,140,248,.55)"><img src="avatars/09.jpg" alt=""></div>
-            <div><p class="pn"><b>Maya Chen</b> · Composer</p>
-            <p class="pt"><span class="tstamp">2:08</span> — that bridge texture is gorgeous. Don't touch it.</p></div>
+
+          <div class="sc-stats">
+            <span><b class="amb">128</b> reviewing now</span>
+            <span><b>1.2k</b> comments today</span>
+            <span><b>340</b> tracks in queue</span>
           </div>
-          <div class="kloop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg>Review others · earn karma · spend it on your track</div>
+        </div>
+
+        <!-- right: live feed of comments + discussion -->
+        <div class="sc-feed">
+          <div class="fb">
+            <div class="av"><img src="avatars/02.jpg" alt=""></div>
+            <div class="bd">
+              <p class="nm"><b>Kai Duarte</b> · Beatmaker<span class="k">+25 ⚡</span></p>
+              <p class="tx"><span class="ts">1:24</span> — the drop hits two bars late. Tighten the build and it slaps.</p>
+              <div class="rx"><span>🔥 18</span><span>💬 reply</span></div>
+            </div>
+          </div>
+          <div class="fb">
+            <div class="av"><img src="avatars/09.jpg" alt=""></div>
+            <div class="bd">
+              <p class="nm"><b>Maya Chen</b> · Composer</p>
+              <p class="tx"><span class="ts">2:08</span> — that bridge texture is gorgeous. Don't touch it.</p>
+              <div class="rx"><span>🔥 31</span><span>⚡ 12</span></div>
+            </div>
+          </div>
+          <div class="fb">
+            <div class="av"><img src="avatars/13.jpg" alt=""></div>
+            <div class="bd">
+              <p class="nm"><b>Marco Ruiz</b> · Producer<span class="tagn">DISCUSSION</span></p>
+              <p class="tx">Mixing low-end on this style? I always high-pass the pads first.</p>
+              <div class="rx"><span>🔥 9</span><span>💬 24</span></div>
+            </div>
+          </div>
+          <div class="sc-typing"><span>Lola is typing</span><span class="dots"><i></i><i></i><i></i></span></div>
+        </div>
+
+        <!-- karma loop footer -->
+        <div class="sc-loop">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg>
+          <span class="step">Give feedback</span><span class="arr">→</span>
+          <span class="step">earn karma</span><span class="arr">→</span>
+          <span class="step">your track jumps the queue</span><span class="arr">→</span>
+          <span class="step">repeat</span>
         </div>
       </div>
-      <div class="strip">
-        <div class="glyph" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none">
-            <rect x="3" y="5.5" width="18" height="13" rx="2.5" stroke="rgba(255,255,255,.68)" stroke-width="1.5"/>
-            <circle cx="8.2" cy="10.6" r="1.9" stroke="rgba(255,255,255,.55)" stroke-width="1.4"/>
-            <path d="M5.6 15.6c.5-1.3 1.5-2 2.6-2s2.1.7 2.6 2" stroke="rgba(255,255,255,.55)" stroke-width="1.4" stroke-linecap="round"/>
-            <line x1="13.6" y1="9.8" x2="18" y2="9.8" stroke="rgba(255,255,255,.30)" stroke-width="1.4" stroke-linecap="round"/>
-            <line x1="13.6" y1="12.6" x2="16.6" y2="12.6" stroke="rgba(255,255,255,.18)" stroke-width="1.4" stroke-linecap="round"/>
-            <circle cx="17.6" cy="15.4" r="1.3" fill="#f5a623"/>
-          </svg>
+
+      <!-- SUPPORTING ROOMS -->
+      <div class="room-cards">
+
+        <div class="rcard rv">
+          <p class="rtag">Room 03</p>
+          <h3>Business Hub</h3>
+          <p>Price your work with confidence and send quotes that close — stop guessing what your sound is worth.</p>
+          <div class="mini" aria-hidden="true">
+            <div class="m-quote">
+              <div class="qh"><span>Quote · Sync License</span><span class="ok">● sent</span></div>
+              <div class="qrow"><span>Composition</span><b>$900</b></div>
+              <div class="qrow"><span>Master use</span><b>$300</b></div>
+              <div class="qtot"><span class="lb">Total</span><span class="vl">$1,200</span></div>
+            </div>
+          </div>
         </div>
-        <div><h3>Fennec ID</h3><p>Your identity as a living card — scanned in person, collected like vinyl. Keep your network close; it's your most valuable asset.</p></div>
+
+        <div class="rcard rv">
+          <p class="rtag">Room 04</p>
+          <h3>Content Lab</h3>
+          <p>Calendar, ideas and scripts engineered for music creators. Never stare at a blank caption again.</p>
+          <div class="mini" aria-hidden="true">
+            <div class="m-cal">
+              <div class="days">
+                <div class="d">M</div>
+                <div class="d has">T<span class="dot"></span></div>
+                <div class="d">W</div>
+                <div class="d has">T<span class="dot"></span></div>
+                <div class="d">F</div>
+                <div class="d has">S<span class="dot"></span></div>
+                <div class="d">S</div>
+              </div>
+              <div class="cap"><span class="hl">Reel idea:</span> "3 mixing mistakes killing your low-end"<span class="cur">▍</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rcard rv">
+          <p class="rtag">Room 05</p>
+          <h3>Fennec ID</h3>
+          <p>Your identity as a living card — scanned in person, collected like vinyl. Your network is your asset.</p>
+          <div class="mini" aria-hidden="true">
+            <div class="m-id">
+              <div class="qr"><svg viewBox="0 0 100 100"><rect width="100" height="100" fill="none"/><g fill="#ff8a8a"><rect x="6" y="6" width="26" height="26" rx="3"/><rect x="68" y="6" width="26" height="26" rx="3"/><rect x="6" y="68" width="26" height="26" rx="3"/><rect x="44" y="10" width="8" height="8"/><rect x="58" y="44" width="8" height="8"/><rect x="44" y="58" width="8" height="8"/><rect x="72" y="58" width="8" height="8"/><rect x="86" y="72" width="8" height="8"/><rect x="58" y="86" width="8" height="8"/></g></svg></div>
+              <div class="idtop">
+                <div class="idav"><img src="avatars/05.jpg" alt=""></div>
+                <div><p class="role">Composer · MX</p><p class="nm">Aria<br>Montes</p></div>
+              </div>
+              <div class="idband">
+                <span class="db">Fennec dB <b>1284</b></span>
+                <span class="soc"><i></i><i></i><i></i></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
