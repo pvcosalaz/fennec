@@ -315,6 +315,10 @@ h2 {
 /* reveal */
 .rv { opacity:0; transform:translateY(26px); transition:opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1); }
 .rv.on { opacity:1; transform:none; }
+.rv-d1 { transition-delay:.12s; }
+.rv-d2 { transition-delay:.26s; }
+.rv-d3 { transition-delay:.40s; }
+.rv-d4 { transition-delay:.54s; }
 
 /* ════════════════════════════════════════════════════════════════
    ROOMS — bento showcase (the part that sells)
@@ -749,13 +753,13 @@ footer { border-top:1px solid var(--line); padding:46px 28px; }
 <section class="block rooms-sec">
   <div class="in">
     <p class="sec-eyebrow rv">Inside the app</p>
-    <h2 class="rv">Five rooms.<br>Every side of your career.</h2>
-    <p class="sec-sub rv">You already master the music. Fennec is the studio for everything else — money, clients, content and community.</p>
+    <h2 class="rv rv-d1">Five rooms.<br>Every side of your career.</h2>
+    <p class="sec-sub rv rv-d2">You already master the music. Fennec is the studio for everything else — money, clients, content and community.</p>
 
     <div class="rooms-grid">
 
       <!-- THE SHOWCASE: Community + Track Reviews merged -->
-      <div class="showcase rv">
+      <div class="showcase rv rv-d3">
         <div class="sc-head">
           <span class="live"></span><span class="ttl">Community + Track Reviews</span>
           <span class="heart">♦ The heart of Fennec</span>
@@ -836,7 +840,7 @@ footer { border-top:1px solid var(--line); padding:46px 28px; }
       <!-- SUPPORTING ROOMS -->
       <div class="room-cards">
 
-        <div class="rcard rv">
+        <div class="rcard rv rv-d1">
           <p class="rtag">Room 03</p>
           <h3>Business Hub</h3>
           <p>Price your work with confidence and send quotes that close — stop guessing what your sound is worth.</p>
@@ -850,7 +854,7 @@ footer { border-top:1px solid var(--line); padding:46px 28px; }
           </div>
         </div>
 
-        <div class="rcard rv">
+        <div class="rcard rv rv-d2">
           <p class="rtag">Room 04</p>
           <h3>Content Lab</h3>
           <p>Calendar, ideas and scripts engineered for music creators. Never stare at a blank caption again.</p>
@@ -870,7 +874,7 @@ footer { border-top:1px solid var(--line); padding:46px 28px; }
           </div>
         </div>
 
-        <div class="rcard rv">
+        <div class="rcard rv rv-d3">
           <p class="rtag">Room 05</p>
           <h3>Fennec ID</h3>
           <p>Your identity as a living card — scanned in person, collected like vinyl. Your network is your asset.</p>
@@ -898,13 +902,13 @@ footer { border-top:1px solid var(--line); padding:46px 28px; }
 <section class="block db-sec">
   <div class="in">
     <p class="sec-eyebrow rv">Fennec dB</p>
-    <h2 class="rv" style="margin-left:auto;margin-right:auto;">Your career.<br>One signal.</h2>
-    <div class="db-big rv" id="bigDb">0</div>
-    <div class="db-eq rv" aria-hidden="true">
+    <h2 class="rv rv-d1" style="margin-left:auto;margin-right:auto;">Your career.<br>One signal.</h2>
+    <div class="db-big rv rv-d2" id="bigDb">0</div>
+    <div class="db-eq rv rv-d2" aria-hidden="true">
       <i style="height:10px;animation-delay:0s"></i><i style="height:20px;animation-delay:.15s"></i><i style="height:14px;animation-delay:.3s"></i><i style="height:28px;animation-delay:.08s"></i><i style="height:22px;animation-delay:.45s"></i><i style="height:34px;animation-delay:.22s"></i><i style="height:16px;animation-delay:.6s"></i><i style="height:26px;animation-delay:.12s"></i><i style="height:12px;animation-delay:.38s"></i><i style="height:22px;animation-delay:.52s"></i><i style="height:30px;animation-delay:.05s"></i><i style="height:14px;animation-delay:.32s"></i>
     </div>
-    <p class="sec-sub rv" style="margin-left:auto;margin-right:auto;text-align:center;">Every project, client, quote and follower compresses into one number that climbs with you. Like gain on a meter — except the meter is your career.</p>
-    <div class="db-points rv">
+    <p class="sec-sub rv rv-d3" style="margin-left:auto;margin-right:auto;text-align:center;">Every project, client, quote and follower compresses into one number that climbs with you. Like gain on a meter — except the meter is your career.</p>
+    <div class="db-points rv rv-d4">
       <span>Active project <b>+150</b></span>
       <span>New client <b>+75</b></span>
       <span>Closed deal <b>+50</b></span>
@@ -918,10 +922,10 @@ footer { border-top:1px solid var(--line); padding:46px 28px; }
 <section class="block" id="fennec-id">
   <div class="in">
     <p class="sec-eyebrow rv">Fennec ID</p>
-    <h2 class="rv">Your network.<br>Your most valuable asset.</h2>
-    <p class="sec-sub rv">Streams spike. Algorithms shift. The people you meet are forever — and Fennec ID turns every real-world encounter into a connection you keep.</p>
+    <h2 class="rv rv-d1">Your network.<br>Your most valuable asset.</h2>
+    <p class="sec-sub rv rv-d2">Streams spike. Algorithms shift. The people you meet are forever — and Fennec ID turns every real-world encounter into a connection you keep.</p>
     <div class="id-grid">
-      <div class="id-card rv" id="idCard">
+      <div class="id-card rv rv-d3" id="idCard">
         <img class="fox" src="fennec-icon-transparent.png" alt="">
         <div class="top">
           <div class="ava"><img id="idAvaImg" src="avatars/05.jpg" alt=""></div>
@@ -945,9 +949,9 @@ footer { border-top:1px solid var(--line); padding:46px 28px; }
         </div>
       </div>
       <div>
-        <p class="id-hint rv">Tap a color — <b>meet the network</b></p>
-        <div class="id-colors rv" id="idColors" aria-label="Identity colors"></div>
-        <ul class="id-feats rv">
+        <p class="id-hint rv rv-d3">Tap a color — <b>meet the network</b></p>
+        <div class="id-colors rv rv-d4" id="idColors" aria-label="Identity colors"></div>
+        <ul class="id-feats rv rv-d4">
           <li><strong>In person only.</strong> Fennec IDs connect by QR scan, face to face — at the session, the gig, the studio. No cold DMs, no bots, no fake followers. Total trust.</li>
           <li><strong>A collection, not a contact list.</strong> Every artist you scan joins your network as a numbered card — #0001, #0002, #0003… Your people, always one tap away.</li>
           <li><strong>Alive, not static.</strong> Cards grow with their owner: FENNEC dB, genres and reach update as your network levels up. Watch your circle get louder.</li>
@@ -961,9 +965,9 @@ footer { border-top:1px solid var(--line); padding:46px 28px; }
 <section class="block" style="padding-top:60px;">
   <div class="in">
     <p class="sec-eyebrow rv" style="justify-content:center;">Pricing</p>
-    <h2 class="rv" style="text-align:center;margin-left:auto;margin-right:auto;">Start free.<br>Go Pro when it pays off.</h2>
+    <h2 class="rv rv-d1" style="text-align:center;margin-left:auto;margin-right:auto;">Start free.<br>Go Pro when it pays off.</h2>
     <div class="price-grid">
-      <div class="plan free rv">
+      <div class="plan free rv rv-d2">
         <p class="pl-name">Free</p>
         <p class="pl-price">$0</p>
         <p class="pl-tag">Everything you need to get serious.</p>
@@ -975,7 +979,7 @@ footer { border-top:1px solid var(--line); padding:46px 28px; }
         </ul>
         <a class="pl-cta" href="https://fennec.audio">Start free</a>
       </div>
-      <div class="plan pro rv">
+      <div class="plan pro rv rv-d3">
         <span class="badge">PRO</span>
         <p class="pl-name">Pro</p>
         <p class="pl-price">$9.99<small>/mo</small></p>
@@ -997,9 +1001,9 @@ footer { border-top:1px solid var(--line); padding:46px 28px; }
   <img class="fox" src="fennec-icon-transparent.png" alt="">
   <div class="in" style="position:relative;">
     <p class="sec-eyebrow rv" style="justify-content:center;">Ready when you are</p>
-    <h2 class="rv">The music is yours.<br>Now the <span style="color:var(--amber);text-shadow:0 0 40px rgba(245,166,35,.4);">business</span> is too.</h2>
-    <p class="sec-sub rv" style="text-align:center;">Join the producers building real careers — one project, one client, one dB at a time.</p>
-    <div class="cta-row rv">
+    <h2 class="rv rv-d1">The music is yours.<br>Now the <span style="color:var(--amber);text-shadow:0 0 40px rgba(245,166,35,.4);">business</span> is too.</h2>
+    <p class="sec-sub rv rv-d2" style="text-align:center;">Join the producers building real careers — one project, one client, one dB at a time.</p>
+    <div class="cta-row rv rv-d3">
       <a class="store-badge" href="#" aria-label="Download on the App Store">
         <svg viewBox="0 0 384 512"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
         <span class="tx"><small>Download on the</small><b>App Store</b></span>
