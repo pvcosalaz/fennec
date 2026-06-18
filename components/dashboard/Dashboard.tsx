@@ -233,11 +233,12 @@ export default function Dashboard({
       if (p.yt_subscribers != null) setYtSubs(p.yt_subscribers);
       if (p.social_synced_at) setSyncedAt(p.social_synced_at);
 
-      // Auto first-sync: has handles but no counts yet (never synced, or a
-      // previous sync failed and wrote nulls). Weekly cron handles the rest.
-      const hasHandles = !!(p.instagram || p.tiktok || p.youtube_url);
-      const noCounts = p.ig_followers == null && p.tiktok_followers == null && p.yt_subscribers == null;
-      if (hasHandles && noCounts) refreshSocial();
+      // Auto first-sync: trigger if any handle exists but its count is missing.
+      const missingCount =
+        (p.instagram   && p.ig_followers     == null) ||
+        (p.tiktok      && p.tiktok_followers == null) ||
+        (p.youtube_url && p.yt_subscribers   == null);
+      if (missingCount) refreshSocial();
     }).catch(() => {});
   }, [userId]);
 
