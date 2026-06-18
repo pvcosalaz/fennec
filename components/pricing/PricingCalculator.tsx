@@ -384,6 +384,8 @@ export default function PricingCalculator() {
   const [settingsSection, setSettingsSection] = useState<SettingsSection>("main");
   const [showSetup, setShowSetup] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [upgradePlan, setUpgradePlan] = useState<"monthly" | "yearly">("monthly");
+  const [upgrading, setUpgrading] = useState(false);
   const [businessView, setBusinessView] = useState<BusinessView>("hub");
   const prevBusinessView = useRef<BusinessView>("hub");
   const [hubRefreshKey, setHubRefreshKey] = useState(0);
@@ -500,6 +502,26 @@ export default function PricingCalculator() {
       setAuthLoading(false);
     }
   }
+  async function startCheckout(plan: "monthly" | "yearly") {
+    if (!authUser) return;
+    setUpgrading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const res = await fetch(`/api/stripe/checkout?userId=${authUser.id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ plan }),
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+    } catch (err) {
+      console.error("[startCheckout]", err);
+    } finally {
+      setUpgrading(false);
+    }
+  }
+
   const [quantity, setQuantity] = useState<number | null>(null);
   const [state, setState] = useState<PricingState>(() => {
     if (typeof window === "undefined") {
@@ -1089,8 +1111,29 @@ export default function PricingCalculator() {
                   ))}
                 </div>
 
-                <button className="w-full py-4 rounded-2xl bg-amber-500 hover:bg-amber-400 transition text-black font-black text-base shadow-lg shadow-amber-500/30">
-                  Start Pro — $9.99 / month
+                {/* Plan toggle */}
+                <div className="flex rounded-xl overflow-hidden border border-white/10">
+                  <button
+                    onClick={() => setUpgradePlan("monthly")}
+                    className={`flex-1 py-2.5 text-sm font-semibold transition ${upgradePlan === "monthly" ? "bg-white/10 text-white" : "text-zinc-500"}`}
+                  >
+                    Monthly · $14.99
+                  </button>
+                  <button
+                    onClick={() => setUpgradePlan("yearly")}
+                    className={`flex-1 py-2.5 text-sm font-semibold transition relative ${upgradePlan === "yearly" ? "bg-white/10 text-white" : "text-zinc-500"}`}
+                  >
+                    Yearly · $119.99
+                    <span className="absolute -top-2 right-2 text-[9px] bg-amber-500 text-black font-black px-1.5 py-0.5 rounded-full">SAVE 33%</span>
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => startCheckout(upgradePlan)}
+                  disabled={upgrading}
+                  className="w-full py-4 rounded-2xl bg-amber-500 hover:bg-amber-400 active:scale-95 transition text-black font-black text-base shadow-lg shadow-amber-500/30 disabled:opacity-60"
+                >
+                  {upgrading ? "Redirecting…" : upgradePlan === "yearly" ? "Start Pro — $119.99 / year" : "Start Pro — $14.99 / month"}
                 </button>
 
                 <button onClick={() => setShowUpgrade(false)} className="w-full text-xs text-zinc-600 hover:text-zinc-400 transition py-1">
