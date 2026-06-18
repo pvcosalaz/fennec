@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
-import { stripe, PRICES } from "@/lib/stripe";
+import { getStripe, PRICES } from "@/lib/stripe";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
 export async function POST(req: NextRequest) {
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
 
   let customerId = profile?.stripe_customer_id as string | undefined;
   if (!customerId) {
-    const customer = await stripe.customers.create({
+    const customer = await getStripe().customers.create({
       email: user.email ?? profile?.email ?? undefined,
       name: profile?.full_name ?? undefined,
       metadata: { supabase_uid: user.id },
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
       .eq("id", user.id);
   }
 
-  const session = await stripe.checkout.sessions.create({
+  const session = await getStripe().checkout.sessions.create({
     customer: customerId,
     mode: "subscription",
     line_items: [{ price: priceId, quantity: 1 }],
