@@ -102,7 +102,7 @@ import {
   Camera,
   Briefcase,
   Home,
-  Globe,
+  Users,
   Settings,
   SlidersHorizontal,
 } from "lucide-react";
@@ -310,7 +310,7 @@ const moduleTabs: {
   { id: "contenido", labelKey: "tabs.content", icon: Camera },
   { id: "dashboard", labelKey: "tabs.dashboard", icon: Home },
   { id: "ideas", labelKey: "tabs.ideas", icon: AudioWaveform },
-  { id: "noticias", labelKey: "tabs.community", icon: Globe },
+  { id: "noticias", labelKey: "tabs.community", icon: Users },
 ];
 
 function CurrencyInput({
@@ -1188,60 +1188,6 @@ export default function PricingCalculator() {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             const isHome   = tab.id === "dashboard";
-            const isFennec = tab.id === "noticias";
-
-            /* ── Fennec tab — logo ──────────────────────── */
-            if (isFennec) {
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => { setActiveTab(tab.id); setBusinessView("hub"); }}
-                  className="flex flex-1 flex-col items-center justify-center py-3 transition"
-                  style={{ WebkitTapHighlightColor: "transparent" }}
-                >
-                  <div style={{ position: "relative", width: 36, height: 36 }}>
-                    {isActive && (
-                      <div style={{
-                        position: "absolute", inset: -6, borderRadius: "50%",
-                        background: "radial-gradient(circle, rgba(245,166,35,0.22) 0%, transparent 70%)",
-                        animation: "fennecNavGlow 2.6s ease-in-out infinite alternate",
-                        pointerEvents: "none",
-                      }} />
-                    )}
-                    <img
-                      src="/fennec-icon-transparent.png"
-                      alt="Fennec"
-                      style={{
-                        width: 36, height: 36,
-                        objectFit: "contain",
-                        filter: "brightness(0) invert(1)",
-                        opacity: isActive ? 1 : 0.6,
-                        transition: "opacity 0.25s ease",
-                        animation: isActive ? "fennecNavScale 2.6s ease-in-out infinite alternate" : undefined,
-                      }}
-                    />
-                    {/* Active glow overlay via pseudo-layer */}
-                    {isActive && (
-                      <img
-                        src="/fennec-icon-transparent.png"
-                        alt=""
-                        aria-hidden
-                        style={{
-                          position: "absolute", inset: 0,
-                          width: 36, height: 36,
-                          objectFit: "contain",
-                          filter: "brightness(0) invert(1) drop-shadow(0 0 5px rgba(245,166,35,0.7))",
-                          opacity: 1,
-                          pointerEvents: "none",
-                          animation: "fennecNavScale 2.6s ease-in-out infinite alternate",
-                        }}
-                      />
-                    )}
-                  </div>
-                  {isActive && <div className="mt-1.5 h-0.5 w-4 rounded-full bg-accent" />}
-                </button>
-              );
-            }
 
             /* ── Home — elevated center button (Meta-style 3D lift) ── */
             if (isHome) {
@@ -1264,7 +1210,16 @@ export default function PricingCalculator() {
                         : "0 4px 12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 4px rgba(17,17,20,0.92)",
                     }}
                   >
-                    <Icon className={`h-6 w-6 ${isActive ? "text-black" : "text-zinc-400"}`} />
+                    <img
+                      src="/fennec-icon-transparent.png"
+                      alt="Home"
+                      style={{
+                        width: 30, height: 30, objectFit: "contain",
+                        filter: isActive ? "brightness(0)" : "brightness(0) invert(1)",
+                        opacity: isActive ? 1 : 0.55,
+                        transition: "opacity 0.25s ease, filter 0.25s ease",
+                      }}
+                    />
                   </div>
                 </button>
               );
