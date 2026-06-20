@@ -115,13 +115,10 @@ export default function BusinessHub({ onOpenView, isPro = false, userId, onUpgra
   const revenues    = useMemo(() => months.map((m) => revenueForMonth(projects, m.month, m.year)), [projects, months]);
 
   return (
-    <div className="mx-auto w-full max-w-4xl flex flex-col h-full px-4">
-
-      {/* ── Top group: header + hero + grid ── */}
-      <div className="flex flex-col gap-3">
+    <div className="mx-auto w-full max-w-4xl flex flex-col flex-1 gap-3 px-4 pb-3">
 
       {/* ── Header ── */}
-      <div>
+      <div className="flex-shrink-0">
         <div className="flex items-center gap-2.5">
           <p className="text-[10px] font-bold tracking-[0.18em] text-accent/70 uppercase flex-shrink-0">Business Hub</p>
           <div className="h-px flex-1 bg-gradient-to-r from-accent/20 to-transparent" />
@@ -131,7 +128,7 @@ export default function BusinessHub({ onOpenView, isPro = false, userId, onUpgra
       </div>
 
       {/* ── Revenue this month + bars ── */}
-      <div className="relative rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4 space-y-3 overflow-hidden">
+      <div className="relative flex-shrink-0 rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4 space-y-3 overflow-hidden">
         <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-8 h-24"
           style={{ background: "radial-gradient(ellipse 60% 100% at 50% 0%, rgba(245,166,35,0.06), transparent 70%)" }} />
         <div className="relative flex items-end justify-between">
@@ -154,21 +151,20 @@ export default function BusinessHub({ onOpenView, isPro = false, userId, onUpgra
       <button
         type="button"
         onClick={() => onOpenView("network")}
-        className="relative w-full rounded-2xl overflow-hidden ring-1 ring-white/[0.06] active:scale-[0.985] transition-transform duration-150"
+        className="relative flex-shrink-0 w-full rounded-2xl overflow-hidden ring-1 ring-white/[0.06] active:scale-[0.985] transition-transform duration-150"
         style={{ height: 130 }}
       >
         <NetworkHero />
       </button>
 
-      {/* ── Tool grid: 2×2 ── */}
-      <div className="grid grid-cols-2 gap-2">
+      {/* ── Tool grid: 2×2 — grows to fill remaining height ── */}
+      <div className="grid grid-cols-2 grid-rows-2 gap-2 flex-1" style={{ minHeight: 200 }}>
 
         {/* Pricing Calculator */}
         <button
           type="button"
           onClick={() => onOpenView("calculator")}
-          className="relative rounded-2xl overflow-hidden active:scale-[0.97] transition-transform duration-150"
-          style={{ height: 90 }}
+          className="relative h-full rounded-2xl overflow-hidden active:scale-[0.97] transition-transform duration-150"
         >
           <PricingCalculatorCard />
         </button>
@@ -177,8 +173,7 @@ export default function BusinessHub({ onOpenView, isPro = false, userId, onUpgra
         <button
           type="button"
           onClick={() => isPro ? onOpenView("clients") : onUpgrade?.()}
-          className="relative rounded-2xl overflow-hidden active:scale-[0.97] transition-transform duration-150"
-          style={{ height: 90 }}
+          className="relative h-full rounded-2xl overflow-hidden active:scale-[0.97] transition-transform duration-150"
         >
           {!isPro && (
             <>
@@ -195,8 +190,7 @@ export default function BusinessHub({ onOpenView, isPro = false, userId, onUpgra
         <button
           type="button"
           onClick={() => isPro ? onOpenView("quotes") : onUpgrade?.()}
-          className="relative rounded-2xl overflow-hidden active:scale-[0.97] transition-transform duration-150"
-          style={{ height: 90 }}
+          className="relative h-full rounded-2xl overflow-hidden active:scale-[0.97] transition-transform duration-150"
         >
           {!isPro && (
             <>
@@ -213,15 +207,12 @@ export default function BusinessHub({ onOpenView, isPro = false, userId, onUpgra
         <button
           type="button"
           onClick={() => onOpenView("projects")}
-          className="relative rounded-2xl overflow-hidden active:scale-[0.97] transition-transform duration-150"
-          style={{ height: 90 }}
+          className="relative h-full rounded-2xl overflow-hidden active:scale-[0.97] transition-transform duration-150"
         >
           <ProjectsCard />
         </button>
 
       </div>
-
-      </div>{/* end top group */}
 
     </div>
   );
