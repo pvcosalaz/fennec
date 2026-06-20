@@ -49,7 +49,21 @@ export default function AuthGate() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen px-6 gap-8">
+    <div
+      className="relative flex flex-col items-center justify-center min-h-screen px-6 gap-8 overflow-hidden"
+      style={{ background: "#0b0a08" }}
+    >
+      {/* ── ambient glow field + floating orbs (same treatment as the landing) ── */}
+      <div className="ag-ambient" aria-hidden="true" />
+      <div className="ag-orbs" aria-hidden="true">
+        <span className="ag-orb ag-o1" />
+        <span className="ag-orb ag-o2" />
+        <span className="ag-orb ag-o3" />
+      </div>
+      <div className="ag-grain" aria-hidden="true" />
+
+      {/* content sits above the atmosphere */}
+      <div className="relative z-10 flex w-full flex-col items-center gap-8">
       {/* Logo + branding */}
       <div className="flex flex-col items-center gap-1">
         <div style={{ marginTop: 10 }}>
@@ -124,6 +138,49 @@ export default function AuthGate() {
           </button>
         </form>
       </div>
+      </div>{/* end content wrapper */}
+
+      <style>{`
+        .ag-ambient {
+          position:absolute; inset:-25%; z-index:0; pointer-events:none;
+          background:
+            radial-gradient(34% 30% at 78% 14%, rgba(245,166,35,.30), transparent 64%),
+            radial-gradient(30% 28% at 10% 32%, rgba(245,166,35,.16), transparent 66%),
+            radial-gradient(42% 36% at 60% 88%, rgba(224,128,42,.26), transparent 64%);
+          filter: blur(8px); will-change: transform;
+          animation: agDrift 26s ease-in-out infinite alternate;
+        }
+        @keyframes agDrift {
+          0%   { transform: translate3d(0,0,0) scale(1); }
+          50%  { transform: translate3d(-3%,2.5%,0) scale(1.08); }
+          100% { transform: translate3d(3%,-2%,0) scale(1.04); }
+        }
+        .ag-orbs { position:absolute; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+        .ag-orb {
+          position:absolute; border-radius:50%; pointer-events:none;
+          mix-blend-mode:screen; opacity:.32; filter:blur(16px); will-change: transform;
+        }
+        .ag-o1 { width:300px; height:300px; left:60%; top:6%;
+          background:radial-gradient(circle at 38% 32%, rgba(245,166,35,.5), rgba(245,166,35,.16) 48%, transparent 72%);
+          animation: agFloat1 24s ease-in-out infinite alternate; }
+        .ag-o2 { width:200px; height:200px; left:-8%; top:50%;
+          background:radial-gradient(circle at 38% 32%, rgba(255,201,92,.42), rgba(245,166,35,.13) 50%, transparent 72%);
+          animation: agFloat2 19s ease-in-out infinite alternate; }
+        .ag-o3 { width:240px; height:240px; left:62%; top:74%; filter:blur(20px);
+          background:radial-gradient(circle at 40% 35%, rgba(224,128,42,.34), rgba(224,128,42,.1) 52%, transparent 74%);
+          animation: agFloat3 28s ease-in-out infinite alternate; }
+        @keyframes agFloat1 { from{transform:translate(0,0)} to{transform:translate(-24px,30px)} }
+        @keyframes agFloat2 { from{transform:translate(0,0)} to{transform:translate(28px,-22px)} }
+        @keyframes agFloat3 { from{transform:translate(0,0)} to{transform:translate(-20px,-28px)} }
+        .ag-grain {
+          position:absolute; inset:0; z-index:1; pointer-events:none; opacity:.055;
+          background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.68' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+          background-size:200px 200px;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .ag-ambient, .ag-orb { animation: none !important; }
+        }
+      `}</style>
     </div>
   );
 }
