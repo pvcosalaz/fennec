@@ -84,8 +84,8 @@ export default function CommentsView({ post, profile, onBack, onOpenProfile }: P
         {!loading && (
           <p className="text-xs text-zinc-600 px-1">
             {comments.length === 0
-              ? "Sin comentarios todavía"
-              : `${comments.length} comentario${comments.length !== 1 ? "s" : ""}`}
+              ? "No comments yet"
+              : `${comments.length} comment${comments.length !== 1 ? "s" : ""}`}
           </p>
         )}
 

@@ -538,7 +538,7 @@ export default function Dashboard({
                style={{ color: `${accent}60` }}>FENNEC dB</p>
             <button type="button" onClick={() => setShowDbInfo((v) => !v)}
               style={{ color: `${accent}55`, lineHeight: 1 }}
-              aria-label="¿Qué es FENNEC dB?">
+              aria-label="What is FENNEC dB?">
               <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor">
                 <circle cx="8" cy="8" r="7.5" stroke="currentColor" strokeWidth="1" fill="none" />
                 <text x="8" y="12" textAnchor="middle" fontSize="10" fontWeight="700" fill="currentColor">i</text>
@@ -561,52 +561,52 @@ export default function Dashboard({
         {showDbInfo && (
           <div className="w-full rounded-xl border px-4 py-3 mt-1 text-[10px] leading-relaxed space-y-3"
                style={{ borderColor: `${cardColorScheme.accent}15`, background: `${cardColorScheme.accent}08`, color: `${cardColorScheme.accent}70` }}>
-            <p>Tu señal como artista y productor — crece con cada proyecto, cliente y escucha.</p>
-            {/* Negocio */}
+            <p>Your signal as an artist and producer — it grows with every project, client and listen.</p>
+            {/* Business */}
             <div>
               <p className="text-[8px] font-bold uppercase tracking-widest mb-1.5"
-                 style={{ color: `${cardColorScheme.accent}45` }}>Negocio</p>
+                 style={{ color: `${cardColorScheme.accent}45` }}>Business</p>
               <div className="flex flex-wrap gap-x-5 gap-y-1">
                 {[
-                  ["Proyecto activo",    "×150"],
-                  ["Proyecto cerrado",   "×50"],
-                  ["Cliente",            "×75"],
-                  ["Cotización enviada", "×25"],
+                  ["Active project",  "×150"],
+                  ["Closed project",  "×50"],
+                  ["Client",          "×75"],
+                  ["Quote sent",      "×25"],
                 ].map(([l, p]) => (
                   <span key={l}>{l} <strong style={{ color: cardColorScheme.accent }}>{p}</strong></span>
                 ))}
               </div>
             </div>
 
-            {/* Redes sociales */}
+            {/* Social */}
             <div>
               <p className="text-[8px] font-bold uppercase tracking-widest mb-1.5"
-                 style={{ color: `${cardColorScheme.accent}45` }}>Redes sociales</p>
+                 style={{ color: `${cardColorScheme.accent}45` }}>Social</p>
               <div className="flex flex-wrap gap-x-5 gap-y-1">
                 <span>
-                  Seguidores totales{" "}
+                  Total followers{" "}
                   <strong style={{ color: cardColorScheme.accent }}>÷100 pts</strong>
                 </span>
               </div>
               {totalFollowers > 0 && (
                 <p className="mt-1 text-[9px]" style={{ color: `${cardColorScheme.accent}55` }}>
-                  {totalFollowers.toLocaleString()} seguidores → <strong style={{ color: cardColorScheme.accent }}>+{socialPoints} pts</strong>
+                  {totalFollowers.toLocaleString()} followers → <strong style={{ color: cardColorScheme.accent }}>+{socialPoints} pts</strong>
                 </p>
               )}
             </div>
 
-            {/* Alcance musical (próximamente) */}
+            {/* Musical reach (coming soon) */}
             <div>
               <div className="flex items-center gap-2 mb-1.5">
                 <p className="text-[8px] font-bold uppercase tracking-widest"
-                   style={{ color: `${cardColorScheme.accent}45` }}>Alcance musical</p>
+                   style={{ color: `${cardColorScheme.accent}45` }}>Musical reach</p>
                 <span className="text-[7px] font-bold px-1.5 py-0.5 rounded-full"
                       style={{ background: `${cardColorScheme.accent}15`, color: `${cardColorScheme.accent}70` }}>
-                  vía Muso.AI · próximamente
+                  via Muso.AI · coming soon
                 </span>
               </div>
               <div className="flex flex-wrap gap-x-5 gap-y-1" style={{ opacity: 0.5 }}>
-                {[["Streams totales", "por definir"], ["Créditos verificados", "por definir"]].map(([l, p]) => (
+                {[["Total streams", "TBD"], ["Verified credits", "TBD"]].map(([l, p]) => (
                   <span key={l}>{l} <strong style={{ color: cardColorScheme.accent }}>{p}</strong></span>
                 ))}
               </div>
@@ -615,7 +615,7 @@ export default function Dashboard({
         )}
       </div>
 
-      {/* Stat chips: Streams · Créditos · Proyectos */}
+      {/* Stat chips: Streams · Credits · Projects */}
       <div className="dash-rise" style={{ animationDelay: "0.2s" }}>
         <div className="flex items-center gap-2 mb-1.5 px-1">
           <p className="text-[8px] font-bold uppercase tracking-widest text-zinc-600 flex-shrink-0">
@@ -637,7 +637,7 @@ export default function Dashboard({
             <p className="text-[8px] font-bold uppercase tracking-widest text-zinc-600">Social Reach</p>
             <button type="button" onClick={() => setShowSocialInfo((v) => !v)}
               className="text-zinc-600 hover:text-zinc-400 transition leading-none"
-              aria-label="¿Cómo se actualiza?">
+              aria-label="How is it updated?">
               <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
                 <circle cx="8" cy="8" r="7.5" stroke="currentColor" strokeWidth="1" fill="none" />
                 <text x="8" y="12" textAnchor="middle" fontSize="10" fontWeight="700" fill="currentColor">i</text>

@@ -179,7 +179,7 @@ export default function CalendarHub({
         <button
           onClick={prevWeek}
           className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
-          aria-label="Semana anterior"
+          aria-label="Previous week"
         >
           <ChevronLeft size={18} />
         </button>
@@ -187,7 +187,7 @@ export default function CalendarHub({
         <button
           onClick={nextWeek}
           className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
-          aria-label="Siguiente semana"
+          aria-label="Next week"
         >
           <ChevronRight size={18} />
         </button>
@@ -340,7 +340,7 @@ export default function CalendarHub({
                           <button
                             onClick={() => { onEditScript(task.title); setDayDetailOpen(false); }}
                             className="text-zinc-600 hover:text-amber-400 transition-colors"
-                            aria-label="Editar script"
+                            aria-label="Edit script"
                           >
                             <Pencil size={14} />
                           </button>
@@ -348,7 +348,7 @@ export default function CalendarHub({
                         <button
                           onClick={() => onDeleteTask(task.id)}
                           className="text-zinc-600 hover:text-red-400 transition-colors text-sm leading-none"
-                          aria-label="Eliminar tarea"
+                          aria-label="Delete task"
                         >
                           ✕
                         </button>

@@ -63,7 +63,7 @@ export default function MelodyPicker({ onSelect, onClose }: Props) {
 
         {recordings.length === 0 && (
           <p className="text-sm text-zinc-600 text-center py-8">
-            No tienes grabaciones en tu Melody Bank todavía.
+            You don't have any recordings in your Melody Bank yet.
           </p>
         )}
 

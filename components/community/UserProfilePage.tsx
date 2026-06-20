@@ -201,7 +201,7 @@ export default function UserProfilePage({ userId, currentProfile, onBack, onOpen
       <div className="space-y-3">
         <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">Posts</p>
         {posts.length === 0 && (
-          <p className="text-center text-sm text-zinc-600 py-8">Sin posts todavía.</p>
+          <p className="text-center text-sm text-zinc-600 py-8">No posts yet.</p>
         )}
         {posts.map((post) => (
           <PostCard

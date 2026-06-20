@@ -333,9 +333,9 @@ export default function AudioDemoPage() {
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, maxWidth: 380, width: "100%" }}>
         {[
-          { icon: "✦", label: "Artwork glow", desc: "Pulsa con el beat" },
-          { icon: "▌▌▌", label: "Bar waveform", desc: "Reacciona en vivo" },
-          { icon: "◈", label: "Track entrance", desc: "Animación Remotion" },
+          { icon: "✦", label: "Artwork glow", desc: "Pulses with the beat" },
+          { icon: "▌▌▌", label: "Bar waveform", desc: "Reacts in real time" },
+          { icon: "◈", label: "Track entrance", desc: "Remotion animation" },
         ].map((f) => (
           <div key={f.label} style={{
             background: "rgba(255,255,255,0.03)", borderRadius: 12,

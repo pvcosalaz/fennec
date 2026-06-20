@@ -40,7 +40,7 @@ export default function AuthGate() {
       if (signUpErr) {
         setError(signUpErr.message);
       } else {
-        setMessage("Revisa tu email para confirmar tu cuenta.");
+        setMessage("Check your email to confirm your account.");
       }
     } else if (error) {
       setError(error.message);
@@ -112,7 +112,7 @@ export default function AuthGate() {
         <form onSubmit={handleEmail} className="space-y-2">
           <input
             type="email"
-            placeholder="tu@email.com"
+            placeholder="you@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -120,7 +120,7 @@ export default function AuthGate() {
           />
           <input
             type="password"
-            placeholder="Contraseña"
+            placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -134,7 +134,7 @@ export default function AuthGate() {
             disabled={loading}
             className="w-full h-11 rounded-xl bg-amber-500 text-black text-sm font-semibold hover:bg-amber-400 transition disabled:opacity-50"
           >
-            {loading ? "Cargando..." : "Entrar / Crear cuenta"}
+            {loading ? "Loading..." : "Log in / Sign up"}
           </button>
         </form>
       </div>

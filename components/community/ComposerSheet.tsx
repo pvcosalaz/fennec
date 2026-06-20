@@ -207,7 +207,7 @@ export default function ComposerSheet({ profile, onClose, onPostCreated, initial
             disabled={!canPost || submitting}
             className="px-5 h-9 rounded-xl bg-amber-500 text-black text-sm font-semibold hover:bg-amber-400 transition disabled:opacity-40"
           >
-            {submitting ? "..." : "Publicar"}
+            {submitting ? "..." : "Post"}
           </button>
         </div>
 

@@ -12,7 +12,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "Fennec",
-  description: "Tu negocio musical, en orden.",
+  description: "Your music business, organized.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,

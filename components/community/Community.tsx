@@ -140,8 +140,8 @@ function SponsorsRow() {
           className="shrink-0 flex flex-col items-center justify-center gap-1 rounded-2xl border border-dashed border-white/10 bg-white/[0.02] text-center"
           style={{ width: 110, height: 72 }}
         >
-          <p className="text-[10px] font-semibold text-zinc-600">¿Tu marca aquí?</p>
-          <p className="text-[9px] text-zinc-700">Anúnciate en Fennec</p>
+          <p className="text-[10px] font-semibold text-zinc-600">Your brand here?</p>
+          <p className="text-[9px] text-zinc-700">Advertise on Fennec</p>
         </div>
       </div>
     </div>

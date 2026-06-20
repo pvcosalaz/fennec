@@ -160,7 +160,7 @@ export default function ClientsLeads({ onBack, userId }: Props) {
               <span className="text-xs text-zinc-400">Name *</span>
               <input
                 type="text"
-                placeholder="Hernán García"
+                placeholder="Jordan Rivers"
                 className="h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-accent"
                 {...field("name")}
               />
@@ -170,7 +170,7 @@ export default function ClientsLeads({ onBack, userId }: Props) {
               <span className="text-xs text-zinc-400">Email *</span>
               <input
                 type="email"
-                placeholder="hernan@estudio.com"
+                placeholder="jordan@studio.com"
                 className="h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-accent"
                 {...field("email")}
               />
@@ -190,7 +190,7 @@ export default function ClientsLeads({ onBack, userId }: Props) {
               <span className="text-xs text-zinc-400">Company / Project</span>
               <input
                 type="text"
-                placeholder="Disquera XYZ"
+                placeholder="Label XYZ"
                 className="h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-accent"
                 {...field("company")}
               />

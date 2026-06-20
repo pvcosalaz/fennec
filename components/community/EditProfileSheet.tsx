@@ -84,7 +84,7 @@ export default function EditProfileSheet({ profile, onClose, onSaved }: Props) {
 
         {/* Header */}
         <div className="flex items-center justify-between">
-          <span className="text-sm font-semibold text-white">Editar perfil</span>
+          <span className="text-sm font-semibold text-white">Edit profile</span>
           <button onClick={onClose}><X className="h-5 w-5 text-zinc-500" /></button>
         </div>
 
@@ -136,7 +136,7 @@ export default function EditProfileSheet({ profile, onClose, onSaved }: Props) {
           <textarea
             value={bio}
             onChange={(e) => setBio(e.target.value)}
-            placeholder="Cuéntanos sobre ti..."
+            placeholder="Tell us about yourself..."
             maxLength={160}
             rows={3}
             className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-amber-500 resize-none"
@@ -146,7 +146,7 @@ export default function EditProfileSheet({ profile, onClose, onSaved }: Props) {
 
         {/* Genres */}
         <div className="space-y-2">
-          <label className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">Géneros</label>
+          <label className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">Genres</label>
           <div className="flex flex-wrap gap-1.5">
             {genres.map((tag) => (
               <button
@@ -163,7 +163,7 @@ export default function EditProfileSheet({ profile, onClose, onSaved }: Props) {
               value={genreInput}
               onChange={(e) => setGenreInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addGenre(); } }}
-              placeholder="Ej: Dark Trap, Neoclassical..."
+              placeholder="e.g. Dark Trap, Neoclassical..."
               className="flex-1 h-9 rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-amber-500"
             />
             <button
@@ -181,7 +181,7 @@ export default function EditProfileSheet({ profile, onClose, onSaved }: Props) {
           <input
             value={workedWith}
             onChange={(e) => setWorkedWith(e.target.value)}
-            placeholder="Ej: Bad Bunny, Hans Zimmer, Sony Music"
+            placeholder="e.g. Bad Bunny, Hans Zimmer, Sony Music"
             className="w-full h-11 rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-amber-500"
           />
         </div>
@@ -192,7 +192,7 @@ export default function EditProfileSheet({ profile, onClose, onSaved }: Props) {
           <input
             value={workedIn}
             onChange={(e) => setWorkedIn(e.target.value)}
-            placeholder="Ej: Succession, FIFA 25, Coca-Cola ad"
+            placeholder="e.g. Succession, FIFA 25, Coca-Cola ad"
             className="w-full h-11 rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-amber-500"
           />
         </div>
@@ -203,7 +203,7 @@ export default function EditProfileSheet({ profile, onClose, onSaved }: Props) {
           disabled={saving}
           className="w-full h-11 rounded-xl bg-amber-500 text-black text-sm font-semibold hover:bg-amber-400 transition disabled:opacity-50"
         >
-          {saving ? "Guardando..." : "Guardar cambios"}
+          {saving ? "Saving..." : "Save changes"}
         </button>
 
         <input ref={fileRef}   type="file" accept="image/*" className="hidden" onChange={handleAvatarSelect} />
