@@ -158,15 +158,15 @@ export default function AuthGate() {
         .ag-orbs { position:absolute; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
         .ag-orb {
           position:absolute; border-radius:50%; pointer-events:none;
-          mix-blend-mode:screen; opacity:.32; filter:blur(16px); will-change: transform;
+          mix-blend-mode:screen; opacity:.10; filter:blur(36px); will-change: transform;
         }
-        .ag-o1 { width:300px; height:300px; left:60%; top:6%;
+        .ag-o1 { width:320px; height:320px; left:58%; top:2%;
           background:radial-gradient(circle at 38% 32%, rgba(245,166,35,.5), rgba(245,166,35,.16) 48%, transparent 72%);
           animation: agFloat1 24s ease-in-out infinite alternate; }
-        .ag-o2 { width:200px; height:200px; left:-8%; top:50%;
+        .ag-o2 { width:220px; height:220px; left:-12%; top:52%;
           background:radial-gradient(circle at 38% 32%, rgba(255,201,92,.42), rgba(245,166,35,.13) 50%, transparent 72%);
           animation: agFloat2 19s ease-in-out infinite alternate; }
-        .ag-o3 { width:240px; height:240px; left:62%; top:74%; filter:blur(20px);
+        .ag-o3 { width:260px; height:260px; left:60%; top:76%; filter:blur(44px);
           background:radial-gradient(circle at 40% 35%, rgba(224,128,42,.34), rgba(224,128,42,.1) 52%, transparent 74%);
           animation: agFloat3 28s ease-in-out infinite alternate; }
         @keyframes agFloat1 { from{transform:translate(0,0)} to{transform:translate(-24px,30px)} }
