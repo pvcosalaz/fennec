@@ -3,13 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { fetchPushSubscriptionsForUser, deletePushSubscription } from "@/lib/notificationDb";
 import { sendPushToMany } from "@/lib/pushSend";
 
-const CRON_SECRET = process.env.CRON_SECRET ?? "";
-
 export async function POST(req: NextRequest) {
   try {
     // Internal-only route — require shared secret
+    const secret = process.env.CRON_SECRET;
     const auth = req.headers.get("authorization") ?? "";
-    if (!auth || auth !== `Bearer ${CRON_SECRET}`) {
+    if (!secret || !auth || auth !== `Bearer ${secret}`) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

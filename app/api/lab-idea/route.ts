@@ -1,11 +1,18 @@
 export const dynamic = "force-dynamic";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
 const VALID_FORMATS = new Set(["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]);
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    const authHeader = req.headers.get("authorization") ?? "";
+    const token = authHeader.replace("Bearer ", "").trim();
+    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const { data: { user }, error: authError } = await getSupabaseAdmin().auth.getUser(token);
+    if (authError || !user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
     const body = await req.json() as { format?: unknown; line?: unknown };
 
     const format = typeof body.format === "string" ? body.format.trim() : "";
