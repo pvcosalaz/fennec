@@ -1199,22 +1199,22 @@ export default function PricingCalculator() {
                   style={{ WebkitTapHighlightColor: "transparent" }}
                 >
                   <div
-                    className="flex h-14 w-14 items-center justify-center rounded-full transition-transform duration-200 active:scale-95"
+                    className="flex h-16 w-16 items-center justify-center rounded-full transition-transform duration-200 active:scale-95"
                     style={{
-                      marginTop: -22,
+                      marginTop: -26,
                       background: isActive
                         ? "linear-gradient(160deg, #ffc14d 0%, var(--accent, #f5a623) 55%, #e0822a 100%)"
                         : "linear-gradient(160deg, #2a2a2e 0%, #1c1c20 100%)",
                       boxShadow: isActive
-                        ? "0 6px 16px rgba(245,166,35,0.45), 0 2px 6px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.35), 0 0 0 4px rgba(17,17,20,0.92)"
-                        : "0 4px 12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 4px rgba(17,17,20,0.92)",
+                        ? "0 6px 16px rgba(245,166,35,0.45), 0 2px 6px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.35), 0 0 0 6px rgba(17,17,20,0.92)"
+                        : "0 4px 12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 6px rgba(17,17,20,0.92)",
                     }}
                   >
                     <img
                       src="/fennec-icon-transparent.png"
                       alt="Home"
                       style={{
-                        width: 30, height: 30, objectFit: "contain",
+                        width: 38, height: 38, objectFit: "contain",
                         filter: isActive ? "brightness(0)" : "brightness(0) invert(1)",
                         opacity: isActive ? 1 : 0.55,
                         transition: "opacity 0.25s ease, filter 0.25s ease",
