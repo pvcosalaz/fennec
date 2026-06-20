@@ -1243,17 +1243,27 @@ export default function PricingCalculator() {
               );
             }
 
-            /* ── Home ───────────────────────────────────── */
+            /* ── Home — elevated center button (Meta-style 3D lift) ── */
             if (isHome) {
               return (
                 <button
                   key={tab.id}
                   onClick={() => { setActiveTab(tab.id); setBusinessView("hub"); setShowSettings(false); setSettingsSection("main"); }}
                   className="flex flex-1 flex-col items-center justify-center py-3 transition"
+                  style={{ WebkitTapHighlightColor: "transparent" }}
                 >
-                  <div className={`flex h-11 w-11 items-center justify-center rounded-full transition ${
-                    isActive ? "bg-accent shadow-md shadow-accent/40" : "bg-zinc-800"
-                  }`}>
+                  <div
+                    className="flex h-14 w-14 items-center justify-center rounded-full transition-transform duration-200 active:scale-95"
+                    style={{
+                      marginTop: -22,
+                      background: isActive
+                        ? "linear-gradient(160deg, #ffc14d 0%, var(--accent, #f5a623) 55%, #e0822a 100%)"
+                        : "linear-gradient(160deg, #2a2a2e 0%, #1c1c20 100%)",
+                      boxShadow: isActive
+                        ? "0 6px 16px rgba(245,166,35,0.45), 0 2px 6px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.35), 0 0 0 4px rgba(17,17,20,0.92)"
+                        : "0 4px 12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 4px rgba(17,17,20,0.92)",
+                    }}
+                  >
                     <Icon className={`h-6 w-6 ${isActive ? "text-black" : "text-zinc-400"}`} />
                   </div>
                 </button>
