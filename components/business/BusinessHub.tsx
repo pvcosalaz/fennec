@@ -169,21 +169,13 @@ export default function BusinessHub({ onOpenView, isPro = false, userId, onUpgra
           <PricingCalculatorCard />
         </button>
 
-        {/* Clients & Leads */}
+        {/* Active Projects — FREE (entry point that connects calculator → real projects) */}
         <button
           type="button"
-          onClick={() => isPro ? onOpenView("clients") : onUpgrade?.()}
+          onClick={() => onOpenView("projects")}
           className="relative h-full rounded-2xl overflow-hidden active:scale-[0.97] transition-transform duration-150"
         >
-          {!isPro && (
-            <>
-              <div className="absolute inset-0 z-10 rounded-2xl" style={{ background: "rgba(8,6,2,0.28)" }} />
-              <div className="absolute top-2 right-2 z-20 flex items-center gap-1 bg-accent text-black text-[9px] font-bold px-2 py-0.5 rounded-full shadow-[0_0_12px_rgba(245,166,35,0.45)]">
-                <Lock size={9} /> Pro
-              </div>
-            </>
-          )}
-          <ClientsCard />
+          <ProjectsCard />
         </button>
 
         {/* Quotes */}
@@ -203,13 +195,21 @@ export default function BusinessHub({ onOpenView, isPro = false, userId, onUpgra
           <QuotesCard />
         </button>
 
-        {/* Active Projects — FREE (entry point that connects calculator → real projects) */}
+        {/* Clients & Leads — PRO */}
         <button
           type="button"
-          onClick={() => onOpenView("projects")}
+          onClick={() => isPro ? onOpenView("clients") : onUpgrade?.()}
           className="relative h-full rounded-2xl overflow-hidden active:scale-[0.97] transition-transform duration-150"
         >
-          <ProjectsCard />
+          {!isPro && (
+            <>
+              <div className="absolute inset-0 z-10 rounded-2xl" style={{ background: "rgba(8,6,2,0.28)" }} />
+              <div className="absolute top-2 right-2 z-20 flex items-center gap-1 bg-accent text-black text-[9px] font-bold px-2 py-0.5 rounded-full shadow-[0_0_12px_rgba(245,166,35,0.45)]">
+                <Lock size={9} /> Pro
+              </div>
+            </>
+          )}
+          <ClientsCard />
         </button>
 
       </div>
