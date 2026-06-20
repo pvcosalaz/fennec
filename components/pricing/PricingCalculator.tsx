@@ -422,6 +422,13 @@ export default function PricingCalculator() {
     const masterTimeout = setTimeout(() => setAuthLoading(false), 6000);
     const timeout = setTimeout(() => setAuthLoading(false), 4000);
 
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const user = session?.user ?? null;
+      setAuthUser(user ? { id: user.id } : null);
+      if (user) loadProfile(user.id);
+      else { setProfile(null); setAuthLoading(false); }
+    });
+
     // Handle OAuth redirect: if there's a ?code= in the URL, exchange it for a session
     async function init() {
       const params = new URLSearchParams(window.location.search);
@@ -444,16 +451,8 @@ export default function PricingCalculator() {
       else { setAuthLoading(false); clearTimeout(masterTimeout); }
     }
     init();
-    return () => { clearTimeout(timeout); clearTimeout(masterTimeout); };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      const user = session?.user ?? null;
-      setAuthUser(user ? { id: user.id } : null);
-      if (user) loadProfile(user.id);
-      else { setProfile(null); setAuthLoading(false); }
-    });
-
-    return () => subscription.unsubscribe();
+    return () => { clearTimeout(timeout); clearTimeout(masterTimeout); subscription.unsubscribe(); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
