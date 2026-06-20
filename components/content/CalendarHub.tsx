@@ -25,6 +25,7 @@ type Props = {
   onEditScript?: (taskTitle: string) => void;
   userName?: string;
   isPro?: boolean;
+  onUpgrade?: () => void;
 };
 
 function toYMD(d: Date): string {
@@ -97,6 +98,7 @@ export default function CalendarHub({
   onEditScript,
   userName = "Paco",
   isPro = false,
+  onUpgrade,
 }: Props) {
   const today = new Date();
   const todayYMD = toYMD(today);
@@ -234,7 +236,7 @@ export default function CalendarHub({
 
       {/* 3. Inspire — hero (Pro) */}
       <button
-        onClick={() => { if (isPro) onOpenSheet("inspire"); }}
+        onClick={() => { if (isPro) onOpenSheet("inspire"); else onUpgrade?.(); }}
         className="relative w-full rounded-2xl overflow-hidden flex-shrink-0"
         style={{ height: 150 }}
       >
@@ -247,7 +249,7 @@ export default function CalendarHub({
         <button onClick={() => onOpenSheet("ideas")} className="relative rounded-2xl overflow-hidden h-full">
           <QuickIdeasCard />
         </button>
-        <button onClick={() => { if (isPro) onOpenSheet("lab"); }} className="relative rounded-2xl overflow-hidden h-full">
+        <button onClick={() => { if (isPro) onOpenSheet("lab"); else onUpgrade?.(); }} className="relative rounded-2xl overflow-hidden h-full">
           <ContentLabCard />
           {!isPro && <ProLock />}
         </button>

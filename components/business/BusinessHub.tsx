@@ -95,9 +95,10 @@ type Props = {
   onOpenView: (view: BusinessView) => void;
   isPro?: boolean;
   userId: string;
+  onUpgrade?: () => void;
 };
 
-export default function BusinessHub({ onOpenView, isPro = false, userId }: Props) {
+export default function BusinessHub({ onOpenView, isPro = false, userId, onUpgrade }: Props) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [quotes,   setQuotes]   = useState<Quote[]>([]);
   const [clients,  setClients]  = useState<Client[]>([]);
@@ -175,7 +176,7 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
         {/* Clients & Leads */}
         <button
           type="button"
-          onClick={() => isPro ? onOpenView("clients") : undefined}
+          onClick={() => isPro ? onOpenView("clients") : onUpgrade?.()}
           className="relative rounded-2xl overflow-hidden active:scale-[0.97] transition-transform duration-150"
           style={{ height: 90 }}
         >
@@ -193,7 +194,7 @@ export default function BusinessHub({ onOpenView, isPro = false, userId }: Props
         {/* Quotes */}
         <button
           type="button"
-          onClick={() => isPro ? onOpenView("quotes") : undefined}
+          onClick={() => isPro ? onOpenView("quotes") : onUpgrade?.()}
           className="relative rounded-2xl overflow-hidden active:scale-[0.97] transition-transform duration-150"
           style={{ height: 90 }}
         >

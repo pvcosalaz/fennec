@@ -654,8 +654,9 @@ export default function PricingCalculator() {
           <BusinessHub
             key={hubRefreshKey}
             onOpenView={setBusinessView}
-            isPro={profile?.is_pro ?? true}
+            isPro={profile?.is_pro ?? false}
             userId={authUser.id}
+            onUpgrade={() => setShowUpgrade(true)}
           />
         </div>
       ) : activeTab === "pricing" && businessView === "projects" ? (
@@ -1160,7 +1161,7 @@ export default function PricingCalculator() {
         />
       ) : activeTab === "contenido" ? (
         <div className="flex-1 flex flex-col overflow-hidden">
-          <ContentModule isPro={profile?.is_pro ?? true} />
+          <ContentModule isPro={profile?.is_pro ?? false} onUpgrade={() => setShowUpgrade(true)} />
         </div>
       ) : activeTab === "ideas" ? (
         <AudioModule userId={authUser.id} isPro={profile?.is_pro ?? false} />

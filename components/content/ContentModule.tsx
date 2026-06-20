@@ -611,7 +611,7 @@ function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule }: {
 
 // ─── Main module ──────────────────────────────────────────────────────────────
 
-export default function ContentModule({ isPro = false }: { isPro?: boolean }) {
+export default function ContentModule({ isPro = false, onUpgrade }: { isPro?: boolean; onUpgrade?: () => void }) {
   const [ideas,  setIdeas]  = useState<Idea[]>([]);
   const [briefs, setBriefs] = useState<Brief[]>([]);
   const [tasks,  setTasks]  = useState<ContentTask[]>([]);
@@ -717,6 +717,7 @@ export default function ContentModule({ isPro = false }: { isPro?: boolean }) {
       <CalendarHub
         tasks={tasks}
         isPro={isPro}
+        onUpgrade={onUpgrade}
         onOpenSheet={openSheet}
         onToggleDone={toggleDone}
         onDeleteTask={deleteTask}
