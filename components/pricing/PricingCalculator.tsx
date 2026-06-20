@@ -1082,66 +1082,6 @@ export default function PricingCalculator() {
             </div>
           )}
 
-          {/* ── Upgrade sheet ─────────────────────────────────────── */}
-          {showUpgrade && !profile?.is_pro && (
-            <>
-              <div className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm" onClick={() => setShowUpgrade(false)} />
-              <div className="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl bg-zinc-950 border-t border-white/10 p-6 space-y-5">
-                <div className="w-10 h-1 bg-white/20 rounded-full mx-auto" />
-
-                <div className="space-y-1">
-                  <p className="text-xl font-black text-white">Your price is set.</p>
-                  <p className="text-xl font-black text-accent">Now close the deal.</p>
-                  <p className="text-sm text-zinc-500 mt-2">Upgrade to Pro and turn your rate into real income.</p>
-                </div>
-
-                <div className="space-y-2.5">
-                  {[
-                    { emoji: "👥", label: "Clients & Leads",    desc: "Store contacts, track prospects" },
-                    { emoji: "📄", label: "Quote Generator",     desc: "Send pro quotes in seconds" },
-                    { emoji: "📁", label: "Active Projects",     desc: "Deadlines, status, deliverables" },
-                  ].map((item) => (
-                    <div key={item.label} className="flex items-center gap-3 rounded-xl bg-white/5 px-4 py-3">
-                      <span className="text-lg">{item.emoji}</span>
-                      <div>
-                        <p className="text-sm font-semibold text-white">{item.label}</p>
-                        <p className="text-[11px] text-zinc-500">{item.desc}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Plan toggle */}
-                <div className="flex rounded-xl overflow-hidden border border-white/10">
-                  <button
-                    onClick={() => setUpgradePlan("monthly")}
-                    className={`flex-1 py-2.5 text-sm font-semibold transition ${upgradePlan === "monthly" ? "bg-white/10 text-white" : "text-zinc-500"}`}
-                  >
-                    Monthly · $14.99
-                  </button>
-                  <button
-                    onClick={() => setUpgradePlan("yearly")}
-                    className={`flex-1 py-2.5 text-sm font-semibold transition relative ${upgradePlan === "yearly" ? "bg-white/10 text-white" : "text-zinc-500"}`}
-                  >
-                    Yearly · $119.99
-                    <span className="absolute -top-2 right-2 text-[9px] bg-amber-500 text-black font-black px-1.5 py-0.5 rounded-full">SAVE 33%</span>
-                  </button>
-                </div>
-
-                <button
-                  onClick={() => startCheckout(upgradePlan)}
-                  disabled={upgrading}
-                  className="w-full py-4 rounded-2xl bg-amber-500 hover:bg-amber-400 active:scale-95 transition text-black font-black text-base shadow-lg shadow-amber-500/30 disabled:opacity-60"
-                >
-                  {upgrading ? "Redirecting…" : upgradePlan === "yearly" ? "Start Pro — $119.99 / year" : "Start Pro — $14.99 / month"}
-                </button>
-
-                <button onClick={() => setShowUpgrade(false)} className="w-full text-xs text-zinc-600 hover:text-zinc-400 transition py-1">
-                  Maybe later
-                </button>
-              </div>
-            </>
-          )}
         </section>
       ) : activeTab === "dashboard" ? (
         <Dashboard
@@ -1241,6 +1181,67 @@ export default function PricingCalculator() {
           })}
         </div>
       </nav>
+
+      {/* ── Upgrade sheet — global overlay (renders over any tab/view) ─── */}
+      {showUpgrade && !profile?.is_pro && (
+        <>
+          <div className="fixed inset-0 z-[150] bg-black/70 backdrop-blur-sm" onClick={() => setShowUpgrade(false)} />
+          <div className="fixed bottom-0 left-0 right-0 z-[160] rounded-t-3xl bg-zinc-950 border-t border-white/10 p-6 space-y-5">
+            <div className="w-10 h-1 bg-white/20 rounded-full mx-auto" />
+
+            <div className="space-y-1">
+              <p className="text-xl font-black text-white">Your price is set.</p>
+              <p className="text-xl font-black text-accent">Now close the deal.</p>
+              <p className="text-sm text-zinc-500 mt-2">Upgrade to Pro and turn your rate into real income.</p>
+            </div>
+
+            <div className="space-y-2.5">
+              {[
+                { emoji: "👥", label: "Clients & Leads",    desc: "Store contacts, track prospects" },
+                { emoji: "📄", label: "Quote Generator",     desc: "Send pro quotes in seconds" },
+                { emoji: "📁", label: "Active Projects",     desc: "Deadlines, status, deliverables" },
+              ].map((item) => (
+                <div key={item.label} className="flex items-center gap-3 rounded-xl bg-white/5 px-4 py-3">
+                  <span className="text-lg">{item.emoji}</span>
+                  <div>
+                    <p className="text-sm font-semibold text-white">{item.label}</p>
+                    <p className="text-[11px] text-zinc-500">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Plan toggle */}
+            <div className="flex rounded-xl overflow-hidden border border-white/10">
+              <button
+                onClick={() => setUpgradePlan("monthly")}
+                className={`flex-1 py-2.5 text-sm font-semibold transition ${upgradePlan === "monthly" ? "bg-white/10 text-white" : "text-zinc-500"}`}
+              >
+                Monthly · $14.99
+              </button>
+              <button
+                onClick={() => setUpgradePlan("yearly")}
+                className={`flex-1 py-2.5 text-sm font-semibold transition relative ${upgradePlan === "yearly" ? "bg-white/10 text-white" : "text-zinc-500"}`}
+              >
+                Yearly · $119.99
+                <span className="absolute -top-2 right-2 text-[9px] bg-amber-500 text-black font-black px-1.5 py-0.5 rounded-full">SAVE 33%</span>
+              </button>
+            </div>
+
+            <button
+              onClick={() => startCheckout(upgradePlan)}
+              disabled={upgrading}
+              className="w-full py-4 rounded-2xl bg-amber-500 hover:bg-amber-400 active:scale-95 transition text-black font-black text-base shadow-lg shadow-amber-500/30 disabled:opacity-60"
+            >
+              {upgrading ? "Redirecting…" : upgradePlan === "yearly" ? "Start Pro — $119.99 / year" : "Start Pro — $14.99 / month"}
+            </button>
+
+            <button onClick={() => setShowUpgrade(false)} className="w-full text-xs text-zinc-600 hover:text-zinc-400 transition py-1">
+              Maybe later
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
