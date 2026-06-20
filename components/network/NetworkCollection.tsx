@@ -47,7 +47,7 @@ export default function NetworkCollection({ contacts }: Props) {
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
         <p style={{ fontSize: 10, color: "#555", fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", margin: 0 }}>
-          Tu red · {contacts.length} productor{contacts.length !== 1 ? "es" : ""}
+          Your network · {contacts.length} producer{contacts.length !== 1 ? "s" : ""}
         </p>
         <button
           onClick={() => setExpanded((v) => !v)}
@@ -62,14 +62,14 @@ export default function NetworkCollection({ contacts }: Props) {
             padding: 0,
           }}
         >
-          {expanded ? "CERRAR" : "VER TODOS"}
+          {expanded ? "CLOSE" : "VIEW ALL"}
         </button>
       </div>
 
       {/* Collapsed: deck preview */}
       {!expanded && (
         <button
-          aria-label="Ver todos los productores en tu red"
+          aria-label="View all producers in your network"
           onClick={() => setExpanded(true)}
           style={{ width: "100%", background: "none", border: "none", cursor: "pointer", padding: 0 }}
         >

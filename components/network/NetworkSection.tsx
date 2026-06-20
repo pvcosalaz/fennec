@@ -24,11 +24,11 @@ export default function NetworkSection({ userId }: Props) {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <p className="text-xs font-semibold tracking-[0.35em] text-zinc-400 uppercase">Tu Red</p>
-        <p className="mt-1 text-xs text-zinc-600">Productores en tu colección.</p>
+        <p className="text-xs font-semibold tracking-[0.35em] text-zinc-400 uppercase">Your Network</p>
+        <p className="mt-1 text-xs text-zinc-600">Producers in your collection.</p>
       </div>
       {loadingContacts ? (
-        <p className="text-xs text-zinc-600">Cargando red...</p>
+        <p className="text-xs text-zinc-600">Loading network...</p>
       ) : (
         <NetworkCollection contacts={contacts} />
       )}

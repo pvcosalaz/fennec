@@ -683,7 +683,7 @@ export default function PricingCalculator() {
             Network
           </p>
           <h1 className="text-2xl font-bold tracking-tight text-white mb-6">
-            Tu red de productores.
+            Your producer network.
           </h1>
           <NetworkSection userId={authUser.id} />
         </div>
