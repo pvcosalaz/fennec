@@ -1197,9 +1197,9 @@ export default function PricingCalculator() {
 
             <div className="space-y-2.5">
               {[
-                { emoji: "👥", label: "Clients & Leads",    desc: "Store contacts, track prospects" },
+                { emoji: "🎧", label: "Track Feedback",      desc: "Upload your tracks, get timestamped reviews" },
+                { emoji: "👥", label: "Clients & Leads",     desc: "Store contacts, track prospects" },
                 { emoji: "📄", label: "Quote Generator",     desc: "Send pro quotes in seconds" },
-                { emoji: "📁", label: "Active Projects",     desc: "Deadlines, status, deliverables" },
               ].map((item) => (
                 <div key={item.label} className="flex items-center gap-3 rounded-xl bg-white/5 px-4 py-3">
                   <span className="text-lg">{item.emoji}</span>
