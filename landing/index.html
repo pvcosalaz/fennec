@@ -103,7 +103,7 @@ body::before {
 /* ─── LineWaves WebGL field (hero) ─── */
 .hero-waves {
   position:absolute; inset:0; z-index:0; pointer-events:none;
-  opacity:.55; mix-blend-mode:screen;
+  opacity:.42; mix-blend-mode:screen;
 }
 .hero-waves canvas { width:100% !important; height:100% !important; display:block; }
 /* dark scrim — weights toward the text column so copy stays legible */
@@ -203,13 +203,14 @@ nav {
     radial-gradient(ellipse 40% 30% at 18% 80%, rgba(245,166,35,.05), transparent 70%);
 }
 .hero .fox-bg {
-  position:absolute; right:-8%; top:10%; width:62vw; max-width:900px; opacity:.04;
+  position:absolute; right:-8%; top:10%; width:62vw; max-width:900px; opacity:.07;
   pointer-events:none; filter:brightness(0) invert(1);
+  z-index:1; /* sits above the waves, below the hero content */
 }
 .hero-in {
   max-width:1180px; margin:0 auto; width:100%;
   display:grid; grid-template-columns:1.1fr .9fr; gap:60px; align-items:center;
-  position:relative;
+  position:relative; z-index:2; /* above fox-bg + waves */
 }
 .eyebrow {
   font-family:var(--mono); font-size:11px; font-weight:500;
@@ -1349,7 +1350,7 @@ if (container && !reduceMotion) {
     rotation: -45,
     edgeFadeWidth: 0.0,
     colorCycleSpeed: 0.6,
-    brightness: 0.22,
+    brightness: 0.16,
     color1: "#f5a623", /* amber */
     color2: "#c66a1f", /* deeper burnt orange */
     color3: "#e0a84e", /* muted gold */
