@@ -12,6 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
 <style>
 /* ════════════════════════════════════════════════════════════════
    FENNEC — brand tokens (extracted from the app)
@@ -709,6 +710,50 @@ footer { border-top:1px solid var(--line); padding:46px 28px; }
   .hero { padding:110px 20px 70px; }
   .hero-meta { flex-direction:column; gap:10px; align-items:center; }
 }
+/* ════════════════════════════════════════════════════════════════
+   BOUNCE CARDS — 5 rooms visual teaser
+   ════════════════════════════════════════════════════════════════ */
+.bc-stage {
+  display: flex; justify-content: center; align-items: center;
+  margin: 56px 0 72px; height: 240px; position: relative;
+}
+.bc-wrap {
+  position: relative; width: 640px; max-width: 100%;
+  height: 240px; display: flex; justify-content: center; align-items: center;
+}
+.bc-card {
+  position: absolute;
+  width: 170px; height: 170px;
+  border-radius: 24px;
+  border: 1px solid rgba(255,255,255,.1);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 12px;
+  cursor: default;
+  box-shadow: 0 20px 50px rgba(0,0,0,.45);
+  transform-origin: center center;
+  will-change: transform;
+  user-select: none;
+}
+.bc-card .bc-emoji { font-size: 40px; line-height: 1; }
+.bc-card .bc-label {
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: .2em;
+  text-transform: uppercase; color: rgba(255,255,255,.65); text-align: center;
+  padding: 0 12px;
+}
+.bc-card-0 { background: linear-gradient(145deg, #1a1714, #231d14); border-color: rgba(245,166,35,.32); }
+.bc-card-1 { background: linear-gradient(145deg, #101a25, #0a1218); border-color: rgba(77,150,255,.28); }
+.bc-card-2 { background: linear-gradient(145deg, #0f1f14, #0a150e); border-color: rgba(107,203,119,.28); }
+.bc-card-3 { background: linear-gradient(145deg, #1e1025, #140a1c); border-color: rgba(199,125,255,.28); }
+.bc-card-4 { background: linear-gradient(145deg, #261010, #1a0a0a); border-color: rgba(255,107,107,.32); }
+
+@media (max-width: 700px) {
+  .bc-wrap { width: 100%; transform: scale(.72); transform-origin: center center; }
+  .bc-stage { height: 180px; margin: 36px 0 54px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bc-card { transition: none !important; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   #splash { animation-delay:.2s; animation-duration:.2s; }
   *, *::before, *::after { animation-duration:.01s !important; transition-duration:.01s !important; }
@@ -818,6 +863,32 @@ footer { border-top:1px solid var(--line); padding:46px 28px; }
     <p class="sec-eyebrow rv">Inside the app</p>
     <h2 class="rv rv-d1">Five rooms.<br>Every side of your career.</h2>
     <p class="sec-sub rv rv-d2">You already master the music. Fennec is the studio for everything else — money, clients, content and community.</p>
+
+    <!-- BounceCards — visual teaser of the 5 rooms -->
+    <div class="bc-stage" aria-hidden="true">
+      <div class="bc-wrap" id="bcWrap">
+        <div class="bc-card bc-card-0">
+          <span class="bc-emoji">💬</span>
+          <p class="bc-label">Community</p>
+        </div>
+        <div class="bc-card bc-card-1">
+          <span class="bc-emoji">📊</span>
+          <p class="bc-label">Dashboard</p>
+        </div>
+        <div class="bc-card bc-card-2">
+          <span class="bc-emoji">💼</span>
+          <p class="bc-label">Business Hub</p>
+        </div>
+        <div class="bc-card bc-card-3">
+          <span class="bc-emoji">🎬</span>
+          <p class="bc-label">Content Lab</p>
+        </div>
+        <div class="bc-card bc-card-4">
+          <span class="bc-emoji">🪪</span>
+          <p class="bc-label">Fennec ID</p>
+        </div>
+      </div>
+    </div>
 
     <div class="rooms-grid">
 
@@ -1174,6 +1245,68 @@ ARTISTS.forEach((a,i)=>{
   });
   idColors.appendChild(dot);
 });
+
+/* ── BounceCards ── */
+const BC_STATES = [
+  { rotation: 10,  x: -190 },
+  { rotation:  4,  x:  -95 },
+  { rotation: -3,  x:    0 },
+  { rotation: -9,  x:   95 },
+  { rotation:  5,  x:  190 }
+];
+const bcCards = Array.from(document.querySelectorAll(".bc-card"));
+const bcWrapEl = document.getElementById("bcWrap");
+
+if (bcWrapEl && typeof gsap !== "undefined") {
+  /* set initial fan + scale 0 using GSAP props so nothing conflicts */
+  bcCards.forEach((c, i) => {
+    gsap.set(c, { ...BC_STATES[i], scale: 0, transformOrigin: "center center" });
+  });
+
+  /* bounce in on scroll */
+  const bcObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      gsap.to(bcCards, {
+        scale: 1, stagger: 0.08,
+        ease: "elastic.out(1, 0.5)", delay: 0.2, duration: 1.4
+      });
+      bcObserver.unobserve(entry.target);
+    });
+  }, { threshold: 0.25 });
+  bcObserver.observe(bcWrapEl);
+
+  /* hover push (pointer devices only) */
+  if (matchMedia("(pointer:fine)").matches) {
+    bcCards.forEach((card, idx) => {
+      card.addEventListener("mouseenter", () => {
+        bcCards.forEach((c, i) => {
+          gsap.killTweensOf(c);
+          if (i === idx) {
+            gsap.to(c, { rotation: 0, scale: 1.06, duration: 0.4, ease: "back.out(1.4)", overwrite: "auto" });
+          } else {
+            const pushX = BC_STATES[i].x + (i < idx ? -120 : 120);
+            const delay = Math.abs(idx - i) * 0.05;
+            gsap.to(c, { x: pushX, scale: 1, duration: 0.4, ease: "back.out(1.4)", delay, overwrite: "auto" });
+          }
+        });
+      });
+      card.addEventListener("mouseleave", () => {
+        bcCards.forEach((c, i) => {
+          gsap.killTweensOf(c);
+          gsap.to(c, { ...BC_STATES[i], scale: 1, duration: 0.4, ease: "back.out(1.4)", overwrite: "auto" });
+        });
+      });
+    });
+  }
+} else if (bcWrapEl) {
+  /* fallback if GSAP hasn't loaded yet — retry after delay */
+  setTimeout(() => {
+    if (typeof gsap !== "undefined") {
+      bcCards.forEach((c, i) => gsap.set(c, { ...BC_STATES[i], scale: 1, transformOrigin: "center center" }));
+    }
+  }, 800);
+}
 
 /* tilt */
 if(card && matchMedia("(pointer:fine)").matches){
