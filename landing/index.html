@@ -103,9 +103,16 @@ body::before {
 /* ─── LineWaves WebGL field (hero) ─── */
 .hero-waves {
   position:absolute; inset:0; z-index:0; pointer-events:none;
-  opacity:.85; mix-blend-mode:screen;
+  opacity:.55; mix-blend-mode:screen;
 }
 .hero-waves canvas { width:100% !important; height:100% !important; display:block; }
+/* dark scrim — weights toward the text column so copy stays legible */
+.hero-scrim {
+  position:absolute; inset:0; z-index:0; pointer-events:none;
+  background:
+    linear-gradient(90deg, rgba(11,10,8,.88) 0%, rgba(11,10,8,.6) 32%, rgba(11,10,8,.18) 56%, transparent 78%),
+    linear-gradient(180deg, rgba(11,10,8,.5) 0%, transparent 22%, transparent 72%, rgba(11,10,8,.55) 100%);
+}
 @media (prefers-reduced-motion: reduce) {
   .hero-waves { display:none; }
 }
@@ -785,6 +792,7 @@ footer { border-top:1px solid var(--line); padding:46px 28px; }
 <header class="hero">
   <img class="fox-bg" src="fennec-icon-transparent.png" alt="">
   <div class="hero-waves" id="heroWaves" aria-hidden="true"></div>
+  <div class="hero-scrim" aria-hidden="true"></div>
   <div class="hero-in">
     <div>
       <p class="eyebrow">Music Business &amp; Community Hub</p>
@@ -1334,19 +1342,19 @@ const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 if (container && !reduceMotion) {
   /* ── brand palette ── */
   const CONFIG = {
-    speed: 0.3,
+    speed: 0.14,
     innerLineCount: 32.0,
     outerLineCount: 36.0,
     warpIntensity: 1.0,
     rotation: -45,
     edgeFadeWidth: 0.0,
-    colorCycleSpeed: 1.0,
-    brightness: 0.42,
+    colorCycleSpeed: 0.6,
+    brightness: 0.22,
     color1: "#f5a623", /* amber */
-    color2: "#e0802a", /* burnt orange */
-    color3: "#ffd27a", /* light gold */
+    color2: "#c66a1f", /* deeper burnt orange */
+    color3: "#e0a84e", /* muted gold */
     enableMouseInteraction: true,
-    mouseInfluence: 2.0,
+    mouseInfluence: 1.4,
   };
 
   const hexToVec3 = (hex) => {
