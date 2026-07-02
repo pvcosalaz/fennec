@@ -12,8 +12,11 @@ export async function POST(req: NextRequest) {
   const { data: { user }, error } = await getSupabaseAdmin().auth.getUser(token);
   if (error || !user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { plan, successUrl, cancelUrl } = await req.json();
+  const { plan } = await req.json();
   const priceId = plan === "yearly" ? PRICES.yearly : PRICES.monthly;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.fennec.audio";
+  const successUrl = `${appUrl}/?upgraded=1`;
+  const cancelUrl  = `${appUrl}/`;
 
   // Reuse existing Stripe customer if available
   const { data: profile } = await getSupabaseAdmin()
@@ -40,8 +43,8 @@ export async function POST(req: NextRequest) {
     customer: customerId,
     mode: "subscription",
     line_items: [{ price: priceId, quantity: 1 }],
-    success_url: successUrl ?? `${process.env.NEXT_PUBLIC_APP_URL ?? "https://app.fennec.audio"}/?upgraded=1`,
-    cancel_url: cancelUrl ?? `${process.env.NEXT_PUBLIC_APP_URL ?? "https://app.fennec.audio"}/`,
+    success_url: successUrl,
+    cancel_url: cancelUrl,
     subscription_data: {
       metadata: { supabase_uid: user.id },
     },

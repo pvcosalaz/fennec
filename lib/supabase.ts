@@ -1,11 +1,15 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://drmhwzxytwmkpfnjwmra.supabase.co";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRybWh3enh5dHdta3Bmbmp3bXJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNzg2MDUsImV4cCI6MjA5Mjg1NDYwNX0.4_dkGfeAzUWeFwuGAj67weqG2szyWd3cKgBs_RUmbyI";
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY");
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    detectSessionInUrl: false,
+    detectSessionInUrl: true,
     persistSession: true,
     autoRefreshToken: true,
     flowType: "pkce",

@@ -3,6 +3,7 @@
 // Visual QA page — renders the Dashboard with mock data, no auth needed.
 // Not linked anywhere; used to iterate on dashboard design.
 
+import { notFound } from "next/navigation";
 import Dashboard from "@/components/dashboard/Dashboard";
 import type { Profile } from "@/lib/communityTypes";
 
@@ -34,6 +35,7 @@ const mockProfile: Profile = {
 };
 
 export default function DashboardDemo() {
+  if (process.env.NODE_ENV === "production") notFound();
   return (
     <main className="min-h-screen overflow-y-auto py-6" style={{ background: "#111114" }}>
       <Dashboard

@@ -1,9 +1,11 @@
 "use client";
 
+import { notFound } from "next/navigation";
 import { Player } from "@remotion/player";
 import FennecIntro from "@/components/remotion/FennecIntro";
 
 export default function DemoPage() {
+  if (process.env.NODE_ENV === "production") notFound();
   return (
     <div
       style={{

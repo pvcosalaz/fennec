@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 type Check = { name: string; ok: boolean; detail: string };
 
@@ -57,7 +57,12 @@ async function checkCronSecret(): Promise<Check> {
   return { name: "Cron Secret", ok: true, detail: "OK" };
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const secret = process.env.CRON_SECRET;
+  const provided = req.headers.get("x-health-secret") ?? req.nextUrl.searchParams.get("secret");
+  if (!secret || provided !== secret) {
+    return new Response("Unauthorized", { status: 401 });
+  }
   const [youtube, anthropic, supabase, cron] = await Promise.all([
     checkYouTube(),
     checkAnthropic(),

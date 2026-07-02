@@ -1,5 +1,6 @@
 "use client";
 
+import { notFound } from "next/navigation";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Player } from "@remotion/player";
 import {
@@ -306,6 +307,7 @@ function AudioDemo() {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function AudioDemoPage() {
+  if (process.env.NODE_ENV === "production") notFound();
   return (
     <div style={{
       minHeight: "100vh",

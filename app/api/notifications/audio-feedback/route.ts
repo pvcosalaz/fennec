@@ -1,10 +1,17 @@
 export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { createNotification, fetchPushSubscriptionsForUser, deletePushSubscription } from "@/lib/notificationDb";
 import { generateNotificationCopy } from "@/lib/notificationCopy";
 import { sendPushToMany } from "@/lib/pushSend";
 
 export async function POST(req: NextRequest) {
+  // Require a valid Supabase Bearer token
+  const token = req.headers.get("authorization")?.replace("Bearer ", "").trim();
+  if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { data: { user }, error: authErr } = await getSupabaseAdmin().auth.getUser(token);
+  if (authErr || !user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   try {
     const { trackOwnerId, trackTitle, commenterUsername, firstTimestamp } = await req.json() as {
       trackOwnerId: string;

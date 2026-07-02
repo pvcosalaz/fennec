@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { fetchTrendingVideos } from "@/lib/trendingData";
 import { fetchNewsItems } from "@/lib/newsData";
 import { supabase } from "@/lib/supabase";
@@ -36,10 +36,7 @@ async function handler(req: NextRequest) {
 
     // Send industry_news notification for the top new item
     try {
-      const serviceSupabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL || "https://drmhwzxytwmkpfnjwmra.supabase.co",
-        process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
-      );
+      const serviceSupabase = getSupabaseAdmin();
       if (newsItems.length > 0) {
         const item = newsItems[0];
         const title = await generateNotificationCopy({
