@@ -963,6 +963,8 @@ export default function PricingCalculator() {
                   : 0;
                 const barWidth = Math.min(coveragePct, 100);
                 const isHealthy = coveragePct >= 100;
+                // Clickbait paywall: they filled everything — the actual numbers are gated behind Pro
+                const locked = !profile?.is_pro;
 
                 return (
                   <div className="space-y-4 pb-2">
@@ -1005,77 +1007,97 @@ export default function PricingCalculator() {
                       </div>
                     </div>
 
-                    {/* Per project */}
-                    <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
-                      <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">
-                        Per project
-                      </p>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-xs text-zinc-500">Minimum</p>
-                          <p className="text-lg font-semibold text-zinc-200">{formatCurrency(minPricePerProject, calcCurrency)}</p>
+                    {/* ── Result cards — blurred + locked for non-Pro ── */}
+                    <div className="relative">
+                      <div className={locked ? "pointer-events-none select-none blur-[10px]" : ""} aria-hidden={locked}>
+                        {/* Per project */}
+                        <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
+                          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">
+                            Per project
+                          </p>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-xs text-zinc-500">Minimum</p>
+                              <p className="text-lg font-semibold text-zinc-200">{formatCurrency(minPricePerProject, calcCurrency)}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-zinc-500">Recommended</p>
+                              <p className="text-lg font-bold text-accent">{formatCurrency(recommendedPrice, calcCurrency)}</p>
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-xs text-zinc-500">Recommended</p>
-                          <p className="text-lg font-bold text-accent">{formatCurrency(recommendedPrice, calcCurrency)}</p>
+
+                        {/* Monthly projection */}
+                        <div className="mt-4 rounded-2xl border border-white/10 bg-black/30 p-5">
+                          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">
+                            Monthly projection × {effectiveQty}
+                          </p>
+                          <div className="grid grid-cols-2 gap-4 mb-5">
+                            <div>
+                              <p className="text-xs text-zinc-500">Minimum total</p>
+                              <p className="text-lg font-semibold text-zinc-200">{formatCurrency(monthlyMin, calcCurrency)}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-zinc-500">Recommended total</p>
+                              <p className="text-xl font-bold text-accent">{formatCurrency(monthlyRec, calcCurrency)}</p>
+                            </div>
+                          </div>
+
+                          {/* vs monthly target */}
+                          <div className="border-t border-white/10 pt-4 space-y-2">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-zinc-400">Your monthly target</span>
+                              <span className="font-semibold text-zinc-200">{formatCurrency(monthlyTotalCOP, calcCurrency)}</span>
+                            </div>
+                            <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
+                              <div
+                                className={`h-full rounded-full transition-all ${isHealthy ? "bg-accent" : "bg-red-400"}`}
+                                style={{ width: `${barWidth}%` }}
+                              />
+                            </div>
+                            <p className={`text-xs font-medium ${isHealthy ? "text-accent" : "text-red-400"}`}>
+                              {isHealthy
+                                ? `✓ ${coveragePct}% of your target covered — you're good`
+                                : `⚠ Only ${coveragePct}% covered — consider more projects or higher rates`}
+                            </p>
+                          </div>
                         </div>
                       </div>
+
+                      {/* Lock overlay — the clickbait reveal */}
+                      {locked && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-2xl bg-black/40 px-6 text-center">
+                          <span className="text-3xl">🔒</span>
+                          <div className="space-y-1">
+                            <p className="text-base font-black text-white">Your number is ready.</p>
+                            <p className="text-xs text-zinc-300">We did the math on your rates. Unlock Pro to see exactly what to charge.</p>
+                          </div>
+                          <button
+                            onClick={() => setShowUpgrade(true)}
+                            className="mt-1 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-400 py-3 px-6 text-sm font-black text-black shadow-lg shadow-amber-500/30 hover:brightness-110 transition active:scale-[0.97]"
+                          >
+                            🔓 Reveal my price
+                          </button>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Monthly projection */}
-                    <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
-                      <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">
-                        Monthly projection × {effectiveQty}
-                      </p>
-                      <div className="grid grid-cols-2 gap-4 mb-5">
-                        <div>
-                          <p className="text-xs text-zinc-500">Minimum total</p>
-                          <p className="text-lg font-semibold text-zinc-200">{formatCurrency(monthlyMin, calcCurrency)}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-zinc-500">Recommended total</p>
-                          <p className="text-xl font-bold text-accent">{formatCurrency(monthlyRec, calcCurrency)}</p>
-                        </div>
-                      </div>
-
-                      {/* vs monthly target */}
-                      <div className="border-t border-white/10 pt-4 space-y-2">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-zinc-400">Your monthly target</span>
-                          <span className="font-semibold text-zinc-200">{formatCurrency(monthlyTotalCOP, calcCurrency)}</span>
-                        </div>
-                        <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
-                          <div
-                            className={`h-full rounded-full transition-all ${isHealthy ? "bg-accent" : "bg-red-400"}`}
-                            style={{ width: `${barWidth}%` }}
-                          />
-                        </div>
-                        <p className={`text-xs font-medium ${isHealthy ? "text-accent" : "text-red-400"}`}>
-                          {isHealthy
-                            ? `✓ ${coveragePct}% of your target covered — you're good`
-                            : `⚠ Only ${coveragePct}% covered — consider more projects or higher rates`}
-                        </p>
-                      </div>
-                    </div>
-
-                  {/* ── Upsell CTA ───────────────────────────────── */}
-                  <button
-                    onClick={() => {
-                      if (profile?.is_pro) {
+                  {/* ── Upsell CTA — Pro only (send the quote) ─────── */}
+                  {!locked && (
+                    <button
+                      onClick={() => {
                         setBusinessView("quotes");
                         setActiveTab("pricing");
-                      } else {
-                        setShowUpgrade(true);
-                      }
-                    }}
-                    className="w-full rounded-2xl bg-gradient-to-r from-amber-500 to-amber-400 py-4 px-5 flex items-center justify-between shadow-lg shadow-amber-500/25 hover:brightness-110 transition active:scale-[0.98]"
-                  >
-                    <div className="text-left">
-                      <p className="text-sm font-black text-black">Send this quote to a client →</p>
-                      <p className="text-[11px] text-black/60 mt-0.5">Your price is set. Now get paid.</p>
-                    </div>
-                    <span className="text-xl">💸</span>
-                  </button>
+                      }}
+                      className="w-full rounded-2xl bg-gradient-to-r from-amber-500 to-amber-400 py-4 px-5 flex items-center justify-between shadow-lg shadow-amber-500/25 hover:brightness-110 transition active:scale-[0.98]"
+                    >
+                      <div className="text-left">
+                        <p className="text-sm font-black text-black">Send this quote to a client →</p>
+                        <p className="text-[11px] text-black/60 mt-0.5">Your price is set. Now get paid.</p>
+                      </div>
+                      <span className="text-xl">💸</span>
+                    </button>
+                  )}
                 </div>);
 
               })()}

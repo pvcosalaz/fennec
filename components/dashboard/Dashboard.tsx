@@ -176,12 +176,34 @@ export default function Dashboard({
   const [cardRect, setCardRect] = useState<DOMRect | null>(null);
   const cardButtonRef = useRef<HTMLButtonElement>(null);
 
-  // First-visit welcome + marketing-visited flag
+  // First-visit welcome + marketing-visited flag.
+  // Re-sync the flag whenever the dashboard regains focus or another tab writes it,
+  // so returning from the Content tab reliably marks the step done (no stale state).
   useEffect(() => {
+    const syncMarketing = () => {
+      try {
+        if (
+          localStorage.getItem("fennec_visited_marketing_v1") === "1" ||
+          localStorage.getItem("fennec_onboarding_complete_v1") === "1"
+        ) {
+          setMarketingVisited(true);
+        }
+      } catch { /* ignore */ }
+    };
+
     try {
-      setMarketingVisited(localStorage.getItem("fennec_visited_marketing_v1") === "1");
+      syncMarketing();
       if (localStorage.getItem("fennec_onboarding_seen_v1") !== "1") setShowWelcome(true);
     } catch { /* ignore */ }
+
+    window.addEventListener("focus", syncMarketing);
+    window.addEventListener("storage", syncMarketing);
+    document.addEventListener("visibilitychange", syncMarketing);
+    return () => {
+      window.removeEventListener("focus", syncMarketing);
+      window.removeEventListener("storage", syncMarketing);
+      document.removeEventListener("visibilitychange", syncMarketing);
+    };
   }, []);
 
   function closeWelcome() {
@@ -331,6 +353,13 @@ export default function Dashboard({
     { id: "marketing",label: "Explore the Marketing Hub", desc: "Calendar, ideas & scripts",       done: marketingVisited, onClick: () => { closeWelcome(); onNavigate?.("contenido"); } },
   ];
   const onboardingComplete = checklistItems.every((i) => i.done);
+
+  // Once every step is done, remember it permanently so the checklist never nags again.
+  useEffect(() => {
+    if (onboardingComplete) {
+      try { localStorage.setItem("fennec_onboarding_complete_v1", "1"); } catch { /* ignore */ }
+    }
+  }, [onboardingComplete]);
 
   const accent = cardColorScheme.accent;
   const glowRgb = cardColorScheme.glowRgb;
