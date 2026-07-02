@@ -20,5 +20,11 @@
       "runtimeArgs": ["-m", "http.server", "4445", "--directory", "/Users/pacosalazar/Documents/Fennec App/fennec/.superpowers/splash-proposals"],
       "port": 4445
     }
+  ,{
+      "name": "landing-proposal",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "4446", "--directory", "/Users/pacosalazar/Documents/Fennec App"],
+      "port": 4446
+    }
   ]
 }

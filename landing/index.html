@@ -100,22 +100,6 @@ body::before {
   .orb { animation: none !important; }
 }
 
-/* ─── FloatingLines WebGL field (hero) ─── */
-.hero-waves {
-  position:absolute; inset:0; z-index:0; pointer-events:none;
-  opacity:.42; mix-blend-mode:screen;
-}
-.hero-waves canvas { width:100% !important; height:100% !important; display:block; }
-/* dark scrim — weights toward the text column so copy stays legible */
-.hero-scrim {
-  position:absolute; inset:0; z-index:0; pointer-events:none;
-  background:
-    linear-gradient(90deg, rgba(11,10,8,.88) 0%, rgba(11,10,8,.6) 32%, rgba(11,10,8,.18) 56%, transparent 78%),
-    linear-gradient(180deg, rgba(11,10,8,.5) 0%, transparent 22%, transparent 72%, rgba(11,10,8,.55) 100%);
-}
-@media (prefers-reduced-motion: reduce) {
-  .hero-waves { display:none; }
-}
 
 /* ─── grain overlay ─────────────────────────────────────────── */
 body::after {
@@ -556,7 +540,7 @@ h2 {
    ════════════════════════════════════════════════════════════════ */
 .db-sec { text-align:center; background:var(--bg-deep); border-top:1px solid var(--line); border-bottom:1px solid var(--line); overflow:hidden; }
 /* SoftAurora — subtle amber field behind the dB number */
-.db-aurora { position:absolute; inset:0; z-index:0; pointer-events:none; opacity:.2; mix-blend-mode:screen; }
+.db-aurora { position:absolute; inset:0; z-index:0; pointer-events:none; opacity:.5; mix-blend-mode:screen; }
 .db-aurora canvas { width:100% !important; height:100% !important; display:block; }
 .db-sec .in { position:relative; z-index:1; } /* keep content above the aurora */
 @media (prefers-reduced-motion: reduce) { .db-aurora { display:none; } }
@@ -797,8 +781,12 @@ footer { border-top:1px solid var(--line); padding:46px 28px; }
 <!-- ═══ HERO ═══ -->
 <header class="hero">
   <img class="fox-bg" src="fennec-icon-transparent.png" alt="">
-  <div class="hero-waves" id="heroWaves" aria-hidden="true"></div>
-  <div class="hero-scrim" aria-hidden="true"></div>
+  <div class="orbs" aria-hidden="true">
+    <span class="orb o1"></span>
+    <span class="orb o2"></span>
+    <span class="orb o3"></span>
+    <span class="orb o4"></span>
+  </div>
   <div class="hero-in">
     <div>
       <p class="eyebrow">Music Business &amp; Community Hub</p>
@@ -1339,242 +1327,6 @@ if(card && matchMedia("(pointer:fine)").matches){
 }
 </script>
 
-<!-- ═══ FloatingLines — three.js hero field (brand amber) ═══ -->
-<script type="module">
-import { Clock, Mesh, OrthographicCamera, PlaneGeometry, Scene, ShaderMaterial, Vector2, Vector3, WebGLRenderer } from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
-
-const container = document.getElementById("heroWaves");
-const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-if (container && !reduceMotion) {
-  /* ── config ── */
-  const CFG = {
-    enabledWaves: ["top", "middle", "bottom"],
-    lineCount: [10, 15, 20],
-    lineDistance: [8, 6, 4],
-    topWavePosition:    { x: 10.0, y: 0.5,  rotate: -0.4 },
-    middleWavePosition: { x: 5.0,  y: 0.0,  rotate: 0.2 },
-    bottomWavePosition: { x: 2.0,  y: -0.7, rotate: -1.0 },
-    animationSpeed: 0.6,
-    interactive: true,
-    bendRadius: 5.0,
-    bendStrength: -0.5,
-    mouseDamping: 0.05,
-    parallax: true,
-    parallaxStrength: 0.18,
-    /* brand amber gradient across the lines */
-    linesGradient: ["#f5a623", "#ffd27a", "#e0802a", "#c66a1f"],
-  };
-
-  const has = (w) => CFG.enabledWaves.includes(w);
-  const idxOf = (w) => CFG.enabledWaves.indexOf(w);
-  const lineCountFor = (w) => Array.isArray(CFG.lineCount) ? (CFG.lineCount[idxOf(w)] ?? 6) : CFG.lineCount;
-  const lineDistFor  = (w) => (Array.isArray(CFG.lineDistance) ? (CFG.lineDistance[idxOf(w)] ?? 5) : CFG.lineDistance) * 0.01;
-
-  const topLineCount    = has("top")    ? lineCountFor("top")    : 0;
-  const middleLineCount = has("middle") ? lineCountFor("middle") : 0;
-  const bottomLineCount = has("bottom") ? lineCountFor("bottom") : 0;
-  const topLineDistance    = has("top")    ? lineDistFor("top")    : 0.01;
-  const middleLineDistance = has("middle") ? lineDistFor("middle") : 0.01;
-  const bottomLineDistance = has("bottom") ? lineDistFor("bottom") : 0.01;
-
-  const hexToVec3 = (hex) => {
-    let v = hex.trim().replace("#", "");
-    if (v.length === 3) v = v.split("").map(c => c + c).join("");
-    return new Vector3(parseInt(v.slice(0,2),16)/255, parseInt(v.slice(2,4),16)/255, parseInt(v.slice(4,6),16)/255);
-  };
-
-  const vertexShader = `
-precision highp float;
-void main() { gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`;
-
-  const fragmentShader = `
-precision highp float;
-uniform float iTime;
-uniform vec3  iResolution;
-uniform float animationSpeed;
-uniform bool enableTop;
-uniform bool enableMiddle;
-uniform bool enableBottom;
-uniform int topLineCount;
-uniform int middleLineCount;
-uniform int bottomLineCount;
-uniform float topLineDistance;
-uniform float middleLineDistance;
-uniform float bottomLineDistance;
-uniform vec3 topWavePosition;
-uniform vec3 middleWavePosition;
-uniform vec3 bottomWavePosition;
-uniform vec2 iMouse;
-uniform bool interactive;
-uniform float bendRadius;
-uniform float bendStrength;
-uniform float bendInfluence;
-uniform bool parallax;
-uniform float parallaxStrength;
-uniform vec2 parallaxOffset;
-uniform vec3 lineGradient[8];
-uniform int lineGradientCount;
-const vec3 BLACK = vec3(0.0);
-mat2 rotate(float r){ return mat2(cos(r), sin(r), -sin(r), cos(r)); }
-vec3 getLineColor(float t){
-  if (lineGradientCount <= 0) return vec3(1.0);
-  if (lineGradientCount == 1) return lineGradient[0] * 0.5;
-  float clampedT = clamp(t, 0.0, 0.9999);
-  float scaled = clampedT * float(lineGradientCount - 1);
-  int idx = int(floor(scaled));
-  float f = fract(scaled);
-  int idx2 = min(idx + 1, lineGradientCount - 1);
-  return mix(lineGradient[idx], lineGradient[idx2], f) * 0.5;
-}
-float wave(vec2 uv, float offset, vec2 screenUv, vec2 mouseUv, bool shouldBend){
-  float time = iTime * animationSpeed;
-  float amp = sin(offset + time * 0.2) * 0.3;
-  float y = sin(uv.x + offset + time * 0.1) * amp;
-  if (shouldBend) {
-    vec2 d = screenUv - mouseUv;
-    float influence = exp(-dot(d, d) * bendRadius);
-    y += (mouseUv.y - screenUv.y) * influence * bendStrength * bendInfluence;
-  }
-  float m = uv.y - y;
-  return 0.0175 / max(abs(m) + 0.01, 1e-3) + 0.01;
-}
-void mainImage(out vec4 fragColor, in vec2 fragCoord){
-  vec2 baseUv = (2.0 * fragCoord - iResolution.xy) / iResolution.y;
-  baseUv.y *= -1.0;
-  if (parallax) baseUv += parallaxOffset;
-  vec3 col = vec3(0.0);
-  vec2 mouseUv = vec2(0.0);
-  if (interactive) { mouseUv = (2.0 * iMouse - iResolution.xy) / iResolution.y; mouseUv.y *= -1.0; }
-  if (enableBottom) {
-    for (int i = 0; i < 64; ++i) {
-      if (i >= bottomLineCount) break;
-      float fi = float(i);
-      float t = fi / max(float(bottomLineCount - 1), 1.0);
-      float angle = bottomWavePosition.z * log(length(baseUv) + 1.0);
-      vec2 ruv = baseUv * rotate(angle);
-      col += getLineColor(t) * wave(ruv + vec2(bottomLineDistance * fi + bottomWavePosition.x, bottomWavePosition.y), 1.5 + 0.2 * fi, baseUv, mouseUv, interactive) * 0.2;
-    }
-  }
-  if (enableMiddle) {
-    for (int i = 0; i < 64; ++i) {
-      if (i >= middleLineCount) break;
-      float fi = float(i);
-      float t = fi / max(float(middleLineCount - 1), 1.0);
-      float angle = middleWavePosition.z * log(length(baseUv) + 1.0);
-      vec2 ruv = baseUv * rotate(angle);
-      col += getLineColor(t) * wave(ruv + vec2(middleLineDistance * fi + middleWavePosition.x, middleWavePosition.y), 2.0 + 0.15 * fi, baseUv, mouseUv, interactive);
-    }
-  }
-  if (enableTop) {
-    for (int i = 0; i < 64; ++i) {
-      if (i >= topLineCount) break;
-      float fi = float(i);
-      float t = fi / max(float(topLineCount - 1), 1.0);
-      float angle = topWavePosition.z * log(length(baseUv) + 1.0);
-      vec2 ruv = baseUv * rotate(angle);
-      ruv.x *= -1.0;
-      col += getLineColor(t) * wave(ruv + vec2(topLineDistance * fi + topWavePosition.x, topWavePosition.y), 1.0 + 0.2 * fi, baseUv, mouseUv, interactive) * 0.1;
-    }
-  }
-  fragColor = vec4(col, 1.0);
-}
-void main(){ vec4 color = vec4(0.0); mainImage(color, gl_FragCoord.xy); gl_FragColor = color; }`;
-
-  const scene = new Scene();
-  const camera = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
-  camera.position.z = 1;
-  const renderer = new WebGLRenderer({ antialias: true, alpha: false });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-  renderer.domElement.style.width = "100%";
-  renderer.domElement.style.height = "100%";
-  container.appendChild(renderer.domElement);
-
-  const grad = Array.from({ length: 8 }, () => new Vector3(1, 1, 1));
-  const stops = CFG.linesGradient.slice(0, 8);
-  stops.forEach((hex, i) => { const c = hexToVec3(hex); grad[i].set(c.x, c.y, c.z); });
-
-  const uniforms = {
-    iTime: { value: 0 },
-    iResolution: { value: new Vector3(1, 1, 1) },
-    animationSpeed: { value: CFG.animationSpeed },
-    enableTop: { value: has("top") },
-    enableMiddle: { value: has("middle") },
-    enableBottom: { value: has("bottom") },
-    topLineCount: { value: topLineCount },
-    middleLineCount: { value: middleLineCount },
-    bottomLineCount: { value: bottomLineCount },
-    topLineDistance: { value: topLineDistance },
-    middleLineDistance: { value: middleLineDistance },
-    bottomLineDistance: { value: bottomLineDistance },
-    topWavePosition: { value: new Vector3(CFG.topWavePosition.x, CFG.topWavePosition.y, CFG.topWavePosition.rotate) },
-    middleWavePosition: { value: new Vector3(CFG.middleWavePosition.x, CFG.middleWavePosition.y, CFG.middleWavePosition.rotate) },
-    bottomWavePosition: { value: new Vector3(CFG.bottomWavePosition.x, CFG.bottomWavePosition.y, CFG.bottomWavePosition.rotate) },
-    iMouse: { value: new Vector2(-1000, -1000) },
-    interactive: { value: CFG.interactive },
-    bendRadius: { value: CFG.bendRadius },
-    bendStrength: { value: CFG.bendStrength },
-    bendInfluence: { value: 0 },
-    parallax: { value: CFG.parallax },
-    parallaxStrength: { value: CFG.parallaxStrength },
-    parallaxOffset: { value: new Vector2(0, 0) },
-    lineGradient: { value: grad },
-    lineGradientCount: { value: stops.length },
-  };
-
-  const material = new ShaderMaterial({ uniforms, vertexShader, fragmentShader });
-  const mesh = new Mesh(new PlaneGeometry(2, 2), material);
-  scene.add(mesh);
-  const clock = new Clock();
-
-  const targetMouse = new Vector2(-1000, -1000);
-  const currentMouse = new Vector2(-1000, -1000);
-  let targetInfluence = 0, currentInfluence = 0;
-  const targetParallax = new Vector2(0, 0);
-  const currentParallax = new Vector2(0, 0);
-
-  function setSize() {
-    const w = container.clientWidth || 1, h = container.clientHeight || 1;
-    renderer.setSize(w, h, false);
-    uniforms.iResolution.value.set(renderer.domElement.width, renderer.domElement.height, 1);
-  }
-  setSize();
-  window.addEventListener("resize", setSize);
-
-  if (CFG.interactive) {
-    /* container is pointer-events:none, so track on window and map to canvas rect */
-    window.addEventListener("pointermove", (e) => {
-      const rect = renderer.domElement.getBoundingClientRect();
-      const x = e.clientX - rect.left, y = e.clientY - rect.top;
-      const dpr = renderer.getPixelRatio();
-      targetMouse.set(x * dpr, (rect.height - y) * dpr);
-      targetInfluence = 1.0;
-      if (CFG.parallax) {
-        const offsetX = (x - rect.width / 2) / rect.width;
-        const offsetY = -(y - rect.height / 2) / rect.height;
-        targetParallax.set(offsetX * CFG.parallaxStrength, offsetY * CFG.parallaxStrength);
-      }
-    });
-  }
-
-  function renderLoop() {
-    requestAnimationFrame(renderLoop);
-    uniforms.iTime.value = clock.getElapsedTime();
-    if (CFG.interactive) {
-      currentMouse.lerp(targetMouse, CFG.mouseDamping);
-      uniforms.iMouse.value.copy(currentMouse);
-      currentInfluence += (targetInfluence - currentInfluence) * CFG.mouseDamping;
-      uniforms.bendInfluence.value = currentInfluence;
-    }
-    if (CFG.parallax) {
-      currentParallax.lerp(targetParallax, CFG.mouseDamping);
-      uniforms.parallaxOffset.value.copy(currentParallax);
-    }
-    renderer.render(scene, camera);
-  }
-  renderLoop();
-}
-</script>
 
 <!-- ═══ SoftAurora — subtle amber field behind the FENNEC dB number ═══ -->
 <script type="module">
@@ -1587,7 +1339,7 @@ if (auroraEl && !auroraReduce) {
   const A = {
     speed: 0.45,
     scale: 1.4,
-    brightness: 0.7,
+    brightness: 1.2,
     color1: "#ffd27a", /* light gold */
     color2: "#e0802a", /* burnt orange */
     noiseFrequency: 2.5,
