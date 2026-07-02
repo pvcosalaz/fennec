@@ -352,7 +352,13 @@ export default function PricingCalculator() {
   useEffect(() => {
     const locked = (activeTab === "dashboard" || activeTab === "contenido") && !showSettings;
 
-    const preventScroll = (e: Event) => { e.preventDefault(); };
+    const preventScroll = (e: Event) => {
+      // Let nested scrollable containers (bottom sheets, Daily Ideas, calendar
+      // sheet) handle their own scroll — only block the outer page bounce.
+      const target = e.target as Element | null;
+      if (target?.closest(".overflow-y-auto")) return;
+      e.preventDefault();
+    };
 
     if (locked) {
       document.body.style.overflow = "hidden";

@@ -20,6 +20,9 @@ const ALLOWED_DOMAINS = [
   "rollingstone.com",
   "billboard.com",
   "pitchfork.com",
+  "ytimg.com",
+  "ggpht.com",
+  "googleusercontent.com",
 ];
 
 export async function GET(req: NextRequest) {
