@@ -30,7 +30,10 @@ const mk = (id: string, username: string, t: number | null, body: string): Revie
 const mockComments: ReviewComment[] = [
   mk("c1", "kavernamx", 16, "Ese filtro abriendo en la intro — déjalo respirar dos compases más antes de que entre el kick."),
   mk("c2", "lunaproduce", 49, "El pad está peleando con la voz en 400Hz. Un shelf suave ahí y la mezcla se abre sola."),
-  mk("c3", "rodadrums", 83, "Ahí. Ese fill. No lo toques — es lo mejor del track."),
+  // cluster: three marks piled on the same moment (the fill everyone loves)
+  mk("c3", "rodadrums", 28, "Ahí. Ese fill. No lo toques — es lo mejor del track."),
+  mk("c3b", "lunaproduce", 32, "Sí — ese fill es LA firma. Constrúyele un eco en el outro."),
+  mk("c3c", "beatpadre", 36, "El fill brilla pero el crash que le sigue está muy adelante. Bájalo 2dB."),
   mk("c4", "somamusic", 117, "El drop se siente 1dB tímido comparado con la sección anterior. Súbele presencia al bus de drums."),
   mk("c5", "kavernamx", 151, "Este outro merece una cola más larga — córtalo en frío y pierdes toda la tensión que construiste."),
   mk("c6", "beatpadre", null, "En general muy sólido. El groove tiene identidad."),

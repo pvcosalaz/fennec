@@ -78,6 +78,11 @@ The comments are the star — the player is the stage.
   position in the timeline. Typing is Newsreader italic. Post → mark stays, audio unducks.
   The old bottom-sheet modal is retired in this module.
 - **Scrub = drag the feed itself.** Ghost timecode follows the finger; release seeks.
+- **Close marks cluster.** Comments chained ≤10s apart collapse into a glass chip
+  (stacked avatars + "N marks" in amber + time range). The cluster fans open on tap,
+  or on its own when the playhead enters its range, and folds back when it leaves.
+  Every member keeps its honest amber tick on the spine — tick density shows
+  conversation density even when collapsed.
 - **No likes, hearts, or reaction counts.** The only reaction is the track owner's
   **"esto me ayudó" stamp** (amber, grease-pencil style, rotated −3°) which feeds the
   commenter's karma. Feedback answers to the artist, not the crowd.

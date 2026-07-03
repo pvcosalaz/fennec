@@ -1,6 +1,6 @@
 "use client";
-import { useEffect, useRef, useState, useCallback } from "react";
-import { Mic, Plus, MoreHorizontal } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { Mic, Plus, MoreHorizontal, ChevronDown } from "lucide-react";
 import type { ProjectReview, ReviewComment } from "@/lib/audioTypes";
 import { fetchReviewComments, createReviewComment } from "@/lib/audioDb";
 import { extractFirstTimestamp, renderBodyWithTimestamps } from "./ReviewFeedback";
@@ -17,6 +17,7 @@ const MAX_SKIPS = 4;
 const PX_PER_SEC = 9;           // vertical px per second of audio
 const NOWLINE_FRAC = 0.38;      // now-line position in the viewport
 const SPEAK_WINDOW = 2.5;       // seconds around a comment where it "speaks"
+const CLUSTER_GAP_SEC = 10;     // comments closer than this chain into one cluster
 const SPINE_X = 48;             // spine offset from the left, px
 const LONG_PRESS_MS = 480;
 
@@ -56,6 +57,11 @@ function fmt(s: number): string {
   return `${m}:${sec.toString().padStart(2, "0")}`;
 }
 
+// Comments that land close together on the tape chain into a cluster:
+// collapsed to a compact chip, they fan open on tap or when the
+// playhead enters their range. Every member keeps its honest tick.
+type Cluster = { id: string; start: number; end: number; items: ReviewComment[] };
+
 export default function ProjectReviewPlayer({
   track,
   userId,
@@ -87,6 +93,8 @@ export default function ProjectReviewPlayer({
   const [threading, setThreading]     = useState(false); // the 600ms play ritual
   const [showActions, setShowActions] = useState(false); // ⋯ flyout (Melody Bank / My Tracks)
   const [showHint, setShowHint]       = useState(true);  // gesture hint, fades after a few seconds
+  const [openClusters, setOpenClusters]     = useState<Set<string>>(new Set()); // manually fanned-open clusters
+  const [activeClusterId, setActiveClusterId] = useState<string | null>(null);  // playhead inside this cluster's range
 
   // Inline composer — opened by long-press on the tape
   const [markAt, setMarkAt]           = useState<number | null>(null);
@@ -101,6 +109,26 @@ export default function ProjectReviewPlayer({
   const karmaBlocked = skipStreak >= MAX_SKIPS;
   const duration = track.duration_seconds || 1;
   const feedHeight = duration * PX_PER_SEC;
+
+  /* ── derived render data ──────────────────────────────────── */
+  const { timedComments, untimedComments, clusters } = useMemo(() => {
+    const timed = comments
+      .filter((c) => c.timestamp_seconds !== null)
+      .sort((a, b) => (a.timestamp_seconds ?? 0) - (b.timestamp_seconds ?? 0));
+    const untimed = comments.filter((c) => c.timestamp_seconds === null);
+    const cls: Cluster[] = [];
+    for (const c of timed) {
+      const t = c.timestamp_seconds ?? 0;
+      const last = cls[cls.length - 1];
+      if (last && t - (last.items[last.items.length - 1].timestamp_seconds ?? 0) <= CLUSTER_GAP_SEC) {
+        last.items.push(c);
+        last.end = t;
+      } else {
+        cls.push({ id: c.id, start: t, end: t, items: [c] });
+      }
+    }
+    return { timedComments: timed, untimedComments: untimed, clusters: cls };
+  }, [comments]);
 
   /* ── audio + analyser ─────────────────────────────────────── */
   useEffect(() => {
@@ -127,6 +155,8 @@ export default function ProjectReviewPlayer({
     setSpeakingId(null);
     setPastIds(new Set());
     setShowActions(false);
+    setOpenClusters(new Set());
+    setActiveClusterId(null);
 
     return () => {
       audio.pause();
@@ -212,8 +242,15 @@ export default function ProjectReviewPlayer({
     setSpeakingId((prev) => (prev === speaking ? prev : speaking));
     setPastIds((prev) => (prev.size === past.size && [...past].every((id) => prev.has(id)) ? prev : past));
 
+    // playhead inside a cluster's range → it fans open on its own
+    let active: string | null = null;
+    for (const cl of clusters) {
+      if (cl.items.length > 1 && t >= cl.start - SPEAK_WINDOW && t <= cl.end + SPEAK_WINDOW) { active = cl.id; break; }
+    }
+    setActiveClusterId((prev) => (prev === active ? prev : active));
+
     rafRef.current = requestAnimationFrame(syncFrame);
-  }, [comments, duration, playing]);
+  }, [comments, clusters, duration, playing]);
 
   useEffect(() => {
     cancelAnimationFrame(rafRef.current);
@@ -355,9 +392,15 @@ export default function ProjectReviewPlayer({
     onPass();
   }
 
-  /* ── derived render data ──────────────────────────────────── */
-  const timedComments = comments.filter((c) => c.timestamp_seconds !== null);
-  const untimedComments = comments.filter((c) => c.timestamp_seconds === null);
+  function toggleCluster(id: string) {
+    setOpenClusters((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
   const tickCount = Math.floor(duration / 15);
   const hasActions = Boolean(onOpenMelody || onOpenMyTracks);
 
@@ -436,64 +479,187 @@ export default function ProjectReviewPlayer({
             );
           })}
 
-          {/* comment cards */}
+          {/* grease-pencil ticks — one per comment, always honest to its timestamp */}
           {timedComments.map((c) => {
             const t = c.timestamp_seconds ?? 0;
             const isSpeaking = c.id === speakingId;
-            const isPast = pastIds.has(c.id);
             return (
-              <div
-                key={c.id}
-                className="absolute rounded-xl"
+              <span
+                key={`tick-${c.id}`}
+                className="absolute pointer-events-none"
                 style={{
-                  left: SPINE_X + 20, right: 16, top: t * PX_PER_SEC - 14,
-                  padding: "10px 13px",
-                  background: isSpeaking ? "rgba(245,166,35,.08)" : "transparent",
-                  transform: isSpeaking ? "scale(1.03)" : "scale(1)",
-                  transformOrigin: "left center",
-                  opacity: isPast ? 0.42 : 1,
-                  transition: "all .45s cubic-bezier(.22,1,.36,1)",
+                  left: SPINE_X, top: t * PX_PER_SEC, width: 20, height: 2, borderRadius: 2,
+                  background: isSpeaking ? AMBER_HOT : AMBER,
+                  opacity: isSpeaking ? 1 : 0.75,
+                  boxShadow: isSpeaking ? `0 0 10px rgba(255,200,97,.7)` : "none",
+                  transition: "all .3s",
                 }}
-              >
-                {/* grease-pencil tick crossing the spine */}
-                <span
-                  className="absolute"
+              />
+            );
+          })}
+
+          {/* comment cards — lone comments render full, close neighbors cluster */}
+          {clusters.map((cl) => {
+            if (cl.items.length === 1) {
+              const c = cl.items[0];
+              const t = c.timestamp_seconds ?? 0;
+              const isSpeaking = c.id === speakingId;
+              const isPast = pastIds.has(c.id);
+              return (
+                <div
+                  key={cl.id}
+                  className="absolute rounded-xl"
                   style={{
-                    left: -20, top: 16, width: 20, height: 2, borderRadius: 2,
-                    background: isSpeaking ? AMBER_HOT : AMBER,
-                    opacity: isSpeaking ? 1 : 0.75,
-                    boxShadow: isSpeaking ? `0 0 10px rgba(255,200,97,.7)` : "none",
-                    transition: "all .3s",
-                  }}
-                />
-                <div className="flex items-center gap-1.5 mb-1">
-                  <span className="w-[18px] h-[18px] rounded-full overflow-hidden flex items-center justify-center text-[8px] font-semibold shrink-0"
-                    style={{ background: "linear-gradient(135deg,#3a3a42,#22222a)", color: "rgba(255,255,255,.6)" }}>
-                    {c.profile?.avatar_url
-                      ? <img src={c.profile.avatar_url} className="w-full h-full object-cover" alt="" />
-                      : (c.profile?.username?.[0] ?? "?").toUpperCase()}
-                  </span>
-                  <span className="text-[10px] font-semibold" style={{ color: "rgba(255,255,255,.6)" }}>
-                    @{c.profile?.username ?? "unknown"}
-                  </span>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); seekTo(t); }}
-                    className="ml-auto text-[8.5px]"
-                    style={{ fontFamily: MONO_FONT, color: "rgba(255,255,255,.3)" }}
-                  >
-                    {fmt(t)}
-                  </button>
-                </div>
-                <p
-                  className="text-[14px] leading-relaxed"
-                  style={{
-                    fontFamily: SERIF_FONT,
-                    color: isSpeaking ? "rgba(255,255,255,.92)" : "rgba(255,255,255,.6)",
-                    transition: "color .3s",
+                    left: SPINE_X + 20, right: 16, top: t * PX_PER_SEC - 14,
+                    padding: "10px 13px",
+                    background: isSpeaking ? "rgba(245,166,35,.08)" : "transparent",
+                    transform: isSpeaking ? "scale(1.03)" : "scale(1)",
+                    transformOrigin: "left center",
+                    opacity: isPast ? 0.42 : 1,
+                    transition: "all .45s cubic-bezier(.22,1,.36,1)",
                   }}
                 >
-                  {renderBodyWithTimestamps(c.body, seekTo)}
-                </p>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="w-[18px] h-[18px] rounded-full overflow-hidden flex items-center justify-center text-[8px] font-semibold shrink-0"
+                      style={{ background: "linear-gradient(135deg,#3a3a42,#22222a)", color: "rgba(255,255,255,.6)" }}>
+                      {c.profile?.avatar_url
+                        ? <img src={c.profile.avatar_url} className="w-full h-full object-cover" alt="" />
+                        : (c.profile?.username?.[0] ?? "?").toUpperCase()}
+                    </span>
+                    <span className="text-[10px] font-semibold" style={{ color: "rgba(255,255,255,.6)" }}>
+                      @{c.profile?.username ?? "unknown"}
+                    </span>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); seekTo(t); }}
+                      className="ml-auto text-[8.5px]"
+                      style={{ fontFamily: MONO_FONT, color: "rgba(255,255,255,.3)" }}
+                    >
+                      {fmt(t)}
+                    </button>
+                  </div>
+                  <p
+                    className="text-[14px] leading-relaxed"
+                    style={{
+                      fontFamily: SERIF_FONT,
+                      color: isSpeaking ? "rgba(255,255,255,.92)" : "rgba(255,255,255,.6)",
+                      transition: "color .3s",
+                    }}
+                  >
+                    {renderBodyWithTimestamps(c.body, seekTo)}
+                  </p>
+                </div>
+              );
+            }
+
+            const expanded = openClusters.has(cl.id) || activeClusterId === cl.id;
+            const clusterPast = pastIds.has(cl.items[cl.items.length - 1].id);
+            return (
+              <div key={cl.id}>
+                {/* collapsed chip — stacked avatars + count + range */}
+                <button
+                  onClick={() => toggleCluster(cl.id)}
+                  className="absolute z-30 flex items-center gap-2 rounded-full pl-2 pr-3 py-1.5"
+                  style={{
+                    ...GLASS,
+                    left: SPINE_X + 20, top: cl.start * PX_PER_SEC - 14,
+                    opacity: expanded ? 0 : clusterPast ? 0.42 : 1,
+                    transform: expanded ? "scale(.9)" : "scale(1)",
+                    transformOrigin: "left center",
+                    pointerEvents: expanded ? "none" : "auto",
+                    transition: "opacity .3s, transform .3s cubic-bezier(.22,1,.36,1)",
+                  }}
+                >
+                  <span className="flex -space-x-1.5">
+                    {cl.items.slice(0, 3).map((c) => (
+                      <span key={c.id} className="w-[18px] h-[18px] rounded-full overflow-hidden flex items-center justify-center text-[8px] font-semibold"
+                        style={{ background: "linear-gradient(135deg,#3a3a42,#22222a)", color: "rgba(255,255,255,.6)", border: "1.5px solid #131216" }}>
+                        {c.profile?.avatar_url
+                          ? <img src={c.profile.avatar_url} className="w-full h-full object-cover" alt="" />
+                          : (c.profile?.username?.[0] ?? "?").toUpperCase()}
+                      </span>
+                    ))}
+                  </span>
+                  <span className="text-[9px] font-bold" style={{ fontFamily: MONO_FONT, color: AMBER }}>
+                    {cl.items.length} marks
+                  </span>
+                  <span className="text-[8.5px]" style={{ fontFamily: MONO_FONT, color: "rgba(255,255,255,.35)" }}>
+                    {fmt(cl.start)}–{fmt(cl.end)}
+                  </span>
+                </button>
+
+                {/* expanded panel — the cluster fans open */}
+                <div
+                  className="absolute z-40 rounded-2xl px-3.5 py-3"
+                  style={{
+                    ...GLASS,
+                    background: "rgba(19,18,22,0.78)",
+                    left: SPINE_X + 16, right: 12, top: cl.start * PX_PER_SEC - 14,
+                    opacity: expanded ? 1 : 0,
+                    transform: expanded ? "scale(1)" : "scale(.95)",
+                    transformOrigin: "top left",
+                    pointerEvents: expanded ? "auto" : "none",
+                    transition: "opacity .3s, transform .35s cubic-bezier(.22,1,.36,1)",
+                  }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                >
+                  <button onClick={() => toggleCluster(cl.id)} className="w-full flex items-center gap-2 mb-2">
+                    <span className="text-[9px] font-bold" style={{ fontFamily: MONO_FONT, color: AMBER }}>
+                      {cl.items.length} marks
+                    </span>
+                    <span className="text-[8.5px]" style={{ fontFamily: MONO_FONT, color: "rgba(255,255,255,.35)" }}>
+                      {fmt(cl.start)}–{fmt(cl.end)}
+                    </span>
+                    <ChevronDown className="h-3.5 w-3.5 ml-auto" style={{ color: "rgba(255,255,255,.4)", transform: "rotate(180deg)" }} />
+                  </button>
+                  <div className="space-y-3">
+                    {cl.items.map((c, i) => {
+                      const t = c.timestamp_seconds ?? 0;
+                      const isSpeaking = c.id === speakingId;
+                      const isPast = pastIds.has(c.id);
+                      return (
+                        <div
+                          key={c.id}
+                          className="rounded-xl px-2 py-1.5 -mx-2"
+                          style={{
+                            background: isSpeaking ? "rgba(245,166,35,.08)" : "transparent",
+                            opacity: expanded ? (isPast && !isSpeaking ? 0.5 : 1) : 0,
+                            transform: expanded ? "translateY(0)" : "translateY(6px)",
+                            transition: `opacity .3s ${i * 0.04}s, transform .3s cubic-bezier(.22,1,.36,1) ${i * 0.04}s, background .3s`,
+                          }}
+                        >
+                          <div className="flex items-center gap-1.5 mb-0.5">
+                            <span className="w-4 h-4 rounded-full overflow-hidden flex items-center justify-center text-[7px] font-semibold shrink-0"
+                              style={{ background: "linear-gradient(135deg,#3a3a42,#22222a)", color: "rgba(255,255,255,.6)" }}>
+                              {c.profile?.avatar_url
+                                ? <img src={c.profile.avatar_url} className="w-full h-full object-cover" alt="" />
+                                : (c.profile?.username?.[0] ?? "?").toUpperCase()}
+                            </span>
+                            <span className="text-[10px] font-semibold" style={{ color: "rgba(255,255,255,.6)" }}>
+                              @{c.profile?.username ?? "unknown"}
+                            </span>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); seekTo(t); }}
+                              className="ml-auto text-[8.5px]"
+                              style={{ fontFamily: MONO_FONT, color: isSpeaking ? AMBER_HOT : "rgba(255,255,255,.3)" }}
+                            >
+                              {fmt(t)}
+                            </button>
+                          </div>
+                          <p
+                            className="text-[13.5px] leading-relaxed"
+                            style={{
+                              fontFamily: SERIF_FONT,
+                              color: isSpeaking ? "rgba(255,255,255,.92)" : "rgba(255,255,255,.6)",
+                              transition: "color .3s",
+                            }}
+                          >
+                            {renderBodyWithTimestamps(c.body, seekTo)}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             );
           })}
