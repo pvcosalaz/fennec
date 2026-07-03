@@ -1,9 +1,18 @@
+/* La Cinta Marcada (Feedback module) — see DESIGN.md */
+@import url("https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&family=Space+Mono:wght@400;700&display=swap");
 @import "tailwindcss";
 
 :root {
   --background: #111114;
   --foreground: #f5f5f5;
   --accent: #f5a623;
+  /* Cinta Marcada tokens */
+  --tape: #131216;
+  --amber-hot: #ffc861;
+  --font-tape-ui: "General Sans", "Helvetica Neue", sans-serif;
+  --font-tape-serif: "Newsreader", Georgia, serif;
+  --font-tape-mono: "Space Mono", monospace;
 }
 
 @theme inline {

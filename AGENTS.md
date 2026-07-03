@@ -22,3 +22,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Endpoint: `POST /api/bot-post` (requires `Authorization: Bearer <CRON_SECRET>`)
 - Duplicate prevention: `bot_posted_urls` table in Supabase
 - To trigger manually: `curl -X POST https://your-domain/api/bot-post -H "Authorization: Bearer <CRON_SECRET>"`
+
+## Design System
+Always read DESIGN.md before making any visual or UI decisions.
+All font choices, colors, spacing, and aesthetic direction are defined there.
+The Feedback module follows the "La Cinta Marcada" system (DESIGN.md) — amber is
+reserved for human presence only. Do not deviate without explicit user approval.
+In QA mode, flag any code that doesn't match DESIGN.md.
