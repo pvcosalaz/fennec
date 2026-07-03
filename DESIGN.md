@@ -84,9 +84,15 @@ The comments are the star — the player is the stage.
   Every member keeps its honest amber tick on the spine — tick density shows
   conversation density even when collapsed.
 - **No likes, hearts, or reaction counts.** The only reaction is the track owner's
-  **"esto me ayudó" stamp** (amber, grease-pencil style, rotated −3°) which feeds the
-  commenter's karma. Feedback answers to the artist, not the crowd.
-- **Karma gate** (existing): skip streak caps at 4; comment to keep listening.
+  **"✓ this helped" stamp** (amber, grease-pencil style, rotated −2.5°) which feeds the
+  commenter's karma. Feedback answers to the artist, not the crowd. The artist stamps
+  from My Tracks (expand a track → its marks → stamp button).
+- **Karma economy (live since 2026-07-03, enforced in Postgres — see
+  `supabase/migrations/20260703_karma.sql`):** everyone starts with 5 · +1 for your
+  first mark on someone else's track · +2 when the artist stamps you · uploading
+  costs 5 · Pro gets 5 free uploads per calendar month, then pays karma like everyone.
+  Balance shows as a glass chip under the timecode; a "+N karma" toast pops after
+  marking. Skip streak still caps at 4.
 - **Track end:** session recap — "N productores marcaron M momentos" on a miniature spine.
   Future: Remotion renders it as a shareable vertical video (IG stories growth loop).
 - **Empty state:** bare spine + one Newsreader italic line:
@@ -102,3 +108,4 @@ The comments are the star — the player is the stage.
 | 2026-07-02 | Amber = human presence only | Makes color measure the north star: "la conversación sobre el track" |
 | 2026-07-02 | Comments in Newsreader serif | Reframes feedback as writing; nobody in the category does it |
 | 2026-07-03 | Full-bleed tape + liquid glass chrome | Paco: the tape should own the whole screen; header/transport float as Apple-style glass; Melody Bank & My Tracks hidden behind ⋯ toggle |
+| 2026-07-03 | Karma economy: +1 mark, +2 stamp, −5 upload, start 5; uploads open to everyone; Pro = 5 free/month | Paco: karma for all with Pro perk capped monthly — the daily loop (listen → mark → get stamped → upload) is the retention engine |

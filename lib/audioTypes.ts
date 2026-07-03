@@ -45,6 +45,8 @@ export type ReviewComment = {
   user_id: string;
   body: string;
   timestamp_seconds: number | null;
+  /** Track owner marked this comment as "this helped" (+2 karma to author). */
+  stamped?: boolean;
   created_at: string;
   // joined
   profile?: {

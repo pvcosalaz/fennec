@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { Upload, Trash2, Lock } from "lucide-react";
+import { Upload, Trash2, ChevronDown, Zap } from "lucide-react";
 import {
   fetchUserReviews,
   createReview,
@@ -8,12 +8,21 @@ import {
   countUserReviews,
   uploadReviewAudio,
   uploadReviewArtwork,
+  fetchReviewComments,
+  fetchKarma,
+  stampComment,
 } from "@/lib/audioDb";
-import type { ProjectReview, TrackCategory } from "@/lib/audioTypes";
+import type { ProjectReview, ReviewComment, TrackCategory } from "@/lib/audioTypes";
 import { TRACK_CATEGORIES, CATEGORY_COLORS } from "@/lib/audioTypes";
 
 const MAX_TRACKS = 10;
 const MAX_FILE_MB = 100;
+const UPLOAD_COST = 5;       // karma per upload
+const PRO_FREE_PER_MONTH = 5; // Pro perk: free uploads per calendar month
+
+const AMBER = "#f5a623";
+const SERIF_FONT = 'var(--font-tape-serif, "Newsreader", Georgia, serif)';
+const MONO_FONT  = 'var(--font-tape-mono, "Space Mono", monospace)';
 
 type Props = {
   userId: string;
@@ -46,6 +55,7 @@ export default function MyTracksView({ userId, isPro }: Props) {
   const [loading, setLoading]     = useState(true);
   const [uploading, setUploading] = useState(false);
   const [error, setError]         = useState<string | null>(null);
+  const [karma, setKarma]         = useState<number | null>(null);
   const audioInputRef             = useRef<HTMLInputElement>(null);
   const artInputRef               = useRef<HTMLInputElement>(null);
 
@@ -56,13 +66,59 @@ export default function MyTracksView({ userId, isPro }: Props) {
   const [artFile, setArtFile]     = useState<File | null>(null);
   const [showForm, setShowForm]   = useState(false);
 
+  // Expanded track → its comments (the artist's reading room, where stamps happen)
+  const [expandedId, setExpandedId]   = useState<string | null>(null);
+  const [comments, setComments]       = useState<Record<string, ReviewComment[]>>({});
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [stamping, setStamping]       = useState<string | null>(null);
+
   useEffect(() => {
-    if (!isPro) { setLoading(false); return; }
     fetchUserReviews(userId)
       .then(setTracks)
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [userId, isPro]);
+    fetchKarma(userId).then(setKarma).catch(() => {});
+  }, [userId]);
+
+  /* ── karma math ─────────────────────────────────────────────── */
+  const monthStart = new Date();
+  monthStart.setDate(1);
+  monthStart.setHours(0, 0, 0, 0);
+  const monthlyUploads = tracks.filter((t) => new Date(t.created_at) >= monthStart).length;
+  const proFreeLeft = isPro ? Math.max(0, PRO_FREE_PER_MONTH - monthlyUploads) : 0;
+  const uploadIsFree = isPro && proFreeLeft > 0;
+  // karma === null → economy not live yet (migration pending): don't block client-side
+  const canAfford = uploadIsFree || karma === null || karma >= UPLOAD_COST;
+
+  async function toggleExpand(trackId: string) {
+    if (expandedId === trackId) { setExpandedId(null); return; }
+    setExpandedId(trackId);
+    if (!comments[trackId]) {
+      setLoadingComments(true);
+      try {
+        const list = await fetchReviewComments(trackId);
+        setComments((prev) => ({ ...prev, [trackId]: list }));
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingComments(false);
+      }
+    }
+  }
+
+  async function handleStamp(trackId: string, commentId: string) {
+    setStamping(commentId);
+    const ok = await stampComment(commentId);
+    if (ok) {
+      setComments((prev) => ({
+        ...prev,
+        [trackId]: (prev[trackId] ?? []).map((c) =>
+          c.id === commentId ? { ...c, stamped: true } : c
+        ),
+      }));
+    }
+    setStamping(null);
+  }
 
   async function handleUpload() {
     if (!audioFile || !title.trim()) return;
@@ -104,9 +160,14 @@ export default function MyTracksView({ userId, isPro }: Props) {
       setAudioFile(null);
       setArtFile(null);
       setShowForm(false);
+      fetchKarma(userId).then(setKarma).catch(() => {}); // reflect the −5
     } catch (err) {
       const msg = err instanceof Error ? err.message : JSON.stringify(err);
-      setError(`Upload failed: ${msg}`);
+      if (msg.includes("NOT_ENOUGH_KARMA")) {
+        setError(`You need ${UPLOAD_COST} karma to upload. Leave marks on other producers' tracks to earn it.`);
+      } else {
+        setError(`Upload failed: ${msg}`);
+      }
       console.error(err);
     } finally {
       setUploading(false);
@@ -123,22 +184,24 @@ export default function MyTracksView({ userId, isPro }: Props) {
     }
   }
 
-  if (!isPro) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 gap-4 text-center px-4">
-        <div className="w-14 h-14 rounded-full bg-amber-500/10 flex items-center justify-center">
-          <Lock className="h-6 w-6 text-amber-500" />
-        </div>
-        <p className="text-sm font-semibold text-white">Pro Feature</p>
-        <p className="text-xs text-zinc-500 max-w-xs">
-          Upgrade to Pro to submit tracks for community review. Free users can still listen and leave feedback.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
+      {/* ── karma header — the wallet ── */}
+      <div className="flex items-center gap-2">
+        {karma !== null && (
+          <span className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold"
+            style={{ fontFamily: MONO_FONT, color: AMBER, border: "1px solid rgba(245,166,35,.35)", background: "rgba(245,166,35,.08)" }}>
+            <Zap className="h-3 w-3" /> {karma} karma
+          </span>
+        )}
+        {isPro && (
+          <span className="rounded-full px-3 py-1.5 text-[10px]"
+            style={{ fontFamily: MONO_FONT, color: "rgba(255,255,255,.55)", border: "1px solid rgba(255,255,255,.12)" }}>
+            Pro · {proFreeLeft}/{PRO_FREE_PER_MONTH} free uploads this month
+          </span>
+        )}
+      </div>
+
       {/* Upload button */}
       {!showForm && (
         <button
@@ -155,7 +218,12 @@ export default function MyTracksView({ userId, isPro }: Props) {
       {/* Upload form */}
       {showForm && (
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
-          <p className="text-sm font-semibold text-white">New Track</p>
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold text-white">New Track</p>
+            <span className="text-[10px]" style={{ fontFamily: MONO_FONT, color: uploadIsFree ? "rgba(255,255,255,.5)" : AMBER }}>
+              {uploadIsFree ? `free · Pro (${proFreeLeft} left this month)` : `costs ${UPLOAD_COST} karma`}
+            </span>
+          </div>
 
           <input
             type="text"
@@ -215,6 +283,11 @@ export default function MyTracksView({ userId, isPro }: Props) {
             {artFile ? artFile.name : "Artwork (optional)"}
           </button>
 
+          {!canAfford && (
+            <p className="text-[11px]" style={{ fontFamily: MONO_FONT, color: "rgba(255,255,255,.45)" }}>
+              You have {karma} karma — you need {UPLOAD_COST}. Leave marks on other producers&rsquo; tracks to earn more (+1 per track, +2 when the artist seals your mark).
+            </p>
+          )}
           {error && <p className="text-xs text-red-400">{error}</p>}
 
           <div className="flex gap-2">
@@ -226,10 +299,10 @@ export default function MyTracksView({ userId, isPro }: Props) {
             </button>
             <button
               onClick={handleUpload}
-              disabled={!audioFile || !title.trim() || uploading}
+              disabled={!audioFile || !title.trim() || uploading || !canAfford}
               className="flex-[2] h-10 rounded-xl bg-amber-500 text-black text-sm font-bold disabled:opacity-40 transition hover:bg-amber-400"
             >
-              {uploading ? "Uploading..." : "Submit"}
+              {uploading ? "Uploading..." : uploadIsFree ? "Submit (free)" : `Submit · −${UPLOAD_COST} karma`}
             </button>
           </div>
         </div>
@@ -244,38 +317,109 @@ export default function MyTracksView({ userId, isPro }: Props) {
           No tracks submitted yet. Hit the button above to get feedback from the community.
         </p>
       )}
-      {tracks.map((track) => (
-        <div
-          key={track.id}
-          className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3"
-        >
-          <div
-            className="w-11 h-11 rounded-xl shrink-0 overflow-hidden flex items-center justify-center"
-            style={{ background: "linear-gradient(135deg, #1e1e2e, #2d1b69)" }}
-          >
-            {track.artwork_url
-              ? <img src={track.artwork_url} className="w-full h-full object-cover" alt="" />
-              : <span className="text-lg">🎵</span>
-            }
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-white truncate">{track.title}</p>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide ${CATEGORY_COLORS[track.category]}`}>
-                {track.category}
-              </span>
-              <span className="text-[10px] text-zinc-600">{fmt(track.duration_seconds)}</span>
-              <span className="text-[10px] text-zinc-600">· {track.comment_count ?? 0} comments</span>
+      {tracks.map((track) => {
+        const expanded = expandedId === track.id;
+        const list = comments[track.id] ?? [];
+        return (
+          <div key={track.id} className="rounded-2xl border border-white/10 bg-white/[0.03]">
+            <div
+              className="flex items-center gap-3 px-4 py-3 cursor-pointer"
+              onClick={() => toggleExpand(track.id)}
+            >
+              <div
+                className="w-11 h-11 rounded-xl shrink-0 overflow-hidden flex items-center justify-center"
+                style={{ background: "linear-gradient(135deg, #1e1e2e, #2d1b69)" }}
+              >
+                {track.artwork_url
+                  ? <img src={track.artwork_url} className="w-full h-full object-cover" alt="" />
+                  : <span className="text-lg">🎵</span>
+                }
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-white truncate">{track.title}</p>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide ${CATEGORY_COLORS[track.category]}`}>
+                    {track.category}
+                  </span>
+                  <span className="text-[10px] text-zinc-600">{fmt(track.duration_seconds)}</span>
+                  <span className="text-[10px] text-zinc-600">· {track.comment_count ?? 0} marks</span>
+                </div>
+              </div>
+              <button
+                onClick={(e) => { e.stopPropagation(); handleDelete(track.id); }}
+                className="p-2 rounded-lg text-zinc-700 hover:text-red-400 transition"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+              <ChevronDown
+                className="h-4 w-4 text-zinc-600 transition-transform"
+                style={{ transform: expanded ? "rotate(180deg)" : "none" }}
+              />
             </div>
+
+            {/* ── the artist's reading room: marks on this tape, sealable ── */}
+            {expanded && (
+              <div className="px-4 pb-4 pt-1 space-y-3 border-t border-white/5">
+                {loadingComments && !comments[track.id] && (
+                  <p className="text-[11px] text-zinc-600 py-3" style={{ fontFamily: MONO_FONT }}>Loading marks…</p>
+                )}
+                {!loadingComments && list.length === 0 && (
+                  <p className="text-[13px] italic py-3" style={{ fontFamily: SERIF_FONT, color: "rgba(255,255,255,.35)" }}>
+                    Nobody&rsquo;s marked this tape yet.
+                  </p>
+                )}
+                {list.map((c) => (
+                  <div key={c.id} className="pt-3">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span className="w-[18px] h-[18px] rounded-full overflow-hidden flex items-center justify-center text-[8px] font-semibold shrink-0"
+                        style={{ background: "linear-gradient(135deg,#3a3a42,#22222a)", color: "rgba(255,255,255,.6)" }}>
+                        {c.profile?.avatar_url
+                          ? <img src={c.profile.avatar_url} className="w-full h-full object-cover" alt="" />
+                          : (c.profile?.username?.[0] ?? "?").toUpperCase()}
+                      </span>
+                      <span className="text-[10px] font-semibold" style={{ color: "rgba(255,255,255,.6)" }}>
+                        @{c.profile?.username ?? "unknown"}
+                      </span>
+                      {c.timestamp_seconds !== null && (
+                        <span className="ml-auto text-[9px]" style={{ fontFamily: MONO_FONT, color: "rgba(255,255,255,.3)" }}>
+                          {fmt(c.timestamp_seconds)}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[13.5px] leading-relaxed" style={{ fontFamily: SERIF_FONT, color: "rgba(255,255,255,.75)" }}>
+                      {c.body}
+                    </p>
+                    {c.stamped ? (
+                      <span
+                        className="inline-block mt-2 text-[8px] font-bold uppercase px-2 py-0.5 rounded"
+                        style={{
+                          fontFamily: MONO_FONT, letterSpacing: "0.14em",
+                          color: AMBER, border: `1.5px solid ${AMBER}`,
+                          transform: "rotate(-2.5deg)", opacity: 0.9,
+                        }}
+                      >
+                        ✓ this helped
+                      </span>
+                    ) : c.user_id !== userId ? (
+                      <button
+                        onClick={() => handleStamp(track.id, c.id)}
+                        disabled={stamping === c.id}
+                        className="mt-2 text-[9px] font-bold uppercase px-2.5 py-1 rounded transition active:scale-95 disabled:opacity-40"
+                        style={{
+                          fontFamily: MONO_FONT, letterSpacing: "0.12em",
+                          color: "rgba(255,255,255,.45)", border: "1px solid rgba(255,255,255,.18)",
+                        }}
+                      >
+                        {stamping === c.id ? "…" : "✓ this helped (+2 karma)"}
+                      </button>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-          <button
-            onClick={() => handleDelete(track.id)}
-            className="p-2 rounded-lg text-zinc-700 hover:text-red-400 transition"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

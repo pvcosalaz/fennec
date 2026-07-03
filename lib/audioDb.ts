@@ -84,7 +84,13 @@ export async function createReview(params: {
     .select(`*`)
     .single();
 
-  if (error) throw error;
+  if (error) {
+    // Raised by the karma trigger (see supabase/migrations/20260703_karma.sql)
+    if (error.message?.includes("NOT_ENOUGH_KARMA")) {
+      throw new Error("NOT_ENOUGH_KARMA");
+    }
+    throw error;
+  }
   return { ...data, comment_count: 0 };
 }
 
@@ -204,6 +210,50 @@ export async function createReviewComment(params: {
   })();
 
   return data;
+}
+
+// ── Karma ─────────────────────────────────────────────────────────
+
+/** Current karma balance, or null if the column doesn't exist yet / error. */
+export async function fetchKarma(userId: string): Promise<number | null> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("karma")
+    .eq("id", userId)
+    .single();
+  if (error) return null;
+  const k = (data as { karma?: number } | null)?.karma;
+  return typeof k === "number" ? k : null;
+}
+
+/**
+ * Track owner stamps a comment as "this helped" (+2 karma to its author).
+ * All validation happens server-side in the stamp_comment RPC.
+ */
+export async function stampComment(commentId: string): Promise<boolean> {
+  const { error } = await supabase.rpc("stamp_comment", { p_comment_id: commentId });
+  if (error) {
+    console.error("[stampComment]", error.message);
+    return false;
+  }
+
+  // Fire-and-forget: notify the comment author (server re-validates everything)
+  void (async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) return;
+      await fetch("/api/notifications/karma-stamp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ commentId }),
+      });
+    } catch { /* fire and forget */ }
+  })();
+
+  return true;
 }
 
 // ── Storage ───────────────────────────────────────────────────────

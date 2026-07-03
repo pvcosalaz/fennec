@@ -21,15 +21,15 @@ const mockTrack: ProjectReview = {
   comment_count: 5,
 };
 
-const mk = (id: string, username: string, t: number | null, body: string): ReviewComment => ({
-  id, track_id: "demo-track", user_id: username, body, timestamp_seconds: t,
+const mk = (id: string, username: string, t: number | null, body: string, stamped = false): ReviewComment => ({
+  id, track_id: "demo-track", user_id: username, body, timestamp_seconds: t, stamped,
   created_at: new Date().toISOString(),
   profile: { id: username, username, avatar_url: null },
 });
 
 const mockComments: ReviewComment[] = [
   mk("c1", "kavernamx", 16, "Ese filtro abriendo en la intro — déjalo respirar dos compases más antes de que entre el kick."),
-  mk("c2", "lunaproduce", 49, "El pad está peleando con la voz en 400Hz. Un shelf suave ahí y la mezcla se abre sola."),
+  mk("c2", "lunaproduce", 49, "El pad está peleando con la voz en 400Hz. Un shelf suave ahí y la mezcla se abre sola.", true),
   // cluster: three marks piled on the same moment (the fill everyone loves)
   mk("c3", "rodadrums", 28, "Ahí. Ese fill. No lo toques — es lo mejor del track."),
   mk("c3b", "lunaproduce", 32, "Sí — ese fill es LA firma. Constrúyele un eco en el outro."),
