@@ -96,7 +96,6 @@ export default function ProjectReviewPlayer({
   const [openClusters, setOpenClusters]     = useState<Set<string>>(new Set()); // manually fanned-open clusters
   const [activeClusterId, setActiveClusterId] = useState<string | null>(null);  // playhead inside this cluster's range
   const [karma, setKarma]           = useState<number | null>(null); // current balance (null = unknown/hidden)
-  const [karmaToast, setKarmaToast] = useState<string | null>(null); // "+1 karma" moment after marking
 
   // Inline composer — opened by long-press on the tape
   const [markAt, setMarkAt]           = useState<number | null>(null);
@@ -381,17 +380,9 @@ export default function ProjectReviewPlayer({
       onSkipStreakChange(0);
       closeMark();
 
-      // The karma trigger may have paid out — show the moment honestly (diff, not assume)
+      // Keep the balance chip fresh (karma moves via stamps/purchases, not comments)
       if (!previewComments) {
-        const before = karma;
-        const after = await fetchKarma(userId);
-        if (after !== null) {
-          setKarma(after);
-          if (before !== null && after > before) {
-            setKarmaToast(`+${after - before} karma`);
-            setTimeout(() => setKarmaToast(null), 3200);
-          }
-        }
+        fetchKarma(userId).then((k) => { if (k !== null) setKarma(k); }).catch(() => {});
       }
     } catch (err) {
       console.error("[submitMark]", err);
@@ -863,20 +854,6 @@ export default function ProjectReviewPlayer({
         </span>
       )}
 
-      {/* karma toast — the "+1" moment after leaving a mark */}
-      {karmaToast && (
-        <div
-          className="absolute left-1/2 -translate-x-1/2 z-50 pointer-events-none rounded-full px-4 py-2 text-[12px] font-bold"
-          style={{
-            ...GLASS,
-            bottom: "5.4rem",
-            fontFamily: MONO_FONT, color: AMBER,
-            animation: "karmaPop .4s cubic-bezier(.22,1,.36,1)",
-          }}
-        >
-          ⚡ {karmaToast}
-        </div>
-      )}
 
       {/* karma gate — glass banner above the transport */}
       {karmaBlocked && (
@@ -1002,10 +979,6 @@ export default function ProjectReviewPlayer({
         @keyframes tapeThread {
           from { height: 0; opacity: 1; }
           to   { height: ${NOWLINE_FRAC * 100}%; opacity: 0; }
-        }
-        @keyframes karmaPop {
-          from { transform: translate(-50%, 10px) scale(.85); opacity: 0; }
-          to   { transform: translate(-50%, 0)    scale(1);   opacity: 1; }
         }
         @media (prefers-reduced-motion: reduce) {
           * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }

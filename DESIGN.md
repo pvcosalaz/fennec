@@ -88,11 +88,13 @@ The comments are the star — the player is the stage.
   commenter's karma. Feedback answers to the artist, not the crowd. The artist stamps
   from My Tracks (expand a track → its marks → stamp button).
 - **Karma economy (live since 2026-07-03, enforced in Postgres — see
-  `supabase/migrations/20260703_karma.sql`):** everyone starts with 5 · +1 for your
-  first mark on someone else's track · +2 when the artist stamps you · uploading
-  costs 5 · Pro gets 5 free uploads per calendar month, then pays karma like everyone.
-  Balance shows as a glass chip under the timecode; a "+N karma" toast pops after
-  marking. Skip streak still caps at 4.
+  `supabase/migrations/20260703_karma.sql` + `_v2.sql`):** everyone starts with 5 ·
+  the ONLY earned karma is the artist's stamp (+2) — commenting alone earns nothing,
+  by design: anything per-comment gets farmed with junk comments · uploading costs 5 ·
+  Pro gets 5 free uploads per calendar month, then pays karma like everyone ·
+  karma can be bought (Stripe one-time checkout, $1.99 → 10 karma, constants in
+  `lib/karma.ts`). Balance shows as a glass chip under the timecode and as the
+  wallet in My Tracks. Skip streak still caps at 4.
 - **Track end:** session recap — "N productores marcaron M momentos" on a miniature spine.
   Future: Remotion renders it as a shareable vertical video (IG stories growth loop).
 - **Empty state:** bare spine + one Newsreader italic line:
@@ -108,4 +110,5 @@ The comments are the star — the player is the stage.
 | 2026-07-02 | Amber = human presence only | Makes color measure the north star: "la conversación sobre el track" |
 | 2026-07-02 | Comments in Newsreader serif | Reframes feedback as writing; nobody in the category does it |
 | 2026-07-03 | Full-bleed tape + liquid glass chrome | Paco: the tape should own the whole screen; header/transport float as Apple-style glass; Melody Bank & My Tracks hidden behind ⋯ toggle |
-| 2026-07-03 | Karma economy: +1 mark, +2 stamp, −5 upload, start 5; uploads open to everyone; Pro = 5 free/month | Paco: karma for all with Pro perk capped monthly — the daily loop (listen → mark → get stamped → upload) is the retention engine |
+| 2026-07-03 | Karma economy: +2 stamp only, −5 upload, start 5; uploads open to everyone; Pro = 5 free/month | Paco: karma for all with Pro perk capped monthly — the daily loop (listen → mark → get stamped → upload) is the retention engine |
+| 2026-07-03 | v2: comments alone earn NOTHING — only the artist's stamp pays (+2). Karma purchasable via Stripe ($1.99 → 10) | Paco: per-comment karma gets perma-farmed with junk comments; quality is judged by the artist. Purchase = relief valve; $1.99 floor because Stripe's fixed fee eats ~33% of a $1 charge |

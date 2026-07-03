@@ -14,11 +14,11 @@ import {
 } from "@/lib/audioDb";
 import type { ProjectReview, ReviewComment, TrackCategory } from "@/lib/audioTypes";
 import { TRACK_CATEGORIES, CATEGORY_COLORS } from "@/lib/audioTypes";
+import { UPLOAD_COST, STAMP_REWARD, PRO_FREE_PER_MONTH, KARMA_PACK } from "@/lib/karma";
+import { supabase } from "@/lib/supabase";
 
 const MAX_TRACKS = 10;
 const MAX_FILE_MB = 100;
-const UPLOAD_COST = 5;       // karma per upload
-const PRO_FREE_PER_MONTH = 5; // Pro perk: free uploads per calendar month
 
 const AMBER = "#f5a623";
 const SERIF_FONT = 'var(--font-tape-serif, "Newsreader", Georgia, serif)';
@@ -71,6 +71,7 @@ export default function MyTracksView({ userId, isPro }: Props) {
   const [comments, setComments]       = useState<Record<string, ReviewComment[]>>({});
   const [loadingComments, setLoadingComments] = useState(false);
   const [stamping, setStamping]       = useState<string | null>(null);
+  const [buying, setBuying]           = useState(false);
 
   useEffect(() => {
     fetchUserReviews(userId)
@@ -103,6 +104,27 @@ export default function MyTracksView({ userId, isPro }: Props) {
       } finally {
         setLoadingComments(false);
       }
+    }
+  }
+
+  async function buyKarma() {
+    setBuying(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) return;
+      const res = await fetch("/api/karma/checkout", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      const json = await res.json();
+      if (json.url) {
+        window.location.href = json.url; // → Stripe Checkout
+        return; // keep the spinner while the browser navigates away
+      }
+      setBuying(false);
+    } catch (err) {
+      console.error("[buyKarma]", err);
+      setBuying(false);
     }
   }
 
@@ -164,7 +186,7 @@ export default function MyTracksView({ userId, isPro }: Props) {
     } catch (err) {
       const msg = err instanceof Error ? err.message : JSON.stringify(err);
       if (msg.includes("NOT_ENOUGH_KARMA")) {
-        setError(`You need ${UPLOAD_COST} karma to upload. Leave marks on other producers' tracks to earn it.`);
+        setError(`You need ${UPLOAD_COST} karma to upload. Earn it when artists seal your marks, or grab a karma pack.`);
       } else {
         setError(`Upload failed: ${msg}`);
       }
@@ -187,12 +209,22 @@ export default function MyTracksView({ userId, isPro }: Props) {
   return (
     <div className="space-y-4">
       {/* ── karma header — the wallet ── */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         {karma !== null && (
           <span className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold"
             style={{ fontFamily: MONO_FONT, color: AMBER, border: "1px solid rgba(245,166,35,.35)", background: "rgba(245,166,35,.08)" }}>
             <Zap className="h-3 w-3" /> {karma} karma
           </span>
+        )}
+        {karma !== null && (
+          <button
+            onClick={buyKarma}
+            disabled={buying}
+            className="rounded-full px-3 py-1.5 text-[10px] font-bold transition active:scale-95 disabled:opacity-50 hover:border-amber-500/60"
+            style={{ fontFamily: MONO_FONT, color: "rgba(255,255,255,.6)", border: "1px solid rgba(255,255,255,.15)" }}
+          >
+            {buying ? "…" : `+${KARMA_PACK.karma} karma · ${KARMA_PACK.label}`}
+          </button>
         )}
         {isPro && (
           <span className="rounded-full px-3 py-1.5 text-[10px]"
@@ -284,9 +316,19 @@ export default function MyTracksView({ userId, isPro }: Props) {
           </button>
 
           {!canAfford && (
-            <p className="text-[11px]" style={{ fontFamily: MONO_FONT, color: "rgba(255,255,255,.45)" }}>
-              You have {karma} karma — you need {UPLOAD_COST}. Leave marks on other producers&rsquo; tracks to earn more (+1 per track, +2 when the artist seals your mark).
-            </p>
+            <div className="space-y-2">
+              <p className="text-[11px]" style={{ fontFamily: MONO_FONT, color: "rgba(255,255,255,.45)" }}>
+                You have {karma} karma — you need {UPLOAD_COST}. Earn +{STAMP_REWARD} each time an artist seals one of your marks, or grab a pack:
+              </p>
+              <button
+                onClick={buyKarma}
+                disabled={buying}
+                className="rounded-xl px-3 py-2 text-[11px] font-bold transition active:scale-95 disabled:opacity-50"
+                style={{ fontFamily: MONO_FONT, color: AMBER, border: "1px solid rgba(245,166,35,.4)", background: "rgba(245,166,35,.08)" }}
+              >
+                {buying ? "Opening checkout…" : `Get ${KARMA_PACK.karma} karma · ${KARMA_PACK.label}`}
+              </button>
+            </div>
           )}
           {error && <p className="text-xs text-red-400">{error}</p>}
 

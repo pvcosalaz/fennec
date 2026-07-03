@@ -20,6 +20,45 @@ async function setProStatus(customerId: string, isPro: boolean) {
     .eq("id", profile.id);
 }
 
+/** Credits a purchased karma pack. Idempotent: the ledger records the
+ *  Stripe session id, so webhook retries never credit twice. */
+async function creditKarmaPurchase(session: Stripe.Checkout.Session) {
+  const userId = session.metadata?.supabase_uid;
+  const karma = parseInt(session.metadata?.karma ?? "", 10);
+  if (!userId || !Number.isFinite(karma) || karma <= 0) {
+    console.error("[stripe/webhook] karma_pack session missing metadata", session.id);
+    return;
+  }
+
+  const admin = getSupabaseAdmin();
+
+  const { data: existing } = await admin
+    .from("karma_ledger")
+    .select("id")
+    .eq("reason", "purchase")
+    .eq("ref_id", session.id)
+    .maybeSingle();
+  if (existing) return; // retry — already credited
+
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("karma")
+    .eq("id", userId)
+    .single();
+  if (!profile) {
+    console.error("[stripe/webhook] karma_pack: profile not found", userId);
+    return;
+  }
+
+  await admin
+    .from("profiles")
+    .update({ karma: (profile.karma ?? 0) + karma })
+    .eq("id", userId);
+  await admin
+    .from("karma_ledger")
+    .insert({ user_id: userId, delta: karma, reason: "purchase", ref_id: session.id });
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.text();
   const sig = req.headers.get("stripe-signature") ?? "";
@@ -36,6 +75,20 @@ export async function POST(req: NextRequest) {
   } catch (err: any) {
     console.error("[stripe/webhook] signature verification failed:", err.message);
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+  }
+
+  // Karma pack purchases identify the user via session metadata, not the
+  // customer id — handle them before the customer-based subscription events.
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object as Stripe.Checkout.Session;
+    if (
+      session.mode === "payment" &&
+      session.metadata?.kind === "karma_pack" &&
+      session.payment_status === "paid"
+    ) {
+      await creditKarmaPurchase(session);
+    }
+    return NextResponse.json({ received: true });
   }
 
   const customerId = (event.data.object as any)?.customer as string | undefined;
