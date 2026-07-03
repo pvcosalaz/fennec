@@ -177,20 +177,27 @@ export async function createReviewComment(params: {
         ? `${Math.floor(params.timestampSeconds / 60)}:${String(params.timestampSeconds % 60).padStart(2, "0")}`
         : undefined;
 
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) return; // no token, endpoint requires auth — skip silently
+
       // Delegate all server-side work (copy generation, notification, push) to API route
       const baseUrl = typeof window !== "undefined"
         ? window.location.origin
         : process.env.NEXT_PUBLIC_APP_URL ?? "";
-      await fetch(`${baseUrl}/api/notifications/audio-feedback`, {
+      const res = await fetch(`${baseUrl}/api/notifications/audio-feedback`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({
           trackOwnerId: track.user_id,
           trackTitle: track.title,
           commenterUsername: commenterProfile?.username ?? "Someone",
           firstTimestamp,
         }),
-      }).catch(() => {/* fire and forget */});
+      });
+      if (!res.ok) console.error("[audio_feedback notification] request failed", res.status);
     } catch (err) {
       console.error("[audio_feedback notification]", err);
     }
