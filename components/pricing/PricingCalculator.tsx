@@ -348,6 +348,34 @@ export default function PricingCalculator() {
 
   const [showSettings,    setShowSettings]    = useState(false);
 
+  // iOS home-screen web apps report a stale layout viewport at launch, so a
+  // fixed shell anchored with bottom:0 leaves a dead band under the nav on
+  // some devices. Measure the real visible height (visualViewport) and drive
+  // the shell height with it instead of trusting the layout viewport.
+  useEffect(() => {
+    const root = document.documentElement;
+    const setAppHeight = () => {
+      // Keyboard open shrinks visualViewport — don't collapse the shell then
+      const focused = document.activeElement as HTMLElement | null;
+      if (focused?.matches?.("input, textarea, select, [contenteditable]")) return;
+      const h = window.visualViewport?.height ?? window.innerHeight;
+      if (h > 0) root.style.setProperty("--app-h", `${Math.round(h)}px`);
+    };
+    setAppHeight();
+    // Standalone launches settle the viewport late — re-measure after paint
+    const t1 = setTimeout(setAppHeight, 350);
+    const t2 = setTimeout(setAppHeight, 1200);
+    window.addEventListener("resize", setAppHeight);
+    window.addEventListener("orientationchange", setAppHeight);
+    window.visualViewport?.addEventListener("resize", setAppHeight);
+    return () => {
+      clearTimeout(t1); clearTimeout(t2);
+      window.removeEventListener("resize", setAppHeight);
+      window.removeEventListener("orientationchange", setAppHeight);
+      window.visualViewport?.removeEventListener("resize", setAppHeight);
+    };
+  }, []);
+
   // Lock body scroll on tabs that should not scroll
   useEffect(() => {
     const locked = (activeTab === "dashboard" || activeTab === "contenido") && !showSettings;
@@ -618,7 +646,7 @@ export default function PricingCalculator() {
   }
 
   return (
-    <div className="flex flex-col bg-background" style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0 }}>
+    <div className="flex flex-col bg-background" style={{ position: "fixed", top: 0, left: 0, right: 0, height: "var(--app-h, 100dvh)" }}>
     <main id="scroll-root" className={`flex-1 flex flex-col overscroll-none ${(activeTab === "dashboard" || activeTab === "contenido" || (activeTab === "pricing" && businessView === "hub")) && !showSettings ? "overflow-hidden" : "overflow-y-auto"}`} style={{ overscrollBehavior: "none", paddingTop: "calc(env(safe-area-inset-top) + 0.75rem)" }}>
       {/* Settings button — hidden on Community tab (has its own header) */}
       {activeTab !== "noticias" && (

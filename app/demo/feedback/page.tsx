@@ -13,7 +13,7 @@ const mockTrack: ProjectReview = {
   user_id: "demo-owner",
   title: "Midnight Reel",
   category: "Missing Mix",
-  audio_url: "https://cdn.freesound.org/previews/000/000/000_0-lq.mp3",
+  audio_url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
   artwork_url: null,
   duration_seconds: 192,
   created_at: new Date().toISOString(),

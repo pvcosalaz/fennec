@@ -56,8 +56,11 @@ export default function ProjectReviewPlayer({
   const viewportRef = useRef<HTMLDivElement>(null);
   const feedRef     = useRef<HTMLDivElement>(null);
   const spineRef    = useRef<HTMLDivElement>(null);
+  const nowDotRef   = useRef<HTMLSpanElement>(null);
   const tcRef       = useRef<HTMLSpanElement>(null);
   const ghostRef    = useRef<HTMLDivElement>(null);
+  const ampSmoothRef  = useRef(0);
+  const zeroFramesRef = useRef(0);
 
   const [playing, setPlaying]         = useState(false);
   const [comments, setComments]       = useState<ReviewComment[]>([]);
@@ -132,17 +135,42 @@ export default function ProjectReviewPlayer({
     feed.style.transform = `translateY(${nowY - t * PX_PER_SEC}px)`;
     if (tcRef.current) tcRef.current.textContent = `${fmt(t)} / ${fmt(duration)}`;
 
-    // spine breathes with the live analyser (2px → 6px)
-    if (analyserRef.current && spineRef.current && playing) {
-      const { analyser, data } = analyserRef.current;
-      analyser.getByteFrequencyData(data);
-      const end = Math.floor(data.length / 3);
-      let sum = 0;
-      for (let i = 0; i < end; i++) sum += data[i];
-      const amp = Math.min(1, (sum / (end * 255)) * 2.8);
-      const w = 2 + amp * 4;
-      spineRef.current.style.width = `${w}px`;
-      spineRef.current.style.marginLeft = `${-(w - 2) / 2}px`;
+    // spine breathes with the live analyser (2px → 8px + glow).
+    // No CSS transition here — the rAF loop smooths with a musical envelope
+    // (fast attack, slow release); a transition would re-damp every frame.
+    if (spineRef.current) {
+      let amp = 0;
+      if (playing) {
+        if (analyserRef.current) {
+          const { analyser, data } = analyserRef.current;
+          analyser.getByteFrequencyData(data);
+          const end = Math.floor(data.length / 3);
+          let sum = 0;
+          for (let i = 0; i < end; i++) sum += data[i];
+          amp = Math.min(1, (sum / (end * 255)) * 2.8);
+          if (amp < 0.01) zeroFramesRef.current++;
+          else zeroFramesRef.current = 0;
+        }
+        // iOS fallback: analyser unavailable (or muted by CORS — reads all
+        // zeros while audio is audible) → synthesize a gentle pulse so the
+        // tape never plays dead.
+        if (!analyserRef.current || zeroFramesRef.current > 45) {
+          amp = 0.22 + 0.16 * Math.abs(Math.sin(t * 2.2)) + 0.1 * Math.abs(Math.sin(t * 3.7));
+        }
+      }
+      const prev = ampSmoothRef.current;
+      const a = prev + (amp - prev) * (amp > prev ? 0.5 : 0.1);
+      ampSmoothRef.current = a;
+      const w = 2 + a * 6;
+      const el = spineRef.current;
+      el.style.width = `${w.toFixed(2)}px`;
+      el.style.marginLeft = `${(-(w - 2) / 2).toFixed(2)}px`;
+      el.style.background = `rgba(255,255,255,${(0.14 + a * 0.28).toFixed(3)})`;
+      el.style.boxShadow = `0 0 ${(4 + a * 16).toFixed(1)}px rgba(255,255,255,${(0.05 + a * 0.3).toFixed(3)})`;
+      if (nowDotRef.current) {
+        nowDotRef.current.style.boxShadow = `0 0 ${(10 + a * 14).toFixed(1)}px rgba(245,166,35,${(0.7 + a * 0.3).toFixed(2)})`;
+        nowDotRef.current.style.transform = `scale(${(1 + a * 0.25).toFixed(3)})`;
+      }
     }
 
     // which comment speaks / which are past
@@ -352,6 +380,7 @@ export default function ProjectReviewPlayer({
         <div className="absolute left-0 right-0 z-20 pointer-events-none" style={{ top: `${NOWLINE_FRAC * 100}%` }}>
           <div style={{ height: 1, background: "linear-gradient(90deg, rgba(245,166,35,.5), rgba(255,255,255,.06) 45%, transparent)" }} />
           <span
+            ref={nowDotRef}
             className="absolute rounded-full"
             style={{
               left: SPINE_X - 3, top: -3.5, width: 8, height: 8, background: AMBER,
@@ -388,7 +417,7 @@ export default function ProjectReviewPlayer({
           <div
             ref={spineRef}
             className="absolute"
-            style={{ left: SPINE_X, top: -200, bottom: 0, width: 2, background: "rgba(255,255,255,.14)", borderRadius: 2, transition: "width .12s" }}
+            style={{ left: SPINE_X, top: -200, bottom: 0, width: 2, background: "rgba(255,255,255,.14)", borderRadius: 2 }}
           />
 
           {/* tick labels every 15s */}
