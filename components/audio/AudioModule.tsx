@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Mic, Plus, X } from "lucide-react";
+import { X } from "lucide-react";
 import type { ProjectReview } from "@/lib/audioTypes";
 import { fetchRandomReviews } from "@/lib/audioDb";
 import ProjectReviewPlayer from "./ProjectReviewPlayer";
@@ -43,58 +43,31 @@ export default function AudioModule({ userId, isPro }: Props) {
   const currentTrack = queue[queueIndex] ?? null;
 
   return (
-    <div className="relative w-full max-w-4xl mx-auto">
+    <div className="absolute inset-0">
 
-      {/* ── Module header ─────────────────────────────────────── */}
-      <div className="flex items-center justify-between px-4 pb-4">
-        <div className="flex-1 min-w-0 mr-3">
-          <div className="flex items-center gap-2.5">
-            <p className="text-[10px] font-bold tracking-[0.18em] text-accent/70 uppercase flex-shrink-0">Track Reviews</p>
-            <div className="h-px flex-1 bg-gradient-to-r from-accent/20 to-transparent" />
-          </div>
-          <p className="mt-1 text-[10px] text-zinc-600 tracking-wide">Give feedback · earn karma · get heard</p>
+      {/* ── Main player — the tape is the screen ──────────────── */}
+      {loadingQueue && (
+        <div className="absolute inset-0 flex items-center justify-center" style={{ background: "#131216" }}>
+          <p className="text-xs text-zinc-600">Loading tracks...</p>
         </div>
-        <div className="flex items-center gap-2">
-          {/* Mic — Melody Bank */}
-          <button
-            onClick={() => setOverlay(overlay === "melody" ? null : "melody")}
-            className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 active:scale-90 transition"
-            aria-label="Melody Bank"
-          >
-            <Mic className="h-4 w-4" />
-          </button>
-          {/* Plus — My Tracks */}
-          <button
-            onClick={() => setOverlay(overlay === "mine" ? null : "mine")}
-            className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center text-black hover:bg-amber-400 active:scale-90 transition shadow-[0_0_14px_rgba(245,166,35,0.3)]"
-            aria-label="My Tracks"
-          >
-            <Plus className="h-4 w-4" />
-          </button>
+      )}
+      {!loadingQueue && !currentTrack && (
+        <div className="absolute inset-0 flex items-center justify-center px-10 text-center" style={{ background: "#131216" }}>
+          <p className="text-xs text-zinc-600">No tracks available right now. Check back later!</p>
         </div>
-      </div>
-
-      {/* ── Main player ───────────────────────────────────────── */}
-      <div className="px-4 pb-8">
-        {loadingQueue && (
-          <p className="text-xs text-zinc-600 text-center py-16">Loading tracks...</p>
-        )}
-        {!loadingQueue && !currentTrack && (
-          <p className="text-xs text-zinc-600 text-center py-16">
-            No tracks available right now. Check back later!
-          </p>
-        )}
-        {!loadingQueue && currentTrack && (
-          <ProjectReviewPlayer
-            key={currentTrack.id}
-            track={currentTrack}
-            userId={userId}
-            onPass={handlePass}
-            skipStreak={skipStreak}
-            onSkipStreakChange={setSkipStreak}
-          />
-        )}
-      </div>
+      )}
+      {!loadingQueue && currentTrack && (
+        <ProjectReviewPlayer
+          key={currentTrack.id}
+          track={currentTrack}
+          userId={userId}
+          onPass={handlePass}
+          skipStreak={skipStreak}
+          onSkipStreakChange={setSkipStreak}
+          onOpenMelody={() => setOverlay("melody")}
+          onOpenMyTracks={() => setOverlay("mine")}
+        />
+      )}
 
       {/* ── Melody Bank overlay ────────────────────────────────── */}
       {overlay === "melody" && (

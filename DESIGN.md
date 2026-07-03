@@ -46,14 +46,23 @@ The comments are the star — the player is the stage.
 - **Supporting:** amber wash `rgba(245,166,35,.08)` (active card bg), deep amber `#3a2a12` (filled states).
 
 ### Layout
+- **The tape IS the screen (full-bleed).** No card, no rounded box — the tape surface
+  fills everything except the bottom nav. Gradient depth: `#17151b → #131216 → #0f0e12`.
+- **Everything else floats as liquid glass** (Apple-style): track-info panel top-left,
+  timecode chip top-right, transport pill bottom-center. Glass recipe:
+  `rgba(19,18,22,.55)` + `blur(24px) saturate(160%)` + hairline `white/12` border +
+  `inset 0 1px 0 white/8` top highlight.
 - **Time runs vertically** down a 2px tape spine offset left (~48–56px) like a margin rule.
 - Faint Space Mono tick labels every 15s on the spine.
-- Comment cards dock to the spine at their timestamp, right of the spine.
-- **Fixed now-line** at 38% viewport height with the amber playhead dot on the spine.
+- Comment cards dock to the spine at their timestamp, right of the spine. Untimed
+  "general notes" dock at the end of the tape, past the last second.
+- **Fixed now-line** at 38% viewport height (full width) with the amber playhead dot.
 - On play, the feed auto-scrolls past the now-line at constant px/sec (the session flows
   through the present). ~9 px per second of audio.
 - **No horizontal waveform.** The only audio visualization is the spine breathing with the
-  live Web Audio analyser (2px→6px swell).
+  live Web Audio analyser (2px→8px swell + glow, synthetic pulse fallback on iOS).
+- **Secondary actions hide behind a ⋯ toggle** in the transport pill: Melody Bank and
+  My Tracks fly out as glass pills only when asked for. The screen belongs to the tape.
 
 ### Motion
 - **Approach:** intentional. Springs at the app's stiffness-380 tuning.
@@ -87,3 +96,4 @@ The comments are the star — the player is the stage.
 | 2026-07-02 | Cinta Marcada system created, Variant A (Margen) approved | /design-consultation — research (SoundCloud/Highnote) + dual design voices converged on inverting the hierarchy: comments are the terrain, audio organizes them |
 | 2026-07-02 | Amber = human presence only | Makes color measure the north star: "la conversación sobre el track" |
 | 2026-07-02 | Comments in Newsreader serif | Reframes feedback as writing; nobody in the category does it |
+| 2026-07-03 | Full-bleed tape + liquid glass chrome | Paco: the tape should own the whole screen; header/transport float as Apple-style glass; Melody Bank & My Tracks hidden behind ⋯ toggle |

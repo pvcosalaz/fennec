@@ -647,17 +647,25 @@ export default function PricingCalculator() {
 
   return (
     <div className="flex flex-col bg-background" style={{ position: "fixed", top: 0, left: 0, right: 0, height: "var(--app-h, 100dvh)" }}>
-    <main id="scroll-root" className={`flex-1 flex flex-col overscroll-none ${(activeTab === "dashboard" || activeTab === "contenido" || (activeTab === "pricing" && businessView === "hub")) && !showSettings ? "overflow-hidden" : "overflow-y-auto"}`} style={{ overscrollBehavior: "none", paddingTop: "calc(env(safe-area-inset-top) + 0.75rem)" }}>
-      {/* Settings button — hidden on Community tab (has its own header) */}
+    <main id="scroll-root" className={`relative flex-1 flex flex-col overscroll-none ${(activeTab === "dashboard" || activeTab === "contenido" || activeTab === "ideas" || (activeTab === "pricing" && businessView === "hub")) && !showSettings ? "overflow-hidden" : "overflow-y-auto"}`} style={{ overscrollBehavior: "none", paddingTop: "calc(env(safe-area-inset-top) + 0.75rem)" }}>
+      {/* Settings button — hidden on Community tab (has its own header).
+          On the Feedback tab the tape is full-bleed, so this row floats above it as glass. */}
       {activeTab !== "noticias" && (
-        <div className={`flex w-full max-w-4xl items-center px-6 ${activeTab === "dashboard" ? "mb-4" : "mb-4"}`}>
-          <div className="flex-1 flex justify-start">
+        <div
+          className={`flex w-full max-w-4xl items-center ${
+            activeTab === "ideas" && !showSettings
+              ? "absolute left-0 right-0 z-40 px-4 pointer-events-none"
+              : "px-6 mb-4"
+          }`}
+          style={activeTab === "ideas" && !showSettings ? { top: "calc(env(safe-area-inset-top) + 0.5rem)" } : undefined}
+        >
+          <div className="flex-1 flex justify-start pointer-events-auto">
             <NotificationBell userId={authUser.id} />
           </div>
-          <div className="flex-1 flex justify-end">
+          <div className="flex-1 flex justify-end pointer-events-auto">
             <button
               onClick={() => { void track("settings_open"); setShowSettings(true); }}
-              className="flex items-center justify-center h-8 w-8 rounded-xl border border-white/10 bg-white/5 text-zinc-400 hover:text-accent hover:border-accent/30 transition"
+              className="flex items-center justify-center h-8 w-8 rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl text-zinc-400 hover:text-accent hover:border-accent/30 transition"
             >
               <Settings className="h-4 w-4" />
             </button>

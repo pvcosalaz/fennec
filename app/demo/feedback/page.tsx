@@ -39,20 +39,17 @@ const mockComments: ReviewComment[] = [
 export default function FeedbackDemoPage() {
   if (process.env.NODE_ENV === "production") notFound();
   return (
-    <main className="min-h-screen py-8 px-4" style={{ background: "#111114" }}>
-      <div className="mx-auto w-full max-w-md">
-        <p className="text-xs font-semibold tracking-[0.3em] uppercase mb-4" style={{ color: "#f5a623" }}>
-          Cinta Marcada · Preview
-        </p>
-        <ProjectReviewPlayer
-          track={mockTrack}
-          userId="demo-viewer"
-          onPass={() => {}}
-          skipStreak={0}
-          onSkipStreakChange={() => {}}
-          previewComments={mockComments}
-        />
-      </div>
+    <main className="relative overflow-hidden" style={{ background: "#111114", height: "100dvh" }}>
+      <ProjectReviewPlayer
+        track={mockTrack}
+        userId="demo-viewer"
+        onPass={() => {}}
+        skipStreak={0}
+        onSkipStreakChange={() => {}}
+        previewComments={mockComments}
+        onOpenMelody={() => alert("Melody Bank (demo)")}
+        onOpenMyTracks={() => alert("My Tracks (demo)")}
+      />
     </main>
   );
 }
