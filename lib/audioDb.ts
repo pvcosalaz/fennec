@@ -226,22 +226,31 @@ export async function fetchKarma(userId: string): Promise<number | null> {
   return typeof k === "number" ? k : null;
 }
 
+export type StampResult = {
+  ok: boolean;
+  karmaPaid: boolean;
+  /** 'paid' | 'track_already_paid' | 'weekly_cap' | 'already_stamped' */
+  reason: string | null;
+};
+
 /**
  * Track owner stamps a comment as "this helped" (+2 karma to its author).
  * All validation and the anti-collusion payout locks live server-side in
  * the stamp_comment RPC — the seal always lands, the payout may be gated
  * (once per commenter per track, max 3/week per artist→commenter pair).
  */
-export async function stampComment(commentId: string): Promise<boolean> {
+export async function stampComment(commentId: string): Promise<StampResult> {
   const { data, error } = await supabase.rpc("stamp_comment", { p_comment_id: commentId });
   if (error) {
     console.error("[stampComment]", error.message);
-    return false;
+    return { ok: false, karmaPaid: false, reason: null };
   }
+
+  const parsed = data as { karma_paid?: boolean; reason?: string } | null;
+  const karmaPaid = Boolean(parsed?.karma_paid);
 
   // Only notify "+2 karma" when the payout actually happened —
   // a payout-capped seal shouldn't send a lying notification.
-  const karmaPaid = Boolean((data as { karma_paid?: boolean } | null)?.karma_paid);
   if (karmaPaid) {
     void (async () => {
       try {
@@ -259,7 +268,7 @@ export async function stampComment(commentId: string): Promise<boolean> {
     })();
   }
 
-  return true;
+  return { ok: true, karmaPaid, reason: parsed?.reason ?? null };
 }
 
 // ── Storage ───────────────────────────────────────────────────────

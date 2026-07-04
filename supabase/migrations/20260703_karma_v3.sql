@@ -42,7 +42,7 @@ begin
   end if;
 
   if v_comment.stamped then
-    return json_build_object('ok', true, 'already', true, 'karma_paid', false);
+    return json_build_object('ok', true, 'already', true, 'karma_paid', false, 'reason', 'already_stamped');
   end if;
 
   -- Lock 1: karma already paid to this commenter on this track?
@@ -78,7 +78,16 @@ begin
     values (v_comment.user_id, 2, 'stamp', p_comment_id::text);
   end if;
 
-  return json_build_object('ok', true, 'karma_paid', v_pay);
+  -- reason tells the UI why a seal didn't pay, so the artist isn't left guessing
+  return json_build_object(
+    'ok', true,
+    'karma_paid', v_pay,
+    'reason', case
+      when v_pay then 'paid'
+      when v_already_paid_track then 'track_already_paid'
+      else 'weekly_cap'
+    end
+  );
 end;
 $$;
 

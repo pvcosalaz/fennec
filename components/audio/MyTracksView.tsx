@@ -72,6 +72,8 @@ export default function MyTracksView({ userId, isPro }: Props) {
   const [loadingComments, setLoadingComments] = useState(false);
   const [stamping, setStamping]       = useState<string | null>(null);
   const [buying, setBuying]           = useState(false);
+  // per-comment note when a seal landed but didn't pay karma (anti-farm caps)
+  const [stampNotes, setStampNotes]   = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchUserReviews(userId)
@@ -130,14 +132,23 @@ export default function MyTracksView({ userId, isPro }: Props) {
 
   async function handleStamp(trackId: string, commentId: string) {
     setStamping(commentId);
-    const ok = await stampComment(commentId);
-    if (ok) {
+    const result = await stampComment(commentId);
+    if (result.ok) {
       setComments((prev) => ({
         ...prev,
         [trackId]: (prev[trackId] ?? []).map((c) =>
           c.id === commentId ? { ...c, stamped: true } : c
         ),
       }));
+      if (!result.karmaPaid) {
+        const note =
+          result.reason === "track_already_paid"
+            ? "Sealed — karma was already paid to this producer on this tape (1 payout per producer per track)."
+            : result.reason === "weekly_cap"
+            ? "Sealed — weekly karma cap with this producer reached (max 3 payouts per week). The seal still shows."
+            : "Sealed — no karma paid this time.";
+        setStampNotes((prev) => ({ ...prev, [commentId]: note }));
+      }
     }
     setStamping(null);
   }
@@ -432,16 +443,23 @@ export default function MyTracksView({ userId, isPro }: Props) {
                       {c.body}
                     </p>
                     {c.stamped ? (
-                      <span
-                        className="inline-block mt-2 text-[8px] font-bold uppercase px-2 py-0.5 rounded"
-                        style={{
-                          fontFamily: MONO_FONT, letterSpacing: "0.14em",
-                          color: AMBER, border: `1.5px solid ${AMBER}`,
-                          transform: "rotate(-2.5deg)", opacity: 0.9,
-                        }}
-                      >
-                        ✓ this helped
-                      </span>
+                      <div>
+                        <span
+                          className="inline-block mt-2 text-[8px] font-bold uppercase px-2 py-0.5 rounded"
+                          style={{
+                            fontFamily: MONO_FONT, letterSpacing: "0.14em",
+                            color: AMBER, border: `1.5px solid ${AMBER}`,
+                            transform: "rotate(-2.5deg)", opacity: 0.9,
+                          }}
+                        >
+                          ✓ this helped
+                        </span>
+                        {stampNotes[c.id] && (
+                          <p className="mt-1.5 text-[9.5px] leading-relaxed" style={{ fontFamily: MONO_FONT, color: "rgba(255,255,255,.4)" }}>
+                            {stampNotes[c.id]}
+                          </p>
+                        )}
+                      </div>
                     ) : c.user_id !== userId ? (
                       <button
                         onClick={() => handleStamp(track.id, c.id)}
