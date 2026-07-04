@@ -358,7 +358,21 @@ export default function PricingCalculator() {
       // Keyboard open shrinks visualViewport — don't collapse the shell then
       const focused = document.activeElement as HTMLElement | null;
       if (focused?.matches?.("input, textarea, select, [contenteditable]")) return;
-      const h = window.visualViewport?.height ?? window.innerHeight;
+      let h = window.visualViewport?.height ?? window.innerHeight;
+      // Installed PWA: the app owns the whole screen, so screen.height is the
+      // ground truth — visualViewport underreports on some iOS versions and
+      // never fires the correcting resize, leaving a dead band under the nav.
+      // (iOS screen.width/height are orientation-independent, hence the swap.)
+      const standalone =
+        window.matchMedia?.("(display-mode: standalone)")?.matches ||
+        (navigator as unknown as { standalone?: boolean }).standalone === true;
+      if (standalone && window.screen) {
+        const portrait = window.matchMedia?.("(orientation: portrait)")?.matches ?? true;
+        const screenH = portrait
+          ? Math.max(window.screen.height, window.screen.width)
+          : Math.min(window.screen.height, window.screen.width);
+        h = Math.max(h, screenH);
+      }
       if (h > 0) root.style.setProperty("--app-h", `${Math.round(h)}px`);
     };
     setAppHeight();
@@ -367,11 +381,15 @@ export default function PricingCalculator() {
     const t2 = setTimeout(setAppHeight, 1200);
     window.addEventListener("resize", setAppHeight);
     window.addEventListener("orientationchange", setAppHeight);
+    window.addEventListener("pageshow", setAppHeight);
+    document.addEventListener("visibilitychange", setAppHeight);
     window.visualViewport?.addEventListener("resize", setAppHeight);
     return () => {
       clearTimeout(t1); clearTimeout(t2);
       window.removeEventListener("resize", setAppHeight);
       window.removeEventListener("orientationchange", setAppHeight);
+      window.removeEventListener("pageshow", setAppHeight);
+      document.removeEventListener("visibilitychange", setAppHeight);
       window.visualViewport?.removeEventListener("resize", setAppHeight);
     };
   }, []);

@@ -85,8 +85,14 @@ export default function AudioModule({ userId, isPro }: Props) {
 
       {/* ── My Tracks bottom sheet ─────────────────────────────── */}
       {overlay === "mine" && (
-        <div className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl bg-[#1a1a1e] border-t border-white/8 max-h-[80vh] overflow-y-auto pb-8"
-          style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 2rem)" }}
+        <div className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl bg-[#1a1a1e] border-t border-white/8 overflow-y-auto"
+          style={{
+            // Anchored to the shell's corrected height, not the flaky layout
+            // viewport; bottom padding clears the bottom nav so the form's
+            // Submit/Cancel are always reachable.
+            maxHeight: "calc(var(--app-h, 100dvh) - 4rem)",
+            paddingBottom: "calc(env(safe-area-inset-bottom) + 7rem)",
+          }}
         >
           <div className="flex items-center justify-between px-4 pt-5 pb-4">
             <span className="text-sm font-bold text-white">My Tracks</span>
