@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Check, ArrowRight, Pencil, Lock } from "lucide-react";
 import InspireHero from "@/components/remotion/InspireHero";
 import { QuickIdeasCard, ContentLabCard, MyScriptsCard } from "@/components/remotion/ContentToolCards";
+import { useSheetDismiss, SHEET_BOTTOM, SHEET_ENTER } from "@/components/ui/useSheetDismiss";
 
 const TRENDING_CACHE_KEY = "fennec-trending-ideas-v3";
 
@@ -106,6 +107,7 @@ export default function CalendarHub({
   const [anchorDate, setAnchorDate] = useState<Date>(today);
   const [selectedDay, setSelectedDay] = useState<string>(todayYMD);
   const [dayDetailOpen, setDayDetailOpen] = useState(false);
+  const { sheetRef: daySheetRef, dismiss: dismissDaySheet } = useSheetDismiss(() => setDayDetailOpen(false));
   const [inspireThumbnail, setInspireThumbnail] = useState<string | null>(null);
 
   useEffect(() => {
@@ -264,9 +266,14 @@ export default function CalendarHub({
       <>
         <div
           className="fixed inset-0 z-30 bg-black/70 backdrop-blur-sm"
-          onClick={() => setDayDetailOpen(false)}
+          style={{ animation: "sheetFadeIn .25s ease both" }}
+          onClick={dismissDaySheet}
         />
-        <div className="fixed bottom-0 left-0 right-0 z-40 max-h-[70vh] rounded-t-3xl border-t border-white/10 bg-zinc-950 overflow-y-auto">
+        <div
+          ref={daySheetRef}
+          className="fixed left-0 right-0 z-40 max-h-[70vh] rounded-t-3xl border-t border-white/10 bg-zinc-950 overflow-y-auto"
+          style={{ bottom: SHEET_BOTTOM, animation: SHEET_ENTER }}
+        >
           <div className="sticky top-0 z-10 flex items-center justify-center px-4 pt-3 pb-2 bg-zinc-950">
             <div className="w-10 h-1 rounded-full bg-white/30" />
           </div>

@@ -7,6 +7,7 @@ import ProjectReviewPlayer from "./ProjectReviewPlayer";
 import MyTracksView from "./MyTracksView";
 import IdeasModule from "@/components/ideas/IdeasModule";
 import TapeIntro from "./TapeIntro";
+import { useSheetDismiss, SHEET_BOTTOM, SHEET_ENTER } from "@/components/ui/useSheetDismiss";
 
 type Overlay = "melody" | "mine" | "intro" | null;
 
@@ -120,27 +121,55 @@ export default function AudioModule({ userId, isPro, onSheetChange }: Props) {
 
       {/* ── My Tracks bottom sheet ─────────────────────────────── */}
       {overlay === "mine" && (
-        <div className="fixed inset-x-0 z-50 rounded-t-3xl bg-[#1a1a1e] border-t border-white/8 overflow-y-auto"
-          style={{
-            // Anchor to the TRUE screen bottom (iOS underreports the layout
-            // viewport; --app-h carries the corrected height). The nav hides
-            // while this sheet is open, so no extra clearance needed.
-            bottom: "calc(100dvh - var(--app-h, 100dvh))",
-            maxHeight: "calc(var(--app-h, 100dvh) - 4rem)",
-            paddingBottom: "calc(env(safe-area-inset-bottom) + 2rem)",
-          }}
-        >
-          <div className="flex items-center justify-between px-4 pt-5 pb-4">
-            <span className="text-sm font-bold text-white">My Tracks</span>
-            <button onClick={() => setOverlay(null)} className="text-zinc-500 hover:text-white transition">
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-          <div className="px-4">
-            <MyTracksView userId={userId} isPro={isPro} />
-          </div>
-        </div>
+        <MyTracksSheet userId={userId} isPro={isPro} onClose={() => setOverlay(null)} />
       )}
     </div>
+  );
+}
+
+/* ── My Tracks as a proper sheet: swipe-down to close, true-bottom anchor,
+   dim backdrop. Own component so useSheetDismiss binds on mount. ── */
+function MyTracksSheet({
+  userId,
+  isPro,
+  onClose,
+}: {
+  userId: string;
+  isPro: boolean;
+  onClose: () => void;
+}) {
+  const { sheetRef, dismiss } = useSheetDismiss(onClose);
+  return (
+    <>
+      <div
+        className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+        style={{ animation: "sheetFadeIn .25s ease both" }}
+        onClick={dismiss}
+      />
+      <div
+        ref={sheetRef}
+        className="fixed inset-x-0 z-50 rounded-t-3xl bg-[#1a1a1e] border-t border-white/8 overflow-y-auto"
+        style={{
+          bottom: SHEET_BOTTOM,
+          maxHeight: "calc(var(--app-h, 100dvh) - 4rem)",
+          paddingBottom: "calc(env(safe-area-inset-bottom) + 2rem)",
+          animation: SHEET_ENTER,
+        }}
+      >
+        {/* drag handle */}
+        <div className="flex justify-center pt-3">
+          <div className="w-10 h-1 rounded-full bg-white/20" />
+        </div>
+        <div className="flex items-center justify-between px-4 pt-2 pb-4">
+          <span className="text-sm font-bold text-white">My Tracks</span>
+          <button onClick={dismiss} className="text-zinc-500 hover:text-white transition">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="px-4">
+          <MyTracksView userId={userId} isPro={isPro} />
+        </div>
+      </div>
+    </>
   );
 }

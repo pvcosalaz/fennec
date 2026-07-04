@@ -1,6 +1,6 @@
 "use client";
-import { useRef } from "react";
 import { Upload } from "lucide-react";
+import { useSheetDismiss, SHEET_BOTTOM, SHEET_ENTER } from "@/components/ui/useSheetDismiss";
 
 /* First-visit intro for La Cinta Marcada (see DESIGN.md).
    A bottom sheet styled like the module itself: a miniature spine with
@@ -40,70 +40,24 @@ export default function TapeIntro({
   /** CTA: jump straight into My Tracks to upload the first track. */
   onUpload: () => void;
 }) {
-  const sheetRef = useRef<HTMLDivElement>(null);
-  const drag = useRef({ startY: 0, delta: 0, dragging: false });
-
-  function dismiss() {
-    const el = sheetRef.current;
-    if (!el) { onClose(); return; }
-    el.style.transition = "transform .25s cubic-bezier(.22,1,.36,1)";
-    el.style.transform = "translateY(110%)";
-    setTimeout(onClose, 220);
-  }
-
-  function onTouchStart(e: React.TouchEvent) {
-    drag.current = { startY: e.touches[0].clientY, delta: 0, dragging: true };
-    if (sheetRef.current) sheetRef.current.style.transition = "none";
-  }
-  function onTouchMove(e: React.TouchEvent) {
-    if (!drag.current.dragging) return;
-    const dy = Math.max(0, e.touches[0].clientY - drag.current.startY);
-    drag.current.delta = dy;
-    if (sheetRef.current) sheetRef.current.style.transform = `translateY(${dy}px)`;
-  }
-  function onTouchEnd() {
-    if (!drag.current.dragging) return;
-    drag.current.dragging = false;
-    const el = sheetRef.current;
-    if (!el) return;
-    if (drag.current.delta > 90) {
-      dismiss();
-    } else {
-      el.style.transition = "transform .25s cubic-bezier(.22,1,.36,1)";
-      el.style.transform = "translateY(0)";
-    }
-  }
+  const { sheetRef, dismiss } = useSheetDismiss(onClose);
 
   return (
     <>
-      <style>{`
-        @keyframes tapeSheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        @keyframes tapeFadeIn  { from { opacity: 0; } to { opacity: 1; } }
-        @media (prefers-reduced-motion: reduce) {
-          .tape-sheet, .tape-backdrop { animation: none !important; }
-        }
-      `}</style>
       <div
-        className="tape-backdrop fixed inset-0 z-[60] bg-black/75 backdrop-blur-sm"
-        style={{ animation: "tapeFadeIn .25s ease both" }}
+        className="fixed inset-0 z-[60] bg-black/75 backdrop-blur-sm"
+        style={{ animation: "sheetFadeIn .25s ease both" }}
         onClick={dismiss}
       />
       <div
         ref={sheetRef}
-        className="tape-sheet fixed inset-x-0 z-[70] mx-auto w-full max-w-md rounded-t-3xl border-t border-white/10 px-6 pt-3"
+        className="fixed inset-x-0 z-[70] mx-auto w-full max-w-md rounded-t-3xl border-t border-white/10 px-6 pt-3"
         style={{
-          // Anchor to the TRUE screen bottom, not the flaky iOS layout
-          // viewport: on healthy devices this resolves to 0; when iOS
-          // underreports the viewport, it goes negative and reaches the edge.
-          bottom: "calc(100dvh - var(--app-h, 100dvh))",
+          bottom: SHEET_BOTTOM,
           background: "linear-gradient(180deg, #17151b, #131216)",
           paddingBottom: "calc(env(safe-area-inset-bottom) + 1.5rem)",
-          animation: "tapeSheetUp .32s cubic-bezier(.22,1,.36,1) both",
-          touchAction: "none",
+          animation: SHEET_ENTER,
         }}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
       >
         {/* drag handle */}
         <div className="flex justify-center mb-4">

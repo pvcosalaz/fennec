@@ -7,6 +7,7 @@ import type { Profile, Post, PostCategory, MediaType } from "@/lib/communityType
 import { CATEGORIES } from "@/lib/communityTypes";
 import MelodyPicker from "./MelodyPicker";
 import GifPicker from "./GifPicker";
+import { useSheetDismiss, SHEET_BOTTOM, SHEET_ENTER } from "@/components/ui/useSheetDismiss";
 
 type Props = {
   profile: Profile;
@@ -29,6 +30,7 @@ function detectVideo(text: string): string | null {
 }
 
 export default function ComposerSheet({ profile, onClose, onPostCreated, initialMediaUrl, initialMediaType, initialMediaName }: Props) {
+  const { sheetRef, dismiss } = useSheetDismiss(onClose);
   const [content, setContent]       = useState("");
   const [category, setCategory]     = useState<PostCategory>("music");
   const [mediaUrl, setMediaUrl]     = useState<string | null>(initialMediaUrl ?? null);
@@ -108,10 +110,11 @@ export default function ComposerSheet({ profile, onClose, onPostCreated, initial
 
   return createPortal(
     <>
-      <div className="fixed inset-0 z-[100] bg-black/60" onClick={onClose} />
+      <div className="fixed inset-0 z-[100] bg-black/60" style={{ animation: "sheetFadeIn .25s ease both" }} onClick={dismiss} />
       <div
-        className="fixed bottom-0 left-0 right-0 z-[101] rounded-t-3xl bg-zinc-950 border-t border-white/10 p-4 space-y-4 max-h-[90vh] overflow-y-auto"
-        style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 16px)" }}
+        ref={sheetRef}
+        className="fixed left-0 right-0 z-[101] rounded-t-3xl bg-zinc-950 border-t border-white/10 p-4 space-y-4 max-h-[90vh] overflow-y-auto"
+        style={{ bottom: SHEET_BOTTOM, paddingBottom: "calc(env(safe-area-inset-bottom) + 16px)", animation: SHEET_ENTER }}
       >
 
         {/* Header */}

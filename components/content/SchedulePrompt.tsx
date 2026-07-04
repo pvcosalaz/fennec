@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Calendar, Check } from "lucide-react";
+import { useSheetDismiss, SHEET_BOTTOM, SHEET_ENTER } from "@/components/ui/useSheetDismiss";
 
 type Props = {
   taskTitle: string;
@@ -19,6 +20,7 @@ export default function SchedulePrompt({
   onConfirm,
   onSkip,
 }: Props) {
+  const { sheetRef, dismiss } = useSheetDismiss(onSkip);
   const [date, setDate] = useState<string>(toYMD(new Date()));
   const [done, setDone] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -39,13 +41,15 @@ export default function SchedulePrompt({
       {/* Backdrop */}
       <div
         className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm"
-        onClick={onSkip}
+        style={{ animation: "sheetFadeIn .25s ease both" }}
+        onClick={dismiss}
       />
 
       {/* Sheet */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-[101] max-w-lg mx-auto rounded-t-3xl border-t border-white/10 bg-zinc-950 p-6 space-y-5"
-        style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 24px)" }}
+        ref={sheetRef}
+        className="fixed left-0 right-0 z-[101] max-w-lg mx-auto rounded-t-3xl border-t border-white/10 bg-zinc-950 p-6 space-y-5"
+        style={{ bottom: SHEET_BOTTOM, paddingBottom: "calc(env(safe-area-inset-bottom) + 24px)", animation: SHEET_ENTER }}
       >
         {done ? (
           // Success state

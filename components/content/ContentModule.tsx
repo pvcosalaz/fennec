@@ -1,4 +1,7 @@
+
 "use client";
+
+import { useSheetDismiss, SHEET_BOTTOM } from "@/components/ui/useSheetDismiss";
 
 import { useState, useEffect, useRef } from "react";
 import {
@@ -222,6 +225,8 @@ function ScriptsView({
   const [fTitle,    setFTitle]    = useState(videoRef ? `My take: ${videoRef.title.slice(0, 60)}` : "");
   const [fScript,   setFScript]   = useState("");
 
+  const { sheetRef: composeSheetRef, dismiss: dismissComposeSheet } = useSheetDismiss(closeSheet);
+
   function closeSheet() {
     setSheetOpen(false);
     setFTitle("");
@@ -329,14 +334,18 @@ function ScriptsView({
       {sheetOpen && (
         <div
           className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm"
-          onClick={closeSheet}
+          onClick={dismissComposeSheet}
         />
       )}
 
       {/* Bottom sheet */}
-      <div className={`fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl border-t border-white/10 bg-zinc-950 px-5 pt-4 pb-8 shadow-2xl transition-transform duration-300 ease-out ${
+      <div
+        ref={composeSheetRef}
+        className={`fixed left-0 right-0 z-50 rounded-t-3xl border-t border-white/10 bg-zinc-950 px-5 pt-4 pb-8 shadow-2xl transition-transform duration-300 ease-out ${
         sheetOpen ? "translate-y-0" : "translate-y-full"
-      }`}>
+      }`}
+        style={{ bottom: SHEET_BOTTOM }}
+      >
         {/* Handle */}
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/20" />
 
@@ -736,7 +745,7 @@ export default function ContentModule({ isPro = false, onUpgrade }: { isPro?: bo
           />
           <div
             ref={sheetRef}
-            className="fixed bottom-0 left-0 right-0 z-40 h-[92vh] rounded-t-3xl border-t border-white/10 bg-zinc-950 overflow-y-auto"
+            className="fixed left-0 right-0 z-40 h-[92vh] rounded-t-3xl border-t border-white/10 bg-zinc-950 overflow-y-auto"
             style={{ transform: `translateY(${dragY}px)`, transition: dragY === 0 ? "transform 0.3s ease-out" : "none" }}
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}

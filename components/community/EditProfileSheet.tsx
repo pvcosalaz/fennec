@@ -3,6 +3,7 @@ import { useState, useRef } from "react";
 import { X, Plus, ImagePlus } from "lucide-react";
 import { updateProfile, uploadImage } from "@/lib/communityDb";
 import type { Profile } from "@/lib/communityTypes";
+import { useSheetDismiss, SHEET_BOTTOM, SHEET_ENTER } from "@/components/ui/useSheetDismiss";
 
 type Props = {
   profile: Profile;
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export default function EditProfileSheet({ profile, onClose, onSaved }: Props) {
+  const { sheetRef, dismiss } = useSheetDismiss(onClose);
   const [bio, setBio]               = useState(profile.bio ?? "");
   const [genreInput, setGenreInput] = useState("");
   const [genres, setGenres]         = useState<string[]>(profile.genres ?? []);
@@ -79,8 +81,12 @@ export default function EditProfileSheet({ profile, onClose, onSaved }: Props) {
 
   return (
     <>
-      <div className="fixed inset-0 z-40 bg-black/60" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl bg-zinc-950 border-t border-white/10 p-4 space-y-4 max-h-[85vh] overflow-y-auto">
+      <div className="fixed inset-0 z-40 bg-black/60" style={{ animation: "sheetFadeIn .25s ease both" }} onClick={dismiss} />
+      <div
+        ref={sheetRef}
+        className="fixed left-0 right-0 z-50 rounded-t-3xl bg-zinc-950 border-t border-white/10 p-4 space-y-4 max-h-[85vh] overflow-y-auto"
+        style={{ bottom: SHEET_BOTTOM, paddingBottom: "calc(env(safe-area-inset-bottom) + 16px)", animation: SHEET_ENTER }}
+      >
 
         {/* Header */}
         <div className="flex items-center justify-between">

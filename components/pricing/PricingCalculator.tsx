@@ -126,6 +126,7 @@ import type { Profile } from "@/lib/communityTypes";
 import AuthGate from "@/components/community/AuthGate";
 import UsernameSetup from "@/components/community/UsernameSetup";
 import Select from "@/components/ui/Select";
+import { useSheetDismiss, SHEET_BOTTOM, SHEET_ENTER } from "@/components/ui/useSheetDismiss";
 
 type FieldConfig = {
   key: string;
@@ -350,6 +351,8 @@ export default function PricingCalculator() {
   // Bottom sheets (tape intro, My Tracks) hide the nav while open so their
   // actions never collide with it; it slides back when the sheet closes.
   const [navHidden, setNavHidden] = useState(false);
+  // Upgrade sheet: swipe-down to dismiss, like every sheet in the app
+  const { sheetRef: upgradeSheetRef, dismiss: dismissUpgrade } = useSheetDismiss(() => setShowUpgrade(false));
 
   // iOS home-screen web apps report a stale layout viewport at launch, so a
   // fixed shell anchored with bottom:0 leaves a dead band under the nav on
@@ -1277,8 +1280,12 @@ export default function PricingCalculator() {
       {/* ── Upgrade sheet — global overlay (renders over any tab/view) ─── */}
       {showUpgrade && !profile?.is_pro && (
         <>
-          <div className="fixed inset-0 z-[150] bg-black/70 backdrop-blur-sm" onClick={() => setShowUpgrade(false)} />
-          <div className="fixed bottom-0 left-0 right-0 z-[160] rounded-t-3xl bg-zinc-950 border-t border-white/10 p-6 space-y-5">
+          <div className="fixed inset-0 z-[150] bg-black/70 backdrop-blur-sm" style={{ animation: "sheetFadeIn .25s ease both" }} onClick={dismissUpgrade} />
+          <div
+            ref={upgradeSheetRef}
+            className="fixed left-0 right-0 z-[160] rounded-t-3xl bg-zinc-950 border-t border-white/10 p-6 space-y-5"
+            style={{ bottom: SHEET_BOTTOM, paddingBottom: "calc(env(safe-area-inset-bottom) + 24px)", animation: SHEET_ENTER }}
+          >
             <div className="w-10 h-1 bg-white/20 rounded-full mx-auto" />
 
             <div className="space-y-1">

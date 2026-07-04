@@ -2,6 +2,7 @@
 
 import { Check } from "lucide-react";
 import FennecFox from "@/components/dashboard/FennecFox";
+import { useSheetDismiss, SHEET_BOTTOM, SHEET_ENTER } from "@/components/ui/useSheetDismiss";
 
 export type ChecklistItem = {
   id: string;
@@ -23,17 +24,19 @@ export function WelcomeModal({
 }) {
   const doneCount = items.filter((i) => i.done).length;
   const allDone = doneCount === items.length;
+  const { sheetRef, dismiss } = useSheetDismiss(onClose);
 
   return (
     <>
-      <div className="fixed inset-0 z-[60] bg-black/75 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 z-[60] bg-black/75 backdrop-blur-sm"
+        style={{ animation: "sheetFadeIn .25s ease both" }} onClick={dismiss} />
       <div
+        ref={sheetRef}
         className="fixed inset-x-0 z-[70] mx-auto w-full max-w-md rounded-t-3xl border-t border-white/10 bg-zinc-950 px-6 pt-3"
         style={{
-          // True screen bottom (iOS underreports the layout viewport;
-          // --app-h carries the corrected shell height)
-          bottom: "calc(100dvh - var(--app-h, 100dvh))",
+          bottom: SHEET_BOTTOM,
           paddingBottom: "calc(env(safe-area-inset-bottom) + 1.5rem)",
+          animation: SHEET_ENTER,
         }}
       >
         {/* drag handle */}
@@ -87,7 +90,7 @@ export function WelcomeModal({
           {doneCount} of {items.length} completed
         </p>
         <button
-          onClick={onClose}
+          onClick={dismiss}
           className="mt-3 w-full rounded-2xl bg-accent py-3.5 text-sm font-bold text-black transition hover:brightness-110 active:scale-[0.98]"
         >
           {allDone ? "Done! 🎉" : "Get started"}

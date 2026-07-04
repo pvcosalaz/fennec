@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Search, X } from "lucide-react";
+import { useSheetDismiss, SHEET_BOTTOM, SHEET_ENTER } from "@/components/ui/useSheetDismiss";
 
 type GifResult = { id: string; url: string; preview: string };
 
@@ -10,6 +11,7 @@ type Props = {
 };
 
 export default function GifPicker({ onSelect, onClose }: Props) {
+  const { sheetRef, dismiss } = useSheetDismiss(onClose);
   const [query, setQuery]     = useState("");
   const [gifs, setGifs]       = useState<GifResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -54,10 +56,12 @@ export default function GifPicker({ onSelect, onClose }: Props) {
   }, [query]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end bg-black/60" onClick={onClose}>
+    <div className="fixed inset-x-0 top-0 z-50 flex items-end bg-black/60"
+      style={{ height: "var(--app-h, 100dvh)", animation: "sheetFadeIn .25s ease both" }} onClick={dismiss}>
       <div
-        className="w-full rounded-t-3xl bg-zinc-950 border-t border-white/10 p-4 space-y-3"
-        style={{ maxHeight: "70vh" }}
+        ref={sheetRef}
+        className="w-full rounded-t-3xl bg-zinc-950 border-t border-white/10 p-4 space-y-3 overflow-y-auto"
+        style={{ maxHeight: "70vh", paddingBottom: "calc(env(safe-area-inset-bottom) + 16px)", animation: SHEET_ENTER }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
