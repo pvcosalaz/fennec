@@ -228,30 +228,36 @@ export async function fetchKarma(userId: string): Promise<number | null> {
 
 /**
  * Track owner stamps a comment as "this helped" (+2 karma to its author).
- * All validation happens server-side in the stamp_comment RPC.
+ * All validation and the anti-collusion payout locks live server-side in
+ * the stamp_comment RPC — the seal always lands, the payout may be gated
+ * (once per commenter per track, max 3/week per artist→commenter pair).
  */
 export async function stampComment(commentId: string): Promise<boolean> {
-  const { error } = await supabase.rpc("stamp_comment", { p_comment_id: commentId });
+  const { data, error } = await supabase.rpc("stamp_comment", { p_comment_id: commentId });
   if (error) {
     console.error("[stampComment]", error.message);
     return false;
   }
 
-  // Fire-and-forget: notify the comment author (server re-validates everything)
-  void (async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) return;
-      await fetch("/api/notifications/karma-stamp", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ commentId }),
-      });
-    } catch { /* fire and forget */ }
-  })();
+  // Only notify "+2 karma" when the payout actually happened —
+  // a payout-capped seal shouldn't send a lying notification.
+  const karmaPaid = Boolean((data as { karma_paid?: boolean } | null)?.karma_paid);
+  if (karmaPaid) {
+    void (async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) return;
+        await fetch("/api/notifications/karma-stamp", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ commentId }),
+        });
+      } catch { /* fire and forget */ }
+    })();
+  }
 
   return true;
 }
