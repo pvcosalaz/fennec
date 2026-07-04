@@ -51,23 +51,23 @@ async function handler(req: NextRequest) {
     await Promise.all(
       batch.map(async (p) => {
         const stats = await scrapeSocialStats(p);
-        // If every platform came back null, skip the write — keep last known values.
-        if (
-          stats.ig_followers == null &&
-          stats.tiktok_followers == null &&
-          stats.yt_subscribers == null
-        ) {
-          skipped++;
+        // Persist ONLY the platforms that actually returned data. TikTok's
+        // Apify scraper (clockworks) fails far more often than Instagram's,
+        // so the old per-column write kept stamping tiktok_followers = null
+        // over a good value whenever IG succeeded but TikTok failed — that's
+        // the "TikTok keeps disconnecting" bug. Build from non-null fields only.
+        const update: Record<string, number | string> = {};
+        if (stats.ig_followers     != null) update.ig_followers     = stats.ig_followers;
+        if (stats.tiktok_followers != null) update.tiktok_followers = stats.tiktok_followers;
+        if (stats.yt_subscribers   != null) update.yt_subscribers   = stats.yt_subscribers;
+        if (Object.keys(update).length === 0) {
+          skipped++; // every platform failed — keep last known values
           return;
         }
+        update.social_synced_at = new Date().toISOString();
         const { error: upErr } = await getSupabaseAdmin()
           .from("profiles")
-          .update({
-            ig_followers:     stats.ig_followers,
-            tiktok_followers: stats.tiktok_followers,
-            yt_subscribers:   stats.yt_subscribers,
-            social_synced_at: new Date().toISOString(),
-          })
+          .update(update)
           .eq("id", p.id);
         if (upErr) {
           console.error(`[cron/social-stats] update ${p.id} failed:`, upErr.message);
