@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, Calendar, Trash2, Pencil, Check } from "lucide-react";
+import { ArrowLeft, Calendar, Trash2, Pencil, Check, MonitorPlay } from "lucide-react";
 import type { Brief } from "@/lib/contentData";
+import Teleprompter from "./Teleprompter";
 
 type ContentTask = { id: string; title: string; date: string; source: string };
 
@@ -21,6 +22,7 @@ export default function ScriptDetailOverlay({ brief, onClose, onDelete, onSchedu
   const [script,  setScript]  = useState(brief.script ?? "");
   const [date,    setDate]    = useState(scheduledTask?.date ?? "");
   const [saved,   setSaved]   = useState(false);
+  const [teleprompter, setTeleprompter] = useState(false);
 
   function handleSave() {
     if (!title.trim()) return;
@@ -156,7 +158,16 @@ export default function ScriptDetailOverlay({ brief, onClose, onDelete, onSchedu
 
       {/* Bottom action */}
       {!editing && (
-        <div className="px-4 pb-8 pt-3 border-t border-white/5 shrink-0">
+        <div className="px-4 pb-8 pt-3 border-t border-white/5 shrink-0 space-y-2">
+          {script.trim() && (
+            <button
+              onClick={() => setTeleprompter(true)}
+              className="w-full h-12 rounded-2xl border border-white/12 bg-white/5 text-white font-bold flex items-center justify-center gap-2 transition hover:bg-white/10 active:scale-[0.98]"
+            >
+              <MonitorPlay size={16} />
+              Read in Teleprompter
+            </button>
+          )}
           <button
             onClick={() => onSchedule(title, script || undefined)}
             className="w-full h-12 rounded-2xl bg-amber-400 text-black font-bold flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98]"
@@ -165,6 +176,10 @@ export default function ScriptDetailOverlay({ brief, onClose, onDelete, onSchedu
             Schedule this content
           </button>
         </div>
+      )}
+
+      {teleprompter && (
+        <Teleprompter text={script} title={title} onClose={() => setTeleprompter(false)} />
       )}
 
     </div>
