@@ -92,6 +92,43 @@ export function WelcomeModal({
   );
 }
 
+// ─── Floating progress chip — zero vertical footprint ────────────────────────
+// Replaces the in-flow ChecklistCard: an amber progress ring pinned to the
+// dashboard's top-right corner. Tap → the steps sheet. Gone when complete.
+export function ProgressChip({
+  items,
+  onOpen,
+}: {
+  items: ChecklistItem[];
+  onOpen: () => void;
+}) {
+  const doneCount = items.filter((i) => i.done).length;
+  const pct = doneCount / items.length;
+  const R = 8;
+  const C = 2 * Math.PI * R;
+
+  return (
+    <button
+      onClick={onOpen}
+      aria-label={`Setup: ${doneCount} of ${items.length} steps done — view remaining`}
+      className="flex items-center gap-1.5 rounded-full border border-accent/25 bg-accent/10 pl-1.5 pr-2.5 py-1 transition hover:bg-accent/[0.16] active:scale-95"
+    >
+      <svg width="20" height="20" viewBox="0 0 20 20" className="-rotate-90" aria-hidden>
+        <circle cx="10" cy="10" r={R} fill="none" stroke="rgba(255,255,255,.14)" strokeWidth="2.5" />
+        <circle
+          cx="10" cy="10" r={R} fill="none"
+          stroke="#f5a623" strokeWidth="2.5" strokeLinecap="round"
+          strokeDasharray={C} strokeDashoffset={C * (1 - pct)}
+          style={{ transition: "stroke-dashoffset .5s cubic-bezier(.16,1,.3,1)" }}
+        />
+      </svg>
+      <span className="text-[11px] font-bold text-accent tabular-nums">
+        {doneCount}/{items.length}
+      </span>
+    </button>
+  );
+}
+
 // ─── Persistent dashboard card — until all steps are done ────────────────────
 export function ChecklistCard({
   items,

@@ -861,7 +861,7 @@ export default function ProjectReviewPlayer({
           className="absolute left-4 right-4 z-40 rounded-2xl px-3 py-2.5 text-xs text-center font-medium"
           style={{
             ...GLASS,
-            bottom: "5.5rem",
+            bottom: "7rem",
             border: "1px solid rgba(245,166,35,.3)",
             color: AMBER,
             boxShadow: "0 0 18px rgba(245,166,35,.12), inset 0 1px 0 rgba(255,255,255,.08)",
@@ -873,7 +873,7 @@ export default function ProjectReviewPlayer({
 
       {/* skips remaining — above transport */}
       {skipStreak > 0 && !karmaBlocked && (
-        <div className="absolute left-0 right-0 z-40 flex items-center justify-center gap-1.5" style={{ bottom: "4.6rem" }}>
+        <div className="absolute left-0 right-0 z-40 flex items-center justify-center gap-1.5" style={{ bottom: "6.1rem" }}>
           {Array.from({ length: MAX_SKIPS }).map((_, i) => (
             <span key={i} className="w-1 h-1 rounded-full transition-colors"
               style={{ background: i < MAX_SKIPS - skipStreak ? "rgba(245,166,35,.75)" : "rgba(255,255,255,.12)" }} />
@@ -886,7 +886,7 @@ export default function ProjectReviewPlayer({
       <p
         className="absolute left-0 right-0 z-30 text-center text-[10px] pointer-events-none"
         style={{
-          bottom: "4.6rem",
+          bottom: "6.1rem",
           color: "rgba(255,255,255,.35)",
           opacity: showHint && skipStreak === 0 && !karmaBlocked ? 1 : 0,
           transition: "opacity .8s",
@@ -896,7 +896,7 @@ export default function ProjectReviewPlayer({
       </p>
 
       {/* ── transport — floating liquid-glass bar ── */}
-      <div className="absolute left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 rounded-full p-1.5" style={{ ...GLASS, bottom: "1rem" }}>
+      <div className="absolute left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 rounded-full p-1.5" style={{ ...GLASS, bottom: "2.5rem" }}>
         <button
           onClick={handlePass}
           disabled={karmaBlocked}
@@ -933,7 +933,7 @@ export default function ProjectReviewPlayer({
         <div
           className="absolute z-40 flex flex-col items-end gap-2"
           style={{
-            right: "1rem", bottom: "4.6rem",
+            right: "1rem", bottom: "6.1rem",
             pointerEvents: showActions ? "auto" : "none",
           }}
         >

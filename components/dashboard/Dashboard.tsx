@@ -10,7 +10,7 @@ import { supabase } from "@/lib/supabase";
 import FennecIdCard from "@/components/network/FennecIdCard";
 import { getColorScheme } from "@/lib/fennecIdPalette";
 import { ensureColorAssigned } from "@/lib/networkDb";
-import { WelcomeModal, ChecklistCard, type ChecklistItem } from "@/components/dashboard/WelcomeChecklist";
+import { WelcomeModal, ProgressChip, type ChecklistItem } from "@/components/dashboard/WelcomeChecklist";
 import type { Profile } from "@/lib/communityTypes";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -692,15 +692,17 @@ export default function Dashboard({
         </div>
       </div>
 
-      {/* Onboarding checklist — replaces the old empty state, until all steps done */}
-      {businessLoaded && !onboardingComplete && (
-        <div className="dash-rise border-t border-white/5 pt-4 pb-2" style={{ animationDelay: "0.36s" }}>
-          <ChecklistCard items={checklistItems} onOpen={() => setShowWelcome(true)} />
-        </div>
-      )}
-
       </div>
       {/* end centered content wrapper */}
+
+      {/* Onboarding progress — floating chip, zero vertical footprint. The
+          dashboard stays a fixed instrument panel: no scrolling checklist.
+          Tap → the steps sheet; hidden forever once everything's done. */}
+      {businessLoaded && !onboardingComplete && (
+        <div className="dash-rise absolute right-4 top-1 z-20" style={{ animationDelay: "0.3s" }}>
+          <ProgressChip items={checklistItems} onOpen={() => setShowWelcome(true)} />
+        </div>
+      )}
 
       {/* Welcome modal — first visit */}
       {showWelcome && (
