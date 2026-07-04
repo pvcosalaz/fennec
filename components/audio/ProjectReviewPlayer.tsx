@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { Mic, Plus, MoreHorizontal, ChevronDown } from "lucide-react";
+import { Mic, Plus, MoreHorizontal, ChevronDown, HelpCircle } from "lucide-react";
 import type { ProjectReview, ReviewComment } from "@/lib/audioTypes";
 import { fetchReviewComments, createReviewComment, fetchKarma } from "@/lib/audioDb";
 import { extractFirstTimestamp, renderBodyWithTimestamps } from "./ReviewFeedback";
@@ -49,6 +49,8 @@ type Props = {
   onOpenMelody?: () => void;
   /** Opens the My Tracks sheet (hidden behind the ⋯ toggle). */
   onOpenMyTracks?: () => void;
+  /** Re-opens the "how the tape works" intro (⋯ flyout). */
+  onOpenIntro?: () => void;
 };
 
 function fmt(s: number): string {
@@ -71,6 +73,7 @@ export default function ProjectReviewPlayer({
   previewComments,
   onOpenMelody,
   onOpenMyTracks,
+  onOpenIntro,
 }: Props) {
   const audioRef    = useRef<HTMLAudioElement | null>(null);
   const analyserRef = useRef<{ ctx: AudioContext; analyser: AnalyserNode; data: Uint8Array<ArrayBuffer> } | null>(null);
@@ -399,8 +402,15 @@ export default function ProjectReviewPlayer({
 
   function handlePass() {
     if (karmaBlocked) return;
-    audioRef.current?.pause();
-    onSkipStreakChange(skipStreak + 1);
+    const audio = audioRef.current;
+    // The streak measures EARLY BAILS, not listens (Paco, 2026-07-03):
+    // a real listen is already value for the artist, so it never walls
+    // the session — only serial zapping does.
+    const frac = audio && duration > 0 ? audio.currentTime / duration : 0;
+    audio?.pause();
+    if (ended || frac >= 0.8) onSkipStreakChange(0);        // real listen — resets
+    else if (frac < 0.5) onSkipStreakChange(skipStreak + 1); // early bail — counts
+    /* 50–80%: neutral — neither punishes nor resets */
     onPass();
   }
 
@@ -414,7 +424,7 @@ export default function ProjectReviewPlayer({
   }
 
   const tickCount = Math.floor(duration / 15);
-  const hasActions = Boolean(onOpenMelody || onOpenMyTracks);
+  const hasActions = Boolean(onOpenMelody || onOpenMyTracks || onOpenIntro);
 
   // The only reaction that exists: the artist's grease-pencil seal
   const stampBadge = (
@@ -786,13 +796,24 @@ export default function ProjectReviewPlayer({
                     }} />
                 ))}
               </div>
-              <button
-                onClick={() => { setEnded(false); if (audioRef.current) audioRef.current.currentTime = 0; }}
-                className="text-[11px] font-semibold px-4 py-2 rounded-xl transition"
-                style={{ ...GLASS, color: "rgba(255,255,255,.6)" }}
-              >
-                Listen again
-              </button>
+              <div className="flex items-center justify-center gap-2">
+                <button
+                  onClick={() => { setEnded(false); if (audioRef.current) audioRef.current.currentTime = 0; }}
+                  className="text-[11px] font-semibold px-4 py-2 rounded-xl transition"
+                  style={{ ...GLASS, color: "rgba(255,255,255,.6)" }}
+                >
+                  Listen again
+                </button>
+                {/* a full listen is a contribution — advancing here never
+                    counts as a skip */}
+                <button
+                  onClick={() => { onSkipStreakChange(0); onPass(); }}
+                  className="text-[11px] font-bold px-4 py-2 rounded-xl transition active:scale-95"
+                  style={{ background: AMBER, color: "#111114" }}
+                >
+                  Next track
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -937,6 +958,23 @@ export default function ProjectReviewPlayer({
             pointerEvents: showActions ? "auto" : "none",
           }}
         >
+          {onOpenIntro && (
+            <button
+              onClick={() => { setShowActions(false); onOpenIntro(); }}
+              className="flex items-center gap-2.5 rounded-full pl-4 pr-3 py-2.5 transition active:scale-95"
+              style={{
+                ...GLASS,
+                color: "rgba(255,255,255,.6)",
+                opacity: showActions ? 1 : 0,
+                transform: showActions ? "translateY(0) scale(1)" : "translateY(14px) scale(.92)",
+                transition: "opacity .28s cubic-bezier(.22,1,.36,1), transform .28s cubic-bezier(.22,1,.36,1)",
+                transitionDelay: showActions ? ".1s" : "0s",
+              }}
+            >
+              <span className="text-[12px] font-semibold">How it works</span>
+              <HelpCircle className="h-4 w-4" />
+            </button>
+          )}
           {onOpenMelody && (
             <button
               onClick={() => { setShowActions(false); onOpenMelody(); }}

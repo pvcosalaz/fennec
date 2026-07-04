@@ -4,8 +4,10 @@
 // Renders ProjectReviewPlayer with mock data so the UI can be verified without
 // auth or Supabase. Returns 404 in production.
 
+import { useState } from "react";
 import { notFound } from "next/navigation";
 import ProjectReviewPlayer from "@/components/audio/ProjectReviewPlayer";
+import TapeIntro from "@/components/audio/TapeIntro";
 import type { ProjectReview, ReviewComment } from "@/lib/audioTypes";
 
 const mockTrack: ProjectReview = {
@@ -40,6 +42,7 @@ const mockComments: ReviewComment[] = [
 ];
 
 export default function FeedbackDemoPage() {
+  const [showIntro, setShowIntro] = useState(false);
   if (process.env.NODE_ENV === "production") notFound();
   return (
     <main className="relative overflow-hidden" style={{ background: "#111114", height: "100dvh" }}>
@@ -52,7 +55,11 @@ export default function FeedbackDemoPage() {
         previewComments={mockComments}
         onOpenMelody={() => alert("Melody Bank (demo)")}
         onOpenMyTracks={() => alert("My Tracks (demo)")}
+        onOpenIntro={() => setShowIntro(true)}
       />
+      {showIntro && (
+        <TapeIntro onClose={() => setShowIntro(false)} onUpload={() => setShowIntro(false)} />
+      )}
     </main>
   );
 }

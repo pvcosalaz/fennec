@@ -6,8 +6,11 @@ import { fetchRandomReviews } from "@/lib/audioDb";
 import ProjectReviewPlayer from "./ProjectReviewPlayer";
 import MyTracksView from "./MyTracksView";
 import IdeasModule from "@/components/ideas/IdeasModule";
+import TapeIntro from "./TapeIntro";
 
-type Overlay = "melody" | "mine" | null;
+type Overlay = "melody" | "mine" | "intro" | null;
+
+const INTRO_SEEN_KEY = "fennec_tape_intro_seen_v1";
 
 type Props = {
   userId: string;
@@ -27,6 +30,18 @@ export default function AudioModule({ userId, isPro }: Props) {
       .catch(console.error)
       .finally(() => setLoadingQueue(false));
   }, [userId]);
+
+  // First visit → the tape intro (reopenable from the ⋯ flyout)
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem(INTRO_SEEN_KEY)) setOverlay("intro");
+    } catch { /* private mode */ }
+  }, []);
+
+  function closeIntro(next: Overlay = null) {
+    try { localStorage.setItem(INTRO_SEEN_KEY, "1"); } catch { /* ignore */ }
+    setOverlay(next);
+  }
 
   function handlePass() {
     if (queueIndex + 1 >= queue.length) {
@@ -66,6 +81,15 @@ export default function AudioModule({ userId, isPro }: Props) {
           onSkipStreakChange={setSkipStreak}
           onOpenMelody={() => setOverlay("melody")}
           onOpenMyTracks={() => setOverlay("mine")}
+          onOpenIntro={() => setOverlay("intro")}
+        />
+      )}
+
+      {/* ── Tape intro — first visit + on demand ───────────────── */}
+      {overlay === "intro" && (
+        <TapeIntro
+          onClose={() => closeIntro(null)}
+          onUpload={() => closeIntro("mine")}
         />
       )}
 
