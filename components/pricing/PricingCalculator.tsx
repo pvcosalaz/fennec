@@ -1205,7 +1205,9 @@ export default function PricingCalculator() {
           backdropFilter: "blur(24px)",
         }}
       >
-        <div className="mx-auto flex w-full max-w-2xl items-center px-2 pt-2" style={{ paddingBottom: "max(env(safe-area-inset-bottom), 8px)" }}>
+        {/* +10px on top of the inset: iOS underreports safe-area-inset-bottom in
+            standalone on some versions, leaving the icons kissing the home bar */}
+        <div className="mx-auto flex w-full max-w-2xl items-center px-2 pt-2" style={{ paddingBottom: "max(calc(env(safe-area-inset-bottom) + 10px), 20px)" }}>
           {moduleTabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
