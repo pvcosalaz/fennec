@@ -28,8 +28,13 @@ export function WelcomeModal({
     <>
       <div className="fixed inset-0 z-[60] bg-black/75 backdrop-blur-sm" onClick={onClose} />
       <div
-        className="fixed inset-x-0 bottom-0 z-[70] mx-auto w-full max-w-md rounded-t-3xl border-t border-white/10 bg-zinc-950 px-6 pt-3"
-        style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 1.5rem)" }}
+        className="fixed inset-x-0 z-[70] mx-auto w-full max-w-md rounded-t-3xl border-t border-white/10 bg-zinc-950 px-6 pt-3"
+        style={{
+          // True screen bottom (iOS underreports the layout viewport;
+          // --app-h carries the corrected shell height)
+          bottom: "calc(100dvh - var(--app-h, 100dvh))",
+          paddingBottom: "calc(env(safe-area-inset-bottom) + 1.5rem)",
+        }}
       >
         {/* drag handle */}
         <div className="flex justify-center mb-3">

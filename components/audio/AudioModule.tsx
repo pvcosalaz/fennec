@@ -15,9 +15,12 @@ const INTRO_SEEN_KEY = "fennec_tape_intro_seen_v1";
 type Props = {
   userId: string;
   isPro: boolean;
+  /** Fired with true while a bottom sheet (intro / My Tracks) is open, so
+   *  the shell can slide the nav away and give the sheet the full bottom. */
+  onSheetChange?: (open: boolean) => void;
 };
 
-export default function AudioModule({ userId, isPro }: Props) {
+export default function AudioModule({ userId, isPro, onSheetChange }: Props) {
   const [overlay, setOverlay]       = useState<Overlay>(null);
   const [queue, setQueue]           = useState<ProjectReview[]>([]);
   const [queueIndex, setQueueIndex] = useState(0);
@@ -37,6 +40,14 @@ export default function AudioModule({ userId, isPro }: Props) {
       if (!localStorage.getItem(INTRO_SEEN_KEY)) setOverlay("intro");
     } catch { /* private mode */ }
   }, []);
+
+  // Bottom sheets own the whole bottom edge: nav slides away while open
+  useEffect(() => {
+    const sheetOpen = overlay === "intro" || overlay === "mine";
+    onSheetChange?.(sheetOpen);
+    return () => onSheetChange?.(false); // leaving the tab restores the nav
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [overlay]);
 
   function closeIntro(next: Overlay = null) {
     try { localStorage.setItem(INTRO_SEEN_KEY, "1"); } catch { /* ignore */ }
@@ -109,13 +120,14 @@ export default function AudioModule({ userId, isPro }: Props) {
 
       {/* ── My Tracks bottom sheet ─────────────────────────────── */}
       {overlay === "mine" && (
-        <div className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl bg-[#1a1a1e] border-t border-white/8 overflow-y-auto"
+        <div className="fixed inset-x-0 z-50 rounded-t-3xl bg-[#1a1a1e] border-t border-white/8 overflow-y-auto"
           style={{
-            // Anchored to the shell's corrected height, not the flaky layout
-            // viewport; bottom padding clears the bottom nav so the form's
-            // Submit/Cancel are always reachable.
+            // Anchor to the TRUE screen bottom (iOS underreports the layout
+            // viewport; --app-h carries the corrected height). The nav hides
+            // while this sheet is open, so no extra clearance needed.
+            bottom: "calc(100dvh - var(--app-h, 100dvh))",
             maxHeight: "calc(var(--app-h, 100dvh) - 4rem)",
-            paddingBottom: "calc(env(safe-area-inset-bottom) + 7rem)",
+            paddingBottom: "calc(env(safe-area-inset-bottom) + 2rem)",
           }}
         >
           <div className="flex items-center justify-between px-4 pt-5 pb-4">

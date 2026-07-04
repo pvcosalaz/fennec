@@ -347,6 +347,9 @@ export default function PricingCalculator() {
   }, [activeTab]);
 
   const [showSettings,    setShowSettings]    = useState(false);
+  // Bottom sheets (tape intro, My Tracks) hide the nav while open so their
+  // actions never collide with it; it slides back when the sheet closes.
+  const [navHidden, setNavHidden] = useState(false);
 
   // iOS home-screen web apps report a stale layout viewport at launch, so a
   // fixed shell anchored with bottom:0 leaves a dead band under the nav on
@@ -1185,7 +1188,7 @@ export default function PricingCalculator() {
           <ContentModule isPro={profile?.is_pro ?? false} onUpgrade={() => setShowUpgrade(true)} />
         </div>
       ) : activeTab === "ideas" ? (
-        <AudioModule userId={authUser.id} isPro={profile?.is_pro ?? false} />
+        <AudioModule userId={authUser.id} isPro={profile?.is_pro ?? false} onSheetChange={setNavHidden} />
       ) : activeTab === "noticias" ? (
         <div key="noticias">
           <Community
@@ -1203,6 +1206,10 @@ export default function PricingCalculator() {
           background: "rgba(17, 17, 20, 0.92)",
           WebkitBackdropFilter: "blur(24px)",
           backdropFilter: "blur(24px)",
+          transform: navHidden ? "translateY(110%)" : "translateY(0)",
+          opacity: navHidden ? 0 : 1,
+          pointerEvents: navHidden ? "none" : "auto",
+          transition: "transform .28s cubic-bezier(.22,1,.36,1), opacity .22s ease",
         }}
       >
         {/* +18px on top of the inset: iOS underreports safe-area-inset-bottom in
