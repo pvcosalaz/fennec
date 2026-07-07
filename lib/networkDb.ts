@@ -51,3 +51,29 @@ export async function getNetworkContacts(userId: string): Promise<Profile[]> {
 
   return (profiles ?? []) as Profile[];
 }
+
+// ── The handshake — dynamic QR, mutual exchange ─────────────────────────
+
+/** Mint a ~60s QR token representing "connect with me". Null on failure
+ *  (e.g. migration 20260706_connection_handshake.sql not run yet). */
+export async function mintConnectionToken(): Promise<string | null> {
+  const { data, error } = await supabase.rpc("mint_connection_token");
+  if (error) {
+    console.error("[mintConnectionToken]", error.message);
+    return null;
+  }
+  return data as string;
+}
+
+export type RedeemResult =
+  | { ok: true; peer: Profile }
+  | { ok: false; reason: string };
+
+/** Redeem a scanned token → mutual connection. Returns the peer profile
+ *  (for the flip-reveal animation) or a reason string for a friendly error. */
+export async function redeemConnectionToken(token: string): Promise<RedeemResult> {
+  const { data, error } = await supabase.rpc("redeem_connection_token", { p_token: token });
+  if (error) return { ok: false, reason: error.message };
+  const d = data as { ok?: boolean; peer?: Profile } | null;
+  return d?.ok && d.peer ? { ok: true, peer: d.peer } : { ok: false, reason: "unknown" };
+}

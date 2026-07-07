@@ -9,15 +9,20 @@ import { getInitials, getFirstLast } from "./utils";
 
 type Props = {
   contacts: Profile[];
+  /** Opens the Scan sheet — wired by NetworkSection. Omit to hide the CTAs. */
+  onScanClick?: () => void;
 };
 
-export default function NetworkCollection({ contacts }: Props) {
+export default function NetworkCollection({ contacts, onScanClick }: Props) {
   const [expanded, setExpanded] = useState(false);
 
   if (contacts.length === 0) {
     return (
-      <div
+      <button
+        onClick={onScanClick}
+        disabled={!onScanClick}
         style={{
+          width: "100%",
           borderRadius: 16,
           padding: "20px 16px",
           background: "#0d0d0f",
@@ -28,12 +33,13 @@ export default function NetworkCollection({ contacts }: Props) {
           flexDirection: "column",
           gap: 6,
           minHeight: 80,
+          cursor: onScanClick ? "pointer" : "default",
         }}
       >
-        <span style={{ fontSize: 9, color: "#333", letterSpacing: "0.12em", fontWeight: 600 }}>
-          SCAN QR TO ADD PRODUCERS — COMING SOON
+        <span style={{ fontSize: 9, color: "#555", letterSpacing: "0.12em", fontWeight: 600 }}>
+          SCAN QR TO ADD PRODUCERS
         </span>
-      </div>
+      </button>
     );
   }
 
@@ -156,8 +162,11 @@ export default function NetworkCollection({ contacts }: Props) {
           })}
 
           {/* Add slot */}
-          <div
+          <button
+            onClick={onScanClick}
+            disabled={!onScanClick}
             style={{
+              width: "100%",
               marginTop: 8,
               borderRadius: 16,
               padding: "14px 16px",
@@ -167,6 +176,7 @@ export default function NetworkCollection({ contacts }: Props) {
               alignItems: "center",
               justifyContent: "center",
               gap: 8,
+              cursor: onScanClick ? "pointer" : "default",
             }}
           >
             <div
@@ -179,15 +189,15 @@ export default function NetworkCollection({ contacts }: Props) {
                 alignItems: "center",
                 justifyContent: "center",
                 fontSize: 16,
-                color: "#333",
+                color: "#555",
               }}
             >
               +
             </div>
-            <span style={{ fontSize: 9, color: "#333", letterSpacing: "0.12em", fontWeight: 600 }}>
+            <span style={{ fontSize: 9, color: "#555", letterSpacing: "0.12em", fontWeight: 600 }}>
               SCAN QR TO ADD PRODUCER
             </span>
-          </div>
+          </button>
         </div>
       )}
 
