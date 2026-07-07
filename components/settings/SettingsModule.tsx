@@ -4,8 +4,10 @@ import { useState, useEffect, useRef } from "react";
 import {
   ArrowLeft, User, Globe, DollarSign, Trash2,
   ChevronRight, Check, AlertTriangle, Bell, Camera, Loader2,
+  Lightbulb, Send,
 } from "lucide-react";
 import NotificationPreferences from "./NotificationPreferences";
+import { submitSuggestion, fetchMySuggestions, type Suggestion } from "@/lib/suggestionsDb";
 import { SiInstagram, SiSpotify, SiYoutube, SiTiktok } from "react-icons/si";
 import Select from "@/components/ui/Select";
 import { fetchProfile, updateProfile } from "@/lib/communityDb";
@@ -56,7 +58,7 @@ const ROLES = [
   "Other",
 ];
 
-export type Section = "main" | "profile" | "language" | "currency" | "data" | "notifications";
+export type Section = "main" | "profile" | "language" | "currency" | "data" | "notifications" | "suggest";
 
 type Props = {
   onBack: () => void;
@@ -78,6 +80,31 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [localAvatarUrl,  setLocalAvatarUrl]  = useState<string | null>(avatarUrl ?? null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Feature suggestions
+  const [suggestBody,   setSuggestBody]   = useState("");
+  const [suggestSending, setSuggestSending] = useState(false);
+  const [suggestSent,   setSuggestSent]   = useState(false);
+  const [mySuggestions, setMySuggestions] = useState<Suggestion[]>([]);
+
+  useEffect(() => {
+    if (section === "suggest" && userId) {
+      fetchMySuggestions(userId).then(setMySuggestions).catch(() => {});
+    }
+  }, [section, userId]);
+
+  async function handleSubmitSuggestion() {
+    if (!userId || suggestBody.trim().length < 3 || suggestSending) return;
+    setSuggestSending(true);
+    const created = await submitSuggestion(userId, suggestBody);
+    setSuggestSending(false);
+    if (created) {
+      setMySuggestions((prev) => [created, ...prev]);
+      setSuggestBody("");
+      setSuggestSent(true);
+      setTimeout(() => setSuggestSent(false), 2500);
+    }
+  }
 
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -170,6 +197,73 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
   if (section === "notifications") return (
     <NotificationPreferences userId={userId} onBack={() => setSection("main")} />
   );
+
+  // ── Suggest a feature section ──
+  if (section === "suggest") {
+    const STATUS_LABEL: Record<Suggestion["status"], string> = {
+      new: "Received", planned: "Planned", in_progress: "In progress",
+      done: "Shipped", declined: "Not planned",
+    };
+    return (
+      <div className="mx-auto w-full max-w-lg space-y-5 px-4">
+        <div className="flex items-center gap-3">
+          <button onClick={() => setSection("main")} className="text-zinc-400 hover:text-accent transition">
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <div>
+            <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">Fennec</p>
+            <h1 className="text-2xl font-bold text-white">Suggest a feature</h1>
+          </div>
+        </div>
+
+        <p className="text-sm text-zinc-500">
+          What would make Fennec better for you? We read every suggestion.
+        </p>
+
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
+          <textarea
+            value={suggestBody}
+            onChange={(e) => setSuggestBody(e.target.value)}
+            placeholder="I wish Fennec could…"
+            rows={4}
+            maxLength={1000}
+            className="w-full bg-transparent text-sm text-white placeholder:text-zinc-600 outline-none resize-none"
+          />
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] text-zinc-600">{suggestBody.trim().length}/1000</span>
+            <button
+              onClick={handleSubmitSuggestion}
+              disabled={suggestBody.trim().length < 3 || suggestSending}
+              className="flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-sm font-bold text-black transition hover:brightness-110 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {suggestSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              {suggestSent ? "Sent!" : "Send"}
+            </button>
+          </div>
+        </div>
+
+        {mySuggestions.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-xs font-semibold tracking-[0.2em] text-zinc-500 uppercase">Your suggestions</p>
+            {mySuggestions.map((s) => (
+              <div key={s.id} className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
+                <p className="text-sm text-zinc-200 leading-relaxed">{s.body}</p>
+                <span
+                  className="inline-block mt-2 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                  style={{
+                    color: s.status === "done" ? "#4ade80" : s.status === "declined" ? "#71717a" : "#f5a623",
+                    background: s.status === "done" ? "rgba(74,222,128,.1)" : s.status === "declined" ? "rgba(113,113,122,.1)" : "rgba(245,166,35,.1)",
+                  }}
+                >
+                  {STATUS_LABEL[s.status]}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   // ── Profile section ──
   if (section === "profile") return (
@@ -498,6 +592,19 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
           );
         })}
       </div>
+
+      {/* Suggest a feature — a CTA, distinct from the settings rows above */}
+      <button
+        onClick={() => setSection("suggest")}
+        className="w-full flex items-center gap-3 rounded-2xl border border-accent/20 bg-accent/[0.06] px-5 py-4 text-left transition hover:bg-accent/[0.1] active:scale-[0.99]"
+      >
+        <Lightbulb className="h-4 w-4 text-accent flex-shrink-0" />
+        <div className="flex-1">
+          <p className="text-sm font-medium text-white">Suggest a feature</p>
+          <p className="text-xs text-zinc-500">Tell us what would make Fennec better</p>
+        </div>
+        <ChevronRight className="h-4 w-4 text-zinc-600" />
+      </button>
 
       {/* Sign out */}
       {onSignOut && (
