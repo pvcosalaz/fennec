@@ -42,7 +42,8 @@ export type FennecIdCardProps = {
   fennecDb: number;
   /** The permanent accent color scheme for this producer */
   colorScheme: FennecIdColor;
-  /** Collection number shown at bottom right, e.g. 1 → "#0001". Omit for own card. */
+  /** The producer's immutable global Fennec number (order of joining), e.g. 42 → "#0042".
+   *  Shown at bottom right. Omit only while the fennec_number migration hasn't run. */
   collectionNumber?: number;
   /** Two-letter initials for the avatar — shown when no photo */
   initials: string;

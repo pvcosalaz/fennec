@@ -108,7 +108,7 @@ export default function NetworkCollection({ contacts }: Props) {
                 genres={topContact.genres ?? []}
                 fennecDb={topContact.fennec_db_score}
                 colorScheme={topScheme}
-                collectionNumber={1}
+                collectionNumber={topContact.fennec_number ?? undefined}
                 initials={topInitials}
                 instagram={topContact.instagram}
                 spotify={topContact.spotify}
@@ -145,7 +145,7 @@ export default function NetworkCollection({ contacts }: Props) {
                   genres={contact.genres ?? []}
                   fennecDb={contact.fennec_db_score}
                   colorScheme={scheme}
-                  collectionNumber={i + 1}
+                  collectionNumber={contact.fennec_number ?? undefined}
                   initials={getInitials(contact)}
                   instagram={contact.instagram}
                   spotify={contact.spotify}

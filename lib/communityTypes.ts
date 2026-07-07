@@ -8,6 +8,8 @@ export type Profile = {
   is_pro: boolean;
   is_bot: boolean;
   fennec_db_score: number;
+  /** Immutable global join number — order this producer joined Fennec (#0042). */
+  fennec_number?: number | null;
   created_at: string;
   // Extended profile fields
   bio: string | null;

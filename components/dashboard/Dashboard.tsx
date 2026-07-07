@@ -426,6 +426,7 @@ export default function Dashboard({
               country={networkProfile.country ?? ""}
               genres={networkProfile.genres ?? []}
               fennecDb={fennecDb} colorScheme={cardColorScheme}
+              collectionNumber={networkProfile.fennec_number ?? undefined}
               initials={cardInitials} avatarUrl={avatarUrl}
               instagram={networkProfile.instagram}
               spotify={networkProfile.spotify}
@@ -497,6 +498,7 @@ export default function Dashboard({
                 country={networkProfile.country ?? ""}
                 genres={networkProfile.genres ?? []}
                 fennecDb={fennecDb} colorScheme={cardColorScheme}
+                collectionNumber={networkProfile.fennec_number ?? undefined}
                 initials={cardInitials} avatarUrl={avatarUrl}
                 instagram={networkProfile.instagram}
                 spotify={networkProfile.spotify}
