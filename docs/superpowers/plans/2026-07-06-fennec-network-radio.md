@@ -4,6 +4,18 @@
 
 **Goal:** Turn the Network module into a deck of face-to-face-collected Fennec ID cards that communicate through a radio of voice notes.
 
+> **⚠️ Reality correction (2026-07-06, during Phase 1 execution):** the plan
+> assumed we'd build a new `NetworkShelf.tsx`. We didn't — **`components/network/NetworkCollection.tsx`
+> ALREADY IS the Apple Wallet deck** (stacked cards with overlap, peek preview,
+> staggered slide-in, add slot), and `FennecIdCard` already renders `#NNNN` via
+> its `collectionNumber` prop + `pad4()`. Phase 1 therefore collapsed to: add
+> `fennec_number` to the Profile type + feed it into `NetworkCollection`'s
+> existing number (was a per-collection `i+1`, now the global join number) +
+> show it on the dashboard card. **For Phases 2-3, wherever this plan says
+> "NetworkShelf", read "NetworkCollection", and the card flip / userId wiring in
+> Phase 3 Task 12 targets `NetworkCollection.tsx`.** No `NetworkShelf.tsx` exists
+> or should be created.
+
 **Architecture:** Extends the existing `network_connections` table and reuses Melody Bank's `uploadAudio`. Three shippable phases: (1) Wallet-deck shelf + immutable global `fennec_number`, (2) dynamic-QR mutual handshake + public `/u/[username]` page, (3) voice-note radio on the card back with 48h "on air" + "print to tape" archive. All connection/DM security lives in Postgres RLS + SECURITY DEFINER RPCs — the client can't bypass it.
 
 **Tech Stack:** Next.js (app router) + React, Supabase (Postgres + Storage + RLS), TypeScript. Spring animations via CSS/anime patterns already in the repo. QR: `qrcode` (generate) + `@yudiel/react-qr-scanner` (scan) — added in Phase 2.
