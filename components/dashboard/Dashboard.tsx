@@ -450,10 +450,15 @@ export default function Dashboard({
         const sx    = cardRect.width  / targetW;
         const sy    = cardRect.height / targetH;
 
-        // Exits faster than entrances — the open spring settles, the close gets out of the way
+        // Open with a real damped spring (computed from a ζ=0.74 oscillator →
+        // ~3% overshoot: the card rises, pops just past full size, and settles
+        // — organic, alive. Exit stays a snappy ease-out (a spring on close
+        // feels sluggish). linear() is supported on iOS 17.2+ / Chrome 113+;
+        // older browsers fall back to the default ease and still animate.
+        const OPEN_SPRING = "linear(0, 0.0371, 0.1278, 0.2469, 0.3762, 0.5032, 0.6199, 0.7218, 0.8071, 0.8757, 0.9288, 0.9681, 0.9958, 1.014, 1.0249, 1.0302, 1.0315, 1.0302, 1.0273, 1.0235, 1.0194, 1.0154, 1.0118, 1.0086, 1.0059, 1.0038, 1.0022, 1.0009, 1.0001, 1)";
         const SPRING = cardAnimating
-          ? "0.52s cubic-bezier(.16,1,.3,1)"
-          : "0.38s cubic-bezier(.3,0,.66,1)";
+          ? `0.62s ${OPEN_SPRING}`
+          : "0.34s cubic-bezier(.3,0,.66,1)";
 
         return (
           <>
