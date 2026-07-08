@@ -134,7 +134,6 @@ export default function FennecIdCard({
   smallDb = false,
 }: FennecIdCardProps) {
   const { accent, dark1, dark2, glowRgb, textOnAvatar } = colorScheme;
-  const primaryGenre = genres[0] ?? "";
   const [showDbInfo, setShowDbInfo] = useState(false);
   const animatedDb = useCountUp(fennecDb, 1400);
 
@@ -268,10 +267,11 @@ export default function FennecIdCard({
             </p>
           </div>
 
-          {/* Genre + country */}
+          {/* Genres + country */}
           <div style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap" }}>
-            {primaryGenre && (
+            {genres.map((g) => (
               <span
+                key={g}
                 style={{
                   fontSize: 7,
                   background: `${accent}15`,
@@ -282,9 +282,9 @@ export default function FennecIdCard({
                   letterSpacing: "0.04em",
                 }}
               >
-                {primaryGenre}
+                {g}
               </span>
-            )}
+            ))}
             <span style={{ fontSize: 7, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", fontWeight: 600 }}>
               {country.toUpperCase()}
               {collectionNumber !== undefined ? ` · ${pad4(collectionNumber)}` : ""}

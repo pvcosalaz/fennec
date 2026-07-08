@@ -173,8 +173,23 @@ export default function Dashboard({
   const [marketingVisited, setMarketingVisited] = useState(false);
   const [cardExpanded, setCardExpanded] = useState(false);
   const [cardAnimating, setCardAnimating] = useState(false);
+  const [cardClosing, setCardClosing] = useState(false);
   const [cardRect, setCardRect] = useState<DOMRect | null>(null);
   const cardButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Close the expanded Fennec ID. Flipping cardClosing lets the small source
+  // card fade back in WHILE the overlay scales+fades out (crossfade) — without
+  // it, the overlay vanishes first and the source card snaps back in after,
+  // leaving a blank flash. Unmount only after both finish (~340ms).
+  function closeCard() {
+    setCardClosing(true);
+    setCardAnimating(false);
+    setTimeout(() => {
+      setCardExpanded(false);
+      setCardClosing(false);
+      setCardRect(null);
+    }, 340);
+  }
 
   // First-visit welcome + marketing-visited flag.
   // Re-sync the flag whenever the dashboard regains focus or another tab writes it,
@@ -401,6 +416,7 @@ export default function Dashboard({
               const rect = cardButtonRef.current?.getBoundingClientRect();
               if (!rect) return;
               setCardRect(rect);
+              setCardClosing(false);
               setCardExpanded(true);
               setCardAnimating(false);
               // Double rAF: let browser paint the overlay at card position first
@@ -409,9 +425,13 @@ export default function Dashboard({
             className="w-full text-left"
             style={{
               display: "block",
-              transition: "transform 0.15s cubic-bezier(.16,1,.3,1), opacity 0.12s ease",
-              // Hide the source card while the overlay copy is flying (Apple Wallet behavior)
-              opacity: cardExpanded ? 0 : 1,
+              // Hide the source card while the overlay copy is flying (Apple Wallet
+              // behavior). On close (cardClosing) it fades back in over 0.32s so it
+              // crossfades with the shrinking overlay — no blank flash, no snap.
+              transition: cardClosing
+                ? "opacity 0.32s ease"
+                : "transform 0.15s cubic-bezier(.16,1,.3,1), opacity 0.1s ease",
+              opacity: cardExpanded && !cardClosing ? 0 : 1,
               pointerEvents: cardExpanded ? "none" : "auto",
             }}
             onMouseDown={(e)  => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(0.97)"; }}
@@ -445,36 +465,35 @@ export default function Dashboard({
         const targetX = (window.innerWidth  - targetW) / 2;
         const targetY = (window.innerHeight - targetH) / 2 - 40;
 
-        // FLIP: invert transform = where overlay should start (card coords)
-        const dx    = cardRect.left - targetX;
-        const dy    = cardRect.top  - targetY;
-        const sx    = cardRect.width  / targetW;
-        const sy    = cardRect.height / targetH;
-
-        // Exits faster than entrances — the open spring settles, the close gets out of the way
+        // Clean uniform scale-in from center (NOT a FLIP rect-morph). The
+        // collapsed card is wide-and-short (smallDb) while the expanded one is
+        // taller — morphing between those two aspect ratios scaled x and y
+        // independently and visibly squished the card. A single uniform scale
+        // + fade never distorts: the card just grows into place.
+        // Spring: ζ=0.74 damped oscillator (~3% overshoot) → rises, pops just
+        // past full size, settles. linear() on iOS 17.2+/Chrome 113+; older
+        // browsers fall back to default ease and still animate.
+        const OPEN_SPRING = "linear(0, 0.0371, 0.1278, 0.2469, 0.3762, 0.5032, 0.6199, 0.7218, 0.8071, 0.8757, 0.9288, 0.9681, 0.9958, 1.014, 1.0249, 1.0302, 1.0315, 1.0302, 1.0273, 1.0235, 1.0194, 1.0154, 1.0118, 1.0086, 1.0059, 1.0038, 1.0022, 1.0009, 1.0001, 1)";
         const SPRING = cardAnimating
-          ? "0.52s cubic-bezier(.16,1,.3,1)"
-          : "0.38s cubic-bezier(.3,0,.66,1)";
+          ? `0.5s ${OPEN_SPRING}`
+          : "0.26s cubic-bezier(.3,0,.66,1)";
 
         return (
           <>
             {/* Backdrop */}
             <div
-              onClick={() => {
-                setCardAnimating(false);
-                setTimeout(() => { setCardExpanded(false); setCardRect(null); }, 400);
-              }}
+              onClick={closeCard}
               style={{
                 position: "fixed", inset: 0, zIndex: 99,
                 background: "rgba(0,0,0,0.72)",
                 backdropFilter: "blur(14px)",
                 WebkitBackdropFilter: "blur(14px)",
                 opacity: cardAnimating ? 1 : 0,
-                transition: cardAnimating ? `opacity 0.32s ease` : "opacity 0.28s ease",
+                transition: `opacity 0.3s ease`,
               }}
             />
 
-            {/* Card — morphs from its original position to center */}
+            {/* Card — clean uniform scale + fade into center */}
             <div
               style={{
                 position: "fixed",
@@ -482,14 +501,13 @@ export default function Dashboard({
                 left: targetX,
                 width: targetW,
                 zIndex: 100,
+                opacity: cardAnimating ? 1 : 0,
                 transform: cardAnimating
-                  ? "translate(0,0) scale(1) perspective(700px) rotateX(0deg) rotateY(0deg)"
-                  : `translate(${dx}px,${dy}px) scale(${sx},${sy}) perspective(700px) rotateX(6deg) rotateY(-4deg)`,
-                transformOrigin: "top left",
-                // Always animated: CSS transitions don't fire on initial mount, so the
-                // overlay paints at the card rect, then springs in — and springs back on close.
-                transition: `transform ${SPRING}`,
-                willChange: "transform",
+                  ? "translateY(0) scale(1)"
+                  : "translateY(14px) scale(0.92)",
+                transformOrigin: "center center",
+                transition: `transform ${SPRING}, opacity ${cardAnimating ? "0.28s ease-out" : "0.2s ease-in"}`,
+                willChange: "transform, opacity",
               }}
             >
               <FennecIdCard
@@ -532,10 +550,7 @@ export default function Dashboard({
                   Share
                 </button>
                 <button
-                  onClick={() => {
-                    setCardAnimating(false);
-                    setTimeout(() => { setCardExpanded(false); setCardRect(null); }, 400);
-                  }}
+                  onClick={closeCard}
                   style={{
                     flex: 1, padding: "13px 0", borderRadius: 14,
                     background: "rgba(255,255,255,0.06)",

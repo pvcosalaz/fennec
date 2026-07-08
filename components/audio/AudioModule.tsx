@@ -106,8 +106,11 @@ export default function AudioModule({ userId, isPro, onSheetChange }: Props) {
       )}
 
       {/* ── Melody Bank overlay ────────────────────────────────── */}
+      {/* z-50: must sit ABOVE the ideas-tab floating bell+settings row
+          (z-40 in PricingCalculator) so the Settings gear doesn't overlap
+          the Melody Bank collection. */}
       {overlay === "melody" && (
-        <div className="fixed inset-0 z-30 bg-[#111114] overflow-y-auto pb-32">
+        <div className="fixed inset-0 z-50 bg-[#111114] overflow-y-auto pb-32">
           <div className="flex justify-end px-4 pt-14 pb-2">
             <button onClick={() => setOverlay(null)} className="text-zinc-500 hover:text-white transition">
               <X className="h-5 w-5" />
