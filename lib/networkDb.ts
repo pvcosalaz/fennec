@@ -77,3 +77,35 @@ export async function redeemConnectionToken(token: string): Promise<RedeemResult
   const d = data as { ok?: boolean; peer?: Profile } | null;
   return d?.ok && d.peer ? { ok: true, peer: d.peer } : { ok: false, reason: "unknown" };
 }
+
+// ── Public profile (the v2 physical-card hook) ──────────────────────────
+
+/** Read-only public profile by username — deliberately excludes
+ *  stripe_customer_id and is_admin (never needed by the client, and
+ *  excluded from the anon SELECT grant per 20260703_security_rls.sql). */
+export async function fetchPublicProfile(username: string): Promise<Profile | null> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, username, display_name, avatar_url, banner_url, role, country, genres, color_id, fennec_number, fennec_db_score, instagram, spotify, youtube_url, tiktok")
+    .eq("username", username)
+    .maybeSingle();
+  if (error) {
+    console.error("[fetchPublicProfile]", error.message);
+    return null;
+  }
+  return (data as Profile) ?? null;
+}
+
+/** Send a connect request from the public profile page. Requires a
+ *  signed-in caller (checked client-side for UX; RLS enforces server-side). */
+export async function requestConnection(targetId: string): Promise<boolean> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return false;
+  const { error } = await supabase.from("connection_requests")
+    .insert({ requester_id: user.id, target_id: targetId });
+  if (error && !error.message.toLowerCase().includes("duplicate")) {
+    console.error("[requestConnection]", error.message);
+    return false;
+  }
+  return true;
+}
