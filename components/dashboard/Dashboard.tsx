@@ -173,8 +173,23 @@ export default function Dashboard({
   const [marketingVisited, setMarketingVisited] = useState(false);
   const [cardExpanded, setCardExpanded] = useState(false);
   const [cardAnimating, setCardAnimating] = useState(false);
+  const [cardClosing, setCardClosing] = useState(false);
   const [cardRect, setCardRect] = useState<DOMRect | null>(null);
   const cardButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Close the expanded Fennec ID. Flipping cardClosing lets the small source
+  // card fade back in WHILE the overlay scales+fades out (crossfade) — without
+  // it, the overlay vanishes first and the source card snaps back in after,
+  // leaving a blank flash. Unmount only after both finish (~340ms).
+  function closeCard() {
+    setCardClosing(true);
+    setCardAnimating(false);
+    setTimeout(() => {
+      setCardExpanded(false);
+      setCardClosing(false);
+      setCardRect(null);
+    }, 340);
+  }
 
   // First-visit welcome + marketing-visited flag.
   // Re-sync the flag whenever the dashboard regains focus or another tab writes it,
@@ -401,6 +416,7 @@ export default function Dashboard({
               const rect = cardButtonRef.current?.getBoundingClientRect();
               if (!rect) return;
               setCardRect(rect);
+              setCardClosing(false);
               setCardExpanded(true);
               setCardAnimating(false);
               // Double rAF: let browser paint the overlay at card position first
@@ -409,9 +425,13 @@ export default function Dashboard({
             className="w-full text-left"
             style={{
               display: "block",
-              transition: "transform 0.15s cubic-bezier(.16,1,.3,1), opacity 0.12s ease",
-              // Hide the source card while the overlay copy is flying (Apple Wallet behavior)
-              opacity: cardExpanded ? 0 : 1,
+              // Hide the source card while the overlay copy is flying (Apple Wallet
+              // behavior). On close (cardClosing) it fades back in over 0.32s so it
+              // crossfades with the shrinking overlay — no blank flash, no snap.
+              transition: cardClosing
+                ? "opacity 0.32s ease"
+                : "transform 0.15s cubic-bezier(.16,1,.3,1), opacity 0.1s ease",
+              opacity: cardExpanded && !cardClosing ? 0 : 1,
               pointerEvents: cardExpanded ? "none" : "auto",
             }}
             onMouseDown={(e)  => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(0.97)"; }}
@@ -461,10 +481,7 @@ export default function Dashboard({
           <>
             {/* Backdrop */}
             <div
-              onClick={() => {
-                setCardAnimating(false);
-                setTimeout(() => { setCardExpanded(false); setCardRect(null); }, 320);
-              }}
+              onClick={closeCard}
               style={{
                 position: "fixed", inset: 0, zIndex: 99,
                 background: "rgba(0,0,0,0.72)",
@@ -531,10 +548,7 @@ export default function Dashboard({
                   Share
                 </button>
                 <button
-                  onClick={() => {
-                    setCardAnimating(false);
-                    setTimeout(() => { setCardExpanded(false); setCardRect(null); }, 400);
-                  }}
+                  onClick={closeCard}
                   style={{
                     flex: 1, padding: "13px 0", borderRadius: 14,
                     background: "rgba(255,255,255,0.06)",
