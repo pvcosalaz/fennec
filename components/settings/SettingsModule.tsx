@@ -58,6 +58,48 @@ const ROLES = [
   "Other",
 ];
 
+// Country list — LATAM-first (the app's core audience) then major markets.
+// Value = country name so existing free-text data (e.g. "Mexico") stays valid.
+const COUNTRIES = [
+  { name: "Mexico", flag: "🇲🇽" },
+  { name: "Colombia", flag: "🇨🇴" },
+  { name: "Argentina", flag: "🇦🇷" },
+  { name: "Chile", flag: "🇨🇱" },
+  { name: "Peru", flag: "🇵🇪" },
+  { name: "Ecuador", flag: "🇪🇨" },
+  { name: "Venezuela", flag: "🇻🇪" },
+  { name: "Guatemala", flag: "🇬🇹" },
+  { name: "Cuba", flag: "🇨🇺" },
+  { name: "Bolivia", flag: "🇧🇴" },
+  { name: "Dominican Republic", flag: "🇩🇴" },
+  { name: "Honduras", flag: "🇭🇳" },
+  { name: "Paraguay", flag: "🇵🇾" },
+  { name: "El Salvador", flag: "🇸🇻" },
+  { name: "Nicaragua", flag: "🇳🇮" },
+  { name: "Costa Rica", flag: "🇨🇷" },
+  { name: "Panama", flag: "🇵🇦" },
+  { name: "Uruguay", flag: "🇺🇾" },
+  { name: "Puerto Rico", flag: "🇵🇷" },
+  { name: "Brazil", flag: "🇧🇷" },
+  { name: "United States", flag: "🇺🇸" },
+  { name: "Canada", flag: "🇨🇦" },
+  { name: "Spain", flag: "🇪🇸" },
+  { name: "United Kingdom", flag: "🇬🇧" },
+  { name: "France", flag: "🇫🇷" },
+  { name: "Germany", flag: "🇩🇪" },
+  { name: "Italy", flag: "🇮🇹" },
+  { name: "Portugal", flag: "🇵🇹" },
+  { name: "Netherlands", flag: "🇳🇱" },
+  { name: "Sweden", flag: "🇸🇪" },
+  { name: "Nigeria", flag: "🇳🇬" },
+  { name: "South Africa", flag: "🇿🇦" },
+  { name: "Australia", flag: "🇦🇺" },
+  { name: "Japan", flag: "🇯🇵" },
+  { name: "South Korea", flag: "🇰🇷" },
+  { name: "India", flag: "🇮🇳" },
+  { name: "Other", flag: "🌍" },
+];
+
 export type Section = "main" | "profile" | "language" | "currency" | "data" | "notifications" | "suggest";
 
 type Props = {
@@ -338,12 +380,11 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
 
         <div className="space-y-1">
           <p className="text-xs text-zinc-500">Country</p>
-          <input
-            type="text"
+          <Select
             value={profile.country}
-            onChange={(e) => setProfile((p) => ({ ...p, country: e.target.value }))}
-            placeholder="e.g. Mexico, Colombia, USA"
-            className="w-full h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-accent"
+            onChange={(val) => setProfile((p) => ({ ...p, country: val }))}
+            placeholder="Select your country"
+            options={COUNTRIES.map((c) => ({ value: c.name, label: `${c.flag}  ${c.name}` }))}
           />
         </div>
 
