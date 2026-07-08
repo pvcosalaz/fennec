@@ -44,7 +44,7 @@ export default function NetworkSection({ userId }: Props) {
       {loadingContacts ? (
         <p className="text-xs text-zinc-600">Loading network...</p>
       ) : (
-        <NetworkCollection contacts={contacts} onScanClick={() => setShowScan(true)} />
+        <NetworkCollection contacts={contacts} userId={userId} onScanClick={() => setShowScan(true)} />
       )}
       {showScan && (
         <ScanSheet

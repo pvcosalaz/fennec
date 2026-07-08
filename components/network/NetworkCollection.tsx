@@ -3,18 +3,23 @@
 
 import { useState } from "react";
 import FennecIdCard from "./FennecIdCard";
+import RadioFrequency from "./RadioFrequency";
 import { getColorScheme } from "@/lib/fennecIdPalette";
+import { useSheetDismiss, SHEET_BOTTOM, SHEET_ENTER } from "@/components/ui/useSheetDismiss";
 import type { Profile } from "@/lib/communityTypes";
 import { getInitials, getFirstLast } from "./utils";
 
 type Props = {
   contacts: Profile[];
+  /** The viewer — enables the radio (voice notes) on each card. */
+  userId?: string;
   /** Opens the Scan sheet — wired by NetworkSection. Omit to hide the CTAs. */
   onScanClick?: () => void;
 };
 
-export default function NetworkCollection({ contacts, onScanClick }: Props) {
+export default function NetworkCollection({ contacts, userId, onScanClick }: Props) {
   const [expanded, setExpanded] = useState(false);
+  const [radioPeer, setRadioPeer] = useState<Profile | null>(null);
 
   if (contacts.length === 0) {
     return (
@@ -135,12 +140,14 @@ export default function NetworkCollection({ contacts, onScanClick }: Props) {
             return (
               <div
                 key={contact.id}
+                onClick={() => { if (userId) setRadioPeer(contact); }}
                 style={{
                   position: "relative",
                   zIndex: contacts.length - i,
                   marginBottom: isLast ? 0 : -44,
                   animation: `slideInCard 0.3s ease both`,
                   animationDelay: `${i * 60}ms`,
+                  cursor: userId ? "pointer" : "default",
                 }}
               >
                 <FennecIdCard
@@ -208,6 +215,36 @@ export default function NetworkCollection({ contacts, onScanClick }: Props) {
           to   { opacity: 1; transform: translateY(0); }
         }
       `}</style>
+
+      {/* The card back — a radio frequency with the tapped producer */}
+      {radioPeer && userId && (
+        <RadioSheet userId={userId} peer={radioPeer} onClose={() => setRadioPeer(null)} />
+      )}
     </div>
+  );
+}
+
+/* Bottom sheet holding the tapped card's radio frequency. Same swipe-to-
+   dismiss + true-bottom anchor as every other sheet in the app. */
+function RadioSheet({ userId, peer, onClose }: { userId: string; peer: Profile; onClose: () => void }) {
+  const { sheetRef, dismiss } = useSheetDismiss(onClose);
+  return (
+    <>
+      <div
+        className="fixed inset-0 z-[60] bg-black/75 backdrop-blur-sm"
+        style={{ animation: "sheetFadeIn .25s ease both" }}
+        onClick={dismiss}
+      />
+      <div
+        ref={sheetRef}
+        className="fixed inset-x-0 z-[70] mx-auto w-full max-w-md rounded-t-3xl border-t border-white/10 px-5 pt-3 pb-8"
+        style={{ bottom: SHEET_BOTTOM, background: "#131216", animation: SHEET_ENTER }}
+      >
+        <div className="flex justify-center mb-4">
+          <div className="w-10 h-1 rounded-full bg-white/20" />
+        </div>
+        <RadioFrequency userId={userId} peer={peer} />
+      </div>
+    </>
   );
 }

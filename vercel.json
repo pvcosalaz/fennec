@@ -4,6 +4,7 @@
     { "path": "/api/bot-post", "schedule": "0 15 * * *" },
     { "path": "/api/bot-post", "schedule": "0 0 * * *" },
     { "path": "/api/cron/notifications", "schedule": "0 12 * * *" },
-    { "path": "/api/cron/social-stats", "schedule": "0 9 * * 1" }
+    { "path": "/api/cron/social-stats", "schedule": "0 9 * * 1" },
+    { "path": "/api/cron/purge-voice-notes", "schedule": "0 6 * * *" }
   ]
 }

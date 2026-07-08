@@ -2,6 +2,7 @@
 import { supabase } from "@/lib/supabase";
 import type { Profile } from "@/lib/communityTypes";
 import { randomColorId } from "@/lib/fennecIdPalette";
+import { uploadAudio } from "@/lib/communityDb";
 
 
 export async function ensureColorAssigned(userId: string, currentColorId: string | null): Promise<string> {
@@ -105,6 +106,71 @@ export async function requestConnection(targetId: string): Promise<boolean> {
     .insert({ requester_id: user.id, target_id: targetId });
   if (error && !error.message.toLowerCase().includes("duplicate")) {
     console.error("[requestConnection]", error.message);
+    return false;
+  }
+  return true;
+}
+
+// ── The radio — voice notes between connected producers ─────────────────
+
+export type VoiceNote = {
+  id: string;
+  sender_id: string;
+  recipient_id: string;
+  audio_url: string;
+  duration_seconds: number | null;
+  created_at: string;
+  expires_at: string;
+  archived: boolean;
+  played_at: string | null;
+};
+
+/** All notes in the frequency with one peer, oldest first. Empty if the
+ *  table doesn't exist yet (migration not run) or on error. */
+export async function fetchFrequency(userId: string, peerId: string): Promise<VoiceNote[]> {
+  const { data, error } = await supabase
+    .from("voice_notes")
+    .select("*")
+    .or(`and(sender_id.eq.${userId},recipient_id.eq.${peerId}),and(sender_id.eq.${peerId},recipient_id.eq.${userId})`)
+    .order("created_at", { ascending: true });
+  if (error) {
+    console.error("[fetchFrequency]", error.message);
+    return [];
+  }
+  return (data ?? []) as VoiceNote[];
+}
+
+/** Record → upload (reuses Melody Bank's uploadAudio) → insert. Null on failure. */
+export async function sendVoiceNote(
+  senderId: string,
+  recipientId: string,
+  blob: Blob,
+  durationSeconds: number
+): Promise<VoiceNote | null> {
+  let audio_url: string;
+  try {
+    audio_url = await uploadAudio(blob, `vn-${senderId}-${Date.now()}.webm`);
+  } catch (err) {
+    console.error("[sendVoiceNote] upload", err);
+    return null;
+  }
+  const { data, error } = await supabase
+    .from("voice_notes")
+    .insert({ sender_id: senderId, recipient_id: recipientId, audio_url, duration_seconds: durationSeconds })
+    .select("*")
+    .single();
+  if (error) {
+    console.error("[sendVoiceNote]", error.message);
+    return null;
+  }
+  return data as VoiceNote;
+}
+
+/** "Print to tape" — keep a note past its 48h air window. */
+export async function archiveNote(noteId: string): Promise<boolean> {
+  const { error } = await supabase.from("voice_notes").update({ archived: true }).eq("id", noteId);
+  if (error) {
+    console.error("[archiveNote]", error.message);
     return false;
   }
   return true;
