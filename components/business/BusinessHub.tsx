@@ -95,7 +95,9 @@ type Props = {
   onOpenView: (view: BusinessView) => void;
   isPro?: boolean;
   userId: string;
-  onUpgrade?: () => void;
+  /** source tells the upgrade sheet which feature the user tapped, so the
+   *  pitch matches (quotes vs clients) instead of assuming the calculator */
+  onUpgrade?: (source?: "quotes" | "clients") => void;
 };
 
 export default function BusinessHub({ onOpenView, isPro = false, userId, onUpgrade }: Props) {
@@ -181,7 +183,7 @@ export default function BusinessHub({ onOpenView, isPro = false, userId, onUpgra
         {/* Quotes */}
         <button
           type="button"
-          onClick={() => isPro ? onOpenView("quotes") : onUpgrade?.()}
+          onClick={() => isPro ? onOpenView("quotes") : onUpgrade?.("quotes")}
           className="relative h-full rounded-2xl overflow-hidden active:scale-[0.97] transition-transform duration-150"
         >
           {!isPro && (
@@ -198,7 +200,7 @@ export default function BusinessHub({ onOpenView, isPro = false, userId, onUpgra
         {/* Clients & Leads — PRO */}
         <button
           type="button"
-          onClick={() => isPro ? onOpenView("clients") : onUpgrade?.()}
+          onClick={() => isPro ? onOpenView("clients") : onUpgrade?.("clients")}
           className="relative h-full rounded-2xl overflow-hidden active:scale-[0.97] transition-transform duration-150"
         >
           {!isPro && (

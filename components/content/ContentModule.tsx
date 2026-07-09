@@ -460,11 +460,12 @@ function LoadingFeed() {
   );
 }
 
-function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule }: {
+function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule, onUpgrade }: {
   isPro: boolean;
   onBack: () => void;
   onUseAsReference?: (video: VideoRef) => void;
   onRequestSchedule?: (title: string, notes?: string) => void;
+  onUpgrade?: () => void;
 }) {
   const [videos,  setVideos]  = useState<TrendingVideo[]>([]);
   const [loading, setLoading] = useState(false);
@@ -538,8 +539,9 @@ function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule }: {
               Get a daily feed of trending YouTube videos in the music production niche — analyzed by AI so you know exactly why they work and how to adapt them.
             </p>
           </div>
-          <button className="rounded-xl bg-accent px-6 py-2.5 text-sm font-bold text-black">
-            Upgrade — $9.99/mo
+          {/* Price lives in the upgrade sheet — a hardcoded one here went stale ($9.99) */}
+          <button onClick={onUpgrade} className="rounded-xl bg-accent px-6 py-2.5 text-sm font-bold text-black hover:brightness-110 active:scale-[0.97] transition">
+            Upgrade to Pro
           </button>
         </div>
       ) : loading ? (
@@ -762,6 +764,7 @@ export default function ContentModule({ isPro = false, onUpgrade }: { isPro?: bo
                   onBack={closeSheet}
                   onUseAsReference={useVideoAsReference}
                   onRequestSchedule={(title: string, notes?: string) => requestSchedule(title, "inspire", notes)}
+                  onUpgrade={onUpgrade}
                 />
               )}
               {sheet === "ideas" && (

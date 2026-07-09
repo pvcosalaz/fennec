@@ -228,6 +228,56 @@ const toNumber = (value: string) => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
 };
 
+/** Round to a friendly ballpark (2 significant figures) — the free teaser
+ *  shown before the exact numbers are revealed with Pro. */
+const approxPrice = (v: number) => {
+  if (v <= 0) return 0;
+  const mag = Math.pow(10, Math.max(1, Math.floor(Math.log10(v)) - 1));
+  return Math.round(v / mag) * mag;
+};
+
+/** The upgrade sheet renders over any tab, so its pitch must match what the
+ *  user was actually trying to do — not assume they came from the calculator. */
+const UPGRADE_COPY = {
+  calculator: {
+    line1: "Your price is set.",
+    line2: "Now see the exact number.",
+    sub: "Unlock your precise minimum & recommended rates — and turn them into income.",
+  },
+  quotes: {
+    line1: "Quotes that close.",
+    line2: "Sent in seconds.",
+    sub: "Turn your rate into professional quotes clients can say yes to.",
+  },
+  clients: {
+    line1: "Your roster,",
+    line2: "organized.",
+    sub: "Keep every client and lead in one place — and follow up on time.",
+  },
+  content: {
+    line1: "Your content engine,",
+    line2: "unlocked.",
+    sub: "Inspire, Content Lab & Trending — plan a month of content in minutes.",
+  },
+  generic: {
+    line1: "Go Pro.",
+    line2: "Unlock everything.",
+    sub: "Every Fennec Pro tool, one plan.",
+  },
+} as const;
+type UpgradeContext = keyof typeof UPGRADE_COPY;
+
+/** What Pro actually unlocks today — keep in sync with the real gates:
+ *  BusinessHub (quotes/clients), ContentModule (Inspire/Lab/Trending),
+ *  MyTracksView (PRO_FREE_PER_MONTH uploads), calculator reveal. */
+const PRO_FEATURES = [
+  { emoji: "🔓", label: "Exact rate reveal",   desc: "Your precise minimum & recommended prices" },
+  { emoji: "📄", label: "Quote Generator",     desc: "Send pro quotes in seconds" },
+  { emoji: "👥", label: "Clients & Leads",     desc: "Track every client and prospect" },
+  { emoji: "💡", label: "Marketing Pro tools", desc: "Inspire, Content Lab & Trending" },
+  { emoji: "🎧", label: "5 free uploads/month", desc: "Timestamped track feedback from producers" },
+];
+
 const sumValues = (values: Record<string, string>) =>
   Object.values(values).reduce((acc, value) => acc + toNumber(value), 0);
 
@@ -442,7 +492,14 @@ export default function PricingCalculator() {
   const [settingsSection, setSettingsSection] = useState<SettingsSection>("main");
   const [showSetup, setShowSetup] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [upgradeContext, setUpgradeContext] = useState<UpgradeContext>("generic");
   const [upgradePlan, setUpgradePlan] = useState<"monthly" | "yearly">("monthly");
+
+  // Every path into the upgrade sheet sets its context so the pitch matches
+  function openUpgrade(ctx: UpgradeContext) {
+    setUpgradeContext(ctx);
+    setShowUpgrade(true);
+  }
   const [upgrading, setUpgrading] = useState(false);
   const [businessView, setBusinessView] = useState<BusinessView>("hub");
   const prevBusinessView = useRef<BusinessView>("hub");
@@ -721,7 +778,7 @@ export default function PricingCalculator() {
             onOpenView={setBusinessView}
             isPro={profile?.is_pro ?? false}
             userId={authUser.id}
-            onUpgrade={() => setShowUpgrade(true)}
+            onUpgrade={(source) => openUpgrade(source ?? "generic")}
           />
         </div>
       ) : activeTab === "pricing" && businessView === "projects" ? (
@@ -1130,22 +1187,33 @@ export default function PricingCalculator() {
                         </div>
                       </div>
 
-                      {/* Lock overlay — the clickbait reveal */}
-                      {locked && (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-2xl bg-black/40 px-6 text-center">
-                          <span className="text-3xl">🔒</span>
-                          <div className="space-y-1">
-                            <p className="text-base font-black text-white">Your number is ready.</p>
-                            <p className="text-xs text-zinc-300">We did the math on your rates. Unlock Pro to see exactly what to charge.</p>
+                      {/* Lock overlay — free ballpark teaser, exact numbers behind Pro.
+                          Showing the approximate range makes the reveal honest: they
+                          get real value for finishing the calculator, and Pro buys
+                          precision, not the answer itself. */}
+                      {locked && (() => {
+                        const aMin = approxPrice(minPricePerProject);
+                        const aRec = approxPrice(recommendedPrice);
+                        return (
+                          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-2xl bg-black/55 px-6 text-center">
+                            <div className="space-y-1.5">
+                              <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-400">Your rate lands around</p>
+                              <p className="text-2xl font-black text-white tabular-nums">
+                                {aMin === aRec
+                                  ? `≈ ${formatCurrency(aRec, calcCurrency)}`
+                                  : `${formatCurrency(aMin, calcCurrency)} – ${formatCurrency(aRec, calcCurrency)}`}
+                              </p>
+                              <p className="text-xs text-zinc-400">per project — a ballpark. Pro reveals your exact minimum &amp; recommended price.</p>
+                            </div>
+                            <button
+                              onClick={() => openUpgrade("calculator")}
+                              className="mt-1 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-400 py-3 px-6 text-sm font-black text-black shadow-lg shadow-amber-500/30 hover:brightness-110 transition active:scale-[0.97]"
+                            >
+                              🔓 Reveal my exact price
+                            </button>
                           </div>
-                          <button
-                            onClick={() => setShowUpgrade(true)}
-                            className="mt-1 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-400 py-3 px-6 text-sm font-black text-black shadow-lg shadow-amber-500/30 hover:brightness-110 transition active:scale-[0.97]"
-                          >
-                            🔓 Reveal my price
-                          </button>
-                        </div>
-                      )}
+                        );
+                      })()}
                     </div>
 
                   {/* ── Upsell CTA — Pro only (send the quote) ─────── */}
@@ -1185,10 +1253,11 @@ export default function PricingCalculator() {
             setProfile((prev) => prev ? { ...prev, color_id: colorId } : prev)
           }
           onNavigate={(tab) => { setActiveTab(tab); setBusinessView("hub"); }}
+          onOpenCalculator={() => { setActiveTab("pricing"); setBusinessView("calculator"); }}
         />
       ) : activeTab === "contenido" ? (
         <div className="flex-1 flex flex-col overflow-hidden">
-          <ContentModule isPro={profile?.is_pro ?? false} onUpgrade={() => setShowUpgrade(true)} />
+          <ContentModule isPro={profile?.is_pro ?? false} onUpgrade={() => openUpgrade("content")} />
         </div>
       ) : activeTab === "ideas" ? (
         <AudioModule userId={authUser.id} isPro={profile?.is_pro ?? false} onSheetChange={setNavHidden} />
@@ -1289,18 +1358,14 @@ export default function PricingCalculator() {
             <div className="w-10 h-1 bg-white/20 rounded-full mx-auto" />
 
             <div className="space-y-1">
-              <p className="text-xl font-black text-white">Your price is set.</p>
-              <p className="text-xl font-black text-accent">Now close the deal.</p>
-              <p className="text-sm text-zinc-500 mt-2">Upgrade to Pro and turn your rate into real income.</p>
+              <p className="text-xl font-black text-white">{UPGRADE_COPY[upgradeContext].line1}</p>
+              <p className="text-xl font-black text-accent">{UPGRADE_COPY[upgradeContext].line2}</p>
+              <p className="text-sm text-zinc-500 mt-2">{UPGRADE_COPY[upgradeContext].sub}</p>
             </div>
 
-            <div className="space-y-2.5">
-              {[
-                { emoji: "🎧", label: "Track Feedback",      desc: "Upload your tracks, get timestamped reviews" },
-                { emoji: "👥", label: "Clients & Leads",     desc: "Store contacts, track prospects" },
-                { emoji: "📄", label: "Quote Generator",     desc: "Send pro quotes in seconds" },
-              ].map((item) => (
-                <div key={item.label} className="flex items-center gap-3 rounded-xl bg-white/5 px-4 py-3">
+            <div className="space-y-2">
+              {PRO_FEATURES.map((item) => (
+                <div key={item.label} className="flex items-center gap-3 rounded-xl bg-white/5 px-4 py-2.5">
                   <span className="text-lg">{item.emoji}</span>
                   <div>
                     <p className="text-sm font-semibold text-white">{item.label}</p>
@@ -1310,20 +1375,29 @@ export default function PricingCalculator() {
               ))}
             </div>
 
-            {/* Plan toggle */}
-            <div className="flex rounded-xl overflow-hidden border border-white/10">
+            {/* Plan toggle — two cards, badge inline (the old absolute badge was
+                clipped by the container's overflow-hidden) */}
+            <div className="flex gap-2">
               <button
                 onClick={() => setUpgradePlan("monthly")}
-                className={`flex-1 py-2.5 text-sm font-semibold transition ${upgradePlan === "monthly" ? "bg-white/10 text-white" : "text-zinc-500"}`}
+                className={`flex-1 rounded-xl border py-3 transition ${
+                  upgradePlan === "monthly" ? "border-accent bg-accent/10" : "border-white/10 bg-white/5"
+                }`}
               >
-                Monthly · $14.99
+                <p className={`text-sm font-bold ${upgradePlan === "monthly" ? "text-white" : "text-zinc-400"}`}>Monthly</p>
+                <p className="text-[11px] text-zinc-500 mt-0.5">$14.99 / month</p>
               </button>
               <button
                 onClick={() => setUpgradePlan("yearly")}
-                className={`flex-1 py-2.5 text-sm font-semibold transition relative ${upgradePlan === "yearly" ? "bg-white/10 text-white" : "text-zinc-500"}`}
+                className={`flex-1 rounded-xl border py-3 transition ${
+                  upgradePlan === "yearly" ? "border-accent bg-accent/10" : "border-white/10 bg-white/5"
+                }`}
               >
-                Yearly · $119.99
-                <span className="absolute -top-2 right-2 text-[9px] bg-amber-500 text-black font-black px-1.5 py-0.5 rounded-full">SAVE 33%</span>
+                <p className={`text-sm font-bold ${upgradePlan === "yearly" ? "text-white" : "text-zinc-400"}`}>
+                  Yearly
+                  <span className="ml-1.5 align-middle text-[9px] bg-amber-500 text-black font-black px-1.5 py-0.5 rounded-full">SAVE 33%</span>
+                </p>
+                <p className="text-[11px] text-zinc-500 mt-0.5">$119.99 / year · ≈ $10 / mo</p>
               </button>
             </div>
 

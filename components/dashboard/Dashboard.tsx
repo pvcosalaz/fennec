@@ -148,7 +148,7 @@ function SocialChip({
 export default function Dashboard({
   avatarUrl, username, isPro, userId,
   onOpenSettings, onOpenProfileSettings,
-  networkProfile, onColorAssigned, onNavigate, className,
+  networkProfile, onColorAssigned, onNavigate, onOpenCalculator, className,
 }: {
   avatarUrl?: string | null;
   username?: string | null;
@@ -159,6 +159,9 @@ export default function Dashboard({
   networkProfile?: Profile | null;
   onColorAssigned?: (colorId: string) => void;
   onNavigate?: (tab: "pricing" | "contenido" | "dashboard" | "ideas" | "noticias") => void;
+  /** Jumps straight into the pricing calculator (not just the Business hub) —
+   *  the checklist's "Set your rate" step needs to land there directly. */
+  onOpenCalculator?: () => void;
   className?: string;
 }) {
   const [projects,   setProjects]   = useState<Project[]>([]);
@@ -361,11 +364,21 @@ export default function Dashboard({
   const profileDone = !!((networkProfile?.display_name || profile?.name) && (networkProfile?.role || profile?.role));
   const socialDone  = hasIg || hasTt || hasYt;
   const projectDone = projects.length >= 1;
+  // "Set your rate" completes when the calculator setup is finished. It used
+  // to require creating a project — but new users can't create one without
+  // rates from the calculator first, so the tutorial was un-finishable.
+  // Dashboard remounts on every tab switch, so this re-reads on return.
+  const calcDone = (() => {
+    try {
+      const saved = localStorage.getItem("fennec-pricing-v1");
+      return !!(saved && (JSON.parse(saved) as { setupCompleted?: boolean }).setupCompleted);
+    } catch { return false; }
+  })();
   const checklistItems: ChecklistItem[] = [
-    { id: "profile",  label: "Complete your profile",     desc: "Name, role & country",           done: profileDone,     onClick: () => { closeWelcome(); onOpenProfileSettings?.(); } },
-    { id: "social",   label: "Connect your socials",      desc: "Instagram, TikTok, YouTube",      done: socialDone,      onClick: () => { closeWelcome(); onOpenProfileSettings?.(); } },
-    { id: "project",  label: "Create your first project", desc: "Use the calculator & save it",    done: projectDone,     onClick: () => { closeWelcome(); onNavigate?.("pricing"); } },
-    { id: "marketing",label: "Explore the Marketing Hub", desc: "Calendar, ideas & scripts",       done: marketingVisited, onClick: () => { closeWelcome(); onNavigate?.("contenido"); } },
+    { id: "profile",  label: "Complete your profile",     desc: "Name, role & country",             done: profileDone,     onClick: () => { closeWelcome(); onOpenProfileSettings?.(); } },
+    { id: "social",   label: "Connect your socials",      desc: "Instagram, TikTok, YouTube",        done: socialDone,      onClick: () => { closeWelcome(); onOpenProfileSettings?.(); } },
+    { id: "project",  label: "Set your rate",             desc: "Complete the pricing calculator",   done: calcDone || projectDone, onClick: () => { closeWelcome(); onOpenCalculator ? onOpenCalculator() : onNavigate?.("pricing"); } },
+    { id: "marketing",label: "Explore the Marketing Hub", desc: "Calendar, ideas & scripts",         done: marketingVisited, onClick: () => { closeWelcome(); onNavigate?.("contenido"); } },
   ];
   const onboardingComplete = checklistItems.every((i) => i.done);
 
