@@ -55,8 +55,12 @@ export async function GET(req: NextRequest) {
     return new NextResponse("Domain not allowed", { status: 403 });
   }
 
-  // Whitelist — only fetch from known news/image sources
-  const allowed = ALLOWED_DOMAINS.some((d) => hostname.includes(d));
+  // Whitelist: match the domain or a subdomain of it, on real label
+  // boundaries. `includes()` was too loose — "billboard.com.attacker.net"
+  // or "evil-billboard.com" both contain an allowed string and would slip
+  // through, turning this into a near-open image proxy.
+  const host = hostname.toLowerCase();
+  const allowed = ALLOWED_DOMAINS.some((d) => host === d || host.endsWith("." + d));
   if (!allowed) {
     return new NextResponse("Domain not allowed", { status: 403 });
   }
