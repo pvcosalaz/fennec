@@ -7,7 +7,10 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
-  themeColor: "#111114",
+  // Matches the root canvas in globals.css — NOT --background. This tints the
+  // OS chrome (Android status bar, iOS standalone edges); gray #111114 here is
+  // what made the bottom home-indicator band read as a foreign gray block.
+  themeColor: "#0b0a08",
 };
 
 export const metadata: Metadata = {
@@ -32,8 +35,8 @@ export default function RootLayout({
   // lang="en": the Fennec UI is English-only. With lang="es", VoiceOver read
   // every English string with a Spanish accent.
   return (
-    <html lang="en" className="h-full antialiased" style={{ background: "#111114" }}>
-      <body className="h-full" style={{ background: "#111114" }}>{children}</body>
+    <html lang="en" className="h-full antialiased" style={{ background: "#0b0a08" }}>
+      <body className="h-full" style={{ background: "#0b0a08" }}>{children}</body>
     </html>
   );
 }

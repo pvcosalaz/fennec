@@ -8,8 +8,11 @@ function SplashScreen({ exiting }: { exiting: boolean }) {
 
   return (
     <div
-      className="flex h-screen flex-col items-center justify-center bg-[#0d0d0f] relative overflow-hidden"
+      className="flex flex-col items-center justify-center bg-[#0d0d0f] relative overflow-hidden"
       style={{
+        // Real screen height, not h-screen: iOS standalone under-reports 100vh
+        // at launch, leaving a band at the bottom painted in the root bg.
+        height: "var(--app-h, 100lvh)",
         transition: "opacity 0.5s ease, transform 0.5s ease",
         opacity: exiting ? 0 : 1,
         transform: exiting ? "scale(1.08)" : "scale(1)",
@@ -696,7 +699,7 @@ export default function PricingCalculator() {
 
   if (!authUser) {
     return (
-      <div className="flex h-screen flex-col bg-black">
+      <div className="flex flex-col bg-black" style={{ height: "var(--app-h, 100lvh)" }}>
         <AuthGate />
       </div>
     );
@@ -704,7 +707,7 @@ export default function PricingCalculator() {
 
   if (!profile) {
     return (
-      <div className="flex h-screen flex-col bg-black">
+      <div className="flex flex-col bg-black" style={{ height: "var(--app-h, 100lvh)" }}>
         <UsernameSetup userId={authUser.id} avatarUrl={null} onComplete={(p) => { setActiveTab("dashboard"); setShowSettings(false); setProfile(p); }} />
       </div>
     );

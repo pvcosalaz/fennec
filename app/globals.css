@@ -22,8 +22,12 @@
   --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
+/* Root canvas: DEEP black (#0b0a08), darker than --background. iOS standalone
+   paints every pixel the layout doesn't cover (the home-indicator band, stale
+   viewport gaps) with the ROOT background — with #111114 it showed as a gray
+   block over the warm-black screens. Deep black melts into the iPhone bezel. */
 html {
-  background: var(--background);
+  background: #0b0a08;
   overscroll-behavior: none;
   overflow: hidden;
   height: 100%;
@@ -31,7 +35,7 @@ html {
 }
 
 body {
-  background: var(--background);
+  background: #0b0a08;
   color: var(--foreground);
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   overscroll-behavior: none;

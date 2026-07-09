@@ -70,7 +70,7 @@ export default function CommentsView({ post, profile, onBack, onOpenProfile }: P
   }
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col" style={{ height: "var(--app-h, 100lvh)" }}>
       <div className="flex items-center gap-3 px-4 pt-4 pb-3 border-b border-white/8">
         <button onClick={onBack} className="text-zinc-400 hover:text-white transition">
           <ArrowLeft className="h-5 w-5" />

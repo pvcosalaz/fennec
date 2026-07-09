@@ -50,7 +50,7 @@ export default function AuthGate() {
 
   return (
     <div
-      className="relative flex flex-col items-center justify-center min-h-screen px-6 gap-8 overflow-hidden"
+      className="relative flex flex-col items-center justify-center min-h-full flex-1 px-6 gap-8 overflow-hidden"
       style={{ background: "#0b0a08" }}
     >
       {/* ── ambient glow field + floating orbs (same treatment as the landing) ── */}
