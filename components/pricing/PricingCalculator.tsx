@@ -1263,7 +1263,9 @@ export default function PricingCalculator() {
       <nav
         className="shrink-0 border-t border-white/[0.06] backdrop-blur-2xl"
         style={{
-          background: "rgba(17, 17, 20, 0.92)",
+          // Deep black matching the root canvas (#0b0a08) — the old gray
+          // (17,17,20) read as a foreign gray slab across the whole bottom.
+          background: "rgba(10, 9, 8, 0.94)",
           WebkitBackdropFilter: "blur(24px)",
           backdropFilter: "blur(24px)",
           transform: navHidden ? "translateY(110%)" : "translateY(0)",
@@ -1298,8 +1300,8 @@ export default function PricingCalculator() {
                         ? "linear-gradient(160deg, #ffc14d 0%, var(--accent, #f5a623) 55%, #e0822a 100%)"
                         : "linear-gradient(160deg, #2a2a2e 0%, #1c1c20 100%)",
                       boxShadow: isActive
-                        ? "inset 0 1px 0 rgba(255,255,255,0.35), 0 0 0 6px rgba(17,17,20,0.92)"
-                        : "inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 6px rgba(17,17,20,0.92)",
+                        ? "inset 0 1px 0 rgba(255,255,255,0.35), 0 0 0 6px rgba(10,9,8,0.94)"
+                        : "inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 6px rgba(10,9,8,0.94)",
                     }}
                   >
                     <img
