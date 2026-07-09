@@ -382,10 +382,17 @@ export default function Dashboard({
       return !!(saved && (JSON.parse(saved) as { setupCompleted?: boolean }).setupCompleted);
     } catch { return false; }
   })();
+  // "Leave your first note" completes once they've marked a track on the tape.
+  // Set in ProjectReviewPlayer.submitMark; re-read here since Dashboard remounts
+  // on every tab switch.
+  const noteDone = (() => {
+    try { return localStorage.getItem("fennec_has_left_note_v1") === "1"; } catch { return false; }
+  })();
   const checklistItems: ChecklistItem[] = [
     { id: "profile",  label: "Complete your profile",     desc: "Name, role & country",             done: profileDone,     onClick: () => { closeWelcome(); onOpenProfileSettings?.(); } },
     { id: "social",   label: "Connect your socials",      desc: "Instagram, TikTok, YouTube",        done: socialDone,      onClick: () => { closeWelcome(); onOpenProfileSettings?.(); } },
     { id: "project",  label: "Set your rate",             desc: "Complete the pricing calculator",   done: calcDone || projectDone, onClick: () => { closeWelcome(); onOpenCalculator ? onOpenCalculator() : onNavigate?.("pricing"); } },
+    { id: "note",     label: "Review your first track",    desc: "Listen to a fellow producer, then leave your note", done: noteDone, onClick: () => { closeWelcome(); onNavigate?.("ideas"); } },
     { id: "marketing",label: "Explore the Marketing Hub", desc: "Calendar, ideas & scripts",         done: marketingVisited, onClick: () => { closeWelcome(); onNavigate?.("contenido"); } },
   ];
   const onboardingComplete = checklistItems.every((i) => i.done);

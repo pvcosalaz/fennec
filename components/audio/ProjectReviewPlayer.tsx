@@ -104,6 +104,9 @@ export default function ProjectReviewPlayer({
   const [markAt, setMarkAt]           = useState<number | null>(null);
   const [markBody, setMarkBody]       = useState("");
   const [posting, setPosting]         = useState(false);
+  // First-note karma moment: explain karma the instant they earn a way to earn it,
+  // not as an upfront wall. Shown once, right after the very first mark.
+  const [showKarmaIntro, setShowKarmaIntro] = useState(false);
 
   // Drag-to-scrub state (refs — no re-render per move)
   const drag = useRef<{ active: boolean; startY: number; startTime: number; moved: boolean; ghostTime: number; pressTimer: ReturnType<typeof setTimeout> | null }>({
@@ -382,6 +385,17 @@ export default function ProjectReviewPlayer({
       setComments((prev) => [...prev, comment].sort((a, b) => (a.timestamp_seconds ?? 0) - (b.timestamp_seconds ?? 0)));
       onSkipStreakChange(0);
       closeMark();
+
+      // First note ever → mark the onboarding step done + explain karma in-context.
+      if (!previewComments) {
+        try {
+          localStorage.setItem("fennec_has_left_note_v1", "1");
+          if (localStorage.getItem("fennec_karma_intro_seen_v1") !== "1") {
+            localStorage.setItem("fennec_karma_intro_seen_v1", "1");
+            setShowKarmaIntro(true);
+          }
+        } catch { /* private mode: skip the moment, no harm */ }
+      }
 
       // Keep the balance chip fresh (karma moves via stamps/purchases, not comments)
       if (!previewComments) {
@@ -888,7 +902,7 @@ export default function ProjectReviewPlayer({
             boxShadow: "0 0 18px rgba(245,166,35,.12), inset 0 1px 0 rgba(255,255,255,.08)",
           }}
         >
-          Other producers need your help — leave a mark to keep listening
+          Other producers need your help. Leave a mark to keep listening.
         </div>
       )}
 
@@ -1010,6 +1024,41 @@ export default function ProjectReviewPlayer({
               <Plus className="h-4 w-4" />
             </button>
           )}
+        </div>
+      )}
+
+      {/* First-note karma moment — explains the give-to-get loop the instant
+          they leave their first mark (their first way to earn karma). */}
+      {showKarmaIntro && (
+        <div
+          className="absolute inset-0 z-[60] flex items-center justify-center px-8"
+          style={{ background: "rgba(10,9,8,0.72)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", animation: "sheetFadeIn .25s ease both" }}
+          onClick={() => setShowKarmaIntro(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-xs rounded-3xl p-6 text-center"
+            style={{ ...GLASS, border: `1px solid ${AMBER}30`, boxShadow: `0 0 40px ${AMBER}18, inset 0 1px 0 rgba(255,255,255,.08)` }}
+          >
+            <div
+              className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full text-lg font-black"
+              style={{ background: `linear-gradient(180deg, #ffc25c 0%, ${AMBER} 100%)`, color: "#111114" }}
+            >
+              +2
+            </div>
+            <h3 className="text-base font-bold text-white">That&rsquo;s your first note.</h3>
+            <p className="mt-2 text-[13px] leading-relaxed text-zinc-300">
+              When the artist seals it as helpful, you earn <strong style={{ color: AMBER }}>+2 karma</strong>. Karma is what you spend to get feedback on your own tracks.
+            </p>
+            <p className="mt-2 text-xs font-semibold" style={{ color: AMBER }}>Give to get.</p>
+            <button
+              onClick={() => setShowKarmaIntro(false)}
+              className="mt-5 w-full rounded-2xl py-3 text-sm font-bold text-black transition active:scale-[0.98]"
+              style={{ background: `linear-gradient(180deg, #ffc25c 0%, ${AMBER} 100%)` }}
+            >
+              Got it
+            </button>
+          </div>
         </div>
       )}
 

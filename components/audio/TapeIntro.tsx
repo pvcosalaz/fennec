@@ -23,12 +23,8 @@ const STEPS: { title: string; body: string }[] = [
     body: "Press and hold anywhere on the tape to write a note at that second. Drag to scrub through time.",
   },
   {
-    title: "Seals pay karma",
-    body: "When the artist seals your mark as “this helped,” you earn +2 karma. Quality feedback is the only way to earn it.",
-  },
-  {
     title: "Upload your own",
-    body: "Uploading costs 5 karma and you start with 5, so your first track is on the house.",
+    body: "Share a track of yours and other producers will leave notes on it, exactly like you do here.",
   },
 ];
 
