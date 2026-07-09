@@ -114,14 +114,13 @@ import ClientsLeads from "@/components/business/ClientsLeads";
 import QuoteGenerator from "@/components/business/QuoteGenerator";
 import ActiveProjects from "@/components/business/ActiveProjects";
 import NetworkSection from "@/components/network/NetworkSection";
-import { getProjects, getQuotes, getClients } from "@/lib/businessDb";
 import Community from "@/components/community/Community";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import ContentModule from "@/components/content/ContentModule";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/lib/supabase";
 import { track, trackSessionStart } from "@/lib/track";
-import { getProfile, updateDbScore } from "@/lib/communityDb";
+import { getProfile } from "@/lib/communityDb";
 import type { Profile } from "@/lib/communityTypes";
 import AuthGate from "@/components/community/AuthGate";
 import UsernameSetup from "@/components/community/UsernameSetup";
@@ -587,27 +586,12 @@ export default function PricingCalculator() {
 
   async function loadProfile(userId: string) {
     try {
-      const [p, projects, quotes, clients] = await Promise.all([
-        getProfile(userId),
-        getProjects(userId),
-        getQuotes(userId),
-        getClients(userId),
-      ]);
-      if (p) {
-        const active = projects.filter((pr) => pr.status !== "paid").length;
-        const closed = projects.filter((pr) => pr.status === "paid").length;
-        const sent   = quotes.filter((q)  => q.status === "sent").length;
-        const computedScore = Math.round(active * 150 + closed * 50 + clients.length * 75 + sent * 25);
-
-        if (computedScore !== p.fennec_db_score) {
-          updateDbScore(userId, computedScore);
-          setProfile({ ...p, fennec_db_score: computedScore });
-        } else {
-          setProfile(p);
-        }
-      } else {
-        setProfile(null);
-      }
+      const p = await getProfile(userId);
+      // The dB is reach-driven now (see lib/fennecDb.ts). The Dashboard owns
+      // computing + persisting it, since it has the social-follower data this
+      // load doesn't. Here we just show the stored value; the Dashboard
+      // recomputes on mount and updates it if it drifted.
+      setProfile(p ?? null);
     } catch (err) {
       // A failed query must never trap the user on the splash screen.
       console.error("[loadProfile]", err);

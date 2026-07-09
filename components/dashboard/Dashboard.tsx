@@ -11,6 +11,7 @@ import FennecIdCard from "@/components/network/FennecIdCard";
 import { getColorScheme } from "@/lib/fennecIdPalette";
 import { ensureColorAssigned } from "@/lib/networkDb";
 import { WelcomeModal, ProgressChip, type ChecklistItem } from "@/components/dashboard/WelcomeChecklist";
+import { computeFennecDb, reachDb as reachDbOf, totalReachAudience, FENNEC_DB_MODEL } from "@/lib/fennecDb";
 import type { Profile } from "@/lib/communityTypes";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -98,8 +99,8 @@ function StatChip({
         <p className="text-2xl font-black text-white tabular-nums tracking-tight"><AnimatedNumber value={value} /></p>
       )}
       <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">{label}</p>
+      {/* px/py + negative margins grow the tap target toward 44pt without shifting layout */}
       {pending && onConnect && (
-        // px/py + negative margins: grows the tap target toward 44pt without shifting layout
         <button type="button" onClick={onConnect}
           className="mt-0.5 text-[9px] font-semibold transition px-3 py-2 -mx-3 -my-1.5"
           style={{ color: "rgba(245,166,35,0.55)" }}
@@ -131,8 +132,8 @@ function SocialChip({
         {hasHandle ? (count != null ? fmtCount(count) : "—") : "—"}
       </p>
       <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">{label}</p>
+      {/* Same tap-target expansion as StatChip's connect button */}
       {!hasHandle && onConnect && (
-        // Same tap-target expansion as StatChip's connect button
         <button type="button" onClick={onConnect}
           className="mt-0.5 text-[9px] font-semibold transition px-3 py-2 -mx-3 -my-1.5"
           style={{ color: "rgba(245,166,35,0.55)" }}
@@ -304,20 +305,25 @@ export default function Dashboard({
     });
   }, [userId, networkProfile?.color_id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // FENNEC dB
+  // FENNEC dB — reach-driven, logarithmic (see lib/fennecDb.ts). Reach is the
+  // engine (every 10x of audience ≈ +12 dB); activity is a small capped booster.
   const activeCount     = projects.filter((p) => p.status !== "paid").length;
   const closedCount     = projects.filter((p) => p.status === "paid").length;
   const quotesSent      = quotes.filter((q) => q.status === "sent").length;
   const totalFollowers  = (igFollowers ?? 0) + (ttFollowers ?? 0) + (ytSubs ?? 0);
-  const socialPoints    = Math.floor(totalFollowers / 100);
 
-  const fennecDb = Math.round(
-    activeCount    * 150 +
-    closedCount    * 50  +
-    clients.length * 75  +
-    quotesSent     * 25  +
-    socialPoints
-  );
+  const dbInputs = {
+    instagramFollowers: igFollowers,
+    tiktokFollowers:    ttFollowers,
+    youtubeSubscribers: ytSubs,
+    activeProjects:     activeCount,
+    closedProjects:     closedCount,
+    clients:            clients.length,
+    quotesSent,
+  };
+  const fennecDb  = computeFennecDb(dbInputs);
+  const reachOnly = Math.round(reachDbOf(dbInputs));
+  const activityBoost = fennecDb - reachOnly;
   useEffect(() => {
     if (!mounted) return;
     localStorage.setItem("fennec-db-score", String(fennecDb));
@@ -622,55 +628,53 @@ export default function Dashboard({
         {showDbInfo && (
           <div className="w-full rounded-xl border px-4 py-3 mt-1 text-[10px] leading-relaxed space-y-3"
                style={{ borderColor: `${cardColorScheme.accent}15`, background: `${cardColorScheme.accent}08`, color: `${cardColorScheme.accent}70` }}>
-            <p>Your signal as an artist and producer — it grows with every project, client and listen.</p>
-            {/* Business */}
-            <div>
-              <p className="text-[8px] font-bold uppercase tracking-widest mb-1.5"
-                 style={{ color: `${cardColorScheme.accent}45` }}>Business</p>
-              <div className="flex flex-wrap gap-x-5 gap-y-1">
-                {[
-                  ["Active project",  "×150"],
-                  ["Closed project",  "×50"],
-                  ["Client",          "×75"],
-                  ["Quote sent",      "×25"],
-                ].map(([l, p]) => (
-                  <span key={l}>{l} <strong style={{ color: cardColorScheme.accent }}>{p}</strong></span>
-                ))}
-              </div>
-            </div>
+            <p>Your signal strength as a producer, measured like decibels — a logarithmic read on your real reach. Every 10× of audience adds about +{FENNEC_DB_MODEL.reachPerDecade} dB.</p>
 
-            {/* Social */}
+            {/* Reach — the engine */}
             <div>
               <p className="text-[8px] font-bold uppercase tracking-widest mb-1.5"
-                 style={{ color: `${cardColorScheme.accent}45` }}>Social</p>
+                 style={{ color: `${cardColorScheme.accent}45` }}>Reach · the engine</p>
               <div className="flex flex-wrap gap-x-5 gap-y-1">
-                <span>
-                  Total followers{" "}
-                  <strong style={{ color: cardColorScheme.accent }}>÷100 pts</strong>
-                </span>
+                <span>Instagram + TikTok + YouTube followers</span>
               </div>
-              {totalFollowers > 0 && (
+              {totalFollowers > 0 ? (
                 <p className="mt-1 text-[9px]" style={{ color: `${cardColorScheme.accent}55` }}>
-                  {totalFollowers.toLocaleString()} followers → <strong style={{ color: cardColorScheme.accent }}>+{socialPoints} pts</strong>
+                  {totalReachAudience(dbInputs).toLocaleString()} in audience → <strong style={{ color: cardColorScheme.accent }}>{reachOnly} dB</strong>
+                </p>
+              ) : (
+                <p className="mt-1 text-[9px]" style={{ color: `${cardColorScheme.accent}55` }}>
+                  Connect your socials to build your signal.
                 </p>
               )}
             </div>
 
-            {/* Musical reach (coming soon) */}
+            {/* Activity — the booster */}
+            <div>
+              <p className="text-[8px] font-bold uppercase tracking-widest mb-1.5"
+                 style={{ color: `${cardColorScheme.accent}45` }}>Activity · a boost (max +{FENNEC_DB_MODEL.activityCap})</p>
+              <div className="flex flex-wrap gap-x-5 gap-y-1">
+                <span>Projects, clients &amp; quotes. Closing work only adds — it never lowers your dB.</span>
+              </div>
+              {activityBoost > 0 && (
+                <p className="mt-1 text-[9px]" style={{ color: `${cardColorScheme.accent}55` }}>
+                  Your activity → <strong style={{ color: cardColorScheme.accent }}>+{activityBoost} dB</strong>
+                </p>
+              )}
+            </div>
+
+            {/* Verified reach (coming soon) */}
             <div>
               <div className="flex items-center gap-2 mb-1.5">
                 <p className="text-[8px] font-bold uppercase tracking-widest"
-                   style={{ color: `${cardColorScheme.accent}45` }}>Musical reach</p>
+                   style={{ color: `${cardColorScheme.accent}45` }}>Verified reach</p>
                 <span className="text-[7px] font-bold px-1.5 py-0.5 rounded-full"
                       style={{ background: `${cardColorScheme.accent}15`, color: `${cardColorScheme.accent}70` }}>
-                  via Muso.AI · coming soon
+                  streams &amp; credits · coming soon
                 </span>
               </div>
-              <div className="flex flex-wrap gap-x-5 gap-y-1" style={{ opacity: 0.5 }}>
-                {[["Total streams", "TBD"], ["Verified credits", "TBD"]].map(([l, p]) => (
-                  <span key={l}>{l} <strong style={{ color: cardColorScheme.accent }}>{p}</strong></span>
-                ))}
-              </div>
+              <p className="text-[9px]" style={{ opacity: 0.6 }}>
+                Verified streams and credits will fold into your reach.
+              </p>
             </div>
           </div>
         )}
