@@ -145,8 +145,8 @@ export default function MusicContentLab({ onClose, onGenerateScript }: Props) {
         <div className="px-4 py-6 space-y-4">
           <p className="text-xs text-zinc-500">
             {isFormat
-              ? "How you present the content — e.g. B-roll, Reel, Podcast clip"
-              : "The topic or template — use X as a variable, e.g. \"How X would sound like X\""}
+              ? "How you present the content, e.g. B-roll, Reel, Podcast clip"
+              : "The topic or template. Use X as a variable, e.g. \"How X would sound like X\""}
           </p>
           <input
             type="text"

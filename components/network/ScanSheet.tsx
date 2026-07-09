@@ -29,7 +29,7 @@ export default function ScanSheet({
     const mint = async () => {
       const token = await mintConnectionToken();
       if (!alive) return;
-      if (!token) { setStatus("Couldn't generate your code — try again in a moment."); return; }
+      if (!token) { setStatus("Couldn't generate your code. Try again in a moment."); return; }
       const dataUrl = await QRCode.toDataURL(token, { margin: 1, width: 220, color: { dark: "#111114", light: "#ffffff" } });
       if (alive) setQr(dataUrl);
     };
@@ -79,7 +79,7 @@ export default function ScanSheet({
         {qr ? (
           <img
             src={qr}
-            alt="Your connect code — have the other producer scan this"
+            alt="Your connect code. Have the other producer scan this."
             className="mx-auto rounded-xl mb-5"
             width={180}
             height={180}
@@ -107,9 +107,9 @@ export default function ScanSheet({
 }
 
 function prettyReason(reason: string): string {
-  if (reason.includes("TOKEN_EXPIRED")) return "That code expired — ask them to reopen Scan.";
+  if (reason.includes("TOKEN_EXPIRED")) return "That code expired. Ask them to reopen Scan.";
   if (reason.includes("TOKEN_USED")) return "Already connected.";
   if (reason.includes("CANNOT_CONNECT_SELF")) return "That's your own code.";
-  if (reason.includes("TOKEN_NOT_FOUND")) return "Code not recognized — try again.";
-  return "Couldn't connect — try again.";
+  if (reason.includes("TOKEN_NOT_FOUND")) return "Code not recognized. Try again.";
+  return "Couldn't connect. Try again.";
 }

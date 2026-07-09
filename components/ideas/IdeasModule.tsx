@@ -463,7 +463,7 @@ function RecordView({
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Notes (optional) — context, references, project ideas..."
+            placeholder="Notes (optional). Context, references, project ideas..."
             rows={2}
             className="w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2.5 text-sm text-white outline-none resize-none placeholder:text-zinc-500 focus:border-accent"
           />

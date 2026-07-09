@@ -143,10 +143,10 @@ export default function MyTracksView({ userId, isPro }: Props) {
       if (!result.karmaPaid) {
         const note =
           result.reason === "track_already_paid"
-            ? "Sealed — karma was already paid to this producer on this tape (1 payout per producer per track)."
+            ? "Sealed. Karma was already paid to this producer on this tape (1 payout per producer per track)."
             : result.reason === "weekly_cap"
-            ? "Sealed — weekly karma cap with this producer reached (max 3 payouts per week). The seal still shows."
-            : "Sealed — no karma paid this time.";
+            ? "Sealed. Weekly karma cap with this producer reached (max 3 payouts per week). The seal still shows."
+            : "Sealed. No karma paid this time.";
         setStampNotes((prev) => ({ ...prev, [commentId]: note }));
       }
     }

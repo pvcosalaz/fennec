@@ -29,7 +29,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // lang="en": the Fennec UI is English-only — with lang="es", VoiceOver read
+  // lang="en": the Fennec UI is English-only. With lang="es", VoiceOver read
   // every English string with a Spanish accent.
   return (
     <html lang="en" className="h-full antialiased" style={{ background: "#111114" }}>

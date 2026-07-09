@@ -81,7 +81,7 @@ export default function RadioFrequency({ userId, peer }: { userId: string; peer:
     } catch {
       const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
       setError(isIOS
-        ? "Mic blocked — Settings → Safari → Microphone → Allow"
+        ? "Mic blocked. Allow it in Settings → Safari → Microphone."
         : "Mic access is required. Allow it and try again.");
     }
   }
@@ -105,7 +105,7 @@ export default function RadioFrequency({ userId, peer }: { userId: string; peer:
       setNotes((prev) => [...prev, note]);
       navigator.vibrate?.(10);
     } else {
-      setError("Couldn't send — try again.");
+      setError("Couldn't send. Try again.");
     }
   }
 

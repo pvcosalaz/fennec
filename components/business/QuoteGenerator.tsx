@@ -485,7 +485,7 @@ export default function QuoteGenerator({
                     <button
                       onClick={() => handleSendEmail(quote)}
                       className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-zinc-300 transition hover:border-accent/50 hover:text-accent"
-                      title="Send quote — automatically creates an active project"
+                      title="Send quote · creates an active project"
                     >
                       <Send className="h-3 w-3" />
                       {quote.status === "sent" ? "Resend" : "Send"}

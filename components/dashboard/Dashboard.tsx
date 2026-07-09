@@ -628,7 +628,7 @@ export default function Dashboard({
         {showDbInfo && (
           <div className="w-full rounded-xl border px-4 py-3 mt-1 text-[10px] leading-relaxed space-y-3"
                style={{ borderColor: `${cardColorScheme.accent}15`, background: `${cardColorScheme.accent}08`, color: `${cardColorScheme.accent}70` }}>
-            <p>Your signal strength as a producer, measured like decibels — a logarithmic read on your real reach. Every 10× of audience adds about +{FENNEC_DB_MODEL.reachPerDecade} dB.</p>
+            <p>Your signal strength as a producer, measured like decibels. A logarithmic read on your real reach: every 10× of audience adds about +{FENNEC_DB_MODEL.reachPerDecade} dB.</p>
 
             {/* Reach — the engine */}
             <div>
@@ -653,7 +653,7 @@ export default function Dashboard({
               <p className="text-[8px] font-bold uppercase tracking-widest mb-1.5"
                  style={{ color: `${cardColorScheme.accent}45` }}>Activity · a boost (max +{FENNEC_DB_MODEL.activityCap})</p>
               <div className="flex flex-wrap gap-x-5 gap-y-1">
-                <span>Projects, clients &amp; quotes. Closing work only adds — it never lowers your dB.</span>
+                <span>Projects, clients &amp; quotes. Closing work only adds. It never lowers your dB.</span>
               </div>
               {activityBoost > 0 && (
                 <p className="mt-1 text-[9px]" style={{ color: `${cardColorScheme.accent}55` }}>

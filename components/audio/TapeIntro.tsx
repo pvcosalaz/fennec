@@ -24,11 +24,11 @@ const STEPS: { title: string; body: string }[] = [
   },
   {
     title: "Seals pay karma",
-    body: "When the artist seals your mark — “this helped” — you earn +2 karma. Quality feedback is the only way to earn it.",
+    body: "When the artist seals your mark as “this helped,” you earn +2 karma. Quality feedback is the only way to earn it.",
   },
   {
     title: "Upload your own",
-    body: "Uploading costs 5 karma and you start with 5 — your first track is on the house.",
+    body: "Uploading costs 5 karma and you start with 5, so your first track is on the house.",
   },
 ];
 

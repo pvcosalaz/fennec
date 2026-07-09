@@ -133,12 +133,12 @@ function ProjectForm({
         <Select
           value={form.clientId}
           onChange={(val) => set("clientId", val)}
-          placeholder="— No client —"
+          placeholder="No client"
           options={clients.map((c) => ({ value: c.id, label: c.name + (c.company ? ` · ${c.company}` : "") }))}
         />
         {clients.length === 0 && (
           <p className="text-[11px] text-amber-500/70 flex items-center gap-1">
-            <Lock size={9} /> Add clients with Pro to track who pays you — optional
+            <Lock size={9} /> Optional. Add clients with Pro to track who pays you.
           </p>
         )}
       </div>
@@ -150,7 +150,7 @@ function ProjectForm({
           <Select
             value={form.projectTypeId}
             onChange={(val) => set("projectTypeId", val)}
-            placeholder="— Select —"
+            placeholder="Select…"
             options={projectTypes.map((pt) => ({ value: pt.id, label: pt.label }))}
           />
         </div>

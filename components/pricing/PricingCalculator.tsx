@@ -241,7 +241,7 @@ const UPGRADE_COPY = {
   calculator: {
     line1: "Your price is set.",
     line2: "Now see the exact number.",
-    sub: "Unlock your precise minimum & recommended rates — and turn them into income.",
+    sub: "Unlock your precise minimum & recommended rates, and turn them into income.",
   },
   quotes: {
     line1: "Quotes that close.",
@@ -251,12 +251,12 @@ const UPGRADE_COPY = {
   clients: {
     line1: "Your roster,",
     line2: "organized.",
-    sub: "Keep every client and lead in one place — and follow up on time.",
+    sub: "Keep every client and lead in one place, and follow up on time.",
   },
   content: {
     line1: "Your content engine,",
     line2: "unlocked.",
-    sub: "Inspire, Content Lab & Trending — plan a month of content in minutes.",
+    sub: "Inspire, Content Lab & Trending. Plan a month of content in minutes.",
   },
   generic: {
     line1: "Go Pro.",
@@ -1188,7 +1188,7 @@ export default function PricingCalculator() {
                                   ? `≈ ${formatCurrency(aRec, calcCurrency)}`
                                   : `${formatCurrency(aMin, calcCurrency)} – ${formatCurrency(aRec, calcCurrency)}`}
                               </p>
-                              <p className="text-xs text-zinc-400">per project — a ballpark. Pro reveals your exact minimum &amp; recommended price.</p>
+                              <p className="text-xs text-zinc-400">per project, a ballpark. Pro reveals your exact minimum &amp; recommended price.</p>
                             </div>
                             <button
                               onClick={() => openUpgrade("calculator")}
@@ -1393,7 +1393,7 @@ export default function PricingCalculator() {
               disabled={upgrading}
               className="w-full py-4 rounded-2xl bg-amber-500 hover:bg-amber-400 active:scale-95 transition text-black font-black text-base shadow-lg shadow-amber-500/30 disabled:opacity-60"
             >
-              {upgrading ? "Redirecting…" : upgradePlan === "yearly" ? "Start Pro — $119.99 / year" : "Start Pro — $14.99 / month"}
+              {upgrading ? "Redirecting…" : upgradePlan === "yearly" ? "Start Pro · $119.99 / year" : "Start Pro · $14.99 / month"}
             </button>
 
             <button onClick={() => setShowUpgrade(false)} className="w-full text-xs text-zinc-600 hover:text-zinc-400 transition py-1">

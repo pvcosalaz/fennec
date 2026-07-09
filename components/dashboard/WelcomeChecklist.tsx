@@ -59,7 +59,7 @@ export function WelcomeModal({
         <div className="mb-4 rounded-2xl border border-accent/15 bg-accent/[0.06] px-4 py-3">
           <p className="text-[11px] font-bold uppercase tracking-widest text-accent/80">Your Fennec dB</p>
           <p className="mt-1 text-xs leading-relaxed text-zinc-400">
-            Your signal strength as a producer — measured like decibels. It grows with your real reach, so connect your socials to turn it up.
+            Your signal strength as a producer, measured like decibels. It grows with your real reach, so connect your socials to turn it up.
           </p>
         </div>
 

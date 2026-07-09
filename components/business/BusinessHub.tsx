@@ -126,7 +126,7 @@ export default function BusinessHub({ onOpenView, isPro = false, userId, onUpgra
           <div className="h-px flex-1 bg-gradient-to-r from-accent/20 to-transparent" />
         </div>
         <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-white">Run your music business.</h1>
-        <p className="mt-1.5 text-sm text-zinc-500 leading-relaxed">Projects, quotes, clients — and the revenue they bring in.</p>
+        <p className="mt-1.5 text-sm text-zinc-500 leading-relaxed">Projects, quotes, clients, and the revenue they bring in.</p>
       </div>
 
       {/* ── Revenue this month + bars ── */}

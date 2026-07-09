@@ -371,7 +371,7 @@ export default function FennecIdCard({
           }}
         >
           <p style={{ fontSize: 9, color: `${accent}90`, lineHeight: 1.6, margin: 0 }}>
-            Your signal strength as a producer, measured like decibels. It grows with your real reach — every 10× of audience adds about +12 dB.
+            Your signal strength as a producer, measured like decibels. It grows with your real reach. Every 10× of audience adds about +12 dB.
           </p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 12px", marginTop: 6 }}>
             {[
