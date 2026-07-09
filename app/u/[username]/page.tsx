@@ -72,6 +72,7 @@ export default function PublicProfilePage() {
           instagram={profile.instagram}
           spotify={profile.spotify}
           youtube={profile.youtube_url}
+          hideZeroDb
         />
       </div>
 

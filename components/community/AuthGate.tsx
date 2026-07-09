@@ -116,7 +116,7 @@ export default function AuthGate() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full h-11 rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-amber-500"
+            className="w-full h-11 rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-amber-500"
           />
           <input
             type="password"
@@ -125,7 +125,7 @@ export default function AuthGate() {
             onChange={(e) => setPassword(e.target.value)}
             required
             minLength={6}
-            className="w-full h-11 rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-amber-500"
+            className="w-full h-11 rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-amber-500"
           />
           {error && <p className="text-xs text-red-400">{error}</p>}
           {message && <p className="text-xs text-green-400">{message}</p>}

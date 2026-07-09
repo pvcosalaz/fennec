@@ -96,7 +96,7 @@ export default function ReviewFeedback({ onSubmit, onClose }: Props) {
           onChange={(e) => setBody(e.target.value)}
           placeholder="The drop at 1:20 could use more bass..."
           rows={4}
-          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-amber-500 resize-none"
+          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-amber-500 resize-none"
         />
         {error && <p className="text-xs text-red-400">{error}</p>}
       </div>

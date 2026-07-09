@@ -155,7 +155,7 @@ export default function MusicContentLab({ onClose, onGenerateScript }: Props) {
             onChange={(e) => setNewName(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && (isFormat ? addFormat() : addLine())}
             placeholder={isFormat ? "e.g. YouTube Short" : "e.g. How X would sound like X"}
-            className="w-full h-11 rounded-2xl border border-white/10 bg-zinc-900 px-4 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-amber-400/50 transition"
+            className="w-full h-11 rounded-2xl border border-white/10 bg-zinc-900 px-4 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-amber-400/50 transition"
           />
           <button
             onClick={isFormat ? addFormat : addLine}

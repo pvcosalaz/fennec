@@ -312,7 +312,7 @@ export default function QuoteGenerator({
               onChange={(e) =>
                 setForm((p) => ({ ...p, projectName: e.target.value }))
               }
-              className="h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-accent"
+              className="h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
             />
           </label>
 
@@ -356,7 +356,7 @@ export default function QuoteGenerator({
               onChange={(e) =>
                 setForm((p) => ({ ...p, finalPrice: e.target.value }))
               }
-              className={`h-10 rounded-xl border bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-accent ${
+              className={`h-10 rounded-xl border bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent ${
                 isBelowMin
                   ? "border-red-400/50 focus:border-red-400"
                   : "border-white/15"
@@ -402,7 +402,7 @@ export default function QuoteGenerator({
                 setForm((p) => ({ ...p, notes: e.target.value }))
               }
               rows={3}
-              className="resize-none rounded-xl border border-white/15 bg-black/30 px-3 py-2.5 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-accent"
+              className="resize-none rounded-xl border border-white/15 bg-black/30 px-3 py-2.5 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
             />
           </label>
 

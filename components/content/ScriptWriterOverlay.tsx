@@ -109,7 +109,7 @@ export default function ScriptWriterOverlay({ videoRef, onSave, onClose }: Props
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="What's your content idea?"
-            className="w-full h-12 rounded-2xl border border-white/10 bg-zinc-900 px-4 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-purple-400/50 transition"
+            className="w-full h-12 rounded-2xl border border-white/10 bg-zinc-900 px-4 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-purple-400/50 transition"
             autoFocus
           />
         </div>
@@ -122,7 +122,7 @@ export default function ScriptWriterOverlay({ videoRef, onSave, onClose }: Props
             onChange={(e) => setScript(e.target.value)}
             placeholder={`Use the angle above as your starting point.\n\nWrite your hook, structure, and key points here...`}
             rows={10}
-            className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-purple-400/50 transition resize-none leading-relaxed"
+            className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-purple-400/50 transition resize-none leading-relaxed"
           />
         </div>
 

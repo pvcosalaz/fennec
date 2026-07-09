@@ -145,7 +145,7 @@ export default function EditProfileSheet({ profile, onClose, onSaved }: Props) {
             placeholder="Tell us about yourself..."
             maxLength={160}
             rows={3}
-            className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-amber-500 resize-none"
+            className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-amber-500 resize-none"
           />
           <p className="text-right text-[10px] text-zinc-600">{bio.length}/160</p>
         </div>
@@ -170,7 +170,7 @@ export default function EditProfileSheet({ profile, onClose, onSaved }: Props) {
               onChange={(e) => setGenreInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addGenre(); } }}
               placeholder="e.g. Dark Trap, Neoclassical..."
-              className="flex-1 h-9 rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-amber-500"
+              className="flex-1 h-9 rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-amber-500"
             />
             <button
               onClick={addGenre}
@@ -188,7 +188,7 @@ export default function EditProfileSheet({ profile, onClose, onSaved }: Props) {
             value={workedWith}
             onChange={(e) => setWorkedWith(e.target.value)}
             placeholder="e.g. Bad Bunny, Hans Zimmer, Sony Music"
-            className="w-full h-11 rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-amber-500"
+            className="w-full h-11 rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-amber-500"
           />
         </div>
 
@@ -199,7 +199,7 @@ export default function EditProfileSheet({ profile, onClose, onSaved }: Props) {
             value={workedIn}
             onChange={(e) => setWorkedIn(e.target.value)}
             placeholder="e.g. Succession, FIFA 25, Coca-Cola ad"
-            className="w-full h-11 rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-amber-500"
+            className="w-full h-11 rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-amber-500"
           />
         </div>
 

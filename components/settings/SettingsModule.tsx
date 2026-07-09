@@ -269,7 +269,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
             placeholder="I wish Fennec could…"
             rows={4}
             maxLength={1000}
-            className="w-full bg-transparent text-sm text-white placeholder:text-zinc-600 outline-none resize-none"
+            className="w-full bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none resize-none"
           />
           <div className="flex items-center justify-between">
             <span className="text-[11px] text-zinc-600">{suggestBody.trim().length}/1000</span>
@@ -364,7 +364,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
             value={profile.name}
             onChange={(e) => setProfile((p) => ({ ...p, name: e.target.value }))}
             placeholder="Your name"
-            className="w-full h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-accent"
+            className="w-full h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
           />
         </div>
 
@@ -436,7 +436,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
               value={profile[key as keyof UserProfile]}
               onChange={(e) => setProfile((p) => ({ ...p, [key]: e.target.value }))}
               placeholder={placeholder}
-              className="flex-1 h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-accent"
+              className="flex-1 h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
             />
           </div>
         ))}

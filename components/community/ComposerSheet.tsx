@@ -147,7 +147,7 @@ export default function ComposerSheet({ profile, onClose, onPostCreated, initial
           maxLength={500}
           rows={3}
           autoFocus
-          className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-amber-500 resize-none"
+          className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-amber-500 resize-none"
         />
 
         {/* Media preview */}

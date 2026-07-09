@@ -135,21 +135,21 @@ function IdeasBankView({
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Title or idea..."
-            className="w-full h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-accent"
+            className="w-full h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
           />
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Notes (optional)"
             rows={2}
-            className="w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white outline-none resize-none placeholder:text-zinc-600 focus:border-accent"
+            className="w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white outline-none resize-none placeholder:text-zinc-500 focus:border-accent"
           />
           <input
             type="url"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="URL (optional)"
-            className="w-full h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-accent"
+            className="w-full h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
           />
           <div className="flex gap-2 justify-end">
             <button onClick={() => setShowForm(false)} className="px-3 py-1.5 text-xs text-zinc-400 hover:text-white transition">Cancel</button>
@@ -363,14 +363,14 @@ function ScriptsView({
             value={fTitle}
             onChange={(e) => setFTitle(e.target.value)}
             placeholder="Title or hook for this piece..."
-            className="w-full h-11 rounded-2xl border border-white/15 bg-white/5 px-4 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-accent"
+            className="w-full h-11 rounded-2xl border border-white/15 bg-white/5 px-4 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
           />
           <textarea
             value={fScript}
             onChange={(e) => setFScript(e.target.value)}
             placeholder="Write your script, idea, or execution notes..."
             rows={4}
-            className="w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white outline-none resize-none placeholder:text-zinc-600 focus:border-accent"
+            className="w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white outline-none resize-none placeholder:text-zinc-500 focus:border-accent"
           />
           <div className="flex gap-2">
             <button onClick={closeSheet} className="flex-1 rounded-2xl border border-white/10 py-3 text-sm text-zinc-400 hover:text-white transition">

@@ -48,7 +48,7 @@ export default function UsernameSetup({ userId, avatarUrl, onComplete }: Props) 
             placeholder="yourusername"
             maxLength={30}
             required
-            className="w-full h-11 rounded-xl border border-white/10 bg-white/5 pl-7 pr-3 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-amber-500"
+            className="w-full h-11 rounded-xl border border-white/10 bg-white/5 pl-7 pr-3 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-amber-500"
           />
         </div>
         {error && <p className="text-xs text-red-400">{error}</p>}

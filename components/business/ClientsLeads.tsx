@@ -161,7 +161,7 @@ export default function ClientsLeads({ onBack, userId }: Props) {
               <input
                 type="text"
                 placeholder="Jordan Rivers"
-                className="h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-accent"
+                className="h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
                 {...field("name")}
               />
             </label>
@@ -171,7 +171,7 @@ export default function ClientsLeads({ onBack, userId }: Props) {
               <input
                 type="email"
                 placeholder="jordan@studio.com"
-                className="h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-accent"
+                className="h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
                 {...field("email")}
               />
             </label>
@@ -181,7 +181,7 @@ export default function ClientsLeads({ onBack, userId }: Props) {
               <input
                 type="tel"
                 placeholder="+52 55 1234 5678"
-                className="h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-accent"
+                className="h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
                 {...field("phone")}
               />
             </label>
@@ -191,7 +191,7 @@ export default function ClientsLeads({ onBack, userId }: Props) {
               <input
                 type="text"
                 placeholder="Label XYZ"
-                className="h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-accent"
+                className="h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
                 {...field("company")}
               />
             </label>

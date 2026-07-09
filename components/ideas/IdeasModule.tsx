@@ -389,7 +389,7 @@ function RecordView({
             onChange={(e) => setTitle(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && save()}
             placeholder="Name this idea..."
-            className="w-full h-11 rounded-xl border border-white/15 bg-black/30 px-4 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-accent"
+            className="w-full h-11 rounded-xl border border-white/15 bg-black/30 px-4 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
           />
 
           {/* Mood */}
@@ -465,7 +465,7 @@ function RecordView({
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Notes (optional) — context, references, project ideas..."
             rows={2}
-            className="w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2.5 text-sm text-white outline-none resize-none placeholder:text-zinc-600 focus:border-accent"
+            className="w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2.5 text-sm text-white outline-none resize-none placeholder:text-zinc-500 focus:border-accent"
           />
 
           {/* Status */}
@@ -741,7 +741,7 @@ function BankView({
         <input
           type="text" value={query} onChange={(e) => setQuery(e.target.value)}
           placeholder="Search by title or notes..."
-          className="w-full h-10 rounded-xl border border-white/10 bg-white/5 pl-9 pr-9 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-accent"
+          className="w-full h-10 rounded-xl border border-white/10 bg-white/5 pl-9 pr-9 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
         />
         {query && (
           <button onClick={() => setQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-white transition">

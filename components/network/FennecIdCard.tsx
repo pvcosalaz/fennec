@@ -61,6 +61,12 @@ export type FennecIdCardProps = {
    * Use when a larger animated dB is displayed outside the card.
    */
   smallDb?: boolean;
+  /**
+   * When true, the FENNEC dB block is hidden while the score is 0.
+   * Used on the public /u/[username] card: a giant 0 on the card people
+   * share to connect sells the producer short — clean beats empty.
+   */
+  hideZeroDb?: boolean;
 };
 
 function pad4(n: number): string {
@@ -132,10 +138,12 @@ export default function FennecIdCard({
   spotify,
   youtube,
   smallDb = false,
+  hideZeroDb = false,
 }: FennecIdCardProps) {
   const { accent, dark1, dark2, glowRgb, textOnAvatar } = colorScheme;
   const [showDbInfo, setShowDbInfo] = useState(false);
   const animatedDb = useCountUp(fennecDb, 1400);
+  const showDb = !(hideZeroDb && fennecDb === 0);
 
   return (
     <div
@@ -304,7 +312,10 @@ export default function FennecIdCard({
           zIndex: 1,
         }}
       >
-        {smallDb ? (
+        {!showDb ? (
+          /* hideZeroDb: keep the band's flex layout so social icons stay right-aligned */
+          <div />
+        ) : smallDb ? (
           /* Small static badge — dB hero lives outside the card */
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <span style={{ fontSize: 7, color: `${accent}55`, fontWeight: 700, letterSpacing: "0.16em" }}>

@@ -274,7 +274,7 @@ export default function MyTracksView({ userId, isPro }: Props) {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             maxLength={60}
-            className="w-full h-10 rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-amber-500"
+            className="w-full h-10 rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-amber-500"
           />
 
           {/* Category select */}

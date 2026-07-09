@@ -159,7 +159,7 @@ export default function CommentsView({ post, profile, onBack, onOpenProfile }: P
               onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
               placeholder="Write a comment..."
-              className="flex-1 text-sm text-white placeholder:text-zinc-600 bg-transparent outline-none"
+              className="flex-1 text-sm text-white placeholder:text-zinc-500 bg-transparent outline-none"
             />
             <button onClick={() => setShowGif(true)}>
               <SmilePlus className="h-4 w-4 text-zinc-500 hover:text-zinc-300 transition" />
