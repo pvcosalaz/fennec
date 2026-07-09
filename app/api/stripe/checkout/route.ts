@@ -18,25 +18,24 @@ export async function POST(req: NextRequest) {
   const successUrl = `${appUrl}/?upgraded=1`;
   const cancelUrl  = `${appUrl}/`;
 
-  // Reuse existing Stripe customer if available
-  const { data: profile } = await getSupabaseAdmin()
-    .from("profiles")
-    .select("stripe_customer_id, email, full_name")
+  // Reuse existing Stripe customer if available. stripe_customer_id lives in
+  // profiles_private (service-role only); email comes from the auth user.
+  const { data: priv } = await getSupabaseAdmin()
+    .from("profiles_private")
+    .select("stripe_customer_id")
     .eq("id", user.id)
     .single();
 
-  let customerId = profile?.stripe_customer_id as string | undefined;
+  let customerId = priv?.stripe_customer_id as string | undefined;
   if (!customerId) {
     const customer = await getStripe().customers.create({
-      email: user.email ?? profile?.email ?? undefined,
-      name: profile?.full_name ?? undefined,
+      email: user.email ?? undefined,
       metadata: { supabase_uid: user.id },
     });
     customerId = customer.id;
     await getSupabaseAdmin()
-      .from("profiles")
-      .update({ stripe_customer_id: customerId })
-      .eq("id", user.id);
+      .from("profiles_private")
+      .upsert({ id: user.id, stripe_customer_id: customerId }, { onConflict: "id" });
   }
 
   const session = await getStripe().checkout.sessions.create({

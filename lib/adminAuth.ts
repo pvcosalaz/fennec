@@ -16,16 +16,16 @@ export async function requireAdmin(req: Request): Promise<AdminCheck> {
   const { data: { user }, error } = await admin.auth.getUser(token);
   if (error || !user) return { ok: false, status: 401, error: "Invalid session" };
 
-  const { data: profile, error: profErr } = await admin
-    .from("profiles")
+  // is_admin lives in profiles_private now (service-role only). A missing row
+  // or any error means not authorized.
+  const { data: priv, error: profErr } = await admin
+    .from("profiles_private")
     .select("is_admin")
     .eq("id", user.id)
     .single();
 
-  // profErr also covers "column is_admin does not exist" before the
-  // 20260610_user_events migration has been run — treat as not authorized.
-  if (profErr || !profile || !(profile as { is_admin?: boolean }).is_admin) {
-    return { ok: false, status: 403, error: "Not an admin (or migration 20260610_user_events not run yet)" };
+  if (profErr || !priv || !(priv as { is_admin?: boolean }).is_admin) {
+    return { ok: false, status: 403, error: "Not an admin" };
   }
   return { ok: true, userId: user.id };
 }

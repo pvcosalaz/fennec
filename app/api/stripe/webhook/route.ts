@@ -6,18 +6,19 @@ import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import Stripe from "stripe";
 
 async function setProStatus(customerId: string, isPro: boolean) {
-  const { data: profile } = await getSupabaseAdmin()
-    .from("profiles")
+  // The customer id lives in profiles_private now; is_pro stays on profiles.
+  const { data: priv } = await getSupabaseAdmin()
+    .from("profiles_private")
     .select("id")
     .eq("stripe_customer_id", customerId)
     .single();
 
-  if (!profile) return;
+  if (!priv) return;
 
   await getSupabaseAdmin()
     .from("profiles")
     .update({ is_pro: isPro })
-    .eq("id", profile.id);
+    .eq("id", priv.id);
 }
 
 /** Credits a purchased karma pack. Idempotent: the ledger records the
