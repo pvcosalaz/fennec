@@ -371,14 +371,13 @@ export default function FennecIdCard({
           }}
         >
           <p style={{ fontSize: 9, color: `${accent}90`, lineHeight: 1.6, margin: 0 }}>
-            A growing number that measures how active your music business is — like signal strength, but for your career.
+            Your signal strength as a producer, measured like decibels. It grows with your real reach — every 10× of audience adds about +12 dB.
           </p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 12px", marginTop: 6 }}>
             {[
-              { label: "Active project", value: "×150" },
-              { label: "Closed project", value: "×50"  },
-              { label: "Client",         value: "×75"  },
-              { label: "Quote sent",     value: "×25"  },
+              { label: "Reach", value: "the engine" },
+              { label: "Activity", value: "a small boost" },
+              { label: "Verified reach", value: "soon" },
             ].map((r) => (
               <span key={r.label} style={{ fontSize: 8, color: `${accent}65` }}>
                 {r.label} <strong style={{ color: accent }}>{r.value}</strong>
