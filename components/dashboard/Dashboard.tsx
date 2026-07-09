@@ -99,8 +99,9 @@ function StatChip({
       )}
       <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">{label}</p>
       {pending && onConnect && (
+        // px/py + negative margins: grows the tap target toward 44pt without shifting layout
         <button type="button" onClick={onConnect}
-          className="mt-0.5 text-[9px] font-semibold transition"
+          className="mt-0.5 text-[9px] font-semibold transition px-3 py-2 -mx-3 -my-1.5"
           style={{ color: "rgba(245,166,35,0.55)" }}
           onMouseEnter={e => (e.currentTarget.style.color = "rgba(245,166,35,0.9)")}
           onMouseLeave={e => (e.currentTarget.style.color = "rgba(245,166,35,0.55)")}>
@@ -131,8 +132,9 @@ function SocialChip({
       </p>
       <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">{label}</p>
       {!hasHandle && onConnect && (
+        // Same tap-target expansion as StatChip's connect button
         <button type="button" onClick={onConnect}
-          className="mt-0.5 text-[9px] font-semibold transition"
+          className="mt-0.5 text-[9px] font-semibold transition px-3 py-2 -mx-3 -my-1.5"
           style={{ color: "rgba(245,166,35,0.55)" }}
           onMouseEnter={e => (e.currentTarget.style.color = "rgba(245,166,35,0.9)")}
           onMouseLeave={e => (e.currentTarget.style.color = "rgba(245,166,35,0.55)")}>

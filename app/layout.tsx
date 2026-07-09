@@ -30,7 +30,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className="h-full antialiased" style={{ background: "#111114" }}>
+    // lang="en": the Fennec UI is English-only — with lang="es", VoiceOver
+    // read every English string with Spanish pronunciation
+    <html lang="en" className="h-full antialiased" style={{ background: "#111114" }}>
       <body className="h-full" style={{ background: "#111114" }}>{children}</body>
     </html>
   );

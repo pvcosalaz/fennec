@@ -746,6 +746,7 @@ export default function PricingCalculator() {
           <div className="flex-1 flex justify-end pointer-events-auto">
             <button
               onClick={() => { void track("settings_open"); setShowSettings(true); }}
+              aria-label="Settings"
               className="flex items-center justify-center h-8 w-8 rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl text-zinc-400 hover:text-accent hover:border-accent/30 transition"
             >
               <Settings className="h-4 w-4" />
@@ -1334,6 +1335,8 @@ export default function PricingCalculator() {
               <button
                 key={tab.id}
                 onClick={() => { setActiveTab(tab.id); setBusinessView("hub"); }}
+                aria-label={t(tab.labelKey)}
+                aria-current={isActive ? "page" : undefined}
                 className={`flex flex-1 flex-col items-center justify-center py-3 transition ${
                   isActive ? "text-accent" : "text-zinc-500"
                 }`}

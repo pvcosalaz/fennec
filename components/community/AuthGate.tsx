@@ -89,7 +89,7 @@ export default function AuthGate() {
             <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
             <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
           </svg>
-          Continuar con Google
+          Continue with Google
         </button>
 
         <button
@@ -100,12 +100,12 @@ export default function AuthGate() {
           <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2">
             <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.267h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/>
           </svg>
-          Continuar con Facebook
+          Continue with Facebook
         </button>
 
         <div className="flex items-center gap-3">
           <div className="flex-1 h-px bg-white/10" />
-          <span className="text-xs text-zinc-600">o</span>
+          <span className="text-xs text-zinc-600">or</span>
           <div className="flex-1 h-px bg-white/10" />
         </div>
 

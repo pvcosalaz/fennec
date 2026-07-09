@@ -112,7 +112,7 @@ export default function AudioModule({ userId, isPro, onSheetChange }: Props) {
       {overlay === "melody" && (
         <div className="fixed inset-0 z-50 bg-[#111114] overflow-y-auto pb-32">
           <div className="flex justify-end px-4 pt-14 pb-2">
-            <button onClick={() => setOverlay(null)} className="text-zinc-500 hover:text-white transition">
+            <button onClick={() => setOverlay(null)} aria-label="Close" className="text-zinc-500 hover:text-white transition">
               <X className="h-5 w-5" />
             </button>
           </div>
@@ -165,7 +165,7 @@ function MyTracksSheet({
         </div>
         <div className="flex items-center justify-between px-4 pt-2 pb-4">
           <span className="text-sm font-bold text-white">My Tracks</span>
-          <button onClick={dismiss} className="text-zinc-500 hover:text-white transition">
+          <button onClick={dismiss} aria-label="Close" className="text-zinc-500 hover:text-white transition">
             <X className="h-5 w-5" />
           </button>
         </div>
