@@ -1258,7 +1258,7 @@ export default function PricingCalculator() {
         />
       ) : activeTab === "contenido" ? (
         <div className="flex-1 flex flex-col overflow-hidden">
-          <ContentModule isPro={profile?.is_pro ?? false} onUpgrade={() => openUpgrade("content")} />
+          <ContentModule isPro={profile?.is_pro ?? false} onUpgrade={() => openUpgrade("content")} genres={profile?.genres ?? []} />
         </div>
       ) : activeTab === "ideas" ? (
         <AudioModule userId={authUser.id} isPro={profile?.is_pro ?? false} onSheetChange={setNavHidden} />

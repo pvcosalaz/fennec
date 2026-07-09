@@ -460,23 +460,31 @@ function LoadingFeed() {
   );
 }
 
-function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule, onUpgrade }: {
+function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule, onUpgrade, genres = [] }: {
   isPro: boolean;
   onBack: () => void;
   onUseAsReference?: (video: VideoRef) => void;
   onRequestSchedule?: (title: string, notes?: string) => void;
   onUpgrade?: () => void;
+  /** The user's genres from their profile — the API rewrites each video's
+   *  "Your angle" for these instead of serving the generic one. */
+  genres?: string[];
 }) {
   const [videos,  setVideos]  = useState<TrendingVideo[]>([]);
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState<string | null>(null);
   const [lastFetch, setLastFetch] = useState<number | null>(null);
 
+  // Cache key includes the genre combo: changing genres in Settings must
+  // not serve angles personalized for the old ones.
+  const genreSlug = [...genres].sort().join(",").toLowerCase();
+  const cacheKey  = genreSlug ? `${CACHE_KEY}:${genreSlug}` : CACHE_KEY;
+
   useEffect(() => {
     if (!isPro) return;
     // Check cache
     try {
-      const cached = localStorage.getItem(CACHE_KEY);
+      const cached = localStorage.getItem(cacheKey);
       if (cached) {
         const { videos: v, cachedAt } = JSON.parse(cached);
         if (Date.now() - cachedAt < CACHE_TTL_MS) {
@@ -487,20 +495,22 @@ function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule, onUp
       }
     } catch {}
     fetchFeed();
-  }, [isPro]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPro, genreSlug]);
 
   async function fetchFeed() {
     setLoading(true);
     setError(null);
     try {
-      const res  = await fetch("/api/trending-ideas");
+      const qs   = genres.length ? `?genres=${encodeURIComponent(genres.join(","))}` : "";
+      const res  = await fetch(`/api/trending-ideas${qs}`);
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       if (!data.videos?.length) throw new Error("No videos returned");
       setVideos(data.videos);
       setLastFetch(data.cachedAt);
       // Only cache when we actually have results — never cache empty responses
-      localStorage.setItem(CACHE_KEY, JSON.stringify({ videos: data.videos, cachedAt: data.cachedAt }));
+      localStorage.setItem(cacheKey, JSON.stringify({ videos: data.videos, cachedAt: data.cachedAt }));
     } catch (e) {
       setError("Could not load trending ideas. Try again later.");
       console.error(e);
@@ -583,7 +593,9 @@ function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule, onUp
                   <p className="text-xs text-zinc-300 leading-relaxed">{v.why}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">Your angle</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
+                    Your angle{genres.length > 0 && ` · ${genres.slice(0, 2).join(" / ")}`}
+                  </p>
                   <p className="text-xs text-accent leading-relaxed">{v.angle}</p>
                 </div>
                 <a
@@ -622,7 +634,7 @@ function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule, onUp
 
 // ─── Main module ──────────────────────────────────────────────────────────────
 
-export default function ContentModule({ isPro = false, onUpgrade }: { isPro?: boolean; onUpgrade?: () => void }) {
+export default function ContentModule({ isPro = false, onUpgrade, genres = [] }: { isPro?: boolean; onUpgrade?: () => void; genres?: string[] }) {
   const [ideas,  setIdeas]  = useState<Idea[]>([]);
   const [briefs, setBriefs] = useState<Brief[]>([]);
   const [tasks,  setTasks]  = useState<ContentTask[]>([]);
@@ -765,6 +777,7 @@ export default function ContentModule({ isPro = false, onUpgrade }: { isPro?: bo
                   onUseAsReference={useVideoAsReference}
                   onRequestSchedule={(title: string, notes?: string) => requestSchedule(title, "inspire", notes)}
                   onUpgrade={onUpgrade}
+                  genres={genres}
                 />
               )}
               {sheet === "ideas" && (

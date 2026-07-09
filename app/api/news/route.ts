@@ -1,7 +1,8 @@
 export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { fetchNewsItems } from "@/lib/newsData";
-import { supabase } from "@/lib/supabase";
+// Admin client: cached_content is RLS-protected — anon upserts fail silently
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 export type { NewsItem } from "@/lib/newsData";
 
 const CACHE_KEY = "news_items";
@@ -9,6 +10,7 @@ const CACHE_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
 
 export async function GET() {
   try {
+    const supabase = getSupabaseAdmin();
     // Check Supabase cache first
     const { data: cached } = await supabase
       .from("cached_content")

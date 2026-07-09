@@ -26,11 +26,16 @@ async function handler(req: NextRequest) {
 
     const now = new Date().toISOString();
 
-    // Upsert both into cached_content
-    await Promise.all([
-      supabase.from("cached_content").upsert({ key: "trending_videos", data: videos, updated_at: now }),
-      supabase.from("cached_content").upsert({ key: "news_items", data: newsItems, updated_at: now }),
+    // Upsert both into cached_content. MUST be the admin client: the table
+    // is RLS-protected and the anon client's upserts failed silently — the
+    // cache sat frozen at 2026-06-02 while this cron "succeeded" daily.
+    const admin = getSupabaseAdmin();
+    const [vRes, nRes] = await Promise.all([
+      admin.from("cached_content").upsert({ key: "trending_videos", data: videos, updated_at: now }),
+      admin.from("cached_content").upsert({ key: "news_items", data: newsItems, updated_at: now }),
     ]);
+    if (vRes.error) console.error("[cache-refresh] videos upsert failed:", vRes.error.message);
+    if (nRes.error) console.error("[cache-refresh] news upsert failed:", nRes.error.message);
 
     console.log(`[cache-refresh] videos: ${videos.length}, news: ${newsItems.length}`);
 

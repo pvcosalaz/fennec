@@ -121,6 +121,44 @@ Respond ONLY with a valid JSON array with ${videos.length} objects, each with ke
   }));
 }
 
+/** Rewrite each video's "angle" for a producer working in the given genres.
+ *  The global video cache stays shared across users — this is a second,
+ *  cheaper layer: one Haiku call per unique genre combo per cache window
+ *  (the API route caches the result in cached_content). Returns a map of
+ *  video id → personalized angle; missing ids fall back to the generic angle. */
+export async function personalizeAngles(
+  videos: Pick<TrendingVideo, "id" | "title" | "channel">[],
+  genres: string[],
+): Promise<Record<string, string>> {
+  const client = new Anthropic({ apiKey: process.env.FENNEC_ANTHROPIC_KEY });
+  const genreList = genres.join(", ");
+
+  const prompt = `You are an expert music content strategist. A producer works in these genres: ${genreList}.
+
+For each trending music-production video below, write ONE sentence on how THIS producer could adapt the video's idea for their own channel. Tie the advice concretely to their genres (${genreList}) — their sound, workflow, or audience — whenever it makes the suggestion sharper. Don't force a genre mention when it adds nothing.
+
+Videos:
+${videos.map((v, i) => `${i + 1}. "${v.title}" by ${v.channel}`).join("\n")}
+
+Respond ONLY with a valid JSON array of exactly ${videos.length} strings (the angles, same order). No markdown, no explanation.`;
+
+  const message = await client.messages.create({
+    model:      "claude-haiku-4-5",
+    max_tokens: 1024,
+    messages:   [{ role: "user", content: prompt }],
+  });
+
+  let text = (message.content[0] as { type: string; text: string }).text.trim();
+  text = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+  const parsed = JSON.parse(text) as string[];
+
+  const map: Record<string, string> = {};
+  videos.forEach((v, i) => {
+    if (typeof parsed[i] === "string" && parsed[i].trim()) map[v.id] = parsed[i].trim();
+  });
+  return map;
+}
+
 export async function fetchTrendingVideos(): Promise<TrendingVideo[]> {
   const keywords = pickKeywords(2);
 
