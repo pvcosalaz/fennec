@@ -13,6 +13,7 @@ import { ensureColorAssigned } from "@/lib/networkDb";
 import { WelcomeModal, ProgressChip, type ChecklistItem } from "@/components/dashboard/WelcomeChecklist";
 import { computeFennecDb, reachDb as reachDbOf, totalReachAudience, FENNEC_DB_MODEL } from "@/lib/fennecDb";
 import { fetchKarma } from "@/lib/audioDb";
+import { fetchNotifications } from "@/lib/notificationDb";
 import { useIsDesktop } from "@/lib/useIsDesktop";
 import DashboardDesktop from "@/components/desktop/DashboardDesktop";
 import type { Profile } from "@/lib/communityTypes";
@@ -177,6 +178,7 @@ export default function Dashboard({
   const [businessLoaded, setBusinessLoaded] = useState(false);
   const [profile,    setProfile]    = useState<UserProfile | null>(null);
   const [karma,      setKarma]      = useState<number | null>(null);
+  const [latestNote, setLatestNote] = useState<string | null>(null); // latest feedback on my tracks (desktop band)
   const [mounted,    setMounted]    = useState(false);
   const [showDbInfo, setShowDbInfo] = useState(false);
   const [showSocialInfo, setShowSocialInfo] = useState(false);
@@ -303,6 +305,13 @@ export default function Dashboard({
   useEffect(() => {
     if (!userId || !isDesktop) return;
     fetchKarma(userId).then(setKarma).catch(() => {});
+    // Latest feedback note for the "Today on Fennec" band
+    fetchNotifications(userId)
+      .then((ns) => {
+        const note = ns.find((n) => n.type === "audio_feedback");
+        setLatestNote(note ? (note.body || note.title) : null);
+      })
+      .catch(() => {});
   }, [userId, isDesktop]);
 
   // Color for FennecIdCard
@@ -425,7 +434,19 @@ export default function Dashboard({
   if (isDesktop) {
     return (
       <DashboardDesktop
-        firstName={cardFirst}
+        card={{
+          firstName: cardFirst,
+          lastName: cardLast,
+          role: networkProfile?.role ?? profile?.role ?? "Producer",
+          country: networkProfile?.country ?? "",
+          genres: networkProfile?.genres ?? [],
+          initials: cardInitials,
+          avatarUrl: avatarUrl,
+          instagram: networkProfile?.instagram,
+          spotify: networkProfile?.spotify,
+          youtube: networkProfile?.youtube_url,
+          collectionNumber: networkProfile?.fennec_number ?? undefined,
+        }}
         networkProfile={networkProfile}
         fennecDb={fennecDb}
         cardColorScheme={cardColorScheme}
@@ -437,6 +458,8 @@ export default function Dashboard({
         quotesSentCount={quotesSent}
         quotesOutTotal={quotesOutTotal}
         karma={karma}
+        sentQuotes={quotes.filter((q) => q.status === "sent")}
+        latestNote={latestNote}
         onNavigate={onNavigate}
         onOpenProfileSettings={onOpenProfileSettings}
       />

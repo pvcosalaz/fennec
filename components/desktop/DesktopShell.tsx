@@ -191,10 +191,25 @@ export default function DesktopShell({
 
       {/* ── Main area (margins slide with the rail) ────────────── */}
       <div
-        className="flex min-h-screen flex-col"
+        className="relative flex min-h-screen flex-col"
         style={{ marginLeft: 232, marginRight: railOff ? 0 : RAIL_W, transition: "margin-right .32s cubic-bezier(.22,1,.36,1)" }}
       >
-        <div className="relative mx-auto w-full max-w-5xl flex-1 px-6 py-6" style={{ minHeight: "100vh" }}>
+        {/* Giant fox, deep background layer — the brand present at all times,
+            like the landing's first screen. Barely-there so content wins. */}
+        <div aria-hidden className="pointer-events-none fixed inset-0 z-0 overflow-hidden" style={{ left: 232, right: railOff ? 0 : RAIL_W, transition: "right .32s cubic-bezier(.22,1,.36,1)" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/fennec-icon-transparent.png"
+            alt=""
+            className="absolute"
+            style={{
+              width: "min(120vh, 1100px)", height: "auto",
+              right: "-8%", bottom: "-14%",
+              opacity: 0.035, filter: "brightness(0) invert(1)",
+            }}
+          />
+        </div>
+        <div className="relative z-10 mx-auto w-full max-w-5xl flex-1 px-6 py-6" style={{ minHeight: "100vh" }}>
           {children}
         </div>
       </div>

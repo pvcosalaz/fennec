@@ -1,13 +1,15 @@
 "use client";
+import { useEffect, useState } from "react";
+import FennecIdCard from "@/components/network/FennecIdCard";
 import type { FennecIdColor } from "@/lib/fennecIdPalette";
+import type { Quote } from "@/lib/pricingData";
 import type { Profile } from "@/lib/communityTypes";
 
 /* ═══════════════════════════════════════════════════════════════
-   DASHBOARD — desktop content (approved mockup language: hairline
-   bands, no boxed stat grid). Pure presentation: every number is
-   computed by Dashboard.tsx (one source of truth for data/logic)
-   and passed in as props. See public/desktop-mockup.html and
-   docs/superpowers/specs/2026-07-09-desktop-foundation-design.md.
+   DASHBOARD — desktop content (approved mockup language). Uses the
+   REAL FennecIdCard, hairline bands (no boxed grid), and a "Today
+   on Fennec" strip fed by real data (latest note, sent quotes, next
+   scheduled post). Pure presentation — logic lives in Dashboard.tsx.
    ═══════════════════════════════════════════════════════════════ */
 
 function fmtCount(n: number): string {
@@ -15,66 +17,74 @@ function fmtCount(n: number): string {
   if (n >= 1_000)     return `${(n / 1_000).toFixed(1)}k`;
   return n.toString();
 }
+const usd = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`;
 
-function fmtUSD(n: number): string {
-  return `$${Math.round(n).toLocaleString("en-US")}`;
+type ContentTask = { title: string; date: string; status: "pending" | "done" };
+
+/** Next upcoming scheduled post from the Marketing module's local store. */
+function useNextPost(): ContentTask | null {
+  const [next, setNext] = useState<ContentTask | null>(null);
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("fennec-content-tasks-v1");
+      if (!raw) return;
+      const tasks = JSON.parse(raw) as ContentTask[];
+      const today = new Date().toISOString().slice(0, 10);
+      const upcoming = tasks
+        .filter((t) => t.status !== "done" && t.date >= today)
+        .sort((a, b) => a.date.localeCompare(b.date))[0];
+      setNext(upcoming ?? null);
+    } catch { /* ignore */ }
+  }, []);
+  return next;
+}
+
+function fmtDate(d: string): string {
+  const dt = new Date(d + "T00:00:00");
+  return dt.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }).toUpperCase();
 }
 
 function Band({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="mt-6 first:mt-0">
+    <div className="mt-6">
       <div className="mb-1 flex items-center gap-2.5">
         <span className="text-[8.5px] font-bold uppercase tracking-[0.22em] text-zinc-600">{label}</span>
         <div className="h-px flex-1" style={{ background: "linear-gradient(90deg, rgba(255,255,255,.07), transparent)" }} />
       </div>
-      <div className="grid" style={{ gridAutoFlow: "column", gridAutoColumns: "1fr" }}>
-        {children}
-      </div>
+      {children}
     </div>
   );
 }
 
-function Col({
-  value, label, sub, subAccent, muted, onClick,
-}: {
-  value: string;
-  label: string;
-  sub?: string;
-  subAccent?: string;
-  muted?: boolean;
-  onClick?: () => void;
-}) {
+function Cols({ children }: { children: React.ReactNode }) {
+  return <div className="grid" style={{ gridAutoFlow: "column", gridAutoColumns: "1fr" }}>{children}</div>;
+}
+
+function Col({ value, label, sub, muted, onClick }: { value: string; label: string; sub?: string; muted?: boolean; onClick?: () => void }) {
   const Tag = onClick ? "button" : "div";
   return (
-    <Tag
-      type={onClick ? "button" : undefined}
-      onClick={onClick}
-      className={`border-l border-white/[0.05] px-[18px] py-[14px] text-left first:border-l-0 first:pl-0.5 ${onClick ? "transition hover:bg-white/[0.02]" : ""}`}
-    >
+    <Tag type={onClick ? "button" : undefined} onClick={onClick}
+      className={`border-l border-white/[0.05] px-[18px] py-[14px] text-left first:border-l-0 first:pl-0.5 ${onClick ? "transition hover:bg-white/[0.02]" : ""}`}>
       <b className={`text-[21px] font-extrabold tabular-nums ${muted ? "text-zinc-600" : "text-white"}`}>{value}</b>
       <span className="mt-[3px] block text-[9px] uppercase tracking-[0.16em] text-zinc-600">{label}</span>
-      {sub && <span className="text-[10px] font-semibold" style={{ color: subAccent ?? "#f5a623" }}>{sub}</span>}
+      {sub && <span className="text-[10px] font-semibold text-accent">{sub}</span>}
     </Tag>
   );
 }
 
 export default function DashboardDesktop({
-  firstName,
-  networkProfile,
-  fennecDb,
-  cardColorScheme,
-  igFollowers,
-  ttFollowers,
-  ytSubs,
-  activeProjects,
-  totalProjects,
-  quotesSentCount,
-  quotesOutTotal,
-  karma,
-  onNavigate,
-  onOpenProfileSettings,
+  card, networkProfile, fennecDb, cardColorScheme,
+  igFollowers, ttFollowers, ytSubs,
+  activeProjects, totalProjects, quotesSentCount, quotesOutTotal, karma,
+  sentQuotes, latestNote,
+  onNavigate, onOpenProfileSettings,
 }: {
-  firstName: string;
+  card: {
+    firstName: string; lastName: string; role: string; country: string;
+    genres: string[]; initials: string; avatarUrl?: string | null;
+    instagram?: string | null; spotify?: string | null; youtube?: string | null;
+    collectionNumber?: number;
+  };
   networkProfile?: Profile | null;
   fennecDb: number;
   cardColorScheme: FennecIdColor;
@@ -86,22 +96,22 @@ export default function DashboardDesktop({
   quotesSentCount: number;
   quotesOutTotal: number;
   karma: number | null;
+  sentQuotes: Quote[];
+  latestNote: string | null;
   onNavigate?: (tab: "pricing" | "contenido" | "dashboard" | "ideas" | "noticias") => void;
   onOpenProfileSettings?: () => void;
 }) {
   const accent = cardColorScheme.accent;
-  const genres = networkProfile?.genres ?? [];
+  const nextPost = useNextPost();
 
   return (
     <div>
       {/* header */}
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-[21px] font-bold tracking-tight text-white">Good evening, {firstName || "there"}.</h1>
+        <h1 className="text-[21px] font-bold tracking-tight text-white">Good evening, {card.firstName || "there"}.</h1>
         <button
           type="button"
-          onClick={() => {
-            if (navigator.share) void navigator.share({ title: "My Fennec ID", text: `@${networkProfile?.username} · ${fennecDb} dB on Fennec` });
-          }}
+          onClick={() => { if (navigator.share) void navigator.share({ title: "My Fennec ID", text: `@${networkProfile?.username} · ${fennecDb} dB on Fennec` }); }}
           className="rounded-full border px-3.5 py-1.5 text-[11.5px] font-semibold transition hover:brightness-110"
           style={{ borderColor: `${accent}59`, color: accent }}
         >
@@ -109,64 +119,105 @@ export default function DashboardDesktop({
         </button>
       </div>
 
-      {/* dB hero + Fennec ID card, side by side */}
-      <div className="grid gap-4" style={{ gridTemplateColumns: "1.25fr .9fr" }}>
-        <div className="relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border border-white/[0.07] p-8" style={{ background: "#111114" }}>
+      {/* the real Fennec ID card (left, hero) + dB reading (right) */}
+      <div className="grid items-stretch gap-4" style={{ gridTemplateColumns: "1.35fr .85fr" }}>
+        <div>
+          <FennecIdCard
+            firstName={card.firstName} lastName={card.lastName}
+            role={card.role || "Producer"} country={card.country}
+            genres={card.genres} fennecDb={fennecDb} colorScheme={cardColorScheme}
+            initials={card.initials} avatarUrl={card.avatarUrl}
+            instagram={card.instagram} spotify={card.spotify} youtube={card.youtube}
+            collectionNumber={card.collectionNumber} smallDb
+          />
+        </div>
+        <div className="relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border border-white/[0.07] p-6" style={{ background: "#111114" }}>
           <div className="pointer-events-none absolute inset-[-40%]" style={{ background: `radial-gradient(40% 32% at 50% 58%, ${accent}22, transparent 70%)` }} />
           <span className="relative text-[9px] font-bold uppercase tracking-[0.35em] text-zinc-600">Fennec dB</span>
-          <div
-            className="relative text-[88px] font-extrabold leading-none tracking-tight"
-            style={{
-              background: `linear-gradient(180deg, ${accent}, ${accent}cc)`,
-              WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent",
-              filter: `drop-shadow(0 4px 24px ${accent}40)`,
-            }}
-          >
+          <div className="relative text-[76px] font-extrabold leading-none tracking-tight"
+            style={{ background: `linear-gradient(180deg, ${accent}, ${accent}cc)`, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent", filter: `drop-shadow(0 4px 24px ${accent}40)` }}>
             {fennecDb}
           </div>
         </div>
-
-        <button
-          type="button"
-          onClick={onOpenProfileSettings}
-          className="relative overflow-hidden rounded-2xl border p-6 text-left transition hover:brightness-110"
-          style={{ borderColor: `${accent}4d`, background: `linear-gradient(150deg, ${cardColorScheme.dark1}, ${cardColorScheme.dark2})` }}
-        >
-          <span className="text-[9px] font-bold uppercase tracking-[0.3em]" style={{ color: `${accent}8c` }}>
-            {networkProfile?.role ?? "Producer"}
-          </span>
-          <h2 className="mt-1.5 text-[26px] font-extrabold leading-[1.02] tracking-tight text-white">
-            {firstName || networkProfile?.display_name || "Your name"}
-          </h2>
-          {genres.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {genres.map((g) => (
-                <span key={g} className="rounded-full border px-2.5 py-0.5 text-[10.5px]" style={{ borderColor: `${accent}59`, color: accent }}>{g}</span>
-              ))}
-            </div>
-          )}
-          <div className="mt-4 font-mono text-[10px] tracking-[0.12em]" style={{ color: `${accent}80` }}>
-            {(networkProfile?.country ?? "").toUpperCase()}{networkProfile?.fennec_number ? ` · #${String(networkProfile.fennec_number).padStart(4, "0")}` : ""}
-          </div>
-        </button>
       </div>
 
       {/* Music & Business */}
       <Band label="Music & Business">
-        <Col value={String(totalProjects)} label="Projects" sub={activeProjects > 0 ? `${activeProjects} active` : undefined} onClick={() => onNavigate?.("pricing")} />
-        <Col value={String(quotesSentCount)} label="Quotes sent" onClick={() => onNavigate?.("pricing")} />
-        <Col value={quotesOutTotal > 0 ? fmtUSD(quotesOutTotal) : "—"} label="Quotes out" muted={quotesOutTotal === 0} onClick={() => onNavigate?.("pricing")} />
-        <Col value={karma != null ? String(karma) : "—"} label="Karma" muted={karma == null} onClick={() => onNavigate?.("ideas")} />
+        <Cols>
+          <Col value={String(totalProjects)} label="Projects" sub={activeProjects > 0 ? `${activeProjects} active` : undefined} onClick={() => onNavigate?.("pricing")} />
+          <Col value={String(quotesSentCount)} label="Quotes sent" onClick={() => onNavigate?.("pricing")} />
+          <Col value={quotesOutTotal > 0 ? usd(quotesOutTotal) : "—"} label="Quotes out" muted={quotesOutTotal === 0} onClick={() => onNavigate?.("pricing")} />
+          <Col value={karma != null ? String(karma) : "—"} label="Karma" muted={karma == null} onClick={() => onNavigate?.("ideas")} />
+        </Cols>
       </Band>
 
       {/* Social Reach */}
       <Band label="Social Reach">
-        <Col value={igFollowers != null ? fmtCount(igFollowers) : "—"} label="Instagram" muted={igFollowers == null}
-          sub={igFollowers == null ? "connect →" : undefined} onClick={onOpenProfileSettings} />
-        <Col value={ttFollowers != null ? fmtCount(ttFollowers) : "—"} label="TikTok" muted={ttFollowers == null}
-          sub={ttFollowers == null ? "connect →" : undefined} onClick={onOpenProfileSettings} />
-        <Col value={ytSubs != null ? fmtCount(ytSubs) : "—"} label="YouTube" muted={ytSubs == null}
-          sub={ytSubs == null ? "connect →" : undefined} onClick={onOpenProfileSettings} />
+        <Cols>
+          <Col value={igFollowers != null ? fmtCount(igFollowers) : "—"} label="Instagram" muted={igFollowers == null} sub={igFollowers == null ? "connect →" : undefined} onClick={onOpenProfileSettings} />
+          <Col value={ttFollowers != null ? fmtCount(ttFollowers) : "—"} label="TikTok" muted={ttFollowers == null} sub={ttFollowers == null ? "connect →" : undefined} onClick={onOpenProfileSettings} />
+          <Col value={ytSubs != null ? fmtCount(ytSubs) : "—"} label="YouTube" muted={ytSubs == null} sub={ytSubs == null ? "connect →" : undefined} onClick={onOpenProfileSettings} />
+        </Cols>
+      </Band>
+
+      {/* Today on Fennec — real data (note · quotes · next post) */}
+      <Band label="Today on Fennec">
+        <div className="grid gap-0" style={{ gridTemplateColumns: "1.2fr 1fr 1fr" }}>
+          {/* latest note on your tracks */}
+          <button type="button" onClick={() => onNavigate?.("ideas")} className="border-l border-white/[0.05] px-[18px] py-[14px] text-left first:border-l-0 first:pl-0.5 transition hover:bg-white/[0.02]">
+            {latestNote ? (
+              <>
+                <p className="text-[13px] leading-relaxed text-zinc-300" style={{ fontFamily: "var(--font-tape-serif, Georgia, serif)" }}>
+                  &ldquo;{latestNote.length > 90 ? latestNote.slice(0, 90) + "…" : latestNote}&rdquo;
+                </p>
+                <span className="mt-2 block text-[11px] font-semibold text-accent">Open the tape →</span>
+              </>
+            ) : (
+              <>
+                <p className="text-[12.5px] text-zinc-600">No notes on your tracks yet.</p>
+                <span className="mt-2 block text-[11px] font-semibold text-accent">Upload a track for feedback →</span>
+              </>
+            )}
+          </button>
+
+          {/* quotes awaiting reply */}
+          <button type="button" onClick={() => onNavigate?.("pricing")} className="border-l border-white/[0.05] px-[18px] py-[14px] text-left transition hover:bg-white/[0.02]">
+            {sentQuotes.length > 0 ? (
+              <>
+                {sentQuotes.slice(0, 2).map((q) => (
+                  <div key={q.id} className="flex items-baseline justify-between border-b border-white/[0.04] py-1.5 last:border-b-0">
+                    <span className="truncate text-[12.5px] text-zinc-300">{q.clientName || "—"}</span>
+                    <span className="ml-2 flex-shrink-0 text-[12px] font-semibold tabular-nums text-white">{usd(q.finalPrice)}
+                      <span className="ml-1.5 rounded bg-accent/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-accent">SENT</span>
+                    </span>
+                  </div>
+                ))}
+                <span className="mt-2 block text-[11px] font-semibold text-accent">Quotes awaiting reply →</span>
+              </>
+            ) : (
+              <>
+                <p className="text-[12.5px] text-zinc-600">No open quotes.</p>
+                <span className="mt-2 block text-[11px] font-semibold text-accent">Send a quote →</span>
+              </>
+            )}
+          </button>
+
+          {/* next scheduled post */}
+          <button type="button" onClick={() => onNavigate?.("contenido")} className="border-l border-white/[0.05] px-[18px] py-[14px] text-left transition hover:bg-white/[0.02]">
+            {nextPost ? (
+              <>
+                <span className="block font-mono text-[10px] tracking-[0.1em] text-accent">{fmtDate(nextPost.date)}</span>
+                <p className="mt-1 text-[12.5px] leading-relaxed text-zinc-300">Next post: {nextPost.title}</p>
+                <span className="mt-2 block text-[11px] font-semibold text-accent">Open calendar →</span>
+              </>
+            ) : (
+              <>
+                <p className="text-[12.5px] text-zinc-600">Nothing scheduled.</p>
+                <span className="mt-2 block text-[11px] font-semibold text-accent">Plan your content →</span>
+              </>
+            )}
+          </button>
+        </div>
       </Band>
     </div>
   );
