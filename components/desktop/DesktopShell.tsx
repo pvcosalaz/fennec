@@ -1,18 +1,30 @@
 "use client";
-import { Home, Briefcase, Camera, Users, Settings, AudioWaveform, UserPlus } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Home, Briefcase, Camera, Users, Settings, AudioWaveform, UserPlus, ChevronRight } from "lucide-react";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import { getColorScheme } from "@/lib/fennecIdPalette";
+import { getNetworkContacts } from "@/lib/networkDb";
+import { fetchNotifications, type Notification } from "@/lib/notificationDb";
 import type { Profile } from "@/lib/communityTypes";
 
+/** "5m ago" / "2h ago" / "3d ago" — compact, mono-friendly */
+function timeAgo(iso: string): string {
+  const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60_000);
+  if (mins < 1) return "now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.floor(hrs / 24)}d ago`;
+}
+
 /* ═══════════════════════════════════════════════════════════════
-   DESKTOP SHELL — foundation, provisional skin.
-   Chrome only: fixed sidebar + scrolling main area. The module tree
-   (what renders per tab) is passed in as children so mobile and
-   desktop share ONE source of truth in PricingCalculator.
-   Visual grammar follows public/desktop-mockup.html (canvas #0b0a08,
-   hairlines, amber = active/human) but every detail is expected to
-   change in the UI iteration with Paco.
-   See docs/superpowers/specs/2026-07-09-desktop-foundation-design.md
+   DESKTOP SHELL — the approved prototype language, on real data.
+   Chrome only: gradient sidebar (nav + live tape pulse + mini ID),
+   collapsible right social rail (bell + settings on top, your
+   network + recent activity below), scrolling main area. The module
+   tree renders as children — ONE source of truth in PricingCalculator.
+   Prototype reference: public/desktop-mockup.html · spec:
+   docs/superpowers/specs/2026-07-09-desktop-foundation-design.md
    ═══════════════════════════════════════════════════════════════ */
 
 export type DesktopTab = "dashboard" | "pricing" | "ideas" | "contenido" | "noticias";
@@ -25,6 +37,14 @@ const NAV: { id: DesktopTab | "network"; label: string; icon: React.ComponentTyp
   { id: "noticias",  label: "Community", icon: Users },
   { id: "network",   label: "Network",   icon: UserPlus },
 ];
+
+const RAIL_KEY = "fennec_desktop_rail_off_v1";
+const RAIL_W = 292;
+const HAIR = "rgba(255,255,255,.06)";
+
+/* The tape's heartbeat in the sidebar: 24 amber bars breathing. Heights are
+   fixed (not random) so SSR/CSR match; the stagger makes them feel alive. */
+const PULSE_BARS = [8, 14, 7, 18, 11, 22, 9, 15, 7, 12, 17, 8, 13, 20, 10, 6, 16, 9, 14, 7, 19, 11, 8, 15];
 
 export default function DesktopShell({
   profile,
@@ -40,7 +60,6 @@ export default function DesktopShell({
   profile: Profile;
   userId: string;
   activeTab: DesktopTab;
-  /** Business → Network view is active (Network gets the highlight, not Business) */
   networkActive?: boolean;
   settingsOpen?: boolean;
   onNavigate: (tab: DesktopTab) => void;
@@ -52,20 +71,46 @@ export default function DesktopShell({
   const name = profile.display_name || profile.username || "";
   const initials = name.trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase() || "F";
 
+  // ── collapsible rail (persisted) ──
+  const [railOff, setRailOff] = useState(false);
+  useEffect(() => {
+    try { setRailOff(localStorage.getItem(RAIL_KEY) === "1"); } catch { /* ignore */ }
+  }, []);
+  function toggleRail() {
+    setRailOff((v) => {
+      try { localStorage.setItem(RAIL_KEY, v ? "0" : "1"); } catch { /* ignore */ }
+      return !v;
+    });
+  }
+
+  // ── real data for the rail ──
+  const [contacts, setContacts] = useState<Profile[]>([]);
+  const [activity, setActivity] = useState<Notification[]>([]);
+  useEffect(() => {
+    getNetworkContacts(userId).then(setContacts).catch(() => setContacts([]));
+    fetchNotifications(userId).then((n) => setActivity(n.slice(0, 4))).catch(() => setActivity([]));
+  }, [userId]);
+
+  const slide = "transform .32s cubic-bezier(.22,1,.36,1)";
+
   return (
     <div className="min-h-screen" style={{ background: "#0b0a08" }}>
+
       {/* ── Sidebar ────────────────────────────────────────────── */}
       <aside
         className="fixed left-0 top-0 bottom-0 z-40 flex flex-col"
-        style={{ width: 232, borderRight: "1px solid rgba(255,255,255,.07)", padding: "22px 14px 18px" }}
+        style={{
+          width: 232,
+          borderRight: `1px solid ${HAIR}`,
+          background: "linear-gradient(180deg,#131116 0%,#0d0c0f 55%,#0b0a08 100%)",
+          padding: "22px 14px 18px",
+        }}
       >
-        {/* brand */}
         <div className="flex items-baseline gap-0.5 px-2.5 pb-6">
           <span className="text-[19px] font-bold tracking-tight text-white">fennec</span>
           <span className="inline-block h-[5px] w-[5px] rounded-full bg-accent" style={{ boxShadow: "0 0 8px rgba(245,166,35,.8)" }} />
         </div>
 
-        {/* nav */}
         <nav className="flex flex-col gap-0.5">
           {NAV.map(({ id, label, icon: Icon }) => {
             const active = id === "network"
@@ -78,9 +123,7 @@ export default function DesktopShell({
                 onClick={() => (id === "network" ? onOpenNetwork() : onNavigate(id))}
                 aria-current={active ? "page" : undefined}
                 className="flex items-center gap-3 rounded-[10px] px-2.5 py-[9px] text-left text-[13.5px] font-medium transition"
-                style={active
-                  ? { background: "rgba(245,166,35,.09)", color: "#ffc861" }
-                  : { color: "#8b8b93" }}
+                style={active ? { background: "rgba(245,166,35,.09)", color: "#ffc861" } : { color: "#8b8b93" }}
               >
                 <Icon className="h-4 w-4" />
                 {label}
@@ -89,34 +132,47 @@ export default function DesktopShell({
           })}
         </nav>
 
-        {/* footer: mini Fennec ID */}
         <div className="mt-auto flex flex-col gap-2.5">
+          {/* The Tape · live pulse — the reel's heartbeat, always present */}
           <button
             type="button"
-            onClick={onOpenSettings}
-            aria-label="Settings"
-            className="flex items-center gap-3 rounded-[10px] px-2.5 py-[9px] text-left text-[13.5px] font-medium transition"
-            style={settingsOpen ? { background: "rgba(245,166,35,.09)", color: "#ffc861" } : { color: "#8b8b93" }}
+            onClick={() => onNavigate("ideas")}
+            aria-label="Open The Tape"
+            className="rounded-[14px] px-3 pb-2.5 pt-3 text-left transition hover:border-accent/40"
+            style={{
+              background: "linear-gradient(150deg,rgba(245,166,35,.07),rgba(245,166,35,.02))",
+              border: "1px solid rgba(245,166,35,.14)",
+            }}
           >
-            <Settings className="h-4 w-4" />
-            Settings
+            <div className="flex h-[26px] items-center gap-[2px]">
+              {PULSE_BARS.map((h, i) => (
+                <i
+                  key={i}
+                  className="fennec-pulse-bar w-[3px] rounded-[2px]"
+                  style={{
+                    height: h,
+                    background: "linear-gradient(180deg,#ffc861,rgba(245,166,35,.35))",
+                    animationDelay: `${(i * 97) % 900}ms`,
+                  }}
+                />
+              ))}
+            </div>
+            <div className="mt-[7px] flex items-baseline justify-between">
+              <b className="text-[9px] font-bold uppercase tracking-[0.2em] text-accent">The Tape · live</b>
+            </div>
           </button>
+
+          {/* mini Fennec ID */}
           <div
             className="rounded-[14px] p-3"
-            style={{
-              border: `1px solid ${scheme.accent}40`,
-              background: `linear-gradient(150deg, ${scheme.dark1}, ${scheme.dark2})`,
-            }}
+            style={{ border: `1px solid ${scheme.accent}40`, background: `linear-gradient(150deg, ${scheme.dark1}, ${scheme.dark2})` }}
           >
             <div className="flex items-center gap-2.5">
               {profile.avatar_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={profile.avatar_url} alt="" className="h-[30px] w-[30px] rounded-full object-cover" />
               ) : (
-                <div
-                  className="grid h-[30px] w-[30px] place-items-center rounded-full text-[11px] font-bold"
-                  style={{ background: scheme.accent, color: scheme.textOnAvatar }}
-                >
+                <div className="grid h-[30px] w-[30px] place-items-center rounded-full text-[11px] font-bold" style={{ background: scheme.accent, color: scheme.textOnAvatar }}>
                   {initials}
                 </div>
               )}
@@ -126,30 +182,167 @@ export default function DesktopShell({
               </div>
             </div>
             <div className="mt-2 flex items-baseline gap-1.5 border-t pt-2" style={{ borderColor: "rgba(255,255,255,.06)" }}>
-              <span className="text-[8px] font-bold uppercase tracking-[0.16em]" style={{ color: `${scheme.accent}99` }}>
-                Fennec dB
-              </span>
+              <span className="text-[8px] font-bold uppercase tracking-[0.16em]" style={{ color: `${scheme.accent}99` }}>Fennec dB</span>
               <b className="text-[16px]" style={{ color: scheme.accent }}>{profile.fennec_db_score}</b>
             </div>
           </div>
         </div>
       </aside>
 
-      {/* ── Main area ──────────────────────────────────────────── */}
-      <div style={{ marginLeft: 232 }} className="flex min-h-screen flex-col">
-        {/* topbar */}
-        <div
-          className="sticky top-0 z-30 flex items-center justify-end gap-2 px-6 py-3"
-          style={{ background: "rgba(11,10,8,.85)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(255,255,255,.05)" }}
-        >
-          <NotificationBell userId={userId} />
-        </div>
-        {/* module content — relative so full-bleed modules (the tape uses
-            absolute inset-0) get a positioning box that fills the viewport */}
-        <div className="relative mx-auto w-full max-w-5xl flex-1 px-6 py-6" style={{ minHeight: "calc(100vh - 56px)" }}>
+      {/* ── Main area (margins slide with the rail) ────────────── */}
+      <div
+        className="flex min-h-screen flex-col"
+        style={{ marginLeft: 232, marginRight: railOff ? 0 : RAIL_W, transition: "margin-right .32s cubic-bezier(.22,1,.36,1)" }}
+      >
+        <div className="relative mx-auto w-full max-w-5xl flex-1 px-6 py-6" style={{ minHeight: "100vh" }}>
           {children}
         </div>
       </div>
+
+      {/* ── Rail toggle — quiet chevron riding the rail's edge ──── */}
+      <button
+        type="button"
+        onClick={toggleRail}
+        aria-label={railOff ? "Show your network" : "Hide your network"}
+        className="fixed top-1/2 z-[70] grid h-[52px] w-[28px] place-items-center rounded-lg"
+        style={{
+          right: railOff ? 0 : RAIL_W,
+          transform: railOff ? "translate(-8px,-50%)" : "translate(50%,-50%)",
+          border: railOff ? "1px solid rgba(245,166,35,.45)" : `1px solid ${HAIR}`,
+          background: railOff ? "rgba(245,166,35,.08)" : "rgba(17,16,20,.92)",
+          color: railOff ? "#f5a623" : "#55555c",
+          boxShadow: railOff ? "0 0 14px rgba(245,166,35,.18)" : "none",
+          transition: `right .32s cubic-bezier(.22,1,.36,1), ${slide}, color .15s ease, border-color .15s ease`,
+        }}
+      >
+        <ChevronRight className="h-[13px] w-[13px]" style={{ transform: railOff ? "rotate(180deg)" : "none", transition: slide }} />
+      </button>
+
+      {/* ── Right social rail ──────────────────────────────────── */}
+      <aside
+        className="fixed right-0 top-0 z-[60] h-screen overflow-y-auto"
+        style={{
+          width: RAIL_W,
+          background: "linear-gradient(180deg,#12101a 0%,#0d0c11 60%,#0b0a08 100%)",
+          borderLeft: `1px solid ${HAIR}`,
+          padding: "22px 18px",
+          transform: railOff ? "translateX(100%)" : "translateX(0)",
+          transition: slide,
+        }}
+      >
+        {/* top icons: the app's real chrome (bell + settings) */}
+        <div className="flex justify-end gap-2 pb-3.5">
+          <NotificationBell userId={userId} />
+          <button
+            type="button"
+            onClick={onOpenSettings}
+            aria-label="Settings"
+            className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-zinc-400 transition hover:border-accent/30 hover:text-accent"
+          >
+            <Settings className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* me */}
+        <div className="border-b pb-4 text-center" style={{ borderColor: HAIR }}>
+          {profile.avatar_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={profile.avatar_url}
+              alt=""
+              className="mx-auto h-16 w-16 rounded-full object-cover"
+              style={{ border: `2px solid ${scheme.accent}80`, boxShadow: `0 0 24px ${scheme.accent}40` }}
+            />
+          ) : (
+            <div
+              className="mx-auto grid h-16 w-16 place-items-center rounded-full text-[20px] font-extrabold"
+              style={{ background: scheme.accent, color: scheme.textOnAvatar, border: `2px solid ${scheme.accent}80`, boxShadow: `0 0 24px ${scheme.accent}40` }}
+            >
+              {initials}
+            </div>
+          )}
+          <div className="mt-2.5 text-[15px] font-bold text-white">{name}</div>
+          <div className="mt-0.5 text-[10px] uppercase tracking-[0.1em] text-zinc-500" style={{ fontFamily: "var(--font-tape-mono, monospace)" }}>
+            @{profile.username} · {profile.role ?? "Producer"}
+          </div>
+          <div className="mt-2 inline-flex items-baseline gap-1.5 rounded-full px-3 py-1" style={{ border: `1px solid ${scheme.accent}4d` }}>
+            <em className="text-[8px] font-bold uppercase not-italic tracking-[0.16em]" style={{ color: `${scheme.accent}a6` }}>Fennec dB</em>
+            <b className="text-[14px]" style={{ color: scheme.accent }}>{profile.fennec_db_score}</b>
+          </div>
+        </div>
+
+        {/* your network — real contacts */}
+        <div className="mb-2 mt-4 flex items-baseline justify-between">
+          <span className="text-[8.5px] font-bold uppercase tracking-[0.22em] text-zinc-600">Your Network</span>
+          <button type="button" onClick={onOpenNetwork} className="text-[10px] font-semibold text-accent">See all</button>
+        </div>
+        {contacts.length === 0 ? (
+          <button
+            type="button"
+            onClick={onOpenNetwork}
+            className="w-full rounded-xl border border-dashed px-3 py-4 text-center text-[11px] leading-relaxed text-zinc-500 transition hover:border-accent/40"
+            style={{ borderColor: "rgba(245,166,35,.25)", background: "rgba(245,166,35,.04)" }}
+          >
+            No producers yet. Scan a Fennec ID to start your collection →
+          </button>
+        ) : (
+          contacts.slice(0, 5).map((c) => {
+            const cs = getColorScheme(c.color_id ?? null);
+            const ci = (c.display_name || c.username || "?").trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
+            return (
+              <button
+                key={c.id}
+                type="button"
+                onClick={onOpenNetwork}
+                className="flex w-full items-center gap-2.5 rounded-[11px] px-1.5 py-2 text-left transition hover:bg-white/[0.04]"
+              >
+                {c.avatar_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={c.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
+                ) : (
+                  <div className="grid h-8 w-8 flex-shrink-0 place-items-center rounded-full text-[10.5px] font-bold" style={{ background: cs.accent, color: cs.textOnAvatar }}>
+                    {ci}
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <div className="truncate text-[12.5px] font-semibold text-white">{c.display_name || c.username}</div>
+                  <div className="truncate text-[9.5px] text-zinc-600" style={{ fontFamily: "var(--font-tape-mono, monospace)" }}>
+                    {c.role ?? "Producer"}{c.country ? ` · ${c.country}` : ""}
+                  </div>
+                </div>
+                <b className="ml-auto text-[11px]" style={{ color: cs.accent, fontFamily: "var(--font-tape-mono, monospace)" }}>
+                  {c.fennec_db_score}
+                </b>
+              </button>
+            );
+          })
+        )}
+
+        {/* recent activity — ambient feed (same data the bell counts) */}
+        {activity.length > 0 && (
+          <>
+            <div className="mb-1 mt-5 flex items-baseline justify-between">
+              <span className="text-[8.5px] font-bold uppercase tracking-[0.22em] text-zinc-600">Recent activity</span>
+            </div>
+            {activity.map((n) => (
+              <div key={n.id} className="border-b px-1.5 py-2.5 last:border-b-0" style={{ borderColor: "rgba(255,255,255,.04)" }}>
+                <p className="text-[11.5px] leading-relaxed text-zinc-400">
+                  <span className={n.read ? "" : "font-semibold text-zinc-200"}>{n.title}</span>
+                </p>
+                <span className="mt-0.5 block text-[9px] uppercase text-zinc-700" style={{ fontFamily: "var(--font-tape-mono, monospace)" }}>
+                  {timeAgo(n.created_at)}
+                </span>
+              </div>
+            ))}
+          </>
+        )}
+      </aside>
+
+      <style>{`
+        @keyframes fennecPulse { from { transform: scaleY(.45); } to { transform: scaleY(1); } }
+        .fennec-pulse-bar { animation: fennecPulse 1.6s ease-in-out infinite alternate; }
+        @media (prefers-reduced-motion: reduce) { .fennec-pulse-bar { animation: none; } }
+      `}</style>
     </div>
   );
 }
