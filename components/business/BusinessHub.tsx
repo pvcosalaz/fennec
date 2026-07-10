@@ -13,6 +13,8 @@ import {
   QuotesCard,
   ProjectsCard,
 } from "@/components/remotion/BusinessToolCards";
+import { useIsDesktop } from "@/lib/useIsDesktop";
+import BusinessHubDesktop from "./BusinessHubDesktop";
 
 export type BusinessView = "hub" | "calculator" | "quotes" | "projects" | "clients" | "network";
 
@@ -96,6 +98,7 @@ type Props = {
 };
 
 export default function BusinessHub({ onOpenView, userId }: Props) {
+  const isDesktop = useIsDesktop();
   const [projects, setProjects] = useState<Project[]>([]);
   const [quotes,   setQuotes]   = useState<Quote[]>([]);
   const [clients,  setClients]  = useState<Client[]>([]);
@@ -110,6 +113,17 @@ export default function BusinessHub({ onOpenView, userId }: Props) {
   const revenue     = useMemo(() => revenueThisMonth(projects), [projects]);
   const months      = useMemo(() => getLastNMonths(6), []);
   const revenues    = useMemo(() => months.map((m) => revenueForMonth(projects, m.month, m.year)), [projects, months]);
+
+  // Desktop: enterprise layout (same data, band/table render)
+  if (isDesktop) {
+    return (
+      <BusinessHubDesktop
+        projects={projects} quotes={quotes} clients={clients}
+        revenue={revenue} months={months} revenues={revenues}
+        onOpenView={onOpenView}
+      />
+    );
+  }
 
   return (
     <div className="mx-auto w-full max-w-4xl flex flex-col flex-1 gap-3 px-4 pb-3">
