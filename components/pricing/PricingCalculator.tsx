@@ -246,16 +246,6 @@ const UPGRADE_COPY = {
     line2: "Now see the exact number.",
     sub: "Unlock your precise minimum & recommended rates, and turn them into income.",
   },
-  quotes: {
-    line1: "Quotes that close.",
-    line2: "Sent in seconds.",
-    sub: "Turn your rate into professional quotes clients can say yes to.",
-  },
-  clients: {
-    line1: "Your roster,",
-    line2: "organized.",
-    sub: "Keep every client and lead in one place, and follow up on time.",
-  },
   content: {
     line1: "Your content engine,",
     line2: "unlocked.",
@@ -269,13 +259,12 @@ const UPGRADE_COPY = {
 } as const;
 type UpgradeContext = keyof typeof UPGRADE_COPY;
 
-/** What Pro actually unlocks today — keep in sync with the real gates:
- *  BusinessHub (quotes/clients), ContentModule (Inspire/Lab/Trending),
- *  MyTracksView (PRO_FREE_PER_MONTH uploads), calculator reveal. */
+/** What Pro actually unlocks today — keep in sync with the real gates.
+ *  The whole Business hub (quotes, clients, projects) is FREE; the only
+ *  paywall there is the calculator's exact-price reveal. Pro = that reveal +
+ *  ContentModule (Inspire/Lab/Trending) + MyTracksView uploads. */
 const PRO_FEATURES = [
   { emoji: "🔓", label: "Exact rate reveal",   desc: "Your precise minimum & recommended prices" },
-  { emoji: "📄", label: "Quote Generator",     desc: "Send pro quotes in seconds" },
-  { emoji: "👥", label: "Clients & Leads",     desc: "Track every client and prospect" },
   { emoji: "💡", label: "Marketing Pro tools", desc: "Inspire, Content Lab & Trending" },
   { emoji: "🎧", label: "5 free uploads/month", desc: "Timestamped track feedback from producers" },
 ];
@@ -764,9 +753,7 @@ export default function PricingCalculator() {
           <BusinessHub
             key={hubRefreshKey}
             onOpenView={setBusinessView}
-            isPro={profile?.is_pro ?? false}
             userId={authUser.id}
-            onUpgrade={(source) => openUpgrade(source ?? "generic")}
           />
         </div>
       ) : activeTab === "pricing" && businessView === "projects" ? (

@@ -93,7 +93,7 @@ export default function DevUiPage() {
 
       <p className="text-xs font-bold uppercase tracking-widest text-zinc-600">Business Hub (full module)</p>
       <div className="border border-white/5 rounded-2xl py-4">
-        <BusinessHub onOpenView={() => {}} isPro={false} userId="00000000-0000-0000-0000-000000000000" />
+        <BusinessHub onOpenView={() => {}} userId="00000000-0000-0000-0000-000000000000" />
       </div>
 
       <p className="text-xs font-bold uppercase tracking-widest text-zinc-600">Content Hub (full module)</p>

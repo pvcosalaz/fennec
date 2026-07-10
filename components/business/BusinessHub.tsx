@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { Lock } from "lucide-react";
 import {
   type Project, type Quote, type Client,
   formatCOP, computePricing,
@@ -93,14 +92,10 @@ function revenueThisMonth(projects: Project[]) {
 
 type Props = {
   onOpenView: (view: BusinessView) => void;
-  isPro?: boolean;
   userId: string;
-  /** source tells the upgrade sheet which feature the user tapped, so the
-   *  pitch matches (quotes vs clients) instead of assuming the calculator */
-  onUpgrade?: (source?: "quotes" | "clients") => void;
 };
 
-export default function BusinessHub({ onOpenView, isPro = false, userId, onUpgrade }: Props) {
+export default function BusinessHub({ onOpenView, userId }: Props) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [quotes,   setQuotes]   = useState<Quote[]>([]);
   const [clients,  setClients]  = useState<Client[]>([]);
@@ -180,37 +175,23 @@ export default function BusinessHub({ onOpenView, isPro = false, userId, onUpgra
           <ProjectsCard />
         </button>
 
-        {/* Quotes */}
+        {/* Quotes — FREE. The whole Business hub is free; the only paywall is
+            the calculator's exact-price reveal. Free CRM tools build data
+            lock-in and let people live the quote-to-cash loop before Pro. */}
         <button
           type="button"
-          onClick={() => isPro ? onOpenView("quotes") : onUpgrade?.("quotes")}
+          onClick={() => onOpenView("quotes")}
           className="relative h-full rounded-2xl overflow-hidden active:scale-[0.97] transition-transform duration-150"
         >
-          {!isPro && (
-            <>
-              <div className="absolute inset-0 z-10 rounded-2xl" style={{ background: "rgba(8,6,2,0.28)" }} />
-              <div className="absolute top-2 right-2 z-20 flex items-center gap-1 bg-accent text-black text-[9px] font-bold px-2 py-0.5 rounded-full shadow-[0_0_12px_rgba(245,166,35,0.45)]">
-                <Lock size={9} /> Pro
-              </div>
-            </>
-          )}
           <QuotesCard />
         </button>
 
-        {/* Clients & Leads — PRO */}
+        {/* Clients & Leads — FREE */}
         <button
           type="button"
-          onClick={() => isPro ? onOpenView("clients") : onUpgrade?.("clients")}
+          onClick={() => onOpenView("clients")}
           className="relative h-full rounded-2xl overflow-hidden active:scale-[0.97] transition-transform duration-150"
         >
-          {!isPro && (
-            <>
-              <div className="absolute inset-0 z-10 rounded-2xl" style={{ background: "rgba(8,6,2,0.28)" }} />
-              <div className="absolute top-2 right-2 z-20 flex items-center gap-1 bg-accent text-black text-[9px] font-bold px-2 py-0.5 rounded-full shadow-[0_0_12px_rgba(245,166,35,0.45)]">
-                <Lock size={9} /> Pro
-              </div>
-            </>
-          )}
           <ClientsCard />
         </button>
 
