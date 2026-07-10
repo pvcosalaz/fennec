@@ -12,6 +12,9 @@ import { getColorScheme } from "@/lib/fennecIdPalette";
 import { ensureColorAssigned } from "@/lib/networkDb";
 import { WelcomeModal, ProgressChip, type ChecklistItem } from "@/components/dashboard/WelcomeChecklist";
 import { computeFennecDb, reachDb as reachDbOf, totalReachAudience, FENNEC_DB_MODEL } from "@/lib/fennecDb";
+import { fetchKarma } from "@/lib/audioDb";
+import { useIsDesktop } from "@/lib/useIsDesktop";
+import DashboardDesktop from "@/components/desktop/DashboardDesktop";
 import type { Profile } from "@/lib/communityTypes";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -167,11 +170,13 @@ export default function Dashboard({
   onOpenCalculator?: () => void;
   className?: string;
 }) {
+  const isDesktop = useIsDesktop();
   const [projects,   setProjects]   = useState<Project[]>([]);
   const [quotes,     setQuotes]     = useState<Quote[]>([]);
   const [clients,    setClients]    = useState<Client[]>([]);
   const [businessLoaded, setBusinessLoaded] = useState(false);
   const [profile,    setProfile]    = useState<UserProfile | null>(null);
+  const [karma,      setKarma]      = useState<number | null>(null);
   const [mounted,    setMounted]    = useState(false);
   const [showDbInfo, setShowDbInfo] = useState(false);
   const [showSocialInfo, setShowSocialInfo] = useState(false);
@@ -293,6 +298,13 @@ export default function Dashboard({
       .finally(() => setBusinessLoaded(true));
   }, [userId]);
 
+  // Desktop-only band ("Music & Business") shows the karma balance —
+  // mobile doesn't need it here since it lives in the tape's transport.
+  useEffect(() => {
+    if (!userId || !isDesktop) return;
+    fetchKarma(userId).then(setKarma).catch(() => {});
+  }, [userId, isDesktop]);
+
   // Color for FennecIdCard
   const [resolvedColorId, setResolvedColorId] = useState<string | null>(networkProfile?.color_id ?? null);
   const onColorAssignedRef = useRef(onColorAssigned);
@@ -310,6 +322,7 @@ export default function Dashboard({
   const activeCount     = projects.filter((p) => p.status !== "paid").length;
   const closedCount     = projects.filter((p) => p.status === "paid").length;
   const quotesSent      = quotes.filter((q) => q.status === "sent").length;
+  const quotesOutTotal  = quotes.filter((q) => q.status === "sent").reduce((sum, q) => sum + q.finalPrice, 0);
   const totalFollowers  = (igFollowers ?? 0) + (ttFollowers ?? 0) + (ytSubs ?? 0);
 
   const dbInputs = {
@@ -406,6 +419,29 @@ export default function Dashboard({
 
   const accent = cardColorScheme.accent;
   const glowRgb = cardColorScheme.glowRgb;
+
+  // ── Desktop: the approved band-based content (public/desktop-mockup.html),
+  // same data computed above — only the render forks, never the logic.
+  if (isDesktop) {
+    return (
+      <DashboardDesktop
+        firstName={cardFirst}
+        networkProfile={networkProfile}
+        fennecDb={fennecDb}
+        cardColorScheme={cardColorScheme}
+        igFollowers={igFollowers}
+        ttFollowers={ttFollowers}
+        ytSubs={ytSubs}
+        activeProjects={activeCount}
+        totalProjects={projects.length}
+        quotesSentCount={quotesSent}
+        quotesOutTotal={quotesOutTotal}
+        karma={karma}
+        onNavigate={onNavigate}
+        onOpenProfileSettings={onOpenProfileSettings}
+      />
+    );
+  }
 
   return (
     <div className={`relative mx-auto w-full max-w-4xl flex flex-col overflow-y-auto min-h-0 pb-2 pt-1 px-4 ${className ?? ""}`}>
