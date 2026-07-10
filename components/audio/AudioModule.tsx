@@ -8,6 +8,7 @@ import MyTracksView from "./MyTracksView";
 import IdeasModule from "@/components/ideas/IdeasModule";
 import TapeIntro from "./TapeIntro";
 import { useSheetDismiss, SHEET_BOTTOM, SHEET_ENTER } from "@/components/ui/useSheetDismiss";
+import { useIsDesktop } from "@/lib/useIsDesktop";
 
 type Overlay = "melody" | "mine" | "intro" | null;
 
@@ -22,6 +23,7 @@ type Props = {
 };
 
 export default function AudioModule({ userId, isPro, onSheetChange }: Props) {
+  const isDesktop = useIsDesktop();
   const [overlay, setOverlay]       = useState<Overlay>(null);
   const [queue, setQueue]           = useState<ProjectReview[]>([]);
   const [queueIndex, setQueueIndex] = useState(0);
@@ -70,7 +72,15 @@ export default function AudioModule({ userId, isPro, onSheetChange }: Props) {
   const currentTrack = queue[queueIndex] ?? null;
 
   return (
-    <div className="absolute inset-0">
+    // Desktop: the tape becomes a framed "deck" centered on the desk instead
+    // of full-bleed. The player's absolute overlays still fill this bounded,
+    // relative box. (The horizontal reel-to-reel redesign is a separate pass.)
+    <div
+      className={isDesktop
+        ? "relative mx-auto w-full max-w-3xl overflow-hidden rounded-2xl border border-white/10"
+        : "absolute inset-0"}
+      style={isDesktop ? { height: "calc(100vh - 88px)", background: "#131216" } : undefined}
+    >
 
       {/* ── Main player — the tape is the screen ──────────────── */}
       {loadingQueue && (

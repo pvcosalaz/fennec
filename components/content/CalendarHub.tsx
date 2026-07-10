@@ -158,7 +158,8 @@ export default function CalendarHub({
 
   return (
     <>
-    <div className="mx-auto w-full max-w-4xl flex flex-col flex-1 gap-3 px-4 pb-3 text-white">
+    {/* lg:max-w-5xl: the month grid and idea cards breathe on desktop */}
+    <div className="mx-auto w-full max-w-4xl lg:max-w-5xl flex flex-col flex-1 gap-3 px-4 pb-3 text-white">
       {/* 1. Greeting header */}
       <div className="flex-shrink-0">
         <div className="flex items-center gap-2.5">
