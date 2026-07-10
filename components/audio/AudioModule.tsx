@@ -7,6 +7,7 @@ import ProjectReviewPlayer from "./ProjectReviewPlayer";
 import MyTracksView from "./MyTracksView";
 import IdeasModule from "@/components/ideas/IdeasModule";
 import TapeIntro from "./TapeIntro";
+import TapeDeckDesktop from "./TapeDeckDesktop";
 import { useSheetDismiss, SHEET_BOTTOM, SHEET_ENTER } from "@/components/ui/useSheetDismiss";
 import { useIsDesktop } from "@/lib/useIsDesktop";
 
@@ -72,39 +73,44 @@ export default function AudioModule({ userId, isPro, onSheetChange }: Props) {
   const currentTrack = queue[queueIndex] ?? null;
 
   return (
-    // Desktop: the tape becomes a framed "deck" centered on the desk instead
-    // of full-bleed. The player's absolute overlays still fill this bounded,
-    // relative box. (The horizontal reel-to-reel redesign is a separate pass.)
-    <div
-      className={isDesktop
-        ? "relative mx-auto w-full max-w-3xl overflow-hidden rounded-2xl border border-white/10"
-        : "absolute inset-0"}
-      style={isDesktop ? { height: "calc(100vh - 88px)", background: "#131216" } : undefined}
-    >
+    // Desktop gets the horizontal reel-to-reel (TapeDeckDesktop, self-framed);
+    // mobile keeps the full-bleed vertical player. Overlays are shared.
+    <div className={isDesktop ? "relative min-h-[calc(100vh-88px)]" : "absolute inset-0"}>
 
       {/* ── Main player — the tape is the screen ──────────────── */}
       {loadingQueue && (
-        <div className="absolute inset-0 flex items-center justify-center" style={{ background: "#131216" }}>
+        <div className="absolute inset-0 flex items-center justify-center rounded-2xl" style={{ background: "#131216" }}>
           <p className="text-xs text-zinc-600">Loading tracks...</p>
         </div>
       )}
       {!loadingQueue && !currentTrack && (
-        <div className="absolute inset-0 flex items-center justify-center px-10 text-center" style={{ background: "#131216" }}>
+        <div className="absolute inset-0 flex items-center justify-center rounded-2xl px-10 text-center" style={{ background: "#131216" }}>
           <p className="text-xs text-zinc-600">No tracks available right now. Check back later!</p>
         </div>
       )}
       {!loadingQueue && currentTrack && (
-        <ProjectReviewPlayer
-          key={currentTrack.id}
-          track={currentTrack}
-          userId={userId}
-          onPass={handlePass}
-          skipStreak={skipStreak}
-          onSkipStreakChange={setSkipStreak}
-          onOpenMelody={() => setOverlay("melody")}
-          onOpenMyTracks={() => setOverlay("mine")}
-          onOpenIntro={() => setOverlay("intro")}
-        />
+        isDesktop ? (
+          <TapeDeckDesktop
+            key={currentTrack.id}
+            track={currentTrack}
+            userId={userId}
+            onPass={handlePass}
+            onOpenMyTracks={() => setOverlay("mine")}
+            onOpenIntro={() => setOverlay("intro")}
+          />
+        ) : (
+          <ProjectReviewPlayer
+            key={currentTrack.id}
+            track={currentTrack}
+            userId={userId}
+            onPass={handlePass}
+            skipStreak={skipStreak}
+            onSkipStreakChange={setSkipStreak}
+            onOpenMelody={() => setOverlay("melody")}
+            onOpenMyTracks={() => setOverlay("mine")}
+            onOpenIntro={() => setOverlay("intro")}
+          />
+        )
       )}
 
       {/* ── Tape intro — first visit + on demand ───────────────── */}
