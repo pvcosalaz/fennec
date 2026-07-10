@@ -54,6 +54,7 @@ export default function MyTracksView({ userId, isPro }: Props) {
   const [tracks, setTracks]       = useState<ProjectReview[]>([]);
   const [loading, setLoading]     = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [dragOver,  setDragOver]  = useState(false); // drag-a-.wav-from-Finder highlight
   const [error, setError]         = useState<string | null>(null);
   const [karma, setKarma]         = useState<number | null>(null);
   const audioInputRef             = useRef<HTMLInputElement>(null);
@@ -294,7 +295,10 @@ export default function MyTracksView({ userId, isPro }: Props) {
             ))}
           </div>
 
-          {/* Audio file */}
+          {/* Audio file — click to pick, or drag a file from the session
+              folder (the desktop path: .wav files live on computers). Drop
+              feeds the exact same state as the picker; validation, karma and
+              upload stay identical. */}
           <input
             ref={audioInputRef}
             type="file"
@@ -304,10 +308,24 @@ export default function MyTracksView({ userId, isPro }: Props) {
           />
           <button
             onClick={() => audioInputRef.current?.click()}
-            className="w-full h-10 rounded-xl border border-white/10 bg-white/5 text-sm text-zinc-400 hover:text-white transition flex items-center justify-center gap-2"
+            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragOver(false);
+              const f = e.dataTransfer.files?.[0];
+              if (f && f.type.startsWith("audio/")) setAudioFile(f);
+            }}
+            className={`w-full rounded-xl border text-sm transition flex items-center justify-center gap-2 ${
+              dragOver
+                ? "h-20 border-amber-500 bg-amber-500/10 text-amber-400 border-dashed"
+                : "h-10 border-white/10 bg-white/5 text-zinc-400 hover:text-white"
+            }`}
           >
             <Upload className="h-4 w-4" />
-            {audioFile ? audioFile.name : "Select audio file (WAV, MP3, AIFF...)"}
+            {dragOver
+              ? "Drop it on the reel"
+              : audioFile ? audioFile.name : "Select or drop your track (WAV, MP3, AIFF...)"}
           </button>
 
           {/* Artwork file */}

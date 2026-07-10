@@ -129,6 +129,8 @@ import AuthGate from "@/components/community/AuthGate";
 import UsernameSetup from "@/components/community/UsernameSetup";
 import Select from "@/components/ui/Select";
 import { useSheetDismiss, SHEET_BOTTOM, SHEET_ENTER } from "@/components/ui/useSheetDismiss";
+import { useIsDesktop } from "@/lib/useIsDesktop";
+import DesktopShell from "@/components/desktop/DesktopShell";
 
 type FieldConfig = {
   key: string;
@@ -389,6 +391,8 @@ export default function PricingCalculator() {
   }, [activeTab]);
 
   const [showSettings,    setShowSettings]    = useState(false);
+  // Desktop shell branch — false during SSR/first paint so mobile is the default
+  const isDesktop = useIsDesktop();
   // Bottom sheets (tape intro, My Tracks) hide the nav while open so their
   // actions never collide with it; it slides back when the sheet closes.
   const [navHidden, setNavHidden] = useState(false);
@@ -443,7 +447,7 @@ export default function PricingCalculator() {
 
   // Lock body scroll on tabs that should not scroll
   useEffect(() => {
-    const locked = (activeTab === "dashboard" || activeTab === "contenido") && !showSettings;
+    const locked = !isDesktop && (activeTab === "dashboard" || activeTab === "contenido") && !showSettings;
 
     const preventScroll = (e: Event) => {
       // Let nested scrollable containers (bottom sheets, Daily Ideas, calendar
@@ -702,6 +706,617 @@ export default function PricingCalculator() {
     );
   }
 
+  // The module tree — ONE source of truth for what renders per tab,
+  // shared by the mobile shell below and the desktop shell (DesktopShell).
+  const moduleContent =
+        showSettings ? (
+          <SettingsModule
+            onBack={async () => {
+              setShowSettings(false);
+              setSettingsSection("main");
+              // Refresh profile so the Fennec ID card + dashboard reflect Settings changes
+              const p = await getProfile(authUser.id);
+              if (p) setProfile((prev) => prev ? { ...p, fennec_db_score: prev.fennec_db_score } : p);
+            }}
+            language={i18n.resolvedLanguage ?? "en"}
+            onLanguageChange={(lang) => { void i18n.changeLanguage(lang); }}
+            avatarUrl={profile.avatar_url}
+            onAvatarChange={(url) => setProfile((p) => p ? { ...p, avatar_url: url } : p)}
+            onSignOut={async () => { await track("sign_out"); await supabase.auth.signOut(); }}
+            userId={authUser.id}
+            initialSection={settingsSection}
+          />
+        ) : activeTab === "pricing" && businessView === "hub" ? (
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <BusinessHub
+              key={hubRefreshKey}
+              onOpenView={setBusinessView}
+              userId={authUser.id}
+            />
+          </div>
+        ) : activeTab === "pricing" && businessView === "projects" ? (
+          <ActiveProjects onBack={() => { setHubRefreshKey((k) => k + 1); setBusinessView("hub"); }} userId={authUser.id} />
+        ) : activeTab === "pricing" && businessView === "clients" ? (
+          <ClientsLeads onBack={() => { setHubRefreshKey((k) => k + 1); setBusinessView(prevBusinessView.current); }} userId={authUser.id} />
+        ) : activeTab === "pricing" && businessView === "quotes" ? (
+          <QuoteGenerator
+            onBack={() => { setHubRefreshKey((k) => k + 1); setBusinessView("hub"); }}
+            onGoToClients={() => { prevBusinessView.current = "quotes"; setBusinessView("clients"); }}
+            onGoToCalculator={() => setBusinessView("calculator")}
+            onGoToProjects={() => setBusinessView("projects")}
+            userId={authUser.id}
+          />
+        ) : activeTab === "pricing" && businessView === "network" ? (
+          <div className="mx-auto w-full max-w-4xl px-4 pb-8">
+            <button
+              type="button"
+              onClick={() => setBusinessView("hub")}
+              className="mb-6 flex items-center gap-1.5 text-xs text-zinc-400 hover:text-accent transition"
+            >
+              ← Business Hub
+            </button>
+            <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase mb-1">
+              Network
+            </p>
+            <h1 className="text-2xl font-bold tracking-tight text-white mb-6">
+              Your producer network.
+            </h1>
+            <NetworkSection userId={authUser.id} />
+          </div>
+        ) : activeTab === "pricing" && businessView === "calculator" ? (
+          <section className="mx-auto w-full max-w-4xl rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/40 backdrop-blur-sm sm:p-10">
+            <button
+              onClick={() => setBusinessView("hub")}
+              className="mb-6 flex items-center gap-1.5 text-xs text-zinc-400 hover:text-accent transition"
+            >
+              ← Back to Business
+            </button>
+            <div className="mb-8 flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">
+                  {t("brand")}
+                </p>
+                <h1 className="mt-3 text-2xl font-bold tracking-tight text-white">
+                  {t("calculatorTitle")}
+                </h1>
+                <p className="mt-2 text-sm text-zinc-400">{t("calculatorSubtitle")}</p>
+              </div>
+              <div className="flex flex-col items-end gap-2 shrink-0">
+                {/* Currency selector */}
+                <div className="flex rounded-xl border border-white/10 bg-black/30 overflow-hidden">
+                  {(["USD", "MXN", "COP"] as CalcCurrency[]).map((c) => (
+                    <button
+                      key={c}
+                      onClick={() => saveCurrency(c)}
+                      className={`px-3 py-1.5 text-xs font-semibold transition ${
+                        calcCurrency === c
+                          ? "bg-accent text-black"
+                          : "text-zinc-500 hover:text-white"
+                      }`}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => {
+                    setState((prev) => ({ ...prev, step: 1 }));
+                    setShowSetup((prev) => !prev);
+                  }}
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-zinc-200 transition hover:border-accent hover:text-white whitespace-nowrap"
+                >
+                  <SlidersHorizontal className="h-4 w-4" />
+                  {showSetup ? "Close" : "My expenses"}
+                </button>
+              </div>
+            </div>
+            {showSetup ? (
+              <div>
+                <p className="mb-2 text-zinc-300">{t("stepCounter", { step: state.step })}</p>
+                <div className="mb-8 h-2 w-28 overflow-hidden rounded-full bg-white/10">
+                  <div
+                    className="h-full bg-accent transition-all"
+                    style={{ width: `${(state.step / 4) * 100}%` }}
+                  />
+                </div>
+  
+                {state.step === 1 && (
+                  <div>
+                    <h2 className="mb-5 text-xl font-semibold text-white">{t("step1.title")}</h2>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      {personalFields.map((field) => (
+                        <CurrencyInput
+                          key={field.key}
+                          label={t(field.labelKey)}
+                          value={state.personalExpenses[field.key] ?? ""}
+                          onChange={(value) =>
+                            setState((prev) => ({
+                              ...prev,
+                              personalExpenses: { ...prev.personalExpenses, [field.key]: value },
+                            }))
+                          }
+                        />
+                      ))}
+                    </div>
+                    <p className="mt-6 text-lg text-zinc-200">
+                      {t("step1.total")}{" "}
+                      <span className="font-semibold text-accent">{formatCurrency(personalTotal, calcCurrency)}</span>
+                    </p>
+                  </div>
+                )}
+  
+                {state.step === 2 && (
+                  <div>
+                    <h2 className="mb-5 text-xl font-semibold text-white">{t("step2.title")}</h2>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      {studioFields.map((field) => (
+                        <CurrencyInput
+                          key={field.key}
+                          label={t(field.labelKey)}
+                          value={state.studioExpenses[field.key] ?? ""}
+                          onChange={(value) =>
+                            setState((prev) => ({
+                              ...prev,
+                              studioExpenses: { ...prev.studioExpenses, [field.key]: value },
+                            }))
+                          }
+                        />
+                      ))}
+                    </div>
+                    <p className="mt-6 text-lg text-zinc-200">
+                      {t("step2.total")}{" "}
+                      <span className="font-semibold text-accent">{formatCurrency(studioTotal, calcCurrency)}</span>
+                    </p>
+                  </div>
+                )}
+  
+                {state.step === 3 && (
+                  <div>
+                    <h2 className="mb-5 text-xl font-semibold text-white">{t("step3.title")}</h2>
+                    <div className="grid gap-4 sm:grid-cols-3">
+                      <label className="flex flex-col gap-2">
+                        <span className="text-xs text-zinc-400">{t("step3.impuestos")}</span>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={state.taxPercent}
+                          onChange={(e) =>
+                            setState((prev) => ({ ...prev, taxPercent: e.target.value }))
+                          }
+                          className="h-11 rounded-xl border border-white/15 bg-black/30 px-3 text-white outline-none focus:border-accent"
+                        />
+                      </label>
+                      <label className="flex flex-col gap-2">
+                        <span className="text-xs text-zinc-400">{t("step3.reinversion")}</span>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={state.reinvestmentPercent}
+                          onChange={(e) =>
+                            setState((prev) => ({
+                              ...prev,
+                              reinvestmentPercent: e.target.value,
+                            }))
+                          }
+                          className="h-11 rounded-xl border border-white/15 bg-black/30 px-3 text-white outline-none focus:border-accent"
+                        />
+                      </label>
+                      <CurrencyInput
+                        label={t("step3.fondo")}
+                        value={state.emergencyFund}
+                        onChange={(value) =>
+                          setState((prev) => ({ ...prev, emergencyFund: value }))
+                        }
+                      />
+                    </div>
+                    <div className="mt-6 space-y-1 text-zinc-200">
+                      <p>{t("step3.base")} {formatCurrency(baseMonthlyTotal, calcCurrency)}</p>
+                      <p>{t("step3.impuestosMonto")} {formatCurrency(taxAmount, calcCurrency)}</p>
+                      <p>{t("step3.reinversionMonto")} {formatCurrency(reinvestmentAmount, calcCurrency)}</p>
+                      <p className="text-lg">
+                        {t("step3.totalObjetivo")}{" "}
+                        <span className="font-semibold text-accent">
+                          {formatCurrency(monthlyTotalCOP, calcCurrency)}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                )}
+  
+                {state.step === 4 && (
+                  <div>
+                    <h2 className="mb-5 text-xl font-semibold text-white">{t("step4.title")}</h2>
+                    <div className="grid gap-4 sm:grid-cols-3">
+                      <label className="flex flex-col gap-2">
+                        <span className="text-xs text-zinc-400">{t("step4.horasSemana")}</span>
+                        <input
+                          type="number"
+                          min="0"
+                          value={state.hoursPerWeek}
+                          onChange={(e) =>
+                            setState((prev) => ({ ...prev, hoursPerWeek: e.target.value }))
+                          }
+                          className="h-11 rounded-xl border border-white/15 bg-black/30 px-3 text-white outline-none focus:border-accent"
+                        />
+                      </label>
+                      <label className="flex flex-col gap-2">
+                        <span className="text-xs text-zinc-400">{t("step4.semanasMes")}</span>
+                        <input
+                          type="number"
+                          min="0"
+                          value={state.weeksPerMonth}
+                          onChange={(e) =>
+                            setState((prev) => ({ ...prev, weeksPerMonth: e.target.value }))
+                          }
+                          className="h-11 rounded-xl border border-white/15 bg-black/30 px-3 text-white outline-none focus:border-accent"
+                        />
+                      </label>
+                      <label className="flex flex-col gap-2">
+                        <span className="text-xs text-zinc-400">{t("step4.horasProyecto")}</span>
+                        <input
+                          type="number"
+                          min="1"
+                          value={state.hoursPerProject}
+                          onChange={(e) =>
+                            setState((prev) => ({ ...prev, hoursPerProject: e.target.value }))
+                          }
+                          className="h-11 rounded-xl border border-white/15 bg-black/30 px-3 text-white outline-none focus:border-accent"
+                        />
+                      </label>
+                    </div>
+                    <div className="mt-6 space-y-2 text-zinc-200">
+                      <p>
+                        {t("step4.horasMensuales")}{" "}
+                        <span className="font-semibold text-accent">{availableMonthlyHours}</span>
+                      </p>
+                      <p>
+                        {t("step4.proyectosMaximos")}{" "}
+                        <span className="font-semibold text-accent">{maxProjects}</span>
+                      </p>
+                    </div>
+                  </div>
+                )}
+  
+                <div className="mt-10 flex items-center justify-between border-t border-white/10 pt-6">
+                  <button
+                    onClick={() =>
+                      setState((prev) => ({ ...prev, step: Math.max(1, prev.step - 1) }))
+                    }
+                    disabled={!canGoBack}
+                    className="rounded-xl border border-white/15 px-4 py-2 text-sm text-zinc-200 transition hover:border-accent hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {t("previous")}
+                  </button>
+                  {canGoNext ? (
+                    <button
+                      onClick={() =>
+                        setState((prev) => ({ ...prev, step: Math.min(4, prev.step + 1) }))
+                      }
+                      className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-black transition hover:brightness-110"
+                    >
+                      {t("next")}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setState((prev) => ({ ...prev, setupCompleted: true }));
+                        setShowSetup(false);
+                      }}
+                      className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-black transition hover:brightness-110"
+                    >
+                      {t("finishSetup")}
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h2 className="text-2xl font-semibold text-white">{t("quote.title")}</h2>
+                    <p className="mt-1 text-zinc-400 text-sm">{t("quote.subtitle")}</p>
+                  </div>
+                </div>
+  
+                {!isSetupComplete ? (
+                  <div className="rounded-2xl border border-amber-400/30 bg-black/30 p-6">
+                    <p className="text-zinc-200">{t("quote.setupMissing")}</p>
+                    <button
+                      onClick={() => setShowSetup(true)}
+                      className="mt-4 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-black transition hover:brightness-110"
+                    >
+                      {t("openSetup")}
+                    </button>
+                  </div>
+                ) : (() => {
+                  const effectiveQty = quantity ?? maxProjects;
+                  const monthlyMin = minPricePerProject * effectiveQty;
+                  const monthlyRec = recommendedPrice * effectiveQty;
+                  const coveragePct = monthlyTotalCOP > 0
+                    ? Math.round((monthlyRec / monthlyTotalCOP) * 100)
+                    : 0;
+                  const barWidth = Math.min(coveragePct, 100);
+                  const isHealthy = coveragePct >= 100;
+                  // Clickbait paywall: they filled everything — the actual numbers are gated behind Pro
+                  const locked = !profile?.is_pro;
+  
+                  return (
+                    <div className="space-y-4 pb-2">
+                      {/* Project type */}
+                      <div className="rounded-2xl border border-white/10 bg-black/30 p-5 space-y-4">
+                        <label className="flex flex-col gap-2">
+                          <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+                            Project type
+                          </span>
+                          <Select
+                            value={state.selectedProjectType}
+                            onChange={(val) => setState((prev) => ({ ...prev, selectedProjectType: val }))}
+                            options={projectTypes.map((p) => ({ value: p.id, label: t(p.nameKey) }))}
+                          />
+                        </label>
+  
+                        {/* Quantity selector */}
+                        <div className="space-y-2">
+                          <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+                            Projects this month
+                          </span>
+                          <div className="flex gap-2 flex-wrap">
+                            {Array.from({ length: Math.min(maxProjects, 8) }, (_, i) => i + 1).map((n) => (
+                              <button
+                                key={n}
+                                onClick={() => setQuantity(n)}
+                                className={`h-9 w-9 rounded-xl text-sm font-semibold transition ${
+                                  effectiveQty === n
+                                    ? "bg-accent text-black"
+                                    : "border border-white/15 bg-black/30 text-zinc-300 hover:border-accent/50 hover:text-white"
+                                }`}
+                              >
+                                {n}
+                              </button>
+                            ))}
+                          </div>
+                          <p className="text-xs text-zinc-500">
+                            Based on your setup, you can take up to {maxProjects} project{maxProjects !== 1 ? "s" : ""}/month.
+                          </p>
+                        </div>
+                      </div>
+  
+                      {/* ── Result cards — blurred + locked for non-Pro ── */}
+                      <div className="relative">
+                        <div className={locked ? "pointer-events-none select-none blur-[10px]" : ""} aria-hidden={locked}>
+                          {/* Per project */}
+                          <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
+                            <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">
+                              Per project
+                            </p>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <p className="text-xs text-zinc-500">Minimum</p>
+                                <p className="text-lg font-semibold text-zinc-200">{formatCurrency(minPricePerProject, calcCurrency)}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-zinc-500">Recommended</p>
+                                <p className="text-lg font-bold text-accent">{formatCurrency(recommendedPrice, calcCurrency)}</p>
+                              </div>
+                            </div>
+                          </div>
+  
+                          {/* Monthly projection */}
+                          <div className="mt-4 rounded-2xl border border-white/10 bg-black/30 p-5">
+                            <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">
+                              Monthly projection × {effectiveQty}
+                            </p>
+                            <div className="grid grid-cols-2 gap-4 mb-5">
+                              <div>
+                                <p className="text-xs text-zinc-500">Minimum total</p>
+                                <p className="text-lg font-semibold text-zinc-200">{formatCurrency(monthlyMin, calcCurrency)}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-zinc-500">Recommended total</p>
+                                <p className="text-xl font-bold text-accent">{formatCurrency(monthlyRec, calcCurrency)}</p>
+                              </div>
+                            </div>
+  
+                            {/* vs monthly target */}
+                            <div className="border-t border-white/10 pt-4 space-y-2">
+                              <div className="flex items-center justify-between text-xs">
+                                <span className="text-zinc-400">Your monthly target</span>
+                                <span className="font-semibold text-zinc-200">{formatCurrency(monthlyTotalCOP, calcCurrency)}</span>
+                              </div>
+                              <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
+                                <div
+                                  className={`h-full rounded-full transition-all ${isHealthy ? "bg-accent" : "bg-red-400"}`}
+                                  style={{ width: `${barWidth}%` }}
+                                />
+                              </div>
+                              <p className={`text-xs font-medium ${isHealthy ? "text-accent" : "text-red-400"}`}>
+                                {isHealthy
+                                  ? `✓ ${coveragePct}% of your target covered — you're good`
+                                  : `⚠ Only ${coveragePct}% covered — consider more projects or higher rates`}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+  
+                        {/* Lock overlay — free ballpark teaser, exact numbers behind Pro.
+                            Showing the approximate range makes the reveal honest: they
+                            get real value for finishing the calculator, and Pro buys
+                            precision, not the answer itself. */}
+                        {locked && (() => {
+                          const aMin = approxPrice(minPricePerProject);
+                          const aRec = approxPrice(recommendedPrice);
+                          return (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-2xl bg-black/55 px-6 text-center">
+                              <div className="space-y-1.5">
+                                <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-400">Your rate lands around</p>
+                                <p className="text-2xl font-black text-white tabular-nums">
+                                  {aMin === aRec
+                                    ? `≈ ${formatCurrency(aRec, calcCurrency)}`
+                                    : `${formatCurrency(aMin, calcCurrency)} – ${formatCurrency(aRec, calcCurrency)}`}
+                                </p>
+                                <p className="text-xs text-zinc-400">per project, a ballpark. Pro reveals your exact minimum &amp; recommended price.</p>
+                              </div>
+                              <button
+                                onClick={() => openUpgrade("calculator")}
+                                className="mt-1 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-400 py-3 px-6 text-sm font-black text-black shadow-lg shadow-amber-500/30 hover:brightness-110 transition active:scale-[0.97]"
+                              >
+                                🔓 Reveal my exact price
+                              </button>
+                            </div>
+                          );
+                        })()}
+                      </div>
+  
+                    {/* ── Upsell CTA — Pro only (send the quote) ─────── */}
+                    {!locked && (
+                      <button
+                        onClick={() => {
+                          setBusinessView("quotes");
+                          setActiveTab("pricing");
+                        }}
+                        className="w-full rounded-2xl bg-gradient-to-r from-amber-500 to-amber-400 py-4 px-5 flex items-center justify-between shadow-lg shadow-amber-500/25 hover:brightness-110 transition active:scale-[0.98]"
+                      >
+                        <div className="text-left">
+                          <p className="text-sm font-black text-black">Send this quote to a client →</p>
+                          <p className="text-[11px] text-black/60 mt-0.5">Your price is set. Now get paid.</p>
+                        </div>
+                        <span className="text-xl">💸</span>
+                      </button>
+                    )}
+                  </div>);
+  
+                })()}
+              </div>
+            )}
+  
+          </section>
+        ) : activeTab === "dashboard" ? (
+          <Dashboard
+            className="flex-1 mt-3"
+            avatarUrl={profile.avatar_url}
+            username={profile.username}
+            isPro={profile.is_pro}
+            userId={authUser?.id}
+            onOpenSettings={() => { setSettingsSection("main"); setShowSettings(true); }}
+            onOpenProfileSettings={() => { setSettingsSection("profile"); setShowSettings(true); }}
+            networkProfile={profile}
+            onColorAssigned={(colorId) =>
+              setProfile((prev) => prev ? { ...prev, color_id: colorId } : prev)
+            }
+            onNavigate={(tab) => { setActiveTab(tab); setBusinessView("hub"); }}
+            onOpenCalculator={() => { setActiveTab("pricing"); setBusinessView("calculator"); }}
+          />
+        ) : activeTab === "contenido" ? (
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <ContentModule isPro={profile?.is_pro ?? false} onUpgrade={() => openUpgrade("content")} genres={profile?.genres ?? []} />
+          </div>
+        ) : activeTab === "ideas" ? (
+          <AudioModule userId={authUser.id} isPro={profile?.is_pro ?? false} onSheetChange={setNavHidden} />
+        ) : activeTab === "noticias" ? (
+          <div key="noticias">
+            <Community
+              profile={profile}
+              openComposerWith={pendingAudio}
+              onComposerConsumed={() => setPendingAudio(null)}
+            />
+          </div>
+        ) : null;
+
+  // Upgrade sheet — global overlay shared by BOTH shells (mobile + desktop)
+  const upgradeSheet =
+        showUpgrade && !profile?.is_pro && (
+          <>
+            <div className="fixed inset-0 z-[150] bg-black/70 backdrop-blur-sm" style={{ animation: "sheetFadeIn .25s ease both" }} onClick={dismissUpgrade} />
+            <div
+              ref={upgradeSheetRef}
+              className="fixed left-0 right-0 z-[160] rounded-t-3xl bg-zinc-950 border-t border-white/10 p-6 space-y-5"
+              style={{ bottom: SHEET_BOTTOM, paddingBottom: "calc(env(safe-area-inset-bottom) + 24px)", animation: SHEET_ENTER }}
+            >
+              <div className="w-10 h-1 bg-white/20 rounded-full mx-auto" />
+  
+              <div className="space-y-1">
+                <p className="text-xl font-black text-white">{UPGRADE_COPY[upgradeContext].line1}</p>
+                <p className="text-xl font-black text-accent">{UPGRADE_COPY[upgradeContext].line2}</p>
+                <p className="text-sm text-zinc-500 mt-2">{UPGRADE_COPY[upgradeContext].sub}</p>
+              </div>
+  
+              <div className="space-y-2">
+                {PRO_FEATURES.map((item) => (
+                  <div key={item.label} className="flex items-center gap-3 rounded-xl bg-white/5 px-4 py-2.5">
+                    <span className="text-lg">{item.emoji}</span>
+                    <div>
+                      <p className="text-sm font-semibold text-white">{item.label}</p>
+                      <p className="text-[11px] text-zinc-500">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+  
+              {/* Plan toggle — two cards, badge inline (the old absolute badge was
+                  clipped by the container's overflow-hidden) */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setUpgradePlan("monthly")}
+                  className={`flex-1 rounded-xl border py-3 transition ${
+                    upgradePlan === "monthly" ? "border-accent bg-accent/10" : "border-white/10 bg-white/5"
+                  }`}
+                >
+                  <p className={`text-sm font-bold ${upgradePlan === "monthly" ? "text-white" : "text-zinc-400"}`}>Monthly</p>
+                  <p className="text-[11px] text-zinc-500 mt-0.5">$14.99 / month</p>
+                </button>
+                <button
+                  onClick={() => setUpgradePlan("yearly")}
+                  className={`flex-1 rounded-xl border py-3 transition ${
+                    upgradePlan === "yearly" ? "border-accent bg-accent/10" : "border-white/10 bg-white/5"
+                  }`}
+                >
+                  <p className={`text-sm font-bold ${upgradePlan === "yearly" ? "text-white" : "text-zinc-400"}`}>
+                    Yearly
+                    <span className="ml-1.5 align-middle text-[9px] bg-amber-500 text-black font-black px-1.5 py-0.5 rounded-full">SAVE 33%</span>
+                  </p>
+                  <p className="text-[11px] text-zinc-500 mt-0.5">$119.99 / year · ≈ $10 / mo</p>
+                </button>
+              </div>
+  
+              <button
+                onClick={() => startCheckout(upgradePlan)}
+                disabled={upgrading}
+                className="w-full py-4 rounded-2xl bg-amber-500 hover:bg-amber-400 active:scale-95 transition text-black font-black text-base shadow-lg shadow-amber-500/30 disabled:opacity-60"
+              >
+                {upgrading ? "Redirecting…" : upgradePlan === "yearly" ? "Start Pro · $119.99 / year" : "Start Pro · $14.99 / month"}
+              </button>
+  
+              <button onClick={() => setShowUpgrade(false)} className="w-full text-xs text-zinc-600 hover:text-zinc-400 transition py-1">
+                Maybe later
+              </button>
+            </div>
+          </>
+        );
+
+
+  // ── Desktop shell (≥1024px): same module tree, different chrome ──
+  if (isDesktop) {
+    return (
+      <>
+        <DesktopShell
+          profile={profile}
+          userId={authUser.id}
+          activeTab={activeTab}
+          networkActive={activeTab === "pricing" && businessView === "network"}
+          settingsOpen={showSettings}
+          onNavigate={(tab) => { setActiveTab(tab); setBusinessView("hub"); setShowSettings(false); setSettingsSection("main"); }}
+          onOpenNetwork={() => { setActiveTab("pricing"); setBusinessView("network"); setShowSettings(false); }}
+          onOpenSettings={() => { void track("settings_open"); setShowSettings(true); }}
+        >
+          {moduleContent}
+        </DesktopShell>
+        {upgradeSheet}
+      </>
+    );
+  }
+
   return (
     <div className="flex flex-col bg-background" style={{ position: "fixed", top: 0, left: 0, right: 0, height: "var(--app-h, 100dvh)" }}>
     <main id="scroll-root" className={`relative flex-1 flex flex-col overscroll-none ${(activeTab === "dashboard" || activeTab === "contenido" || activeTab === "ideas" || (activeTab === "pricing" && businessView === "hub")) && !showSettings ? "overflow-hidden" : "overflow-y-auto"}`} style={{ overscrollBehavior: "none", paddingTop: "calc(env(safe-area-inset-top) + 0.75rem)" }}>
@@ -731,520 +1346,7 @@ export default function PricingCalculator() {
         </div>
       )}
       {/* wave removed */}
-      {showSettings ? (
-        <SettingsModule
-          onBack={async () => {
-            setShowSettings(false);
-            setSettingsSection("main");
-            // Refresh profile so the Fennec ID card + dashboard reflect Settings changes
-            const p = await getProfile(authUser.id);
-            if (p) setProfile((prev) => prev ? { ...p, fennec_db_score: prev.fennec_db_score } : p);
-          }}
-          language={i18n.resolvedLanguage ?? "en"}
-          onLanguageChange={(lang) => { void i18n.changeLanguage(lang); }}
-          avatarUrl={profile.avatar_url}
-          onAvatarChange={(url) => setProfile((p) => p ? { ...p, avatar_url: url } : p)}
-          onSignOut={async () => { await track("sign_out"); await supabase.auth.signOut(); }}
-          userId={authUser.id}
-          initialSection={settingsSection}
-        />
-      ) : activeTab === "pricing" && businessView === "hub" ? (
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <BusinessHub
-            key={hubRefreshKey}
-            onOpenView={setBusinessView}
-            userId={authUser.id}
-          />
-        </div>
-      ) : activeTab === "pricing" && businessView === "projects" ? (
-        <ActiveProjects onBack={() => { setHubRefreshKey((k) => k + 1); setBusinessView("hub"); }} userId={authUser.id} />
-      ) : activeTab === "pricing" && businessView === "clients" ? (
-        <ClientsLeads onBack={() => { setHubRefreshKey((k) => k + 1); setBusinessView(prevBusinessView.current); }} userId={authUser.id} />
-      ) : activeTab === "pricing" && businessView === "quotes" ? (
-        <QuoteGenerator
-          onBack={() => { setHubRefreshKey((k) => k + 1); setBusinessView("hub"); }}
-          onGoToClients={() => { prevBusinessView.current = "quotes"; setBusinessView("clients"); }}
-          onGoToCalculator={() => setBusinessView("calculator")}
-          onGoToProjects={() => setBusinessView("projects")}
-          userId={authUser.id}
-        />
-      ) : activeTab === "pricing" && businessView === "network" ? (
-        <div className="mx-auto w-full max-w-4xl px-4 pb-8">
-          <button
-            type="button"
-            onClick={() => setBusinessView("hub")}
-            className="mb-6 flex items-center gap-1.5 text-xs text-zinc-400 hover:text-accent transition"
-          >
-            ← Business Hub
-          </button>
-          <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase mb-1">
-            Network
-          </p>
-          <h1 className="text-2xl font-bold tracking-tight text-white mb-6">
-            Your producer network.
-          </h1>
-          <NetworkSection userId={authUser.id} />
-        </div>
-      ) : activeTab === "pricing" && businessView === "calculator" ? (
-        <section className="mx-auto w-full max-w-4xl rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/40 backdrop-blur-sm sm:p-10">
-          <button
-            onClick={() => setBusinessView("hub")}
-            className="mb-6 flex items-center gap-1.5 text-xs text-zinc-400 hover:text-accent transition"
-          >
-            ← Back to Business
-          </button>
-          <div className="mb-8 flex items-start justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">
-                {t("brand")}
-              </p>
-              <h1 className="mt-3 text-2xl font-bold tracking-tight text-white">
-                {t("calculatorTitle")}
-              </h1>
-              <p className="mt-2 text-sm text-zinc-400">{t("calculatorSubtitle")}</p>
-            </div>
-            <div className="flex flex-col items-end gap-2 shrink-0">
-              {/* Currency selector */}
-              <div className="flex rounded-xl border border-white/10 bg-black/30 overflow-hidden">
-                {(["USD", "MXN", "COP"] as CalcCurrency[]).map((c) => (
-                  <button
-                    key={c}
-                    onClick={() => saveCurrency(c)}
-                    className={`px-3 py-1.5 text-xs font-semibold transition ${
-                      calcCurrency === c
-                        ? "bg-accent text-black"
-                        : "text-zinc-500 hover:text-white"
-                    }`}
-                  >
-                    {c}
-                  </button>
-                ))}
-              </div>
-              <button
-                onClick={() => {
-                  setState((prev) => ({ ...prev, step: 1 }));
-                  setShowSetup((prev) => !prev);
-                }}
-                className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-zinc-200 transition hover:border-accent hover:text-white whitespace-nowrap"
-              >
-                <SlidersHorizontal className="h-4 w-4" />
-                {showSetup ? "Close" : "My expenses"}
-              </button>
-            </div>
-          </div>
-          {showSetup ? (
-            <div>
-              <p className="mb-2 text-zinc-300">{t("stepCounter", { step: state.step })}</p>
-              <div className="mb-8 h-2 w-28 overflow-hidden rounded-full bg-white/10">
-                <div
-                  className="h-full bg-accent transition-all"
-                  style={{ width: `${(state.step / 4) * 100}%` }}
-                />
-              </div>
-
-              {state.step === 1 && (
-                <div>
-                  <h2 className="mb-5 text-xl font-semibold text-white">{t("step1.title")}</h2>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    {personalFields.map((field) => (
-                      <CurrencyInput
-                        key={field.key}
-                        label={t(field.labelKey)}
-                        value={state.personalExpenses[field.key] ?? ""}
-                        onChange={(value) =>
-                          setState((prev) => ({
-                            ...prev,
-                            personalExpenses: { ...prev.personalExpenses, [field.key]: value },
-                          }))
-                        }
-                      />
-                    ))}
-                  </div>
-                  <p className="mt-6 text-lg text-zinc-200">
-                    {t("step1.total")}{" "}
-                    <span className="font-semibold text-accent">{formatCurrency(personalTotal, calcCurrency)}</span>
-                  </p>
-                </div>
-              )}
-
-              {state.step === 2 && (
-                <div>
-                  <h2 className="mb-5 text-xl font-semibold text-white">{t("step2.title")}</h2>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    {studioFields.map((field) => (
-                      <CurrencyInput
-                        key={field.key}
-                        label={t(field.labelKey)}
-                        value={state.studioExpenses[field.key] ?? ""}
-                        onChange={(value) =>
-                          setState((prev) => ({
-                            ...prev,
-                            studioExpenses: { ...prev.studioExpenses, [field.key]: value },
-                          }))
-                        }
-                      />
-                    ))}
-                  </div>
-                  <p className="mt-6 text-lg text-zinc-200">
-                    {t("step2.total")}{" "}
-                    <span className="font-semibold text-accent">{formatCurrency(studioTotal, calcCurrency)}</span>
-                  </p>
-                </div>
-              )}
-
-              {state.step === 3 && (
-                <div>
-                  <h2 className="mb-5 text-xl font-semibold text-white">{t("step3.title")}</h2>
-                  <div className="grid gap-4 sm:grid-cols-3">
-                    <label className="flex flex-col gap-2">
-                      <span className="text-xs text-zinc-400">{t("step3.impuestos")}</span>
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={state.taxPercent}
-                        onChange={(e) =>
-                          setState((prev) => ({ ...prev, taxPercent: e.target.value }))
-                        }
-                        className="h-11 rounded-xl border border-white/15 bg-black/30 px-3 text-white outline-none focus:border-accent"
-                      />
-                    </label>
-                    <label className="flex flex-col gap-2">
-                      <span className="text-xs text-zinc-400">{t("step3.reinversion")}</span>
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={state.reinvestmentPercent}
-                        onChange={(e) =>
-                          setState((prev) => ({
-                            ...prev,
-                            reinvestmentPercent: e.target.value,
-                          }))
-                        }
-                        className="h-11 rounded-xl border border-white/15 bg-black/30 px-3 text-white outline-none focus:border-accent"
-                      />
-                    </label>
-                    <CurrencyInput
-                      label={t("step3.fondo")}
-                      value={state.emergencyFund}
-                      onChange={(value) =>
-                        setState((prev) => ({ ...prev, emergencyFund: value }))
-                      }
-                    />
-                  </div>
-                  <div className="mt-6 space-y-1 text-zinc-200">
-                    <p>{t("step3.base")} {formatCurrency(baseMonthlyTotal, calcCurrency)}</p>
-                    <p>{t("step3.impuestosMonto")} {formatCurrency(taxAmount, calcCurrency)}</p>
-                    <p>{t("step3.reinversionMonto")} {formatCurrency(reinvestmentAmount, calcCurrency)}</p>
-                    <p className="text-lg">
-                      {t("step3.totalObjetivo")}{" "}
-                      <span className="font-semibold text-accent">
-                        {formatCurrency(monthlyTotalCOP, calcCurrency)}
-                      </span>
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {state.step === 4 && (
-                <div>
-                  <h2 className="mb-5 text-xl font-semibold text-white">{t("step4.title")}</h2>
-                  <div className="grid gap-4 sm:grid-cols-3">
-                    <label className="flex flex-col gap-2">
-                      <span className="text-xs text-zinc-400">{t("step4.horasSemana")}</span>
-                      <input
-                        type="number"
-                        min="0"
-                        value={state.hoursPerWeek}
-                        onChange={(e) =>
-                          setState((prev) => ({ ...prev, hoursPerWeek: e.target.value }))
-                        }
-                        className="h-11 rounded-xl border border-white/15 bg-black/30 px-3 text-white outline-none focus:border-accent"
-                      />
-                    </label>
-                    <label className="flex flex-col gap-2">
-                      <span className="text-xs text-zinc-400">{t("step4.semanasMes")}</span>
-                      <input
-                        type="number"
-                        min="0"
-                        value={state.weeksPerMonth}
-                        onChange={(e) =>
-                          setState((prev) => ({ ...prev, weeksPerMonth: e.target.value }))
-                        }
-                        className="h-11 rounded-xl border border-white/15 bg-black/30 px-3 text-white outline-none focus:border-accent"
-                      />
-                    </label>
-                    <label className="flex flex-col gap-2">
-                      <span className="text-xs text-zinc-400">{t("step4.horasProyecto")}</span>
-                      <input
-                        type="number"
-                        min="1"
-                        value={state.hoursPerProject}
-                        onChange={(e) =>
-                          setState((prev) => ({ ...prev, hoursPerProject: e.target.value }))
-                        }
-                        className="h-11 rounded-xl border border-white/15 bg-black/30 px-3 text-white outline-none focus:border-accent"
-                      />
-                    </label>
-                  </div>
-                  <div className="mt-6 space-y-2 text-zinc-200">
-                    <p>
-                      {t("step4.horasMensuales")}{" "}
-                      <span className="font-semibold text-accent">{availableMonthlyHours}</span>
-                    </p>
-                    <p>
-                      {t("step4.proyectosMaximos")}{" "}
-                      <span className="font-semibold text-accent">{maxProjects}</span>
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              <div className="mt-10 flex items-center justify-between border-t border-white/10 pt-6">
-                <button
-                  onClick={() =>
-                    setState((prev) => ({ ...prev, step: Math.max(1, prev.step - 1) }))
-                  }
-                  disabled={!canGoBack}
-                  className="rounded-xl border border-white/15 px-4 py-2 text-sm text-zinc-200 transition hover:border-accent hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  {t("previous")}
-                </button>
-                {canGoNext ? (
-                  <button
-                    onClick={() =>
-                      setState((prev) => ({ ...prev, step: Math.min(4, prev.step + 1) }))
-                    }
-                    className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-black transition hover:brightness-110"
-                  >
-                    {t("next")}
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setState((prev) => ({ ...prev, setupCompleted: true }));
-                      setShowSetup(false);
-                    }}
-                    className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-black transition hover:brightness-110"
-                  >
-                    {t("finishSetup")}
-                  </button>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h2 className="text-2xl font-semibold text-white">{t("quote.title")}</h2>
-                  <p className="mt-1 text-zinc-400 text-sm">{t("quote.subtitle")}</p>
-                </div>
-              </div>
-
-              {!isSetupComplete ? (
-                <div className="rounded-2xl border border-amber-400/30 bg-black/30 p-6">
-                  <p className="text-zinc-200">{t("quote.setupMissing")}</p>
-                  <button
-                    onClick={() => setShowSetup(true)}
-                    className="mt-4 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-black transition hover:brightness-110"
-                  >
-                    {t("openSetup")}
-                  </button>
-                </div>
-              ) : (() => {
-                const effectiveQty = quantity ?? maxProjects;
-                const monthlyMin = minPricePerProject * effectiveQty;
-                const monthlyRec = recommendedPrice * effectiveQty;
-                const coveragePct = monthlyTotalCOP > 0
-                  ? Math.round((monthlyRec / monthlyTotalCOP) * 100)
-                  : 0;
-                const barWidth = Math.min(coveragePct, 100);
-                const isHealthy = coveragePct >= 100;
-                // Clickbait paywall: they filled everything — the actual numbers are gated behind Pro
-                const locked = !profile?.is_pro;
-
-                return (
-                  <div className="space-y-4 pb-2">
-                    {/* Project type */}
-                    <div className="rounded-2xl border border-white/10 bg-black/30 p-5 space-y-4">
-                      <label className="flex flex-col gap-2">
-                        <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
-                          Project type
-                        </span>
-                        <Select
-                          value={state.selectedProjectType}
-                          onChange={(val) => setState((prev) => ({ ...prev, selectedProjectType: val }))}
-                          options={projectTypes.map((p) => ({ value: p.id, label: t(p.nameKey) }))}
-                        />
-                      </label>
-
-                      {/* Quantity selector */}
-                      <div className="space-y-2">
-                        <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
-                          Projects this month
-                        </span>
-                        <div className="flex gap-2 flex-wrap">
-                          {Array.from({ length: Math.min(maxProjects, 8) }, (_, i) => i + 1).map((n) => (
-                            <button
-                              key={n}
-                              onClick={() => setQuantity(n)}
-                              className={`h-9 w-9 rounded-xl text-sm font-semibold transition ${
-                                effectiveQty === n
-                                  ? "bg-accent text-black"
-                                  : "border border-white/15 bg-black/30 text-zinc-300 hover:border-accent/50 hover:text-white"
-                              }`}
-                            >
-                              {n}
-                            </button>
-                          ))}
-                        </div>
-                        <p className="text-xs text-zinc-500">
-                          Based on your setup, you can take up to {maxProjects} project{maxProjects !== 1 ? "s" : ""}/month.
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* ── Result cards — blurred + locked for non-Pro ── */}
-                    <div className="relative">
-                      <div className={locked ? "pointer-events-none select-none blur-[10px]" : ""} aria-hidden={locked}>
-                        {/* Per project */}
-                        <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
-                          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">
-                            Per project
-                          </p>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <p className="text-xs text-zinc-500">Minimum</p>
-                              <p className="text-lg font-semibold text-zinc-200">{formatCurrency(minPricePerProject, calcCurrency)}</p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-zinc-500">Recommended</p>
-                              <p className="text-lg font-bold text-accent">{formatCurrency(recommendedPrice, calcCurrency)}</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Monthly projection */}
-                        <div className="mt-4 rounded-2xl border border-white/10 bg-black/30 p-5">
-                          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">
-                            Monthly projection × {effectiveQty}
-                          </p>
-                          <div className="grid grid-cols-2 gap-4 mb-5">
-                            <div>
-                              <p className="text-xs text-zinc-500">Minimum total</p>
-                              <p className="text-lg font-semibold text-zinc-200">{formatCurrency(monthlyMin, calcCurrency)}</p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-zinc-500">Recommended total</p>
-                              <p className="text-xl font-bold text-accent">{formatCurrency(monthlyRec, calcCurrency)}</p>
-                            </div>
-                          </div>
-
-                          {/* vs monthly target */}
-                          <div className="border-t border-white/10 pt-4 space-y-2">
-                            <div className="flex items-center justify-between text-xs">
-                              <span className="text-zinc-400">Your monthly target</span>
-                              <span className="font-semibold text-zinc-200">{formatCurrency(monthlyTotalCOP, calcCurrency)}</span>
-                            </div>
-                            <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
-                              <div
-                                className={`h-full rounded-full transition-all ${isHealthy ? "bg-accent" : "bg-red-400"}`}
-                                style={{ width: `${barWidth}%` }}
-                              />
-                            </div>
-                            <p className={`text-xs font-medium ${isHealthy ? "text-accent" : "text-red-400"}`}>
-                              {isHealthy
-                                ? `✓ ${coveragePct}% of your target covered — you're good`
-                                : `⚠ Only ${coveragePct}% covered — consider more projects or higher rates`}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Lock overlay — free ballpark teaser, exact numbers behind Pro.
-                          Showing the approximate range makes the reveal honest: they
-                          get real value for finishing the calculator, and Pro buys
-                          precision, not the answer itself. */}
-                      {locked && (() => {
-                        const aMin = approxPrice(minPricePerProject);
-                        const aRec = approxPrice(recommendedPrice);
-                        return (
-                          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-2xl bg-black/55 px-6 text-center">
-                            <div className="space-y-1.5">
-                              <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-400">Your rate lands around</p>
-                              <p className="text-2xl font-black text-white tabular-nums">
-                                {aMin === aRec
-                                  ? `≈ ${formatCurrency(aRec, calcCurrency)}`
-                                  : `${formatCurrency(aMin, calcCurrency)} – ${formatCurrency(aRec, calcCurrency)}`}
-                              </p>
-                              <p className="text-xs text-zinc-400">per project, a ballpark. Pro reveals your exact minimum &amp; recommended price.</p>
-                            </div>
-                            <button
-                              onClick={() => openUpgrade("calculator")}
-                              className="mt-1 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-400 py-3 px-6 text-sm font-black text-black shadow-lg shadow-amber-500/30 hover:brightness-110 transition active:scale-[0.97]"
-                            >
-                              🔓 Reveal my exact price
-                            </button>
-                          </div>
-                        );
-                      })()}
-                    </div>
-
-                  {/* ── Upsell CTA — Pro only (send the quote) ─────── */}
-                  {!locked && (
-                    <button
-                      onClick={() => {
-                        setBusinessView("quotes");
-                        setActiveTab("pricing");
-                      }}
-                      className="w-full rounded-2xl bg-gradient-to-r from-amber-500 to-amber-400 py-4 px-5 flex items-center justify-between shadow-lg shadow-amber-500/25 hover:brightness-110 transition active:scale-[0.98]"
-                    >
-                      <div className="text-left">
-                        <p className="text-sm font-black text-black">Send this quote to a client →</p>
-                        <p className="text-[11px] text-black/60 mt-0.5">Your price is set. Now get paid.</p>
-                      </div>
-                      <span className="text-xl">💸</span>
-                    </button>
-                  )}
-                </div>);
-
-              })()}
-            </div>
-          )}
-
-        </section>
-      ) : activeTab === "dashboard" ? (
-        <Dashboard
-          className="flex-1 mt-3"
-          avatarUrl={profile.avatar_url}
-          username={profile.username}
-          isPro={profile.is_pro}
-          userId={authUser?.id}
-          onOpenSettings={() => { setSettingsSection("main"); setShowSettings(true); }}
-          onOpenProfileSettings={() => { setSettingsSection("profile"); setShowSettings(true); }}
-          networkProfile={profile}
-          onColorAssigned={(colorId) =>
-            setProfile((prev) => prev ? { ...prev, color_id: colorId } : prev)
-          }
-          onNavigate={(tab) => { setActiveTab(tab); setBusinessView("hub"); }}
-          onOpenCalculator={() => { setActiveTab("pricing"); setBusinessView("calculator"); }}
-        />
-      ) : activeTab === "contenido" ? (
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <ContentModule isPro={profile?.is_pro ?? false} onUpgrade={() => openUpgrade("content")} genres={profile?.genres ?? []} />
-        </div>
-      ) : activeTab === "ideas" ? (
-        <AudioModule userId={authUser.id} isPro={profile?.is_pro ?? false} onSheetChange={setNavHidden} />
-      ) : activeTab === "noticias" ? (
-        <div key="noticias">
-          <Community
-            profile={profile}
-            openComposerWith={pendingAudio}
-            onComposerConsumed={() => setPendingAudio(null)}
-          />
-        </div>
-      ) : null}
+      {moduleContent}
 
     </main>
       <nav
@@ -1325,75 +1427,7 @@ export default function PricingCalculator() {
         </div>
       </nav>
 
-      {/* ── Upgrade sheet — global overlay (renders over any tab/view) ─── */}
-      {showUpgrade && !profile?.is_pro && (
-        <>
-          <div className="fixed inset-0 z-[150] bg-black/70 backdrop-blur-sm" style={{ animation: "sheetFadeIn .25s ease both" }} onClick={dismissUpgrade} />
-          <div
-            ref={upgradeSheetRef}
-            className="fixed left-0 right-0 z-[160] rounded-t-3xl bg-zinc-950 border-t border-white/10 p-6 space-y-5"
-            style={{ bottom: SHEET_BOTTOM, paddingBottom: "calc(env(safe-area-inset-bottom) + 24px)", animation: SHEET_ENTER }}
-          >
-            <div className="w-10 h-1 bg-white/20 rounded-full mx-auto" />
-
-            <div className="space-y-1">
-              <p className="text-xl font-black text-white">{UPGRADE_COPY[upgradeContext].line1}</p>
-              <p className="text-xl font-black text-accent">{UPGRADE_COPY[upgradeContext].line2}</p>
-              <p className="text-sm text-zinc-500 mt-2">{UPGRADE_COPY[upgradeContext].sub}</p>
-            </div>
-
-            <div className="space-y-2">
-              {PRO_FEATURES.map((item) => (
-                <div key={item.label} className="flex items-center gap-3 rounded-xl bg-white/5 px-4 py-2.5">
-                  <span className="text-lg">{item.emoji}</span>
-                  <div>
-                    <p className="text-sm font-semibold text-white">{item.label}</p>
-                    <p className="text-[11px] text-zinc-500">{item.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Plan toggle — two cards, badge inline (the old absolute badge was
-                clipped by the container's overflow-hidden) */}
-            <div className="flex gap-2">
-              <button
-                onClick={() => setUpgradePlan("monthly")}
-                className={`flex-1 rounded-xl border py-3 transition ${
-                  upgradePlan === "monthly" ? "border-accent bg-accent/10" : "border-white/10 bg-white/5"
-                }`}
-              >
-                <p className={`text-sm font-bold ${upgradePlan === "monthly" ? "text-white" : "text-zinc-400"}`}>Monthly</p>
-                <p className="text-[11px] text-zinc-500 mt-0.5">$14.99 / month</p>
-              </button>
-              <button
-                onClick={() => setUpgradePlan("yearly")}
-                className={`flex-1 rounded-xl border py-3 transition ${
-                  upgradePlan === "yearly" ? "border-accent bg-accent/10" : "border-white/10 bg-white/5"
-                }`}
-              >
-                <p className={`text-sm font-bold ${upgradePlan === "yearly" ? "text-white" : "text-zinc-400"}`}>
-                  Yearly
-                  <span className="ml-1.5 align-middle text-[9px] bg-amber-500 text-black font-black px-1.5 py-0.5 rounded-full">SAVE 33%</span>
-                </p>
-                <p className="text-[11px] text-zinc-500 mt-0.5">$119.99 / year · ≈ $10 / mo</p>
-              </button>
-            </div>
-
-            <button
-              onClick={() => startCheckout(upgradePlan)}
-              disabled={upgrading}
-              className="w-full py-4 rounded-2xl bg-amber-500 hover:bg-amber-400 active:scale-95 transition text-black font-black text-base shadow-lg shadow-amber-500/30 disabled:opacity-60"
-            >
-              {upgrading ? "Redirecting…" : upgradePlan === "yearly" ? "Start Pro · $119.99 / year" : "Start Pro · $14.99 / month"}
-            </button>
-
-            <button onClick={() => setShowUpgrade(false)} className="w-full text-xs text-zinc-600 hover:text-zinc-400 transition py-1">
-              Maybe later
-            </button>
-          </div>
-        </>
-      )}
+      {upgradeSheet}
     </div>
   );
 }
