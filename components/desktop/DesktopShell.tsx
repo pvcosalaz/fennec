@@ -93,6 +93,11 @@ export default function DesktopShell({
 
   const slide = "transform .32s cubic-bezier(.22,1,.36,1)";
 
+  // Immersive: The Tape is the flagship, so entering it clears the chrome —
+  // both side rails slide away and the reel takes the whole viewport.
+  const immersive = activeTab === "ideas" && !networkActive && !settingsOpen;
+  const railHidden = railOff || immersive;
+
   return (
     <div className="min-h-screen" style={{ background: "#0b0a08" }}>
 
@@ -104,6 +109,8 @@ export default function DesktopShell({
           borderRight: `1px solid ${HAIR}`,
           background: "linear-gradient(180deg,#131116 0%,#0d0c0f 55%,#0b0a08 100%)",
           padding: "22px 14px 18px",
+          transform: immersive ? "translateX(-100%)" : "translateX(0)",
+          transition: slide,
         }}
       >
         <div className="flex items-baseline gap-0.5 px-2.5 pb-6">
@@ -189,38 +196,63 @@ export default function DesktopShell({
         </div>
       </aside>
 
-      {/* ── Main area (margins slide with the rail) ────────────── */}
+      {/* ── Main area (margins slide with the rails) ───────────── */}
       <div
         className="relative flex min-h-screen flex-col"
-        style={{ marginLeft: 232, marginRight: railOff ? 0 : RAIL_W, transition: "margin-right .32s cubic-bezier(.22,1,.36,1)" }}
+        style={{ marginLeft: immersive ? 0 : 232, marginRight: railHidden ? 0 : RAIL_W, transition: "margin .32s cubic-bezier(.22,1,.36,1)" }}
       >
         {/* Giant fox, deep background layer — the brand present at all times,
-            like the landing's first screen. Barely-there so content wins. */}
-        <div aria-hidden className="pointer-events-none fixed inset-0 z-0 overflow-hidden" style={{ left: 232, right: railOff ? 0 : RAIL_W, transition: "right .32s cubic-bezier(.22,1,.36,1)" }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/fennec-icon-transparent.png"
-            alt=""
-            className="absolute"
-            style={{
-              width: "min(120vh, 1100px)", height: "auto",
-              right: "-8%", bottom: "-14%",
-              opacity: 0.035, filter: "brightness(0) invert(1)",
-            }}
-          />
-        </div>
-        <div className="relative z-10 mx-auto w-full max-w-5xl flex-1 px-6 py-6" style={{ minHeight: "100vh" }}>
-          {children}
-        </div>
+            like the landing's first screen. Barely-there so content wins.
+            Hidden in immersive: the reel owns the whole surface. */}
+        {!immersive && (
+          <div aria-hidden className="pointer-events-none fixed inset-0 z-0 overflow-hidden" style={{ left: 232, right: railHidden ? 0 : RAIL_W, transition: "right .32s cubic-bezier(.22,1,.36,1)" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/fennec-icon-transparent.png"
+              alt=""
+              className="absolute"
+              style={{
+                width: "min(120vh, 1100px)", height: "auto",
+                right: "-8%", bottom: "-14%",
+                opacity: 0.035, filter: "brightness(0) invert(1)",
+              }}
+            />
+          </div>
+        )}
+        {immersive ? (
+          <div className="relative z-10 w-full flex-1">{children}</div>
+        ) : (
+          <div className="relative z-10 mx-auto w-full max-w-5xl flex-1 px-6 py-6" style={{ minHeight: "100vh" }}>
+            {children}
+          </div>
+        )}
       </div>
 
+      {/* Immersive exit — quiet home affordance top-left, the only chrome
+          left while the reel is playing. Returns to the dashboard. */}
+      {immersive && (
+        <button
+          type="button"
+          onClick={() => onNavigate("dashboard")}
+          aria-label="Leave The Tape"
+          className="fixed left-5 top-5 z-[80] flex items-center gap-2 rounded-full border px-3.5 py-2 text-[12px] font-semibold transition hover:brightness-110"
+          style={{ borderColor: "rgba(245,166,35,.35)", background: "rgba(17,16,20,.7)", color: "#f5a623", backdropFilter: "blur(8px)" }}
+        >
+          <ChevronRight className="h-3.5 w-3.5" style={{ transform: "rotate(180deg)" }} />
+          fennec
+        </button>
+      )}
+
       {/* ── Rail toggle — quiet chevron riding the rail's edge ──── */}
+      {/* Hidden in immersive: there's no rail to toggle on the tape. */}
       <button
         type="button"
         onClick={toggleRail}
         aria-label={railOff ? "Show your network" : "Hide your network"}
         className="fixed top-1/2 z-[70] grid h-[52px] w-[28px] place-items-center rounded-lg"
         style={{
+          opacity: immersive ? 0 : 1,
+          pointerEvents: immersive ? "none" : "auto",
           right: railOff ? 0 : RAIL_W,
           transform: railOff ? "translate(-8px,-50%)" : "translate(50%,-50%)",
           border: railOff ? "1px solid rgba(245,166,35,.45)" : `1px solid ${HAIR}`,
@@ -241,7 +273,7 @@ export default function DesktopShell({
           background: "linear-gradient(180deg,#12101a 0%,#0d0c11 60%,#0b0a08 100%)",
           borderLeft: `1px solid ${HAIR}`,
           padding: "22px 18px",
-          transform: railOff ? "translateX(100%)" : "translateX(0)",
+          transform: railHidden ? "translateX(100%)" : "translateX(0)",
           transition: slide,
         }}
       >

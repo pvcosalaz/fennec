@@ -9,7 +9,7 @@ const MOCK: ProjectReview = {
   user_id: "dev",
   title: "Midnight Reel",
   category: "Missing Mix",
-  audio_url: "/api/dev-audio",
+  audio_url: "/api/dev-audio?tone=1",
   artwork_url: null,
   duration_seconds: 192,
   comment_count: 0,
@@ -20,7 +20,7 @@ const MOCK: ProjectReview = {
 export default function DevTapePage() {
   if (process.env.NODE_ENV === "production") notFound();
   return (
-    <div className="min-h-screen p-8" style={{ background: "#0b0a08" }}>
+    <div className="h-screen w-screen overflow-hidden" style={{ background: "#0b0a08" }}>
       <TapeDeckDesktop track={MOCK} userId="dev" onPass={() => {}} onOpenMyTracks={() => {}} onOpenIntro={() => {}} />
     </div>
   );

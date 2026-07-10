@@ -75,16 +75,16 @@ export default function AudioModule({ userId, isPro, onSheetChange }: Props) {
   return (
     // Desktop gets the horizontal reel-to-reel (TapeDeckDesktop, self-framed);
     // mobile keeps the full-bleed vertical player. Overlays are shared.
-    <div className={isDesktop ? "relative min-h-[calc(100vh-88px)]" : "absolute inset-0"}>
+    <div className={isDesktop ? "relative h-screen" : "absolute inset-0"}>
 
       {/* ── Main player — the tape is the screen ──────────────── */}
       {loadingQueue && (
-        <div className="absolute inset-0 flex items-center justify-center rounded-2xl" style={{ background: "#131216" }}>
+        <div className="absolute inset-0 flex items-center justify-center" style={{ background: "#131216" }}>
           <p className="text-xs text-zinc-600">Loading tracks...</p>
         </div>
       )}
       {!loadingQueue && !currentTrack && (
-        <div className="absolute inset-0 flex items-center justify-center rounded-2xl px-10 text-center" style={{ background: "#131216" }}>
+        <div className="absolute inset-0 flex items-center justify-center px-10 text-center" style={{ background: "#131216" }}>
           <p className="text-xs text-zinc-600">No tracks available right now. Check back later!</p>
         </div>
       )}

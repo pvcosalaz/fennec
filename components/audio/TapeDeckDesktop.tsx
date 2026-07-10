@@ -49,6 +49,15 @@ export default function TapeDeckDesktop({
 }) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const reelRef  = useRef<HTMLDivElement>(null);
+  // Web Audio graph (built lazily on first play) + one DOM ref per bar, so we
+  // can drive amplitude straight to the element's transform each frame without
+  // re-rendering React 60×/s.
+  const audioCtxRef  = useRef<AudioContext | null>(null);
+  const analyserRef  = useRef<AnalyserNode | null>(null);
+  const sourceRef    = useRef<MediaElementAudioSourceNode | null>(null);
+  const freqRef      = useRef<Uint8Array<ArrayBuffer> | null>(null);
+  const barRefs      = useRef<Array<HTMLSpanElement | null>>([]);
+  const scalesRef    = useRef<Float32Array>(new Float32Array(BAR_COUNT).fill(1));
   const [playing, setPlaying]   = useState(false);
   const [t, setT]               = useState(0);          // currentTime
   const [comments, setComments] = useState<ReviewComment[]>([]);
@@ -73,7 +82,7 @@ export default function TapeDeckDesktop({
     fetchKarma(userId).then(setKarma).catch(() => {});
   }, [track.id, userId]);
 
-  // playback clock
+  // playback clock — coarse (timeupdate) for paused/seek accuracy
   useEffect(() => {
     const a = audioRef.current;
     if (!a) return;
@@ -84,10 +93,99 @@ export default function TapeDeckDesktop({
     return () => { a.removeEventListener("timeupdate", onTime); a.removeEventListener("ended", onEnd); };
   }, [track.id]);
 
+  // One animation-frame loop drives two things while playing:
+  //   1. the playhead (timeupdate alone fires ~4x/s and stutters bar-to-bar),
+  //   2. the waveform's live amplitude — each bar reads its frequency bin from
+  //      the AnalyserNode and eases toward it, so the reel breathes WITH the
+  //      music instead of on a decorative timer. On pause the bars ease back
+  //      to rest. Respects prefers-reduced-motion.
+  useEffect(() => {
+    const reduce = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const scales = scalesRef.current;
+    let raf = 0;
+
+    if (playing && !reduce) {
+      const analyser = analyserRef.current;
+      const bins = freqRef.current;
+      const usable = bins ? Math.min(bins.length, 112) : 0; // skip the empty top end
+      const tick = () => {
+        const a = audioRef.current;
+        const now = a ? a.currentTime : 0;
+        if (a && !a.paused) setT(now);
+
+        // Is the analyser actually giving us the track's spectrum? (It won't in
+        // headless browsers, or if a source blocks CORS.) Measure real energy.
+        let live = false;
+        if (analyser && bins) {
+          analyser.getByteFrequencyData(bins);
+          let energy = 0;
+          for (let k = 0; k < usable; k++) energy += bins[k];
+          live = energy > 60;
+        }
+
+        for (let i = 0; i < BAR_COUNT; i++) {
+          // Real audio → each bar follows its frequency bin. No signal → a
+          // coherent wave travels the reel in sync with playback time, so it
+          // still breathes (never random, never dead).
+          const target = live && bins
+            ? 1 + (bins[Math.floor((i / BAR_COUNT) * usable)] / 255) * 0.55
+            : 1 + 0.16 * (0.5 + 0.5 * Math.sin(now * 3 - i * 0.14));
+          scales[i] += (target - scales[i]) * 0.22;           // lerp = fluid
+          const el = barRefs.current[i];
+          if (el) el.style.transform = `scaleY(${scales[i].toFixed(3)})`;
+        }
+        raf = requestAnimationFrame(tick);
+      };
+      raf = requestAnimationFrame(tick);
+    } else {
+      // ease every bar back to its resting height
+      const decay = () => {
+        let moving = false;
+        for (let i = 0; i < BAR_COUNT; i++) {
+          scales[i] += (1 - scales[i]) * 0.18;
+          if (Math.abs(scales[i] - 1) > 0.004) moving = true; else scales[i] = 1;
+          const el = barRefs.current[i];
+          if (el) el.style.transform = `scaleY(${scales[i].toFixed(3)})`;
+        }
+        if (moving) raf = requestAnimationFrame(decay);
+      };
+      raf = requestAnimationFrame(decay);
+    }
+    return () => cancelAnimationFrame(raf);
+  }, [playing]);
+
+  // Build the analyser once, on first play (needs a user gesture for the
+  // AudioContext). If anything throws, the reel just stays static — never a
+  // playback break.
+  function ensureAudioGraph() {
+    const a = audioRef.current;
+    if (!a || audioCtxRef.current) return;
+    try {
+      const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const ctx = new Ctx();
+      const source = ctx.createMediaElementSource(a);
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 256;                 // 128 frequency bins
+      analyser.smoothingTimeConstant = 0.82;  // temporal smoothing = fluid
+      source.connect(analyser);
+      analyser.connect(ctx.destination);
+      audioCtxRef.current = ctx;
+      analyserRef.current = analyser;
+      sourceRef.current   = source;
+      freqRef.current     = new Uint8Array(new ArrayBuffer(analyser.frequencyBinCount));
+    } catch { /* analyser unavailable — bars stay static, audio still plays */ }
+  }
+
   function toggle() {
     const a = audioRef.current;
     if (!a) return;
-    if (a.paused) { void a.play(); setPlaying(true); } else { a.pause(); setPlaying(false); }
+    if (a.paused) {
+      ensureAudioGraph();
+      void audioCtxRef.current?.resume();
+      void a.play(); setPlaying(true);
+    } else {
+      a.pause(); setPlaying(false);
+    }
   }
 
   function seekFromClient(clientX: number) {
@@ -123,8 +221,10 @@ export default function TapeDeckDesktop({
     .sort((a, b) => Math.abs((a.timestamp_seconds ?? 0) - t) - Math.abs((b.timestamp_seconds ?? 0) - t))[0];
 
   return (
-    <div className="flex h-[calc(100vh-88px)] flex-col overflow-hidden rounded-2xl border border-white/10" style={{ background: "#131216" }}>
-      <audio ref={audioRef} src={track.audio_url} preload="metadata" />
+    <div className="relative flex h-screen min-h-0 flex-col overflow-hidden" style={{ background: "#131216" }}>
+      {/* crossOrigin lets the AnalyserNode read the samples (Supabase storage
+          serves CORS *). Without it the analyser would read silence. */}
+      <audio ref={audioRef} src={track.audio_url} preload="metadata" crossOrigin="anonymous" />
 
       {/* header */}
       <div className="flex items-start justify-between px-8 pt-6">
@@ -167,10 +267,11 @@ export default function TapeDeckDesktop({
             const barPct = (i / BAR_COUNT) * 100;
             const played = barPct <= pct;
             return (
-              <span key={i} className="flex-1 rounded-[1.5px]" style={{
+              <span key={i} ref={(el) => { barRefs.current[i] = el; }} className="flex-1 rounded-[1.5px]" style={{
                 height: `${hh * 100}%`,
                 background: played ? `linear-gradient(180deg,${AMBER_HOT},${AMBER})` : "rgba(255,255,255,.12)",
                 boxShadow: played ? `0 0 8px ${AMBER}30` : "none",
+                transformOrigin: "center",  // scaleY (driven by the audio loop) grows both ways
               }} />
             );
           })}
@@ -186,8 +287,9 @@ export default function TapeDeckDesktop({
             />
           ))}
 
-          {/* now-line playhead */}
-          <div className="pointer-events-none absolute top-0 bottom-0 w-[1.5px]" style={{ left: `${pct}%`, background: AMBER, boxShadow: `0 0 14px ${AMBER}b3` }}>
+          {/* now-line playhead — a hair of transition rounds off the gap
+              between animation frames so the sweep glides, never ticks */}
+          <div className="pointer-events-none absolute top-0 bottom-0 w-[1.5px]" style={{ left: `${pct}%`, background: AMBER, boxShadow: `0 0 14px ${AMBER}b3`, transition: playing ? "left .08s linear" : "none" }}>
             <span className="absolute -top-6 left-1/2 -translate-x-1/2 font-mono text-[10px] font-bold" style={{ color: AMBER }}>{fmt(t)}</span>
           </div>
         </div>
@@ -236,7 +338,7 @@ export default function TapeDeckDesktop({
         </button>
         <span className="ml-2 font-mono text-[10.5px] tracking-[0.06em] text-zinc-700">SPACE play · CLICK reel to scrub · ＋ note</span>
         <button onClick={onOpenMyTracks} className="ml-auto flex items-center gap-2 rounded-full border px-4 py-2.5 text-[13px] font-bold text-black transition hover:brightness-110" style={{ borderColor: "transparent", background: `linear-gradient(180deg,${AMBER_HOT},${AMBER})` }}>
-          <Upload className="h-4 w-4" /> My Tracks
+          <Upload className="h-4 w-4" /> Upload Tracks
         </button>
       </div>
     </div>
