@@ -19,6 +19,7 @@ import SchedulePrompt from "./SchedulePrompt";
 import ScriptWriterOverlay from "./ScriptWriterOverlay";
 import ScriptDetailOverlay from "./ScriptDetailOverlay";
 import MusicContentLab from "./MusicContentLab";
+import { useIsDesktop } from "@/lib/useIsDesktop";
 
 const TASKS_KEY = "fennec-content-tasks-v1";
 
@@ -637,6 +638,7 @@ function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule, onUp
 export default function ContentModule({ isPro = false, onUpgrade, genres = [] }: { isPro?: boolean; onUpgrade?: () => void; genres?: string[] }) {
   const [ideas,  setIdeas]  = useState<Idea[]>([]);
   const [briefs, setBriefs] = useState<Brief[]>([]);
+  const isDesktop = useIsDesktop();
   const [tasks,  setTasks]  = useState<ContentTask[]>([]);
   const [sheet,  setSheet]  = useState<ActiveSheet>("none");
   const [videoRef, setVideoRef] = useState<VideoRef | null>(null);
@@ -734,6 +736,52 @@ export default function ContentModule({ isPro = false, onUpgrade, genres = [] }:
     setScriptWriter(video); // open full-screen writer
   }
 
+  // Shared by both presentations of the tool overlay (mobile bottom sheet /
+  // desktop centered modal) — ONE source of truth for the four tools.
+  const sheetContent = (
+    <>
+      {sheet === "inspire" && (
+        <TrendingView
+          isPro={isPro}
+          onBack={closeSheet}
+          onUseAsReference={useVideoAsReference}
+          onRequestSchedule={(title: string, notes?: string) => requestSchedule(title, "inspire", notes)}
+          onUpgrade={onUpgrade}
+          genres={genres}
+        />
+      )}
+      {sheet === "ideas" && (
+        <IdeasBankView
+          ideas={ideas}
+          onBack={closeSheet}
+          onAdd={(i) => setIdeas((prev) => [i, ...prev])}
+          onDelete={(id) => setIdeas((prev) => prev.filter((i) => i.id !== id))}
+          onRequestSchedule={(title: string, notes?: string) => requestSchedule(title, "ideas", notes)}
+        />
+      )}
+      {sheet === "scripts" && (
+        <ScriptsView
+          briefs={briefs}
+          videoRef={videoRef}
+          onBack={closeSheet}
+          onAdd={(b) => setBriefs((prev) => [b, ...prev])}
+          onDelete={(id) => setBriefs((prev) => prev.filter((b) => b.id !== id))}
+          onRequestSchedule={(title: string, notes?: string) => requestSchedule(title, "scripts", notes)}
+          onOpenDetail={(brief) => { setSheet("none"); setDetailBrief(brief); }}
+        />
+      )}
+      {sheet === "lab" && (
+        <MusicContentLab
+          onClose={() => setSheet("none")}
+          onGenerateScript={(ref) => {
+            setSheet("none");
+            setScriptWriter(ref);
+          }}
+        />
+      )}
+    </>
+  );
+
   return (
     <div className="relative flex-1 flex flex-col overflow-hidden">
       {/* Main calendar hub */}
@@ -750,67 +798,40 @@ export default function ContentModule({ isPro = false, onUpgrade, genres = [] }:
         }}
       />
 
-      {/* Bottom sheet overlay */}
+      {/* Tool overlay — bottom sheet on mobile, centered modal on desktop
+          (a sheet sliding up from the bottom is a phone gesture; on a big
+          screen the tool floats over the calendar instead). */}
       {sheet !== "none" && (
         <>
           <div
             className="fixed inset-0 z-30 bg-black/70 backdrop-blur-sm"
             onClick={closeSheet}
           />
-          <div
-            ref={sheetRef}
-            className="fixed left-0 right-0 z-40 h-[92vh] rounded-t-3xl border-t border-white/10 bg-zinc-950 overflow-y-auto"
-            style={{ transform: `translateY(${dragY}px)`, transition: dragY === 0 ? "transform 0.3s ease-out" : "none" }}
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={onTouchEnd}
-          >
-            {/* Drag handle */}
-            <div className="sticky top-0 z-10 flex items-center justify-center px-4 pt-3 pb-2 bg-zinc-950">
-              <div className="w-10 h-1 rounded-full bg-white/30" />
+          {isDesktop ? (
+            <div className="fixed left-1/2 top-1/2 z-40 h-[86vh] w-[min(880px,92vw)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-white/10 bg-zinc-950 shadow-[0_32px_80px_rgba(0,0,0,.6)]">
+              <div className="flex justify-end px-4 pt-3">
+                <button onClick={closeSheet} aria-label="Close" className="text-zinc-500 transition hover:text-white">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="px-4 pb-16 pt-1">{sheetContent}</div>
             </div>
-            <div className="px-2 pb-32 pt-1">
-              {sheet === "inspire" && (
-                <TrendingView
-                  isPro={isPro}
-                  onBack={closeSheet}
-                  onUseAsReference={useVideoAsReference}
-                  onRequestSchedule={(title: string, notes?: string) => requestSchedule(title, "inspire", notes)}
-                  onUpgrade={onUpgrade}
-                  genres={genres}
-                />
-              )}
-              {sheet === "ideas" && (
-                <IdeasBankView
-                  ideas={ideas}
-                  onBack={closeSheet}
-                  onAdd={(i) => setIdeas((prev) => [i, ...prev])}
-                  onDelete={(id) => setIdeas((prev) => prev.filter((i) => i.id !== id))}
-                  onRequestSchedule={(title: string, notes?: string) => requestSchedule(title, "ideas", notes)}
-                />
-              )}
-              {sheet === "scripts" && (
-                <ScriptsView
-                  briefs={briefs}
-                  videoRef={videoRef}
-                  onBack={closeSheet}
-                  onAdd={(b) => setBriefs((prev) => [b, ...prev])}
-                  onDelete={(id) => setBriefs((prev) => prev.filter((b) => b.id !== id))}
-                  onRequestSchedule={(title: string, notes?: string) => requestSchedule(title, "scripts", notes)}
-                  onOpenDetail={(brief) => { setSheet("none"); setDetailBrief(brief); }}
-                />
-              )}
-              {sheet === "lab" && (
-                <MusicContentLab
-                  onClose={() => setSheet("none")}
-                  onGenerateScript={(ref) => {
-                    setSheet("none");
-                    setScriptWriter(ref);
-                  }}
-                />
-              )}
+          ) : (
+            <div
+              ref={sheetRef}
+              className="fixed left-0 right-0 z-40 h-[92vh] rounded-t-3xl border-t border-white/10 bg-zinc-950 overflow-y-auto"
+              style={{ transform: `translateY(${dragY}px)`, transition: dragY === 0 ? "transform 0.3s ease-out" : "none" }}
+              onTouchStart={onTouchStart}
+              onTouchMove={onTouchMove}
+              onTouchEnd={onTouchEnd}
+            >
+              {/* Drag handle */}
+              <div className="sticky top-0 z-10 flex items-center justify-center px-4 pt-3 pb-2 bg-zinc-950">
+                <div className="w-10 h-1 rounded-full bg-white/30" />
+              </div>
+              <div className="px-2 pb-32 pt-1">{sheetContent}</div>
             </div>
-          </div>
+          )}
         </>
       )}
 

@@ -12,6 +12,7 @@ import type { Profile, Post } from "@/lib/communityTypes";
 import FeedView from "./FeedView";
 import CommentsView from "./CommentsView";
 import UserProfilePage from "./UserProfilePage";
+import { useIsDesktop } from "@/lib/useIsDesktop";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -284,6 +285,7 @@ function CommunityPanel({ profile, openComposerWith, onComposerConsumed }: { pro
 // ─── Root component ───────────────────────────────────────────────────────────
 
 export default function Community({ profile, openComposerWith, onComposerConsumed }: { profile: Profile; openComposerWith?: { url: string; name: string } | null; onComposerConsumed?: () => void }) {
+  const isDesktop = useIsDesktop();
   const [fennecTab, setFennecTab] = useState<FennecTab>("community");
   const [selected, setSelected] = useState<NewsItem | null>(null);
 
@@ -292,6 +294,29 @@ export default function Community({ profile, openComposerWith, onComposerConsume
     return (
       <div className="mx-auto w-full max-w-4xl px-4">
         <ArticleReader item={selected} onBack={() => setSelected(null)} />
+      </div>
+    );
+  }
+
+  // ── Desktop: no tab switcher — feed and news live side by side, the
+  // width finally earns its keep. Same panels, same data; the mobile
+  // X-style header/tabs stay untouched below 1024px. ──
+  if (isDesktop) {
+    return (
+      <div className="grid items-start gap-10" style={{ gridTemplateColumns: "minmax(0,1.5fr) minmax(300px,1fr)" }}>
+        {/* feed — the main column */}
+        <div>
+          <div className="mb-4 flex items-center gap-2.5">
+            <span className="text-[8.5px] font-bold uppercase tracking-[0.22em] text-zinc-600">Community</span>
+            <div className="h-px flex-1" style={{ background: "linear-gradient(90deg, rgba(255,255,255,.07), transparent)" }} />
+          </div>
+          <CommunityPanel profile={profile} openComposerWith={openComposerWith} onComposerConsumed={onComposerConsumed} />
+        </div>
+
+        {/* industry news — always-visible right column */}
+        <aside className="border-l border-white/[0.05] pl-8">
+          <NewsPanel onSelect={setSelected} />
+        </aside>
       </div>
     );
   }
