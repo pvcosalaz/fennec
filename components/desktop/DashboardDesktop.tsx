@@ -101,7 +101,9 @@ export default function DashboardDesktop({
   onNavigate?: (tab: "pricing" | "contenido" | "dashboard" | "ideas" | "noticias") => void;
   onOpenProfileSettings?: () => void;
 }) {
-  const accent = cardColorScheme.accent;
+  // The producer's color lives ONLY on the FennecIdCard — it's the card's
+  // identity, not the app's. All other accents stay on-brand amber.
+  const accent = "#f5a623";
   const nextPost = useNextPost();
 
   return (

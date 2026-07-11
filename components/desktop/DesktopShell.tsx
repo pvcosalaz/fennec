@@ -169,10 +169,11 @@ export default function DesktopShell({
             </div>
           </button>
 
-          {/* mini Fennec ID */}
+          {/* mini profile — on-brand chrome; the producer's color belongs to
+              the FennecIdCard only (avatar initials keep it: it's their photo) */}
           <div
             className="rounded-[14px] p-3"
-            style={{ border: `1px solid ${scheme.accent}40`, background: `linear-gradient(150deg, ${scheme.dark1}, ${scheme.dark2})` }}
+            style={{ border: `1px solid ${HAIR}`, background: "linear-gradient(150deg,#17151c,#100f13)" }}
           >
             <div className="flex items-center gap-2.5">
               {profile.avatar_url ? (
@@ -189,8 +190,8 @@ export default function DesktopShell({
               </div>
             </div>
             <div className="mt-2 flex items-baseline gap-1.5 border-t pt-2" style={{ borderColor: "rgba(255,255,255,.06)" }}>
-              <span className="text-[8px] font-bold uppercase tracking-[0.16em]" style={{ color: `${scheme.accent}99` }}>Fennec dB</span>
-              <b className="text-[16px]" style={{ color: scheme.accent }}>{profile.fennec_db_score}</b>
+              <span className="text-[8px] font-bold uppercase tracking-[0.16em] text-zinc-600">Fennec dB</span>
+              <b className="text-[16px] text-accent">{profile.fennec_db_score}</b>
             </div>
           </div>
         </div>
@@ -290,7 +291,7 @@ export default function DesktopShell({
           </button>
         </div>
 
-        {/* me */}
+        {/* me — on-brand amber; producer color stays on the FennecIdCard */}
         <div className="border-b pb-4 text-center" style={{ borderColor: HAIR }}>
           {profile.avatar_url ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -298,12 +299,12 @@ export default function DesktopShell({
               src={profile.avatar_url}
               alt=""
               className="mx-auto h-16 w-16 rounded-full object-cover"
-              style={{ border: `2px solid ${scheme.accent}80`, boxShadow: `0 0 24px ${scheme.accent}40` }}
+              style={{ border: "2px solid rgba(255,255,255,.14)" }}
             />
           ) : (
             <div
               className="mx-auto grid h-16 w-16 place-items-center rounded-full text-[20px] font-extrabold"
-              style={{ background: scheme.accent, color: scheme.textOnAvatar, border: `2px solid ${scheme.accent}80`, boxShadow: `0 0 24px ${scheme.accent}40` }}
+              style={{ background: scheme.accent, color: scheme.textOnAvatar, border: "2px solid rgba(255,255,255,.14)" }}
             >
               {initials}
             </div>
@@ -312,9 +313,9 @@ export default function DesktopShell({
           <div className="mt-0.5 text-[10px] uppercase tracking-[0.1em] text-zinc-500" style={{ fontFamily: "var(--font-tape-mono, monospace)" }}>
             @{profile.username} · {profile.role ?? "Producer"}
           </div>
-          <div className="mt-2 inline-flex items-baseline gap-1.5 rounded-full px-3 py-1" style={{ border: `1px solid ${scheme.accent}4d` }}>
-            <em className="text-[8px] font-bold uppercase not-italic tracking-[0.16em]" style={{ color: `${scheme.accent}a6` }}>Fennec dB</em>
-            <b className="text-[14px]" style={{ color: scheme.accent }}>{profile.fennec_db_score}</b>
+          <div className="mt-2 inline-flex items-baseline gap-1.5 rounded-full px-3 py-1" style={{ border: "1px solid rgba(245,166,35,.3)" }}>
+            <em className="text-[8px] font-bold uppercase not-italic tracking-[0.16em] text-zinc-600">Fennec dB</em>
+            <b className="text-[14px] text-accent">{profile.fennec_db_score}</b>
           </div>
         </div>
 
@@ -357,7 +358,7 @@ export default function DesktopShell({
                     {c.role ?? "Producer"}{c.country ? ` · ${c.country}` : ""}
                   </div>
                 </div>
-                <b className="ml-auto text-[11px]" style={{ color: cs.accent, fontFamily: "var(--font-tape-mono, monospace)" }}>
+                <b className="ml-auto text-[11px] text-accent" style={{ fontFamily: "var(--font-tape-mono, monospace)" }}>
                   {c.fennec_db_score}
                 </b>
               </button>
