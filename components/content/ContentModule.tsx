@@ -15,6 +15,7 @@ import {
   type Idea, type IdeaCategory, type Brief,
 } from "@/lib/contentData";
 import CalendarHub from "./CalendarHub";
+import ContentHubDesktop from "./ContentHubDesktop";
 import SchedulePrompt from "./SchedulePrompt";
 import ScriptWriterOverlay from "./ScriptWriterOverlay";
 import ScriptDetailOverlay from "./ScriptDetailOverlay";
@@ -783,20 +784,37 @@ export default function ContentModule({ isPro = false, onUpgrade, genres = [] }:
   );
 
   return (
-    <div className="relative flex-1 flex flex-col overflow-hidden">
-      {/* Main calendar hub */}
-      <CalendarHub
-        tasks={tasks}
-        isPro={isPro}
-        onUpgrade={onUpgrade}
-        onOpenSheet={openSheet}
-        onToggleDone={toggleDone}
-        onDeleteTask={deleteTask}
-        onEditScript={(taskTitle) => {
-          const brief = briefs.find((b) => b.title === taskTitle);
-          if (brief) setDetailBrief(brief);
-        }}
-      />
+    <div className={isDesktop ? "relative" : "relative flex-1 flex flex-col overflow-hidden"}>
+      {/* Main calendar hub — month-grid calendar on desktop, the week-strip
+          hub on mobile. Same tasks state and handlers either way. */}
+      {isDesktop ? (
+        <ContentHubDesktop
+          tasks={tasks}
+          isPro={isPro}
+          onUpgrade={onUpgrade}
+          onOpenSheet={openSheet}
+          onToggleDone={toggleDone}
+          onDeleteTask={deleteTask}
+          onAddTask={(title, date) => addTask(title, date, "manual")}
+          onEditScript={(taskTitle) => {
+            const brief = briefs.find((b) => b.title === taskTitle);
+            if (brief) setDetailBrief(brief);
+          }}
+        />
+      ) : (
+        <CalendarHub
+          tasks={tasks}
+          isPro={isPro}
+          onUpgrade={onUpgrade}
+          onOpenSheet={openSheet}
+          onToggleDone={toggleDone}
+          onDeleteTask={deleteTask}
+          onEditScript={(taskTitle) => {
+            const brief = briefs.find((b) => b.title === taskTitle);
+            if (brief) setDetailBrief(brief);
+          }}
+        />
+      )}
 
       {/* Tool overlay — bottom sheet on mobile, centered modal on desktop
           (a sheet sliding up from the bottom is a phone gesture; on a big
