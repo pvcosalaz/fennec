@@ -1,7 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import FennecFox from "@/components/dashboard/FennecFox";
+
+type OAuthProvider = "apple" | "google" | "facebook";
 
 export default function AuthGate() {
   const [email, setEmail]       = useState("");
@@ -10,32 +12,41 @@ export default function AuthGate() {
   const [error, setError]       = useState<string | null>(null);
   const [message, setMessage]   = useState<string | null>(null);
 
-  async function handleApple() {
+  // Which OAuth providers are actually enabled on the Supabase project.
+  // Clicking a disabled provider used to navigate the browser straight into
+  // Supabase's raw 400 JSON ("Unsupported provider") — that was the whole
+  // "Facebook login doesn't work" bug. The settings endpoint is public, so we
+  // ask once and refuse the redirect for anything that's off. null = unknown
+  // (fetch failed) → let clicks through rather than block a working provider.
+  const [enabledProviders, setEnabledProviders] = useState<Record<string, boolean> | null>(null);
+  useEffect(() => {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!url || !key) return;
+    fetch(`${url}/auth/v1/settings`, { headers: { apikey: key } })
+      .then((r) => r.json())
+      .then((d) => { if (d?.external) setEnabledProviders(d.external); })
+      .catch(() => {});
+  }, []);
+
+  async function handleOAuth(provider: OAuthProvider, label: string) {
+    setError(null);
+    setMessage(null);
+    if (enabledProviders && enabledProviders[provider] === false) {
+      setError(`${label} sign-in isn't available yet. Please use Google or email for now.`);
+      return;
+    }
     setLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: "apple",
+      provider,
       options: { redirectTo: window.location.origin },
     });
     if (error) { setError(error.message); setLoading(false); }
   }
 
-  async function handleGoogle() {
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: window.location.origin },
-    });
-    if (error) { setError(error.message); setLoading(false); }
-  }
-
-  async function handleFacebook() {
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "facebook",
-      options: { redirectTo: window.location.origin },
-    });
-    if (error) { setError(error.message); setLoading(false); }
-  }
+  const handleApple    = () => handleOAuth("apple", "Apple");
+  const handleGoogle   = () => handleOAuth("google", "Google");
+  const handleFacebook = () => handleOAuth("facebook", "Facebook");
 
   async function handleEmail(e: React.FormEvent) {
     e.preventDefault();

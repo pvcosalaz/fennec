@@ -42,6 +42,30 @@ configured. Two places:
 
 > Reference: Supabase docs, "Login with Apple".
 
+### 1b. Fix "Continue with Facebook" (bug #24 — root cause found 2026-07-12)
+`GET /auth/v1/settings` on the project shows `facebook: false`: the provider
+was **never enabled in Supabase**, so the button has never worked. The code is
+fine. To make it work:
+
+**Meta for Developers** (developers.facebook.com):
+1. Create an app (type: Consumer) for Fennec.
+2. Add the **Facebook Login** product.
+3. In Facebook Login > Settings, set the Valid OAuth Redirect URI:
+   `https://drmhwzxytwmkpfnjwmra.supabase.co/auth/v1/callback`
+4. Copy the **App ID** and **App Secret** (App settings > Basic).
+5. To let ANY user log in (not just you as developer), the app must be
+   switched to **Live mode**, which requires a privacy policy URL — use
+   `https://app.fennec.audio/privacy` — and a data-deletion URL — use
+   `https://app.fennec.audio/data-deletion`.
+
+**Supabase** (dashboard > Authentication > Providers > Facebook):
+1. Toggle Facebook on; paste App ID + App Secret. Save.
+
+Until this is done, the button shows a friendly "isn't available yet" message
+instead of a raw Supabase error (fixed in code 2026-07-12). If you'd rather
+hide the button until it's configured, that's a one-line change in
+`components/community/AuthGate.tsx`.
+
 ### 2. Fill the store privacy forms (data map below)
 - **Google Play**: Play Console > App content > Data safety.
 - **Apple**: App Store Connect > App Privacy.
