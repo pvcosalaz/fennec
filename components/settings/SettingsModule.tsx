@@ -129,6 +129,11 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
   const [suggestSent,   setSuggestSent]   = useState(false);
   const [mySuggestions, setMySuggestions] = useState<Suggestion[]>([]);
 
+  // Permanent account deletion (App Store / Play Store requirement)
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting,      setDeleting]      = useState(false);
+  const [deleteError,   setDeleteError]   = useState<string | null>(null);
+
   useEffect(() => {
     if (section === "suggest" && userId) {
       fetchMySuggestions(userId).then(setMySuggestions).catch(() => {});
@@ -145,6 +150,33 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
       setSuggestBody("");
       setSuggestSent(true);
       setTimeout(() => setSuggestSent(false), 2500);
+    }
+  }
+
+  async function handleDeleteAccount() {
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) { setDeleteError("Your session expired. Please sign in again."); setDeleting(false); return; }
+      const res = await fetch("/api/account/delete", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setDeleteError(body.error ?? "Could not delete your account. Please try again.");
+        setDeleting(false);
+        return;
+      }
+      // Account is gone server-side: wipe local data and leave the app.
+      try { localStorage.clear(); } catch { /* private mode */ }
+      await supabase.auth.signOut().catch(() => {});
+      if (onSignOut) onSignOut(); else window.location.href = "/";
+    } catch {
+      setDeleteError("Could not delete your account. Please try again.");
+      setDeleting(false);
     }
   }
 
@@ -542,6 +574,45 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
             )}
           </div>
         ))}
+      </div>
+
+      {/* ── Delete account — permanent, App Store / Play Store requirement ── */}
+      <div className="rounded-2xl border border-red-500/20 bg-red-500/[0.04] p-5 space-y-3">
+        <div className="flex items-center gap-2">
+          <AlertTriangle className="h-4 w-4 text-red-400 flex-shrink-0" />
+          <h2 className="text-sm font-semibold text-white">Delete account</h2>
+        </div>
+        <p className="text-xs text-zinc-500 leading-relaxed">
+          Permanently delete your Fennec account and all associated data: your profile,
+          projects, quotes, clients, tracks, and social connections. This cannot be undone.
+          Any active Pro subscription is cancelled.
+        </p>
+        {deleteError && <p className="text-xs text-red-400">{deleteError}</p>}
+        {confirmDelete ? (
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleDeleteAccount}
+              disabled={deleting}
+              className="rounded-lg bg-red-500 px-4 py-2 text-xs font-semibold text-white hover:bg-red-600 transition disabled:opacity-50"
+            >
+              {deleting ? "Deleting..." : "Yes, permanently delete"}
+            </button>
+            <button
+              onClick={() => setConfirmDelete(false)}
+              disabled={deleting}
+              className="text-xs text-zinc-500 hover:text-white transition disabled:opacity-50"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setConfirmDelete(true)}
+            className="rounded-lg border border-red-500/30 px-4 py-2 text-xs font-semibold text-red-400 hover:bg-red-500/10 transition"
+          >
+            Delete account
+          </button>
+        )}
       </div>
     </div>
   );

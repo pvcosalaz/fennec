@@ -10,6 +10,15 @@ export default function AuthGate() {
   const [error, setError]       = useState<string | null>(null);
   const [message, setMessage]   = useState<string | null>(null);
 
+  async function handleApple() {
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "apple",
+      options: { redirectTo: window.location.origin },
+    });
+    if (error) { setError(error.message); setLoading(false); }
+  }
+
   async function handleGoogle() {
     setLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
@@ -79,6 +88,17 @@ export default function AuthGate() {
 
       <div className="w-full max-w-xs space-y-3">
         <button
+          onClick={handleApple}
+          disabled={loading}
+          className="w-full flex items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-white hover:bg-white/10 transition disabled:opacity-50"
+        >
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.08l.01.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+          </svg>
+          Continue with Apple
+        </button>
+
+        <button
           onClick={handleGoogle}
           disabled={loading}
           className="w-full flex items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-white hover:bg-white/10 transition disabled:opacity-50"
@@ -137,6 +157,20 @@ export default function AuthGate() {
             {loading ? "Loading..." : "Log in / Sign up"}
           </button>
         </form>
+
+        {/* Consent notice — required by App Store / Play Store before an
+            account is created. Passive consent under the sign-in controls
+            is the standard pattern (no blocking modal). */}
+        <p className="pt-1 text-center text-[11px] leading-relaxed text-zinc-500">
+          By continuing, you agree to Fennec&apos;s{" "}
+          <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-zinc-400 underline underline-offset-2 hover:text-white">
+            Terms of Service
+          </a>{" "}
+          and{" "}
+          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-zinc-400 underline underline-offset-2 hover:text-white">
+            Privacy Policy
+          </a>.
+        </p>
       </div>
       </div>{/* end content wrapper */}
 

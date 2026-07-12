@@ -21,6 +21,8 @@ export default function PrivacyPage() {
 
       <h2>6. Contact</h2>
       <p>For privacy-related questions: <a href="mailto:hello@fennec.audio">hello@fennec.audio</a></p>
+
+      <p style={{ marginTop: 40 }}><a href="/terms">Terms of Service</a> · <a href="/data-deletion">Delete your account</a></p>
     </main>
   );
 }
