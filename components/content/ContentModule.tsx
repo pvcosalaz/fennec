@@ -238,7 +238,9 @@ function ScriptsView({
   onOpenDetail: (brief: Brief) => void;
   videoRef?: VideoRef | null;
 }) {
-  const [tab,       setTab]       = useState<"create" | "list">("create");
+  // Default to the list of what's already there — "Create" is the empty
+  // action, most visits are to check/open an existing script (Paco, 2026-07-13).
+  const [tab,       setTab]       = useState<"create" | "list">("list");
   const [sheetOpen, setSheetOpen] = useState(false);
   const [fTitle,    setFTitle]    = useState(videoRef ? `My take: ${videoRef.title.slice(0, 60)}` : "");
   const [fScript,   setFScript]   = useState("");
@@ -277,19 +279,19 @@ function ScriptsView({
         </div>
       </div>
 
-      {/* Tab switcher */}
+      {/* Tab switcher — My Scripts first: that's what most visits are for */}
       <div className="flex gap-1 rounded-2xl border border-white/10 bg-white/5 p-1">
-        <button
-          onClick={() => setTab("create")}
-          className={`flex-1 rounded-xl py-2 text-xs font-medium transition ${tab === "create" ? "bg-accent text-black" : "text-zinc-400 hover:text-white"}`}
-        >
-          Create
-        </button>
         <button
           onClick={() => setTab("list")}
           className={`flex-1 rounded-xl py-2 text-xs font-medium transition ${tab === "list" ? "bg-accent text-black" : "text-zinc-400 hover:text-white"}`}
         >
           My Scripts {briefs.length > 0 && `(${briefs.length})`}
+        </button>
+        <button
+          onClick={() => setTab("create")}
+          className={`flex-1 rounded-xl py-2 text-xs font-medium transition ${tab === "create" ? "bg-accent text-black" : "text-zinc-400 hover:text-white"}`}
+        >
+          Create
         </button>
       </div>
 
@@ -356,10 +358,15 @@ function ScriptsView({
         />
       )}
 
-      {/* Bottom sheet */}
+      {/* Bottom sheet — bounded + scrollable (own overflow-y-auto): SHEET_BOTTOM
+          shifts the whole sheet above the keyboard, but on the timing edge
+          cases where it lags the keyboard animation, an un-scrollable sheet
+          left the script textarea + Save button unreachable below the title
+          field ("no sale el lugar para escribir", Paco 2026-07-13). Now the
+          content can always be reached by scrolling within the sheet. */}
       <div
         ref={composeSheetRef}
-        className={`fixed left-0 right-0 z-50 rounded-t-3xl border-t border-white/10 bg-zinc-950 px-5 pt-4 pb-8 shadow-2xl transition-transform duration-300 ease-out ${
+        className={`fixed left-0 right-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-3xl border-t border-white/10 bg-zinc-950 px-5 pt-4 pb-8 shadow-2xl transition-transform duration-300 ease-out ${
         sheetOpen ? "translate-y-0" : "translate-y-full"
       }`}
         style={{ bottom: SHEET_BOTTOM }}
