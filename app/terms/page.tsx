@@ -1,9 +1,8 @@
+import LegalPage from "@/components/legal/LegalPage";
+
 export default function TermsPage() {
   return (
-    <main style={{ fontFamily: "sans-serif", maxWidth: 680, margin: "60px auto", padding: "0 24px", color: "#111" }}>
-      <h1>Terms of Service</h1>
-      <p><strong>Last updated:</strong> July 2026</p>
-
+    <LegalPage title="Terms of Service" updated="July 2026">
       <p>Welcome to Fennec. These Terms of Service (&quot;Terms&quot;) govern your access to and use of the Fennec app and website (the &quot;Service&quot;), operated by Fennec. By creating an account or using the Service, you agree to these Terms. If you do not agree, do not use the Service.</p>
 
       <h2>1. Eligibility</h2>
@@ -36,7 +35,7 @@ export default function TermsPage() {
       <h2>10. Contact</h2>
       <p>For questions about these Terms: <a href="mailto:hello@fennec.audio">hello@fennec.audio</a></p>
 
-      <p style={{ marginTop: 40 }}><a href="/privacy">Privacy Policy</a></p>
-    </main>
+      <p className="legal-footer"><a href="/privacy">Privacy Policy</a> · <a href="/data-deletion">Delete your account</a></p>
+    </LegalPage>
   );
 }
