@@ -197,9 +197,16 @@ export default function DesktopShell({
         </div>
       </aside>
 
-      {/* ── Main area (margins slide with the rails) ───────────── */}
+      {/* ── Main area (margins slide with the rails) ─────────────
+          h-screen + overflow-y-auto: this is the ONE scroll container on
+          desktop. PricingCalculator's early-return to DesktopShell skips
+          the mobile #scroll-root entirely, and html/body are globally
+          overflow:hidden (the PWA scroll lock) — without this, nothing
+          taller than one viewport (a long Community feed, a full month
+          calendar, a tall business table) could ever be reached. Sidebar
+          and rail are `fixed`, so they're unaffected by this scrolling. */}
       <div
-        className="relative flex min-h-screen flex-col"
+        className="relative flex h-screen flex-col overflow-y-auto"
         style={{ marginLeft: immersive ? 0 : 232, marginRight: railHidden ? 0 : RAIL_W, transition: "margin .32s cubic-bezier(.22,1,.36,1)" }}
       >
         {/* Giant fox, deep background layer — the brand present at all times,

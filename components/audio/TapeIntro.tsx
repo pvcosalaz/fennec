@@ -13,30 +13,42 @@ const AMBER = "#f5a623";
 const SERIF_FONT = 'var(--font-tape-serif, "Newsreader", Georgia, serif)';
 const MONO_FONT  = 'var(--font-tape-mono, "Space Mono", monospace)';
 
-const STEPS: { title: string; body: string }[] = [
-  {
-    title: "Every track is a tape",
-    body: "Time runs down the reel. The amber marks are notes other producers left at exact moments.",
-  },
-  {
-    title: "Hold to mark",
-    body: "Press and hold anywhere on the tape to write a note at that second. Drag to scrub through time.",
-  },
-  {
-    title: "Upload your own",
-    body: "Share a track of yours and other producers will leave notes on it, exactly like you do here.",
-  },
-];
+/** Mobile: the reel runs vertically (hold-to-mark, drag-to-scrub).
+ *  Desktop: it's a horizontal tape machine (click-to-scrub, "+" to mark) —
+ *  same idea, different gesture, so the copy has to match what's on screen. */
+function getSteps(isDesktop: boolean): { title: string; body: string }[] {
+  return [
+    {
+      title: "Every track is a tape",
+      body: isDesktop
+        ? "Time runs across the tape. The amber marks are notes other producers left at exact moments."
+        : "Time runs down the reel. The amber marks are notes other producers left at exact moments.",
+    },
+    {
+      title: isDesktop ? "Click to mark" : "Hold to mark",
+      body: isDesktop
+        ? "Click the tape to scrub through time. Hit the + button to write a note at the exact moment."
+        : "Press and hold anywhere on the tape to write a note at that second. Drag to scrub through time.",
+    },
+    {
+      title: "Upload your own",
+      body: "Share a track of yours and other producers will leave notes on it, exactly like you do here.",
+    },
+  ];
+}
 
 export default function TapeIntro({
+  isDesktop = false,
   onClose,
   onUpload,
 }: {
+  isDesktop?: boolean;
   onClose: () => void;
   /** CTA: jump straight into My Tracks to upload the first track. */
   onUpload: () => void;
 }) {
   const { sheetRef, dismiss } = useSheetDismiss(onClose);
+  const STEPS = getSteps(isDesktop);
 
   return (
     <>

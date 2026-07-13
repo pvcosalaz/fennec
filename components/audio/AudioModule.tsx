@@ -116,6 +116,7 @@ export default function AudioModule({ userId, isPro, onSheetChange }: Props) {
       {/* ── Tape intro — first visit + on demand ───────────────── */}
       {overlay === "intro" && (
         <TapeIntro
+          isDesktop={isDesktop}
           onClose={() => closeIntro(null)}
           onUpload={() => closeIntro("mine")}
         />
