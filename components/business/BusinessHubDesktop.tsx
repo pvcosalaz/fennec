@@ -10,6 +10,50 @@ import type { BusinessView } from "./BusinessHub";
 
 const usd = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`;
 
+// Same brand colors as the mobile tool-card illustrations (components/remotion/BusinessToolCards.tsx)
+const AMBER = "#f5a623";
+const STROKE = "rgba(255,255,255,0.68)";
+const STROKE_SOFT = "rgba(255,255,255,0.30)";
+
+/** The three tool icons, lifted straight from the mobile app's illustrated
+ *  cards (components/remotion/BusinessToolCards.tsx) so desktop and mobile
+ *  read as the same product — just without the animated card shell. */
+function CalculatorIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style={{ transform: "rotate(-6deg)" }}>
+      <path d="M12.59 2.59A2 2 0 0 0 11.17 2H4a2 2 0 0 0-2 2v7.17a2 2 0 0 0 .59 1.42l8.7 8.7a2.43 2.43 0 0 0 3.42 0l6.58-6.58a2.43 2.43 0 0 0 0-3.42z" stroke={STROKE} strokeWidth="1.5" strokeLinejoin="round" />
+      <circle cx="7.2" cy="7.2" r="1.4" fill={AMBER} />
+      <text x="12.6" y="15.6" fontSize="7.5" fontWeight="700" fill={AMBER} fontFamily="-apple-system, BlinkMacSystemFont, system-ui, sans-serif" textAnchor="middle">$</text>
+    </svg>
+  );
+}
+function ProjectsIcon() {
+  const tracks = [
+    { fill: 0.72, color: "rgba(255,255,255,0.55)" },
+    { fill: 0.45, color: "rgba(255,255,255,0.32)" },
+    { fill: 0.88, color: AMBER },
+  ];
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 4, width: 22 }}>
+      {tracks.map((t, i) => (
+        <div key={i} style={{ position: "relative", height: 3, borderRadius: 3, background: "rgba(255,255,255,0.10)" }}>
+          <div style={{ position: "absolute", inset: 0, width: `${t.fill * 100}%`, borderRadius: 3, background: t.color }} />
+        </div>
+      ))}
+    </div>
+  );
+}
+function ClientsIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <circle cx="16.2" cy="8.6" r="2.6" stroke={AMBER} strokeWidth="1.5" opacity="0.9" />
+      <path d="M14 19c.4-2.8 2.3-4.4 4.6-4.4 1.5 0 2.8.6 3.6 1.7" stroke={AMBER} strokeWidth="1.5" strokeLinecap="round" opacity="0.9" />
+      <circle cx="8.8" cy="8" r="3.2" stroke={STROKE} strokeWidth="1.5" fill="#1c1915" />
+      <path d="M2.8 19.5c.5-3.4 2.9-5.3 6-5.3s5.5 1.9 6 5.3" stroke={STROKE} strokeWidth="1.5" strokeLinecap="round" fill="#1c1915" />
+    </svg>
+  );
+}
+
 function KPI({ label, value, sub, accent }: { label: string; value: string; sub?: string; accent?: boolean }) {
   return (
     <div className="rounded-xl border border-white/[0.07] bg-white/[0.02] px-5 py-4">
@@ -57,6 +101,29 @@ export default function BusinessHubDesktop({
             + New quote
           </button>
         </div>
+      </div>
+
+      {/* tools — same illustrated icons as the mobile app, up top so the
+          quick actions read before the numbers */}
+      <div className="mb-4 grid grid-cols-3 gap-3">
+        {([
+          { v: "calculator", t: "Pricing Calculator", d: "Know exactly what to charge", icon: <CalculatorIcon /> },
+          { v: "projects",   t: "Active Projects",     d: `${activeProjects.length} in progress`, icon: <ProjectsIcon /> },
+          { v: "clients",    t: "Clients & Leads",     d: `${clients.length} in your roster`, icon: <ClientsIcon /> },
+        ] as { v: BusinessView; t: string; d: string; icon: React.ReactNode }[]).map(({ v, t, d, icon }) => (
+          <button
+            key={v}
+            type="button"
+            onClick={() => onOpenView(v)}
+            className="flex items-center gap-3.5 rounded-xl border border-white/[0.07] bg-white/[0.02] px-5 py-4 text-left transition hover:border-accent/30"
+          >
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg" style={{ background: "rgba(255,255,255,.04)" }}>{icon}</div>
+            <div>
+              <b className="block text-[13.5px] font-bold text-white">{t}</b>
+              <span className="mt-0.5 block text-[11px] text-zinc-500">{d}</span>
+            </div>
+          </button>
+        ))}
       </div>
 
       {/* KPI band */}
@@ -119,25 +186,6 @@ export default function BusinessHubDesktop({
             ))}
           </div>
         </div>
-      </div>
-
-      {/* tools */}
-      <div className="mt-4 grid grid-cols-3 gap-3">
-        {([
-          { v: "calculator", t: "Pricing Calculator", d: "Know exactly what to charge" },
-          { v: "projects",   t: "Active Projects",     d: `${activeProjects.length} in progress` },
-          { v: "clients",    t: "Clients & Leads",     d: `${clients.length} in your roster` },
-        ] as { v: BusinessView; t: string; d: string }[]).map(({ v, t, d }) => (
-          <button
-            key={v}
-            type="button"
-            onClick={() => onOpenView(v)}
-            className="rounded-xl border border-white/[0.07] bg-white/[0.02] px-5 py-4 text-left transition hover:border-accent/30"
-          >
-            <b className="block text-[13.5px] font-bold text-white">{t}</b>
-            <span className="mt-1 block text-[11px] text-zinc-500">{d}</span>
-          </button>
-        ))}
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { SiInstagram, SiTiktok, SiYoutube } from "react-icons/si";
 import FennecIdCard from "@/components/network/FennecIdCard";
 import type { FennecIdColor } from "@/lib/fennecIdPalette";
 import type { Quote } from "@/lib/pricingData";
@@ -18,6 +19,10 @@ function fmtCount(n: number): string {
   return n.toString();
 }
 const usd = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`;
+
+// Same soundwave as the mobile Fennec ID card (fennec-eq-bar keyframe in
+// globals.css), just a taller set of bars for the bigger desktop hero.
+const EQ_HEIGHTS = [10, 18, 8, 22, 12, 26, 9, 16, 22, 11, 19, 8];
 
 type ContentTask = { title: string; date: string; status: "pending" | "done" };
 
@@ -60,11 +65,12 @@ function Cols({ children }: { children: React.ReactNode }) {
   return <div className="grid" style={{ gridAutoFlow: "column", gridAutoColumns: "1fr" }}>{children}</div>;
 }
 
-function Col({ value, label, sub, muted, onClick }: { value: string; label: string; sub?: string; muted?: boolean; onClick?: () => void }) {
+function Col({ value, label, sub, muted, onClick, icon }: { value: string; label: string; sub?: string; muted?: boolean; onClick?: () => void; icon?: React.ReactNode }) {
   const Tag = onClick ? "button" : "div";
   return (
     <Tag type={onClick ? "button" : undefined} onClick={onClick}
       className={`border-l border-white/[0.05] px-[18px] py-[14px] text-left first:border-l-0 first:pl-0.5 ${onClick ? "transition hover:bg-white/[0.02]" : ""}`}>
+      {icon && <div className="mb-1.5">{icon}</div>}
       <b className={`text-[21px] font-extrabold tabular-nums ${muted ? "text-zinc-600" : "text-white"}`}>{value}</b>
       <span className="mt-[3px] block text-[9px] uppercase tracking-[0.16em] text-zinc-600">{label}</span>
       {sub && <span className="text-[10px] font-semibold text-accent">{sub}</span>}
@@ -133,12 +139,35 @@ export default function DashboardDesktop({
             collectionNumber={card.collectionNumber} smallDb
           />
         </div>
-        <div className="relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border border-white/[0.07] p-6" style={{ background: "#111114" }}>
-          <div className="pointer-events-none absolute inset-[-40%]" style={{ background: `radial-gradient(40% 32% at 50% 58%, ${accent}22, transparent 70%)` }} />
+        <div className="relative flex flex-col items-center justify-center rounded-2xl border border-white/[0.07] p-6" style={{ background: "#111114" }}>
+          {/* radial glow only — clipped on its own layer so it never crops the
+              number above it (the old shared overflow:hidden was cutting off
+              ascenders like "8") */}
+          <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
+            <div className="absolute inset-[-40%]" style={{ background: `radial-gradient(40% 32% at 50% 58%, ${accent}22, transparent 70%)` }} />
+          </div>
           <span className="relative text-[9px] font-bold uppercase tracking-[0.35em] text-zinc-600">Fennec dB</span>
-          <div className="relative text-[76px] font-extrabold leading-none tracking-tight"
-            style={{ background: `linear-gradient(180deg, ${accent}, ${accent}cc)`, WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent", filter: `drop-shadow(0 4px 24px ${accent}40)` }}>
-            {fennecDb}
+          <div className="relative text-[76px] font-extrabold" style={{ lineHeight: 1.15, padding: "6px 10px" }}>
+            {/* inline-block gives this its own compositing box — a plain inline
+                span with filter:drop-shadow + -webkit-background-clip:text
+                clips its own right edge in Chromium once the last glyph
+                nears the box boundary (the "8" getting cut). */}
+            <span
+              style={{
+                display: "inline-block",
+                background: `linear-gradient(180deg, ${accent}, ${accent}cc)`,
+                WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent",
+                filter: `drop-shadow(0 4px 24px ${accent}40)`,
+              }}
+            >
+              {fennecDb}
+            </span>
+          </div>
+          {/* the tape's soundwave — same EQ bars as the mobile Fennec ID card */}
+          <div className="relative flex items-end gap-[3px]" style={{ height: 26, marginTop: 4 }}>
+            {EQ_HEIGHTS.map((h, i) => (
+              <span key={i} className="fennec-eq-bar" style={{ height: h, width: 3, background: accent, animationDelay: `${i * 0.15}s` }} />
+            ))}
           </div>
         </div>
       </div>
@@ -153,12 +182,18 @@ export default function DashboardDesktop({
         </Cols>
       </Band>
 
-      {/* Social Reach */}
+      {/* Social Reach — same brand-color icons + glow as the mobile SocialChip */}
       <Band label="Social Reach">
         <Cols>
-          <Col value={igFollowers != null ? fmtCount(igFollowers) : "—"} label="Instagram" muted={igFollowers == null} sub={igFollowers == null ? "connect →" : undefined} onClick={onOpenProfileSettings} />
-          <Col value={ttFollowers != null ? fmtCount(ttFollowers) : "—"} label="TikTok" muted={ttFollowers == null} sub={ttFollowers == null ? "connect →" : undefined} onClick={onOpenProfileSettings} />
-          <Col value={ytSubs != null ? fmtCount(ytSubs) : "—"} label="YouTube" muted={ytSubs == null} sub={ytSubs == null ? "connect →" : undefined} onClick={onOpenProfileSettings} />
+          <Col
+            icon={<SiInstagram size={14} style={{ color: "#E1306C", opacity: 0.85, filter: "drop-shadow(0 0 6px #E1306C40)" }} />}
+            value={igFollowers != null ? fmtCount(igFollowers) : "—"} label="Instagram" muted={igFollowers == null} sub={igFollowers == null ? "connect →" : undefined} onClick={onOpenProfileSettings} />
+          <Col
+            icon={<SiTiktok size={14} style={{ color: "#e6e6e9", opacity: 0.85, filter: "drop-shadow(0 0 6px #ffffff30)" }} />}
+            value={ttFollowers != null ? fmtCount(ttFollowers) : "—"} label="TikTok" muted={ttFollowers == null} sub={ttFollowers == null ? "connect →" : undefined} onClick={onOpenProfileSettings} />
+          <Col
+            icon={<SiYoutube size={14} style={{ color: "#FF0000", opacity: 0.85, filter: "drop-shadow(0 0 6px #FF000040)" }} />}
+            value={ytSubs != null ? fmtCount(ytSubs) : "—"} label="YouTube" muted={ytSubs == null} sub={ytSubs == null ? "connect →" : undefined} onClick={onOpenProfileSettings} />
         </Cols>
       </Band>
 
