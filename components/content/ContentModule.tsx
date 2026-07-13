@@ -61,13 +61,16 @@ const IDEA_CATEGORIES: { id: IdeaCategory; label: string; icon: React.ComponentT
 // ─── Ideas Bank ───────────────────────────────────────────────────────────────
 
 function IdeasBankView({
-  ideas, onBack, onAdd, onDelete, onRequestSchedule,
+  ideas, onBack, onAdd, onDelete, onRequestSchedule, onWriteScript,
 }: {
   ideas: Idea[];
   onBack: () => void;
   onAdd: (i: Idea) => void;
   onDelete: (id: string) => void;
   onRequestSchedule?: (title: string, notes?: string) => void;
+  /** Opens the full-screen script writer pre-filled from this idea; the
+   *  saved script lands in My Scripts, same as writing from an Inspire ref. */
+  onWriteScript?: (idea: Idea) => void;
 }) {
   const [tab,          setTab]          = useState<IdeaCategory>("meme");
   const [showForm,     setShowForm]     = useState(false);
@@ -171,7 +174,11 @@ function IdeasBankView({
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {filtered.map((idea) => (
-            <div key={idea.id} className="group rounded-2xl border border-white/10 bg-white/5 p-4 space-y-2">
+            // min-w-0: without it, a grid item won't shrink below its content's
+            // intrinsic width — a long unbroken URL blew the card (and the
+            // whole page) out sideways, forcing horizontal scroll. `truncate`
+            // on the link below only works once the ancestor can actually shrink.
+            <div key={idea.id} className="group min-w-0 rounded-2xl border border-white/10 bg-white/5 p-4 space-y-2">
               <div className="flex items-start justify-between gap-2">
                 <p className="text-sm font-medium text-white leading-snug">{idea.title}</p>
                 <button
@@ -187,19 +194,29 @@ function IdeasBankView({
                   href={idea.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-accent hover:underline truncate block"
+                  className="block truncate text-xs text-accent hover:underline"
                 >
                   {idea.url}
                 </a>
               )}
 
-              {/* Schedule button */}
-              <button
-                onClick={() => { onRequestSchedule?.(idea.title, idea.notes || undefined); setSchedulingId(null); }}
-                className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-zinc-400 hover:border-accent/40 hover:text-accent transition"
-              >
-                <Calendar className="h-3 w-3" /> Add to calendar
-              </button>
+              {/* Schedule + write-script actions */}
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => { onRequestSchedule?.(idea.title, idea.notes || undefined); setSchedulingId(null); }}
+                  className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-zinc-400 hover:border-accent/40 hover:text-accent transition"
+                >
+                  <Calendar className="h-3 w-3" /> Add to calendar
+                </button>
+                {onWriteScript && (
+                  <button
+                    onClick={() => onWriteScript(idea)}
+                    className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-zinc-400 hover:border-accent/40 hover:text-accent transition"
+                  >
+                    <Pencil className="h-3 w-3" /> Write script
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -645,6 +662,10 @@ export default function ContentModule({ isPro = false, onUpgrade, genres = [] }:
   const [sheet,  setSheet]  = useState<ActiveSheet>("none");
   const [videoRef, setVideoRef] = useState<VideoRef | null>(null);
   const [scriptWriter, setScriptWriter] = useState<VideoRef | null>(null);
+  // Which entry point opened the writer — Inspire ref / Lab-generated both
+  // tag "inspire" (unchanged pre-existing behavior); a Quick Idea tags
+  // "ideas" so the calendar chip and brief format reflect where it came from.
+  const [scriptSource, setScriptSource] = useState<"inspire" | "ideas">("inspire");
   const [detailBrief, setDetailBrief]   = useState<Brief | null>(null);
   const [pendingTask, setPendingTask] = useState<{
     title: string; notes?: string; source: ContentTask["source"];
@@ -735,7 +756,23 @@ export default function ContentModule({ isPro = false, onUpgrade, genres = [] }:
 
   function useVideoAsReference(video: VideoRef) {
     setSheet("none"); // close the Inspire sheet
+    setScriptSource("inspire");
     setScriptWriter(video); // open full-screen writer
+  }
+
+  /** Same full-screen writer, opened from a saved Quick Idea instead of an
+   *  Inspire reference — the resulting script still lands in My Scripts. */
+  function useIdeaAsReference(idea: Idea) {
+    setSheet("none");
+    setScriptSource("ideas");
+    setScriptWriter({
+      title: idea.title,
+      channel: "",
+      angle: idea.notes ?? "",
+      why: "",
+      url: idea.url ?? "",
+      thumbnail: "",
+    });
   }
 
   return (
@@ -791,6 +828,7 @@ export default function ContentModule({ isPro = false, onUpgrade, genres = [] }:
                   onAdd={(i) => setIdeas((prev) => [i, ...prev])}
                   onDelete={(id) => setIdeas((prev) => prev.filter((i) => i.id !== id))}
                   onRequestSchedule={(title: string, notes?: string) => requestSchedule(title, "ideas", notes)}
+                  onWriteScript={useIdeaAsReference}
                 />
               )}
               {sheet === "scripts" && (
@@ -809,6 +847,7 @@ export default function ContentModule({ isPro = false, onUpgrade, genres = [] }:
                   onClose={() => setSheet("none")}
                   onGenerateScript={(ref) => {
                     setSheet("none");
+                    setScriptSource("inspire");
                     setScriptWriter(ref);
                   }}
                 />
@@ -842,19 +881,21 @@ export default function ContentModule({ isPro = false, onUpgrade, genres = [] }:
         />
       )}
 
-      {/* Full-screen script writer (from Inspire reference) */}
+      {/* Full-screen script writer — from an Inspire reference, a Lab
+          generation, or a Quick Idea (scriptSource tracks which). */}
       {scriptWriter && (
         <ScriptWriterOverlay
           videoRef={scriptWriter}
           onClose={() => setScriptWriter(null)}
           onSave={(title, script) => {
             const isLabGenerated = !!scriptWriter?.channel && scriptWriter.channel !== "";
+            const sourceLabel = scriptSource === "ideas" ? "Quick Idea" : "Inspire";
             const brief = {
               id: uid(),
               title,
               script,
               formatId: "",
-              formatName: isLabGenerated ? scriptWriter!.channel : "Inspire",
+              formatName: isLabGenerated ? scriptWriter!.channel : sourceLabel,
               formatColor: "#f5a623",
               lineId: "",
               lineName: isLabGenerated
@@ -864,7 +905,7 @@ export default function ContentModule({ isPro = false, onUpgrade, genres = [] }:
             };
             setBriefs((prev) => [brief, ...prev]);
             setScriptWriter(null);
-            requestSchedule(title, "inspire", script || undefined);
+            requestSchedule(title, scriptSource, script || undefined);
           }}
         />
       )}
