@@ -49,7 +49,15 @@ export default function SchedulePrompt({
       <div
         ref={sheetRef}
         className="fixed left-0 right-0 z-[101] max-w-lg mx-auto rounded-t-3xl border-t border-white/10 bg-zinc-950 p-6 space-y-5"
-        style={{ bottom: SHEET_BOTTOM, paddingBottom: "calc(env(safe-area-inset-bottom) + 24px)", animation: SHEET_ENTER }}
+        style={{
+          bottom: SHEET_BOTTOM,
+          // max(): iOS underreports safe-area-inset-bottom in standalone on
+          // some versions (see the bottom nav's own fix in PricingCalculator),
+          // leaving the buttons kissing the home indicator. A flat floor
+          // guarantees breathing room even when env() reports too little.
+          paddingBottom: "max(calc(env(safe-area-inset-bottom) + 24px), 34px)",
+          animation: SHEET_ENTER,
+        }}
       >
         {done ? (
           // Success state
