@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Plus, Trash2, X, ArrowRight, Loader2 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 import {
   CONTENT_LINES_KEY, CONTENT_FORMATS_KEY,
   DEFAULT_LINES, DEFAULT_FORMATS,
@@ -62,9 +63,13 @@ export default function MusicContentLab({ onClose, onGenerateScript }: Props) {
     setGenerating(true);
     setGenError(null);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch("/api/lab-idea", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
         body: JSON.stringify({ format: selectedFormat.name, line: selectedLine.name }),
       });
       const data = await res.json() as { angle?: string; why?: string; error?: string };

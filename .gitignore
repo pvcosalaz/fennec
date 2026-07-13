@@ -44,3 +44,6 @@ next-env.d.ts
 .superpowers/
 .claude/
 docs/superpowers/
+
+# gstack security reports (keep local)
+.gstack/

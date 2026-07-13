@@ -25,12 +25,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid line" }, { status: 400 });
     }
 
-    // Pull the producer's profile so the angle can be tailored to their craft
+    // Pull the producer's profile so the angle can be tailored to their craft.
+    // is_pro gate: the Content Lab is a Pro feature and this reaches a Claude
+    // call — without the gate any free account could spend FENNEC_ANTHROPIC_KEY.
     const { data: profile } = await getSupabaseAdmin()
       .from("profiles")
-      .select("role, country, genres")
+      .select("role, country, genres, is_pro")
       .eq("id", user.id)
       .single();
+
+    if (!profile?.is_pro) {
+      return NextResponse.json({ error: "Content Lab is a Pro feature." }, { status: 403 });
+    }
 
     const genres = Array.isArray(profile?.genres) ? profile!.genres.filter(Boolean) : [];
     const role = typeof profile?.role === "string" ? profile.role.trim() : "";

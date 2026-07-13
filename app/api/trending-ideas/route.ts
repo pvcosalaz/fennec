@@ -44,6 +44,16 @@ async function getVideos(): Promise<{ videos: TrendingVideo[]; cachedAt: number 
 
 export async function GET(req: Request) {
   try {
+    // Auth gate: this endpoint reaches a Claude call (personalizeAngles) on
+    // novel input. Without auth it was an open money tap on FENNEC_ANTHROPIC_KEY
+    // (anyone could loop unique genre combos to force unbounded LLM spend).
+    // Require a valid session; gate the paid personalization on is_pro.
+    const token = (req.headers.get("authorization") ?? "").replace("Bearer ", "").trim();
+    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const admin = getSupabaseAdmin();
+    const { data: { user }, error: authErr } = await admin.auth.getUser(token);
+    if (authErr || !user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
     const genres = (new URL(req.url).searchParams.get("genres") ?? "")
       .split(",")
       .map((g) => g.trim())
@@ -52,7 +62,10 @@ export async function GET(req: Request) {
 
     const { videos, cachedAt } = await getVideos();
 
-    if (!genres.length || !videos.length) {
+    // Personalization (the LLM cost) is Pro-only. Free/unpaid sessions get the
+    // shared generic feed, never a Claude call.
+    const { data: prof } = await admin.from("profiles").select("is_pro").eq("id", user.id).single();
+    if (!prof?.is_pro || !genres.length || !videos.length) {
       return NextResponse.json({ videos, cachedAt });
     }
 
