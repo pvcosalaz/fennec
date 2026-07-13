@@ -13,6 +13,7 @@ export default function TermsPage() {
 
       <h2>3. Your Content</h2>
       <p>You retain full ownership of the content you upload or create in Fennec, including audio, projects, quotes, and client information. By uploading content you grant Fennec a limited license to store and display that content solely to operate the Service for you. We do not claim ownership of your work and we do not sell it.</p>
+      <p>You are solely responsible for the content you upload and for protecting your rights in it. Fennec lets you share works in progress with other producers for feedback, and any upload is at your own risk. We strongly recommend you register or otherwise protect any work before sharing it. Fennec is not responsible for any plagiarism, copying, unauthorized use, or theft of content that you choose to upload, including unregistered work. By uploading, you represent that you have the right to share the content and that doing so does not violate anyone else&apos;s rights.</p>
 
       <h2>4. Subscriptions and Billing</h2>
       <p>Fennec offers a free tier and a paid subscription (&quot;Fennec Pro&quot;). Paid subscriptions are billed in advance on a recurring basis (monthly or yearly) through our payment processor. Your subscription renews automatically until you cancel. You can cancel at any time, and cancellation takes effect at the end of the current billing period. Except where required by law, payments already made are non-refundable. Prices may change with prior notice, and any change applies to the next billing cycle.</p>
