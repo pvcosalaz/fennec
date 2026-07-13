@@ -19,6 +19,7 @@ import SchedulePrompt from "./SchedulePrompt";
 import ScriptWriterOverlay from "./ScriptWriterOverlay";
 import ScriptDetailOverlay from "./ScriptDetailOverlay";
 import MusicContentLab from "./MusicContentLab";
+import { supabase } from "@/lib/supabase";
 
 const TASKS_KEY = "fennec-content-tasks-v1";
 
@@ -503,7 +504,10 @@ function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule, onUp
     setError(null);
     try {
       const qs   = genres.length ? `?genres=${encodeURIComponent(genres.join(","))}` : "";
-      const res  = await fetch(`/api/trending-ideas${qs}`);
+      const { data: { session } } = await supabase.auth.getSession();
+      const res  = await fetch(`/api/trending-ideas${qs}`, {
+        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
+      });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       if (!data.videos?.length) throw new Error("No videos returned");
