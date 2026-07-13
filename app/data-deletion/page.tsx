@@ -1,9 +1,8 @@
+import LegalPage from "@/components/legal/LegalPage";
+
 export default function DataDeletionPage() {
   return (
-    <main style={{ fontFamily: "sans-serif", maxWidth: 680, margin: "60px auto", padding: "0 24px", color: "#111" }}>
-      <h1>Delete Your Account and Data</h1>
-      <p><strong>Last updated:</strong> July 2026</p>
-
+    <LegalPage title="Delete Your Account and Data" updated="July 2026">
       <p>You can permanently delete your Fennec account and all associated data at any time.</p>
 
       <h2>Option 1 — Delete from the app</h2>
@@ -27,7 +26,7 @@ export default function DataDeletionPage() {
       </ul>
       <p>This action cannot be undone.</p>
 
-      <p style={{ marginTop: 40 }}><a href="/privacy">Privacy Policy</a> · <a href="/terms">Terms of Service</a></p>
-    </main>
+      <p className="legal-footer"><a href="/privacy">Privacy Policy</a> · <a href="/terms">Terms of Service</a></p>
+    </LegalPage>
   );
 }
