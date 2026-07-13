@@ -313,8 +313,15 @@ export default function Community({ profile, openComposerWith, onComposerConsume
           <CommunityPanel profile={profile} openComposerWith={openComposerWith} onComposerConsumed={onComposerConsumed} />
         </div>
 
-        {/* industry news — always-visible right column */}
-        <aside className="border-l border-white/[0.05] pl-8">
+        {/* industry news — pinned to the viewport (sticky) with its own
+            scroll region, so it and the feed scroll fully independently:
+            scrolling over the feed never moves news and vice versa. The
+            top offset matches DesktopShell's py-6 so it sits exactly
+            where it already rests before any scrolling happens. */}
+        <aside
+          className="overflow-y-auto border-l border-white/[0.05] pl-8"
+          style={{ position: "sticky", top: 24, maxHeight: "calc(100vh - 48px)" }}
+        >
           <NewsPanel onSelect={setSelected} />
         </aside>
       </div>
