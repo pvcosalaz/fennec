@@ -52,14 +52,19 @@ export default function TapeIntro({
 
   return (
     <>
+      {/* z-[90]/[100]: must sit ABOVE the desktop immersive-exit "‹ fennec"
+          pill (z-[80] in DesktopShell). Otherwise that pill stays clickable
+          over this overlay, and leaving through it skips the "seen" flag —
+          the intro then reappears on every visit. The backdrop now covers
+          the pill; clicking there dismisses the intro properly instead. */}
       <div
-        className="fixed inset-0 z-[60] bg-black/75 backdrop-blur-sm"
+        className="fixed inset-0 z-[90] bg-black/75 backdrop-blur-sm"
         style={{ animation: "sheetFadeIn .25s ease both" }}
         onClick={dismiss}
       />
       <div
         ref={sheetRef}
-        className="fixed inset-x-0 z-[70] mx-auto w-full max-w-md rounded-t-3xl border-t border-white/10 px-6 pt-3"
+        className="fixed inset-x-0 z-[100] mx-auto w-full max-w-md rounded-t-3xl border-t border-white/10 px-6 pt-3"
         style={{
           bottom: SHEET_BOTTOM,
           background: "linear-gradient(180deg, #17151b, #131216)",

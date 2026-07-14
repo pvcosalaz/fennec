@@ -11,6 +11,10 @@ export default function AuthGate() {
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState<string | null>(null);
   const [message, setMessage]   = useState<string | null>(null);
+  // Set to the email we just signed up, so we can offer a "Resend" button
+  // (the confirmation mail can land in spam or never arrive).
+  const [pendingConfirmEmail, setPendingConfirmEmail] = useState<string | null>(null);
+  const [resent, setResent]     = useState(false);
 
   // Which OAuth providers are actually enabled on the Supabase project.
   // Clicking a disabled provider used to navigate the browser straight into
@@ -53,19 +57,40 @@ export default function AuthGate() {
     setLoading(true);
     setError(null);
     setMessage(null);
+    setPendingConfirmEmail(null);
+    setResent(false);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error?.message.includes("Invalid login")) {
       // Try sign up
-      const { error: signUpErr } = await supabase.auth.signUp({ email, password });
+      const { error: signUpErr } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      });
       if (signUpErr) {
         setError(signUpErr.message);
       } else {
         setMessage("Check your email to confirm your account.");
+        setPendingConfirmEmail(email.trim());
       }
     } else if (error) {
       setError(error.message);
     }
     setLoading(false);
+  }
+
+  async function handleResendConfirm() {
+    if (!pendingConfirmEmail) return;
+    setError(null);
+    setLoading(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: pendingConfirmEmail,
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+    });
+    setLoading(false);
+    if (error) setError(error.message);
+    else setResent(true);
   }
 
   async function handleForgotPassword() {
@@ -189,6 +214,22 @@ export default function AuthGate() {
           </div>
           {error && <p className="text-xs text-red-400">{error}</p>}
           {message && <p className="text-xs text-green-400">{message}</p>}
+          {/* After a signup, offer to resend the confirmation mail — it can
+              land in spam or never arrive, leaving the user stuck. */}
+          {pendingConfirmEmail && (
+            resent ? (
+              <p className="text-xs text-zinc-500">Confirmation email sent again.</p>
+            ) : (
+              <button
+                type="button"
+                onClick={handleResendConfirm}
+                disabled={loading}
+                className="text-xs text-zinc-500 underline-offset-2 hover:text-amber-500 hover:underline transition disabled:opacity-50"
+              >
+                Didn&apos;t get it? Resend confirmation email
+              </button>
+            )
+          )}
           <button
             type="submit"
             disabled={loading}
