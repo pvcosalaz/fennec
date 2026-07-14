@@ -38,10 +38,18 @@ export default function AudioModule({ userId, isPro, onSheetChange }: Props) {
       .finally(() => setLoadingQueue(false));
   }, [userId]);
 
-  // First visit → the tape intro (reopenable from the ⋯ flyout)
+  // First visit → the tape intro (reopenable from the ⋯ flyout).
+  // Mark it seen the moment it's SHOWN, not only when properly dismissed —
+  // on desktop, the immersive-exit "‹ fennec" pill sits above this overlay
+  // and stays clickable while it's open; leaving that way skipped
+  // closeIntro()'s write entirely, so the flag never got set and the intro
+  // kept reappearing on every visit to the tab.
   useEffect(() => {
     try {
-      if (!localStorage.getItem(INTRO_SEEN_KEY)) setOverlay("intro");
+      if (!localStorage.getItem(INTRO_SEEN_KEY)) {
+        setOverlay("intro");
+        localStorage.setItem(INTRO_SEEN_KEY, "1");
+      }
     } catch { /* private mode */ }
   }, []);
 
