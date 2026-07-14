@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import {
   ArrowLeft, User, Globe, DollarSign, Trash2,
   ChevronRight, Check, AlertTriangle, Bell, Camera, Loader2,
-  Lightbulb, Send,
+  Lightbulb, Send, Lock,
 } from "lucide-react";
 import NotificationPreferences from "./NotificationPreferences";
 import { submitSuggestion, fetchMySuggestions, type Suggestion } from "@/lib/suggestionsDb";
@@ -100,7 +100,7 @@ const COUNTRIES = [
   { name: "Other", flag: "🌍" },
 ];
 
-export type Section = "main" | "profile" | "language" | "currency" | "data" | "notifications" | "suggest";
+export type Section = "main" | "profile" | "language" | "currency" | "data" | "notifications" | "suggest" | "password";
 
 type Props = {
   onBack: () => void;
@@ -128,6 +128,13 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
   const [suggestSending, setSuggestSending] = useState(false);
   const [suggestSent,   setSuggestSent]   = useState(false);
   const [mySuggestions, setMySuggestions] = useState<Suggestion[]>([]);
+
+  // Change password
+  const [newPassword,     setNewPassword]     = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError,   setPasswordError]   = useState<string | null>(null);
+  const [passwordSaving,  setPasswordSaving]  = useState(false);
+  const [passwordSaved,   setPasswordSaved]   = useState(false);
 
   // Permanent account deletion (App Store / Play Store requirement)
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -178,6 +185,19 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
       setDeleteError("Could not delete your account. Please try again.");
       setDeleting(false);
     }
+  }
+
+  async function handleChangePassword() {
+    setPasswordError(null);
+    if (newPassword.length < 6) { setPasswordError("Password must be at least 6 characters."); return; }
+    if (newPassword !== confirmPassword) { setPasswordError("Passwords don't match."); return; }
+    setPasswordSaving(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setPasswordSaving(false);
+    if (error) { setPasswordError(error.message); return; }
+    setNewPassword(""); setConfirmPassword("");
+    setPasswordSaved(true);
+    setTimeout(() => setPasswordSaved(false), 2500);
   }
 
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -521,6 +541,52 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
   );
 
   // ── Data section ──
+  if (section === "password") return (
+    <div className="mx-auto w-full max-w-lg space-y-5 px-4">
+      <div className="flex items-center gap-3">
+        <button onClick={() => setSection("main")} className="text-zinc-400 hover:text-accent transition">
+          <ArrowLeft className="h-5 w-5" />
+        </button>
+        <div>
+          <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">Settings</p>
+          <h1 className="text-2xl font-bold text-white">Password</h1>
+        </div>
+      </div>
+
+      <p className="text-xs text-zinc-500 leading-relaxed">
+        Set a new password for your account. This works even if you originally signed in with Google, Apple, or Facebook.
+      </p>
+
+      <div className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-5">
+        <input
+          type="password"
+          placeholder="New password"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+          minLength={6}
+          className="w-full h-11 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
+        />
+        <input
+          type="password"
+          placeholder="Confirm new password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          minLength={6}
+          className="w-full h-11 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
+        />
+        {passwordError && <p className="text-xs text-red-400">{passwordError}</p>}
+        {passwordSaved && <p className="text-xs text-green-400">Password updated.</p>}
+        <button
+          onClick={handleChangePassword}
+          disabled={passwordSaving || !newPassword || !confirmPassword}
+          className="w-full rounded-xl bg-accent py-3 text-sm font-semibold text-black transition disabled:opacity-40"
+        >
+          {passwordSaving ? "Saving..." : "Update password"}
+        </button>
+      </div>
+    </div>
+  );
+
   if (section === "data") return (
     <div className="mx-auto w-full max-w-lg space-y-5 px-4">
       <div className="flex items-center gap-3">
@@ -633,6 +699,12 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
       label: "Language",
       value: displayLang,
       section: "language" as Section,
+    },
+    {
+      icon: Lock,
+      label: "Password",
+      value: "Change your password",
+      section: "password" as Section,
     },
     {
       icon: Trash2,
