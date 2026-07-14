@@ -68,6 +68,25 @@ export default function AuthGate() {
     setLoading(false);
   }
 
+  async function handleForgotPassword() {
+    setError(null);
+    setMessage(null);
+    if (!email.trim()) {
+      setError("Enter your email above first, then tap \"Forgot password?\".");
+      return;
+    }
+    setLoading(true);
+    // Supabase itself doesn't reveal whether the email has an account (it
+    // returns success either way), so a real error here is a genuine
+    // problem (rate limit, bad format) worth surfacing as-is.
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: `${window.location.origin}/auth/reset-password`,
+    });
+    if (error) setError(error.message);
+    else setMessage("Check your email for a link to reset your password.");
+    setLoading(false);
+  }
+
   return (
     <div
       className="relative flex flex-col items-center justify-center min-h-full flex-1 px-6 gap-8 overflow-hidden"
@@ -158,6 +177,16 @@ export default function AuthGate() {
             minLength={6}
             className="w-full h-11 rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-amber-500"
           />
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={handleForgotPassword}
+              disabled={loading}
+              className="text-xs text-zinc-500 underline-offset-2 hover:text-amber-500 hover:underline transition disabled:opacity-50"
+            >
+              Forgot password?
+            </button>
+          </div>
           {error && <p className="text-xs text-red-400">{error}</p>}
           {message && <p className="text-xs text-green-400">{message}</p>}
           <button
