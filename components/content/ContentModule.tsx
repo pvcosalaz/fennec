@@ -5,7 +5,7 @@ import { useSheetDismiss, SHEET_BOTTOM } from "@/components/ui/useSheetDismiss";
 
 import { useState, useEffect, useRef } from "react";
 import {
-  Plus, Trash2, Pencil, Check, X,
+  Plus, Trash2, Pencil, Check, ArrowLeft,
   Lightbulb, Calendar, Sparkles, Lock,
   BookOpen, Smile, Quote, Music2, GraduationCap,
 } from "lucide-react";
@@ -921,72 +921,76 @@ export default function ContentModule({ isPro = false, onUpgrade, genres = [] }:
 
   return (
     <div className={isDesktop ? "relative" : "relative flex-1 flex flex-col overflow-hidden"}>
-      {/* Main calendar hub — month-grid calendar on desktop, the week-strip
-          hub on mobile. Same tasks state and handlers either way. */}
       {isDesktop ? (
-        <ContentHubDesktop
-          tasks={tasks}
-          isPro={isPro}
-          onUpgrade={onUpgrade}
-          onOpenSheet={openSheet}
-          onToggleDone={toggleDone}
-          onDeleteTask={deleteTask}
-          ideasCount={ideas.length}
-          scriptsCount={briefs.length}
-          onAddTask={(title, date) => addTask(title, date, "manual")}
-          onEditScript={(taskTitle) => {
-            const brief = briefs.find((b) => b.title === taskTitle);
-            if (brief) setDetailBrief(brief);
-          }}
-        />
-      ) : (
-        <CalendarHub
-          tasks={tasks}
-          isPro={isPro}
-          onUpgrade={onUpgrade}
-          onOpenSheet={openSheet}
-          onToggleDone={toggleDone}
-          onDeleteTask={deleteTask}
-          onEditScript={(taskTitle) => {
-            const brief = briefs.find((b) => b.title === taskTitle);
-            if (brief) setDetailBrief(brief);
-          }}
-        />
-      )}
-
-      {/* Tool overlay — bottom sheet on mobile, centered modal on desktop
-          (a sheet sliding up from the bottom is a phone gesture; on a big
-          screen the tool floats over the calendar instead). */}
-      {sheet !== "none" && (
-        <>
-          <div
-            className="fixed inset-0 z-30 bg-black/70 backdrop-blur-sm"
-            onClick={closeSheet}
-          />
-          {isDesktop ? (
-            <div className="fixed left-1/2 top-1/2 z-40 h-[86vh] w-[min(880px,92vw)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-white/10 bg-zinc-950 shadow-[0_32px_80px_rgba(0,0,0,.6)]">
-              <div className="flex justify-end px-4 pt-3">
-                <button onClick={closeSheet} aria-label="Close" className="text-zinc-500 transition hover:text-white">
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-              <div className="px-6 pb-14 pt-1">{sheetContent}</div>
-            </div>
-          ) : (
-            <div
-              ref={sheetRef}
-              className="fixed left-0 right-0 z-40 h-[92vh] rounded-t-3xl border-t border-white/10 bg-zinc-950 overflow-y-auto"
-              style={{ transform: `translateY(${dragY}px)`, transition: dragY === 0 ? "transform 0.3s ease-out" : "none" }}
-              onTouchStart={onTouchStart}
-              onTouchMove={onTouchMove}
-              onTouchEnd={onTouchEnd}
+        // Desktop: the active tool takes over the whole content area as a
+        // full page (with a Back link), not a floating bordered box. A modal
+        // that leaves dead margins on a wide screen reads as a phone popup
+        // (Paco, 2026-07-16) — Business-style in-module navigation instead.
+        sheet !== "none" ? (
+          <div className="fennec-dialog-in w-full">
+            <button
+              onClick={closeSheet}
+              className="mb-6 inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 transition hover:bg-white/5 hover:text-white"
             >
-              {/* Drag handle */}
-              <div className="sticky top-0 z-10 flex items-center justify-center px-4 pt-3 pb-2 bg-zinc-950">
-                <div className="w-10 h-1 rounded-full bg-white/30" />
+              <ArrowLeft className="h-4 w-4" /> Back to calendar
+            </button>
+            {sheetContent}
+          </div>
+        ) : (
+          <ContentHubDesktop
+            tasks={tasks}
+            isPro={isPro}
+            onUpgrade={onUpgrade}
+            onOpenSheet={openSheet}
+            onToggleDone={toggleDone}
+            onDeleteTask={deleteTask}
+            ideasCount={ideas.length}
+            scriptsCount={briefs.length}
+            onAddTask={(title, date) => addTask(title, date, "manual")}
+            onEditScript={(taskTitle) => {
+              const brief = briefs.find((b) => b.title === taskTitle);
+              if (brief) setDetailBrief(brief);
+            }}
+          />
+        )
+      ) : (
+        <>
+          {/* Mobile: week-strip hub + the active tool as a bottom sheet
+              (sliding up from the bottom is a phone gesture). */}
+          <CalendarHub
+            tasks={tasks}
+            isPro={isPro}
+            onUpgrade={onUpgrade}
+            onOpenSheet={openSheet}
+            onToggleDone={toggleDone}
+            onDeleteTask={deleteTask}
+            onEditScript={(taskTitle) => {
+              const brief = briefs.find((b) => b.title === taskTitle);
+              if (brief) setDetailBrief(brief);
+            }}
+          />
+
+          {sheet !== "none" && (
+            <>
+              <div
+                className="fixed inset-0 z-30 bg-black/70 backdrop-blur-sm"
+                onClick={closeSheet}
+              />
+              <div
+                ref={sheetRef}
+                className="fixed left-0 right-0 z-40 h-[92vh] rounded-t-3xl border-t border-white/10 bg-zinc-950 overflow-y-auto"
+                style={{ transform: `translateY(${dragY}px)`, transition: dragY === 0 ? "transform 0.3s ease-out" : "none" }}
+                onTouchStart={onTouchStart}
+                onTouchMove={onTouchMove}
+                onTouchEnd={onTouchEnd}
+              >
+                {/* Drag handle */}
+                <div className="sticky top-0 z-10 flex items-center justify-center px-4 pt-3 pb-2 bg-zinc-950">
+                  <div className="w-10 h-1 rounded-full bg-white/30" />
+                </div>
+                <div className="px-2 pb-32 pt-1">{sheetContent}</div>
               </div>
-              <div className="px-2 pb-32 pt-1">{sheetContent}</div>
-            </div>
+            </>
           )}
         </>
       )}
