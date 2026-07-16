@@ -29,7 +29,7 @@ const nextConfig: NextConfig = {
   // network (Next 15+ blocks cross-origin dev asset/HMR requests otherwise —
   // the page paints but never finishes hydrating, looks "frozen" on the
   // splash). Add your current IP here if it changes (ipconfig getifaddr en0).
-  allowedDevOrigins: ["192.168.1.16", "192.168.1.18", "192.168.1.2"],
+  allowedDevOrigins: ["192.168.1.16", "192.168.1.18", "192.168.1.2", "192.168.1.5", "172.16.4.161"],
   env: {
     NEXT_PUBLIC_SUPABASE_URL:     process.env.NEXT_PUBLIC_SUPABASE_URL     ?? "",
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
