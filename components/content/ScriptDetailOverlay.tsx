@@ -32,7 +32,13 @@ export default function ScriptDetailOverlay({ brief, onClose, onDelete, onSchedu
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-zinc-950 flex flex-col overflow-hidden">
+    // z-[130]: this is a full-screen takeover, so it must sit ABOVE the
+    // bottom nav (its backdrop-blur paints over plain z-50). The nested
+    // Teleprompter inherits this stacking context, so lifting the overlay
+    // also lifts its controls above the nav — otherwise Play sits behind
+    // the nav and the teleprompter reads as "broken". Matches the
+    // teleprompter/upgrade-sheet convention (z-150/200).
+    <div className="fixed inset-0 z-[130] bg-zinc-950 flex flex-col overflow-hidden">
 
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-12 pb-4 border-b border-white/5 shrink-0">
@@ -168,9 +174,11 @@ export default function ScriptDetailOverlay({ brief, onClose, onDelete, onSchedu
         )}
       </div>
 
-      {/* Bottom action */}
+      {/* Bottom action — clears the home indicator now that it owns the
+          bottom edge (the nav no longer sits under it) */}
       {!editing && (
-        <div className="px-4 pb-8 pt-3 border-t border-white/5 shrink-0 space-y-2">
+        <div className="px-4 pt-3 border-t border-white/5 shrink-0 space-y-2"
+          style={{ paddingBottom: "max(calc(env(safe-area-inset-bottom) + 12px), 2rem)" }}>
           {script.trim() && (
             <button
               onClick={() => setTeleprompter(true)}
