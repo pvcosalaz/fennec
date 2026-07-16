@@ -126,7 +126,9 @@ export default function ScriptWriterOverlay({ videoRef, onSave, onClose }: Props
           />
         </div>
 
-        {/* Watch source — only if URL exists */}
+        {/* Reference link — only if URL exists. Generic label: references
+            can come from a Quick Idea (Instagram, TikTok, anywhere), not
+            just YouTube. */}
         {videoRef.url && (
           <a
             href={videoRef.url}
@@ -134,7 +136,7 @@ export default function ScriptWriterOverlay({ videoRef, onSave, onClose }: Props
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 text-[10px] text-zinc-600 hover:text-zinc-400 transition"
           >
-            Watch original on YouTube →
+            Open reference →
           </a>
         )}
 

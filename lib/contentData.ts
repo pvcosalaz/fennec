@@ -42,6 +42,10 @@ export type Brief = {
   lineName: string;
   title: string;
   script: string;
+  /** Reference link the script was written from (a Quick Idea's URL, an
+   *  Inspire video, etc.) — shown in the detail view. Optional: older
+   *  briefs in localStorage don't have it. */
+  refUrl?: string;
   createdAt: number;
 };
 

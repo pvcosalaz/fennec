@@ -130,7 +130,16 @@ export default function DashboardDesktop({
         </h1>
         <button
           type="button"
-          onClick={() => { if (navigator.share) void navigator.share({ title: "My Fennec ID", text: `@${networkProfile?.username} · ${fennecDb} dB on Fennec` }); }}
+          onClick={() => {
+            // Share the PUBLIC card link (/u/username) — recipients get the
+            // real Fennec ID page, and the OG image unfurls the card in
+            // WhatsApp/iMessage. Desktop browsers often lack navigator.share,
+            // so fall back to copying the link.
+            const url = `https://app.fennec.audio/u/${networkProfile?.username ?? ""}`;
+            const text = `@${networkProfile?.username} · ${fennecDb} dB on Fennec`;
+            if (navigator.share) void navigator.share({ title: "My Fennec ID", text, url });
+            else void navigator.clipboard?.writeText(url);
+          }}
           className="rounded-full border px-3.5 py-1.5 text-[11.5px] font-semibold transition hover:brightness-110"
           style={{ borderColor: `${accent}59`, color: accent }}
         >

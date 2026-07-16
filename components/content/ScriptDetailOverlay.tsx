@@ -81,7 +81,7 @@ export default function ScriptDetailOverlay({ brief, onClose, onDelete, onSchedu
       <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
 
         {/* Format + Line tags */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {brief.formatName && (
             <span
               className="rounded-full px-3 py-1 text-xs font-semibold text-black"
@@ -94,6 +94,18 @@ export default function ScriptDetailOverlay({ brief, onClose, onDelete, onSchedu
             <span className="rounded-full border border-white/15 px-3 py-1 text-xs text-zinc-400">
               {brief.lineName}
             </span>
+          )}
+          {/* The reference link the script came from (a Quick Idea's URL,
+              an Inspire video) — it used to be lost on save */}
+          {brief.refUrl && (
+            <a
+              href={brief.refUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="max-w-[220px] truncate rounded-full border border-accent/30 px-3 py-1 text-xs text-accent transition hover:border-accent/60"
+            >
+              Reference ↗
+            </a>
           )}
         </div>
 

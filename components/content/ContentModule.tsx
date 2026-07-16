@@ -288,6 +288,7 @@ function ScriptsView({
       lineId: "",   lineName: "",
       title: fTitle.trim(),
       script: fScript.trim(),
+      refUrl: videoRef?.url || undefined,
       createdAt: Date.now(),
     };
     onAdd(brief);
@@ -1034,6 +1035,7 @@ export default function ContentModule({ isPro = false, onUpgrade, genres = [] }:
               lineName: isLabGenerated
                 ? scriptWriter!.title.split(" — ").slice(1).join(" — ")
                 : scriptWriter?.title ?? "",
+              refUrl: scriptWriter?.url || undefined,
               createdAt: Date.now(),
             };
             setBriefs((prev) => [brief, ...prev]);

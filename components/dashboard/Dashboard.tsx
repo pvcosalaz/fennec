@@ -619,7 +619,13 @@ export default function Dashboard({
               }}>
                 <button
                   onClick={() => {
-                    if (navigator.share) void navigator.share({ title: "My Fennec ID", text: `@${username} — ${fennecDb} dB on Fennec` });
+                    // Share the PUBLIC card link — the /u/username page shows
+                    // the real Fennec ID and its OG image unfurls the card in
+                    // WhatsApp/iMessage instead of a bare text line.
+                    const url = `https://app.fennec.audio/u/${username}`;
+                    const text = `@${username} — ${fennecDb} dB on Fennec`;
+                    if (navigator.share) void navigator.share({ title: "My Fennec ID", text, url });
+                    else void navigator.clipboard?.writeText(url);
                   }}
                   style={{
                     flex: 1, padding: "13px 0", borderRadius: 14,
