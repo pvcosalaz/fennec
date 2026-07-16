@@ -24,6 +24,13 @@ export default function Teleprompter({
   const scrollRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number>(0);
   const lastTsRef = useRef<number>(0);
+  // True fractional scroll position, kept separate from el.scrollTop. At 1×
+  // each frame only advances ~0.8px; if we read el.scrollTop back and add to
+  // it, engines that floor sub-pixel scroll writes (iOS Safari) round that
+  // 0.8 down to 0 every frame and the scroll never moves ("no baja al dar
+  // play", Paco 2026-07-16). Accumulating here and writing an absolute value
+  // keeps the sub-pixel progress no matter how the engine rounds scrollTop.
+  const posRef = useRef<number>(0);
   const wakeLockRef = useRef<{ release: () => Promise<void> } | null>(null);
 
   const [running, setRunning] = useState(false);
@@ -54,6 +61,8 @@ export default function Teleprompter({
     }
     acquireWakeLock();
     lastTsRef.current = 0;
+    // Resume from wherever the view actually is (manual scroll, restart, etc.)
+    posRef.current = scrollRef.current?.scrollTop ?? 0;
 
     const step = (ts: number) => {
       const el = scrollRef.current;
@@ -62,8 +71,10 @@ export default function Teleprompter({
       const dt = ts - lastTsRef.current;
       lastTsRef.current = ts;
 
-      // ~48 px/sec at 1× — a natural reading pace, scaled by speed
-      el.scrollTop += (dt / 1000) * 48 * speed;
+      // ~48 px/sec at 1× — a natural reading pace, scaled by speed. Accumulate
+      // in posRef (sub-pixel safe) and write an absolute scrollTop.
+      posRef.current += (dt / 1000) * 48 * speed;
+      el.scrollTop = posRef.current;
 
       if (el.scrollTop + el.clientHeight >= el.scrollHeight - 1) {
         setRunning(false);
@@ -85,6 +96,7 @@ export default function Teleprompter({
   }
   function restart() {
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
+    posRef.current = 0;
     setDone(false);
     setRunning(true);
   }
