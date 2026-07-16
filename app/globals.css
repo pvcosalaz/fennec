@@ -112,6 +112,19 @@ input[type="number"] {
   [style*="sheetUp"] { animation: none !important; }
 }
 
+/* ── Desktop dialog entrance ───────────────────────────────────────
+   Centered dialogs never animate from scale(0) — nothing real appears
+   from nothing. 0.96 + fade, fast ease-out, origin stays center
+   (dialogs aren't anchored to a trigger). */
+@keyframes fennecDialogIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.fennec-dialog-in { animation: fennecDialogIn 200ms var(--ease-out) both; }
+@media (prefers-reduced-motion: reduce) {
+  .fennec-dialog-in { animation: fennecDialogIn 150ms ease both; animation-name: sheetFadeIn; }
+}
+
 /* ── Universal press feedback ──────────────────────────────────────
    Every pressable element scales down slightly on :active so the UI
    feels like it's listening. Uses the standalone `scale` property

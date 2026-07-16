@@ -50,6 +50,11 @@ export default function TapeIntro({
   const { sheetRef, dismiss } = useSheetDismiss(onClose);
   const STEPS = getSteps(isDesktop);
 
+  // A sheet sliding up from the bottom edge is a phone gesture. On desktop
+  // this is a centered dialog: 0.96→1 scale + fade, center origin, and a
+  // plain close (no swipe mechanics to animate out).
+  const close = isDesktop ? onClose : dismiss;
+
   return (
     <>
       {/* z-[90]/[100]: must sit ABOVE the desktop immersive-exit "‹ fennec"
@@ -60,22 +65,32 @@ export default function TapeIntro({
       <div
         className="fixed inset-0 z-[90] bg-black/75 backdrop-blur-sm"
         style={{ animation: "sheetFadeIn .25s ease both" }}
-        onClick={dismiss}
+        onClick={close}
       />
       <div
-        ref={sheetRef}
-        className="fixed inset-x-0 z-[100] mx-auto w-full max-w-md rounded-t-3xl border-t border-white/10 px-6 pt-3"
-        style={{
-          bottom: SHEET_BOTTOM,
-          background: "linear-gradient(180deg, #17151b, #131216)",
-          paddingBottom: "calc(env(safe-area-inset-bottom) + 1.5rem)",
-          animation: SHEET_ENTER,
-        }}
+        ref={isDesktop ? undefined : sheetRef}
+        className={
+          isDesktop
+            ? "fennec-dialog-in fixed left-1/2 top-1/2 z-[100] w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-white/10 px-7 pb-7 pt-6"
+            : "fixed inset-x-0 z-[100] mx-auto w-full max-w-md rounded-t-3xl border-t border-white/10 px-6 pt-3"
+        }
+        style={
+          isDesktop
+            ? { background: "linear-gradient(180deg, #17151b, #131216)", boxShadow: "0 32px 80px rgba(0,0,0,.55)" }
+            : {
+                bottom: SHEET_BOTTOM,
+                background: "linear-gradient(180deg, #17151b, #131216)",
+                paddingBottom: "calc(env(safe-area-inset-bottom) + 1.5rem)",
+                animation: SHEET_ENTER,
+              }
+        }
       >
-        {/* drag handle */}
-        <div className="flex justify-center mb-4">
-          <div className="w-10 h-1 rounded-full bg-white/20" />
-        </div>
+        {/* drag handle — a swipe affordance has no meaning on desktop */}
+        {!isDesktop && (
+          <div className="flex justify-center mb-4">
+            <div className="w-10 h-1 rounded-full bg-white/20" />
+          </div>
+        )}
 
         <p className="text-[9px] font-bold uppercase text-center mb-1"
           style={{ fontFamily: MONO_FONT, letterSpacing: "0.3em", color: AMBER }}>
@@ -109,7 +124,7 @@ export default function TapeIntro({
 
         <div className="flex gap-2">
           <button
-            onClick={dismiss}
+            onClick={close}
             className="flex-1 h-12 rounded-2xl border border-white/10 text-sm font-semibold text-zinc-400 transition hover:text-white active:scale-[0.98]"
           >
             Start listening

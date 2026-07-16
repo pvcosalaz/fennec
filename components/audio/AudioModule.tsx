@@ -149,52 +149,66 @@ export default function AudioModule({ userId, isPro, onSheetChange }: Props) {
 
       {/* ── My Tracks bottom sheet ─────────────────────────────── */}
       {overlay === "mine" && (
-        <MyTracksSheet userId={userId} isPro={isPro} onClose={() => setOverlay(null)} />
+        <MyTracksSheet userId={userId} isPro={isPro} isDesktop={isDesktop} onClose={() => setOverlay(null)} />
       )}
     </div>
   );
 }
 
-/* ── My Tracks as a proper sheet: swipe-down to close, true-bottom anchor,
-   dim backdrop. Own component so useSheetDismiss binds on mount. ── */
+/* ── My Tracks: swipe-down sheet on mobile, centered dialog on desktop
+   (a bottom sheet is a phone gesture). Own component so useSheetDismiss
+   binds on mount. ── */
 function MyTracksSheet({
   userId,
   isPro,
+  isDesktop = false,
   onClose,
 }: {
   userId: string;
   isPro: boolean;
+  isDesktop?: boolean;
   onClose: () => void;
 }) {
   const { sheetRef, dismiss } = useSheetDismiss(onClose);
+  const close = isDesktop ? onClose : dismiss;
   return (
     <>
       <div
         className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
         style={{ animation: "sheetFadeIn .25s ease both" }}
-        onClick={dismiss}
+        onClick={close}
       />
       <div
-        ref={sheetRef}
-        className="fixed inset-x-0 z-50 rounded-t-3xl bg-[#1a1a1e] border-t border-white/8 overflow-y-auto"
-        style={{
-          bottom: SHEET_BOTTOM,
-          maxHeight: "calc(var(--app-h, 100dvh) - 4rem)",
-          paddingBottom: "calc(env(safe-area-inset-bottom) + 2rem)",
-          animation: SHEET_ENTER,
-        }}
+        ref={isDesktop ? undefined : sheetRef}
+        className={
+          isDesktop
+            ? "fennec-dialog-in fixed left-1/2 top-1/2 z-50 w-full max-w-2xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-3xl border border-white/10 bg-[#1a1a1e]"
+            : "fixed inset-x-0 z-50 rounded-t-3xl bg-[#1a1a1e] border-t border-white/8 overflow-y-auto"
+        }
+        style={
+          isDesktop
+            ? { maxHeight: "85vh", boxShadow: "0 32px 80px rgba(0,0,0,.55)", paddingBottom: "1.5rem" }
+            : {
+                bottom: SHEET_BOTTOM,
+                maxHeight: "calc(var(--app-h, 100dvh) - 4rem)",
+                paddingBottom: "calc(env(safe-area-inset-bottom) + 2rem)",
+                animation: SHEET_ENTER,
+              }
+        }
       >
-        {/* drag handle */}
-        <div className="flex justify-center pt-3">
-          <div className="w-10 h-1 rounded-full bg-white/20" />
-        </div>
-        <div className="flex items-center justify-between px-4 pt-2 pb-4">
+        {/* drag handle — swipe affordance means nothing on desktop */}
+        {!isDesktop && (
+          <div className="flex justify-center pt-3">
+            <div className="w-10 h-1 rounded-full bg-white/20" />
+          </div>
+        )}
+        <div className={`flex items-center justify-between px-4 pb-4 ${isDesktop ? "pt-5" : "pt-2"}`}>
           <span className="text-sm font-bold text-white">My Tracks</span>
-          <button onClick={dismiss} aria-label="Close" className="text-zinc-500 hover:text-white transition">
+          <button onClick={close} aria-label="Close" className="text-zinc-500 hover:text-white transition">
             <X className="h-5 w-5" />
           </button>
         </div>
-        <div className="px-4">
+        <div className={isDesktop ? "px-6" : "px-4"}>
           <MyTracksView userId={userId} isPro={isPro} />
         </div>
       </div>
