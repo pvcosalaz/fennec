@@ -764,7 +764,17 @@ export default function PricingCalculator() {
             <NetworkSection userId={authUser.id} />
           </div>
         ) : activeTab === "pricing" && businessView === "calculator" ? (
-          <section className="mx-auto w-full max-w-4xl rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/40 backdrop-blur-sm sm:p-10">
+          <section
+            className={
+              isDesktop
+                // Desktop: plain full-page column, matching the other Business
+                // sub-views (Projects / Clients / Quotes). The bordered,
+                // shadowed, blurred card frame read as a floating "recuadro"
+                // on a wide screen (Paco, 2026-07-16).
+                ? "mx-auto w-full max-w-4xl"
+                : "mx-auto w-full max-w-4xl rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/40 backdrop-blur-sm sm:p-10"
+            }
+          >
             <button
               onClick={() => setBusinessView("hub")}
               className="mb-6 flex items-center gap-1.5 text-xs text-zinc-400 hover:text-accent transition"
