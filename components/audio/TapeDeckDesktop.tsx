@@ -34,67 +34,54 @@ const fmt = (s: number) => {
 /* ── one reel: light metal plate (RTM-style 3 cutouts) over a dark
    tape pancake. The pancake radius + plate rotation are driven from
    the animation loop via refs — zero React re-renders. ── */
-function Reel({ plateRef, pancakeRef, idSuffix, r0 }: {
+/* ── one reel, modern-vintage: no photoreal metal, no screws, no bezels.
+   The reel is drawn in Fennec's own language — flat dark tape disc, a
+   1.5px amber edge that IS the fill-level indicator, a hairline outer
+   rim for structure, and a thin-spoke hub whose rotation carries the
+   motion. All the machine's physics stay (spin ∝ 1/radius, pancake
+   transfer); only the rendering stops pretending to be a photo. ── */
+function Reel({ plateRef, pancakeRef, edgeRef, r0 }: {
   plateRef: React.Ref<SVGGElement>;
   pancakeRef: React.Ref<SVGCircleElement>;
-  idSuffix: string;
+  /** amber edge circle — tracks the pancake radius from the loop */
+  edgeRef: React.Ref<SVGCircleElement>;
   /** initial pancake radius — supply reel starts full, take-up starts empty */
   r0: number;
 }) {
-  // The plate is ONE evenodd path: outer disc + three window subpaths →
-  // the windows are real holes, so the tape pancake behind shows through
-  // (that's how you SEE the tape transfer from reel to reel). Windows are
-  // the same annular sector pre-rotated 0°/120°/240° around (100,100).
-  const PLATE =
-    "M5 100 A95 95 0 1 0 195 100 A95 95 0 1 0 5 100 Z " +
-    "M59.5 39.5 A73 73 0 0 1 140.5 39.5 L121.5 67.5 A38 38 0 0 0 78.5 67.5 Z " +
-    "M172.64 95.18 A73 73 0 0 1 132.14 165.32 L117.4 134.87 A38 38 0 0 0 138.9 97.63 Z " +
-    "M67.86 165.32 A73 73 0 0 1 27.36 95.18 L61.1 97.63 A38 38 0 0 0 82.6 134.87 Z";
   return (
-    <svg viewBox="0 0 200 200" style={{ width: "min(30vh, 270px)", height: "auto", display: "block" }}>
-      <defs>
-        <linearGradient id={`metal-${idSuffix}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#efeff2" />
-          <stop offset=".5" stopColor="#cfcfd6" />
-          <stop offset="1" stopColor="#b7b7bf" />
-        </linearGradient>
-        <radialGradient id={`pancake-${idSuffix}`}>
-          <stop offset="0" stopColor="#241d16" />
-          <stop offset=".72" stopColor="#191410" />
-          <stop offset="1" stopColor="#0e0b09" />
-        </radialGradient>
-      </defs>
+    <svg viewBox="0 0 200 200" style={{ width: "min(28vh, 250px)", height: "auto", display: "block" }}>
+      {/* structural rim — always there, whisper-quiet */}
+      <circle cx="100" cy="100" r="95" fill="none" stroke="rgba(255,255,255,.08)" strokeWidth="1" />
 
-      {/* tape pancake (grows/shrinks with playback) */}
-      <circle ref={pancakeRef} cx="100" cy="100" r={r0} fill={`url(#pancake-${idSuffix})`} />
-      {/* wound-tape sheen rings */}
-      <circle cx="100" cy="100" r="62" fill="none" stroke="rgba(255,255,255,.045)" strokeWidth="1" />
-      <circle cx="100" cy="100" r="50" fill="none" stroke="rgba(255,255,255,.035)" strokeWidth="1" />
+      {/* wound tape: flat dark disc + amber edge as the level indicator */}
+      <circle ref={pancakeRef} cx="100" cy="100" r={r0} fill="#1a1511" />
+      <circle ref={edgeRef} cx="100" cy="100" r={r0} fill="none" stroke={AMBER} strokeWidth="1.5" opacity="0.85"
+        style={{ filter: `drop-shadow(0 0 6px ${AMBER}50)` }} />
 
-      {/* rotating plate — windows are true holes (evenodd) */}
+      {/* rotating hub — three thin spokes + an amber index dot that makes
+          the spin legible without any metal plate */}
       <g ref={plateRef}>
-        <path d={PLATE} fillRule="evenodd" fill={`url(#metal-${idSuffix})`} stroke="rgba(0,0,0,.55)" strokeWidth="1.5" />
-        <circle cx="100" cy="100" r="88" fill="none" stroke="rgba(0,0,0,.14)" strokeWidth="1" />
-        {/* hub */}
-        <circle cx="100" cy="100" r="29" fill="#f4f4f6" stroke="rgba(0,0,0,.22)" strokeWidth="1" />
-        {/* screws — fixed coords (raw Math.cos floats caused hydration noise) */}
-        <circle cx="100" cy="80" r="2.4" fill="#8a8a92" />
-        <circle cx="117.32" cy="110" r="2.4" fill="#8a8a92" />
-        <circle cx="82.68" cy="110" r="2.4" fill="#8a8a92" />
-        <text x="100" y="124" textAnchor="middle" fontSize="8" fontWeight="700" letterSpacing="2" fill={AMBER} fontFamily="var(--font-tape-mono, monospace)">FENNEC</text>
-        <circle cx="100" cy="100" r="8.5" fill={DECK} />
+        <circle cx="100" cy="100" r="30" fill={DECK} stroke="rgba(255,255,255,.14)" strokeWidth="1" />
+        <line x1="100" y1="100" x2="100" y2="73" stroke="rgba(255,255,255,.3)" strokeWidth="1.5" strokeLinecap="round" />
+        <line x1="100" y1="100" x2="123.4" y2="113.5" stroke="rgba(255,255,255,.3)" strokeWidth="1.5" strokeLinecap="round" />
+        <line x1="100" y1="100" x2="76.6" y2="113.5" stroke="rgba(255,255,255,.3)" strokeWidth="1.5" strokeLinecap="round" />
+        <circle cx="100" cy="78" r="2.5" fill={AMBER} />
+        <circle cx="100" cy="100" r="5" fill="#0e0c0d" stroke="rgba(255,255,255,.18)" strokeWidth="1" />
       </g>
     </svg>
   );
 }
 
-/* ── VU meter: amber-lit window, needle driven from the loop ── */
+/* ── VU meter, minimal: a floating arc + amber needle. No lit box, no
+   bezel — instrument reading, not instrument cosplay. ── */
 function VuMeter({ needleRef, label }: { needleRef: React.Ref<HTMLDivElement>; label: string }) {
   return (
-    <div className="relative overflow-hidden rounded-[7px]" style={{ width: 108, height: 62, background: "linear-gradient(180deg, rgba(245,166,35,.16), rgba(245,166,35,.055))", border: "1px solid rgba(245,166,35,.25)", boxShadow: "inset 0 0 18px rgba(245,166,35,.12)" }}>
-      {/* scale arc ticks — coords rounded: raw Math.cos floats aren't
+    <div className="relative" style={{ width: 108, height: 62 }}>
+      {/* track arc + ticks — coords rounded: raw Math.cos floats aren't
           bit-identical across JS engines and caused SSR hydration noise */}
       <svg viewBox="0 0 108 62" className="absolute inset-0">
+        {/* the arc the needle sweeps */}
+        <path d="M 20.4 24.6 A 47 47 0 0 1 87.6 24.6" fill="none" stroke="rgba(255,255,255,.1)" strokeWidth="2" strokeLinecap="round" />
         {Array.from({ length: 9 }, (_, i) => {
           const deg = -46 + i * 11.5;
           const a = (deg - 90) * (Math.PI / 180);
@@ -104,13 +91,14 @@ function VuMeter({ needleRef, label }: { needleRef: React.Ref<HTMLDivElement>; l
             <line key={i}
               x1={r2(54 + 44 * Math.cos(a))} y1={r2(58 + 44 * Math.sin(a))}
               x2={r2(54 + 49 * Math.cos(a))} y2={r2(58 + 49 * Math.sin(a))}
-              stroke={hot ? "#e5484d" : "rgba(0,0,0,.55)"} strokeWidth={hot ? 2 : 1.2} />
+              stroke={hot ? "#e5484d" : "rgba(255,255,255,.22)"} strokeWidth={hot ? 1.8 : 1} />
           );
         })}
       </svg>
-      {/* needle — pivots at bottom center */}
-      <div ref={needleRef} className="absolute" style={{ left: 53, bottom: 4, width: 2, height: 48, transformOrigin: "bottom center", background: "#1a1410", borderRadius: 1, transform: "rotate(-46deg)" }} />
-      <span className="absolute bottom-[3px] left-0 right-0 text-center font-mono text-[7px] font-bold tracking-[0.18em]" style={{ color: "rgba(0,0,0,.55)" }}>{label}</span>
+      {/* needle — amber, pivots at bottom center */}
+      <div ref={needleRef} className="absolute" style={{ left: 53, bottom: 4, width: 1.5, height: 46, transformOrigin: "bottom center", background: AMBER, borderRadius: 1, transform: "rotate(-46deg)", boxShadow: `0 0 6px ${AMBER}66` }} />
+      <div className="absolute rounded-full" style={{ left: 51.5, bottom: 2, width: 5, height: 5, background: "rgba(255,255,255,.25)" }} />
+      <span className="absolute bottom-[-11px] left-0 right-0 text-center font-mono text-[7px] font-bold tracking-[0.22em] text-zinc-600">{label}</span>
     </div>
   );
 }
@@ -139,6 +127,8 @@ export default function TapeDeckDesktop({
   const rightPlateRef   = useRef<SVGGElement>(null);
   const leftPancakeRef  = useRef<SVGCircleElement>(null);
   const rightPancakeRef = useRef<SVGCircleElement>(null);
+  const leftEdgeRef     = useRef<SVGCircleElement>(null);
+  const rightEdgeRef    = useRef<SVGCircleElement>(null);
   const vuLRef          = useRef<HTMLDivElement>(null);
   const vuRRef          = useRef<HTMLDivElement>(null);
   const angleL = useRef(0);
@@ -199,12 +189,14 @@ export default function TapeDeckDesktop({
         strip.style.transform = `translateX(${vp.clientWidth / 2 - cur * PX_PER_SEC}px)`;
       }
 
-      // pancake transfer
+      // pancake transfer — the amber edge rides the pancake's radius
       const prog = duration > 0 ? Math.min(cur / duration, 1) : 0;
       const rL = R_EMPTY + (R_FULL - R_EMPTY) * (1 - prog);
       const rR = R_EMPTY + (R_FULL - R_EMPTY) * prog;
       leftPancakeRef.current?.setAttribute("r", rL.toFixed(1));
       rightPancakeRef.current?.setAttribute("r", rR.toFixed(1));
+      leftEdgeRef.current?.setAttribute("r", rL.toFixed(1));
+      rightEdgeRef.current?.setAttribute("r", rR.toFixed(1));
 
       // reel spin — angular speed = tape speed / current radius
       if (isPlaying && !reduce) {
@@ -347,7 +339,7 @@ export default function TapeDeckDesktop({
 
         {/* reels + VU bridge */}
         <div className="flex items-center justify-center gap-[7vw] px-8">
-          <Reel plateRef={leftPlateRef} pancakeRef={leftPancakeRef} idSuffix="L" r0={R_FULL} />
+          <Reel plateRef={leftPlateRef} pancakeRef={leftPancakeRef} edgeRef={leftEdgeRef} r0={R_FULL} />
 
           {/* center bridge: VU pair, like the lit meters on the deck */}
           <div className="flex flex-col items-center gap-3">
@@ -358,7 +350,7 @@ export default function TapeDeckDesktop({
             <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-zinc-700">{track.category}</span>
           </div>
 
-          <Reel plateRef={rightPlateRef} pancakeRef={rightPancakeRef} idSuffix="R" r0={R_EMPTY} />
+          <Reel plateRef={rightPlateRef} pancakeRef={rightPancakeRef} edgeRef={rightEdgeRef} r0={R_EMPTY} />
         </div>
 
         {/* ── the tape path — strip runs past a fixed head ── */}
@@ -367,23 +359,22 @@ export default function TapeDeckDesktop({
           onClick={(e) => { if (!marking) seekFromClient(e.clientX); }}
           className="relative mt-7 h-[92px] cursor-pointer overflow-hidden"
         >
-          {/* the moving tape */}
-          <div ref={stripRef} className="absolute top-1/2 h-[46px] -translate-y-1/2 will-change-transform" style={{ width: stripWidth }}>
-            {/* magnetic tape body */}
-            <div className="absolute inset-0" style={{ background: "linear-gradient(180deg,#2b221a 0%,#1d1712 30%,#241c15 52%,#141009 100%)", boxShadow: "inset 0 1px 0 rgba(255,255,255,.07), inset 0 -1px 0 rgba(0,0,0,.6)" }} />
-            {/* leader tape before 0 and after the end (the clear plastic bit) */}
-            <div className="absolute top-0 bottom-0" style={{ left: -220, width: 220, background: "repeating-linear-gradient(90deg, #3d3730 0 14px, #35302a 14px 28px)", opacity: .5 }} />
-            <div className="absolute top-0 bottom-0" style={{ left: stripWidth, width: 220, background: "repeating-linear-gradient(90deg, #3d3730 0 14px, #35302a 14px 28px)", opacity: .5 }} />
+          {/* the moving tape — flat body, hairline edges, no heavy banding */}
+          <div ref={stripRef} className="absolute top-1/2 h-[40px] -translate-y-1/2 will-change-transform" style={{ width: stripWidth }}>
+            <div className="absolute inset-0" style={{ background: "#1a1410", borderTop: "1px solid rgba(255,255,255,.06)", borderBottom: "1px solid rgba(255,255,255,.06)" }} />
+            {/* leader before 0 and after the end — fine diagonal hatch */}
+            <div className="absolute top-0 bottom-0" style={{ left: -220, width: 220, background: "repeating-linear-gradient(45deg, rgba(255,255,255,.07) 0 1.5px, transparent 1.5px 9px)" }} />
+            <div className="absolute top-0 bottom-0" style={{ left: stripWidth, width: 220, background: "repeating-linear-gradient(45deg, rgba(255,255,255,.07) 0 1.5px, transparent 1.5px 9px)" }} />
 
             {/* timecode ticks every 15s — same ruler as the mobile tape */}
             {ticks.map((tk) => (
               <div key={tk} className="absolute top-0 bottom-0 pointer-events-none" style={{ left: tk * PX_PER_SEC }}>
-                <div className="absolute bottom-0 h-[10px] w-px" style={{ background: "rgba(255,255,255,.22)" }} />
-                <span className="absolute bottom-[13px] left-1 font-mono text-[8.5px]" style={{ color: "rgba(255,255,255,.30)" }}>{fmt(tk)}</span>
+                <div className="absolute bottom-0 h-[9px] w-px" style={{ background: "rgba(255,255,255,.25)" }} />
+                <span className="absolute bottom-[12px] left-1 font-mono text-[8.5px]" style={{ color: "rgba(255,255,255,.28)" }}>{fmt(tk)}</span>
               </div>
             ))}
 
-            {/* grease-pencil marks — other producers' notes on the tape */}
+            {/* marks — amber lollipops (stem + dot), the speaking one grows */}
             {comments.filter((c) => c.timestamp_seconds != null).map((c) => {
               const isSpeaking = c.id === speaking?.id;
               return (
@@ -391,26 +382,33 @@ export default function TapeDeckDesktop({
                   key={c.id}
                   onClick={(e) => { e.stopPropagation(); const a = audioRef.current; if (a) { a.currentTime = c.timestamp_seconds ?? 0; setT(c.timestamp_seconds ?? 0); } }}
                   title={`@${c.profile?.username ?? ""} · ${fmt(c.timestamp_seconds ?? 0)}`}
-                  className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2"
-                  style={{
-                    left: (c.timestamp_seconds ?? 0) * PX_PER_SEC,
-                    width: 4, height: isSpeaking ? 40 : 30, borderRadius: 2,
+                  className="absolute top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
+                  style={{ transition: "opacity 150ms var(--ease-out)", left: (c.timestamp_seconds ?? 0) * PX_PER_SEC }}
+                >
+                  <span className="rounded-full" style={{
+                    width: isSpeaking ? 7 : 5, height: isSpeaking ? 7 : 5,
                     background: isSpeaking ? AMBER_HOT : AMBER,
-                    boxShadow: isSpeaking ? `0 0 14px ${AMBER_HOT}b3` : `0 0 8px ${AMBER}60`,
-                    transition: "height .25s, box-shadow .25s",
-                  }}
-                />
+                    boxShadow: isSpeaking ? `0 0 12px ${AMBER_HOT}b3` : `0 0 6px ${AMBER}50`,
+                    transition: "width 200ms var(--ease-out), height 200ms var(--ease-out), box-shadow 200ms var(--ease-out)",
+                  }} />
+                  <span style={{
+                    width: 1.5, height: isSpeaking ? 26 : 18,
+                    background: isSpeaking ? AMBER_HOT : `${AMBER}b3`,
+                    transition: "height 200ms var(--ease-out)",
+                  }} />
+                </button>
               );
             })}
           </div>
 
-          {/* fixed head at center — the machine's head block */}
+          {/* fixed head at center — a notch and a line, nothing pretending
+              to be hardware */}
           <div className="pointer-events-none absolute left-1/2 top-0 bottom-0 -translate-x-1/2">
-            {/* housing above the tape */}
-            <div className="absolute left-1/2 top-0 -translate-x-1/2" style={{ width: 34, height: 15, background: "linear-gradient(180deg,#3a3a40,#232327)", borderRadius: "4px 4px 7px 7px", border: "1px solid rgba(255,255,255,.12)", borderBottom: "none" }} />
-            {/* the gap line through the tape */}
-            <div className="absolute left-1/2 top-[14px] bottom-[10px] w-[1.5px] -translate-x-1/2" style={{ background: AMBER, boxShadow: `0 0 12px ${AMBER}b3` }} />
-            <span className="absolute left-1/2 bottom-[-2px] -translate-x-1/2 font-mono text-[10px] font-bold" style={{ color: AMBER }}>{fmt(t)}</span>
+            <svg width="12" height="7" viewBox="0 0 12 7" className="absolute left-1/2 top-[10px] -translate-x-1/2">
+              <path d="M0 0 H12 L6 7 Z" fill={AMBER} />
+            </svg>
+            <div className="absolute left-1/2 top-[18px] bottom-[12px] w-[1.5px] -translate-x-1/2" style={{ background: AMBER, boxShadow: `0 0 10px ${AMBER}99` }} />
+            <span className="absolute left-1/2 bottom-[-2px] -translate-x-1/2 font-mono text-[10px] font-bold tabular-nums" style={{ color: AMBER }}>{fmt(t)}</span>
           </div>
 
           {/* soft edge fades so the strip reads endless */}
