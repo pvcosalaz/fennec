@@ -32,7 +32,10 @@ export default function ScriptWriterOverlay({ videoRef, onSave, onClose }: Props
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-zinc-950 flex flex-col overflow-hidden">
+    // z-[130]: full-screen takeover must sit above the bottom nav (whose
+    // backdrop-blur paints over plain z-50), or the Save button and header
+    // get clipped behind it. Same fix as ScriptDetailOverlay.
+    <div className="fixed inset-0 z-[130] bg-zinc-950 flex flex-col overflow-hidden">
 
       {/* ── Header ── */}
       <div className="flex items-center gap-3 px-4 pt-12 pb-4 border-b border-white/5 shrink-0">
