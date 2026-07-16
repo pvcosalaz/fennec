@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { ChevronRight } from "lucide-react";
 import { SiInstagram, SiTiktok, SiYoutube } from "react-icons/si";
 import FennecIdCard from "@/components/network/FennecIdCard";
 import type { FennecIdColor } from "@/lib/fennecIdPalette";
@@ -69,7 +70,11 @@ function Col({ value, label, sub, muted, onClick, icon }: { value: string; label
   const Tag = onClick ? "button" : "div";
   return (
     <Tag type={onClick ? "button" : undefined} onClick={onClick}
-      className={`border-l border-white/[0.05] px-[18px] py-[14px] text-left first:border-l-0 first:pl-0.5 ${onClick ? "transition hover:bg-white/[0.02]" : ""}`}>
+      className={`group relative border-l border-white/[0.05] px-[18px] py-[14px] text-left first:border-l-0 first:pl-0.5 ${onClick ? "transition hover:bg-white/[0.02]" : ""}`}>
+      {/* hover affordance: a quiet chevron says "this goes somewhere" */}
+      {onClick && (
+        <ChevronRight className="absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-600 opacity-0 transition-opacity duration-150 group-hover:opacity-100" />
+      )}
       {icon && <div className="mb-1.5">{icon}</div>}
       <b className={`text-[21px] font-extrabold tabular-nums ${muted ? "text-zinc-600" : "text-white"}`}>{value}</b>
       <span className="mt-[3px] block text-[9px] uppercase tracking-[0.16em] text-zinc-600">{label}</span>
@@ -114,9 +119,15 @@ export default function DashboardDesktop({
 
   return (
     <div>
-      {/* header */}
+      {/* header — greeting follows the actual clock, not a hardcoded evening */}
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-[21px] font-bold tracking-tight text-white">Good evening, {card.firstName || "there"}.</h1>
+        <h1 className="text-[21px] font-bold tracking-tight text-white">
+          {(() => {
+            const h = new Date().getHours();
+            const g = h < 5 || h >= 19 ? "Good evening" : h < 12 ? "Good morning" : "Good afternoon";
+            return `${g}, ${card.firstName || "there"}.`;
+          })()}
+        </h1>
         <button
           type="button"
           onClick={() => { if (navigator.share) void navigator.share({ title: "My Fennec ID", text: `@${networkProfile?.username} · ${fennecDb} dB on Fennec` }); }}

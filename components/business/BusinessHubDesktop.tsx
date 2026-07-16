@@ -115,7 +115,7 @@ export default function BusinessHubDesktop({
             key={v}
             type="button"
             onClick={() => onOpenView(v)}
-            className="flex items-center gap-3.5 rounded-xl border border-white/[0.07] bg-white/[0.02] px-5 py-4 text-left transition hover:border-accent/30"
+            className="flex items-center gap-3.5 rounded-xl border border-white/[0.07] bg-white/[0.02] px-5 py-4 text-left transition hover:border-accent/30 hover:bg-white/[0.04]"
           >
             <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg" style={{ background: "rgba(255,255,255,.04)" }}>{icon}</div>
             <div>

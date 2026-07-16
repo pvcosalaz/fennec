@@ -129,9 +129,13 @@ export default function DesktopShell({
                 type="button"
                 onClick={() => (id === "network" ? onOpenNetwork() : onNavigate(id))}
                 aria-current={active ? "page" : undefined}
-                className="flex items-center gap-3 rounded-[10px] px-2.5 py-[9px] text-left text-[13.5px] font-medium transition"
+                className={`relative flex items-center gap-3 rounded-[10px] px-2.5 py-[9px] text-left text-[13.5px] font-medium transition ${active ? "" : "hover:bg-white/[0.04] hover:text-zinc-200"}`}
                 style={active ? { background: "rgba(245,166,35,.09)", color: "#ffc861" } : { color: "#8b8b93" }}
               >
+                {/* active marker — the platform-standard left bar */}
+                {active && (
+                  <span className="absolute left-0 top-1/2 h-4 w-[2.5px] -translate-y-1/2 rounded-full" style={{ background: "#f5a623" }} />
+                )}
                 <Icon className="h-4 w-4" />
                 {label}
               </button>
