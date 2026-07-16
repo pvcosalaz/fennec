@@ -845,6 +845,8 @@ export default function ContentModule({ isPro = false, onUpgrade, genres = [] }:
           onOpenSheet={openSheet}
           onToggleDone={toggleDone}
           onDeleteTask={deleteTask}
+          ideasCount={ideas.length}
+          scriptsCount={briefs.length}
           onAddTask={(title, date) => addTask(title, date, "manual")}
           onEditScript={(taskTitle) => {
             const brief = briefs.find((b) => b.title === taskTitle);

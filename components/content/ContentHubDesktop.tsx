@@ -32,6 +32,9 @@ type Props = {
   onDeleteTask: (id: string) => void;
   onEditScript?: (taskTitle: string) => void;
   onAddTask?: (title: string, date: string) => void;
+  /** live counts so the tool cards show real state, not empty labels */
+  ideasCount?: number;
+  scriptsCount?: number;
   isPro?: boolean;
   onUpgrade?: () => void;
 };
@@ -67,6 +70,7 @@ function fmtLong(ymd: string): string {
 
 export default function ContentHubDesktop({
   tasks, onOpenSheet, onToggleDone, onDeleteTask, onEditScript, onAddTask,
+  ideasCount = 0, scriptsCount = 0,
   isPro = false, onUpgrade,
 }: Props) {
   const today = new Date();
@@ -105,58 +109,66 @@ export default function ContentHubDesktop({
     setDraft("");
   }
 
-  const TOOLS: { id: "inspire" | "ideas" | "lab" | "scripts"; label: string; icon: React.ComponentType<{ className?: string }>; pro: boolean }[] = [
-    { id: "inspire", label: "Inspire",     icon: Zap,          pro: true },
-    { id: "ideas",   label: "Quick Ideas", icon: Sparkles,     pro: false },
-    { id: "lab",     label: "Content Lab", icon: FlaskConical, pro: true },
-    { id: "scripts", label: "My Scripts",  icon: FileText,     pro: false },
+  // The tools are the creative heart of this module — they get full cards
+  // (icon chip + name + live state), not corner pills. Same card language
+  // as the Business hub's tool row, so both modules read as one product.
+  const TOOLS: { id: "inspire" | "ideas" | "lab" | "scripts"; label: string; sub: string; icon: React.ComponentType<{ className?: string }>; pro: boolean }[] = [
+    { id: "inspire", label: "Inspire",     sub: "Trending references for your genres", icon: Zap,          pro: true },
+    { id: "ideas",   label: "Quick Ideas", sub: ideasCount > 0 ? `${ideasCount} saved idea${ideasCount !== 1 ? "s" : ""}` : "Capture ideas in seconds", icon: Sparkles, pro: false },
+    { id: "lab",     label: "Content Lab", sub: "Turn your music into scripts",        icon: FlaskConical, pro: true },
+    { id: "scripts", label: "My Scripts",  sub: scriptsCount > 0 ? `${scriptsCount} script${scriptsCount !== 1 ? "s" : ""} written` : "Everything you write lands here", icon: FileText, pro: false },
   ];
 
   return (
     <div className="text-white">
-      {/* ── header: month nav + tools toolbar ── */}
-      <div className="mb-5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h1 className="text-[21px] font-bold tracking-tight">
-            {MONTH_NAMES[viewMonth]} <span className="text-zinc-600">{viewYear}</span>
-          </h1>
-          <div className="flex items-center gap-0.5">
-            <button onClick={() => shiftMonth(-1)} aria-label="Previous month" className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-white/5 hover:text-white">
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => { setViewYear(today.getFullYear()); setViewMonth(today.getMonth()); setSelectedDay(todayYMD); }}
-              className="rounded-lg px-2 py-1 text-[11px] font-semibold text-zinc-500 transition hover:bg-white/5 hover:text-white"
-            >
-              Today
-            </button>
-            <button onClick={() => shiftMonth(1)} aria-label="Next month" className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-white/5 hover:text-white">
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
+      {/* ── header: month + navigation only ── */}
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-[21px] font-bold tracking-tight">
+          {MONTH_NAMES[viewMonth]} <span className="text-zinc-600">{viewYear}</span>
+        </h1>
+        <div className="flex items-center gap-0.5">
+          <button onClick={() => shiftMonth(-1)} aria-label="Previous month" className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-white/5 hover:text-white">
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => { setViewYear(today.getFullYear()); setViewMonth(today.getMonth()); setSelectedDay(todayYMD); }}
+            className="rounded-lg px-2 py-1 text-[11px] font-semibold text-zinc-500 transition hover:bg-white/5 hover:text-white"
+          >
+            Today
+          </button>
+          <button onClick={() => shiftMonth(1)} aria-label="Next month" className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-white/5 hover:text-white">
+            <ChevronRight className="h-4 w-4" />
+          </button>
         </div>
+      </div>
 
-        {/* the four tools — compact, the calendar owns the screen */}
-        <div className="flex items-center gap-1.5">
-          {TOOLS.map(({ id, label, icon: Icon, pro }) => {
-            const locked = pro && !isPro;
-            return (
-              <button
-                key={id}
-                onClick={() => (locked ? onUpgrade?.() : onOpenSheet(id))}
-                className="flex items-center gap-1.5 rounded-full border border-white/10 px-3.5 py-2 text-[12px] font-semibold text-zinc-300 transition hover:border-accent/40 hover:text-white"
-              >
-                <Icon className="h-3.5 w-3.5 text-accent" />
-                {label}
-                {locked && (
-                  <span className="ml-0.5 flex items-center gap-0.5 rounded-full bg-accent px-1.5 py-[1px] text-[8px] font-bold text-black">
-                    <Lock className="h-2 w-2" /> PRO
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
+      {/* ── the four tools, first-class ── */}
+      <div className="mb-4 grid grid-cols-4 gap-3">
+        {TOOLS.map(({ id, label, sub, icon: Icon, pro }) => {
+          const locked = pro && !isPro;
+          return (
+            <button
+              key={id}
+              onClick={() => (locked ? onUpgrade?.() : onOpenSheet(id))}
+              className="group flex items-center gap-3.5 rounded-xl border border-white/[0.07] bg-white/[0.02] px-4 py-4 text-left transition hover:border-accent/30 hover:bg-white/[0.04]"
+            >
+              <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg transition group-hover:bg-accent/10" style={{ background: "rgba(255,255,255,.04)" }}>
+                <Icon className="h-4 w-4 text-accent" />
+              </div>
+              <div className="min-w-0">
+                <span className="flex items-center gap-1.5">
+                  <b className="text-[13.5px] font-bold text-white">{label}</b>
+                  {locked && (
+                    <span className="flex items-center gap-0.5 rounded-full bg-accent px-1.5 py-[1px] text-[8px] font-bold text-black">
+                      <Lock className="h-2 w-2" /> PRO
+                    </span>
+                  )}
+                </span>
+                <span className="mt-0.5 block truncate text-[11px] text-zinc-500">{sub}</span>
+              </div>
+            </button>
+          );
+        })}
       </div>
 
       {/* ── month grid + day panel ── */}
