@@ -13,6 +13,16 @@
   --font-tape-ui: "General Sans", "Helvetica Neue", sans-serif;
   --font-tape-serif: "Newsreader", Georgia, serif;
   --font-tape-mono: "Space Mono", monospace;
+
+  /* ── Motion tokens ─────────────────────────────────────────────
+     Built-in CSS easings are too weak to feel intentional. These are
+     the house curves: crisp and professional, deliberately NO bounce
+     (Paco: the app must not feel playful). Use --ease-out for things
+     entering/reacting, --ease-in-out for on-screen movement. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);       /* quart-out */
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);    /* iOS sheet curve */
+  --press-scale: 0.97;
 }
 
 @theme inline {
@@ -100,4 +110,27 @@ input[type="number"] {
 }
 @media (prefers-reduced-motion: reduce) {
   [style*="sheetUp"] { animation: none !important; }
+}
+
+/* ── Universal press feedback ──────────────────────────────────────
+   Every pressable element scales down slightly on :active so the UI
+   feels like it's listening. Uses the standalone `scale` property
+   (NOT `transform`) so it composes with any translate/rotate classes
+   a button already carries — a -translate-x-1/2 centered button keeps
+   its centering while pressed. Crisp and subtle by design: 0.97,
+   fast ease-out, zero bounce. Opt out with data-no-press (e.g. the
+   tape strip, drag surfaces). */
+/* :where() keeps this at element-level specificity, so any button that
+   already carries explicit transition utilities (Tailwind `transition`,
+   `duration-*`) wins the cascade and keeps its behavior untouched. */
+button:where(:not([data-no-press])) {
+  transition: scale 160ms var(--ease-out), opacity 160ms var(--ease-out);
+}
+button:where(:not([data-no-press])):active {
+  scale: var(--press-scale);
+  opacity: 0.92;
+}
+@media (prefers-reduced-motion: reduce) {
+  button:where(:not([data-no-press])) { transition: none; }
+  button:where(:not([data-no-press])):active { scale: none; }
 }

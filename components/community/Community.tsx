@@ -304,11 +304,11 @@ export default function Community({ profile, openComposerWith, onComposerConsume
   if (isDesktop) {
     return (
       <div className="grid items-start gap-10" style={{ gridTemplateColumns: "minmax(0,1.5fr) minmax(300px,1fr)" }}>
-        {/* feed — the main column */}
+        {/* feed — the main column. Header matches the canonical desktop
+            page-title row (21px bold) used by Dashboard/Business/Marketing. */}
         <div>
-          <div className="mb-4 flex items-center gap-2.5">
-            <span className="text-[8.5px] font-bold uppercase tracking-[0.22em] text-zinc-600">Community</span>
-            <div className="h-px flex-1" style={{ background: "linear-gradient(90deg, rgba(255,255,255,.07), transparent)" }} />
+          <div className="mb-6 flex items-center justify-between">
+            <h1 className="text-[21px] font-bold tracking-tight text-white">Community</h1>
           </div>
           <CommunityPanel profile={profile} openComposerWith={openComposerWith} onComposerConsumed={onComposerConsumed} />
         </div>
@@ -320,7 +320,7 @@ export default function Community({ profile, openComposerWith, onComposerConsume
             where it already rests before any scrolling happens. */}
         <aside
           className="overflow-y-auto border-l border-white/[0.05] pl-8"
-          style={{ position: "sticky", top: 24, maxHeight: "calc(100vh - 48px)" }}
+          style={{ position: "sticky", top: 32, maxHeight: "calc(100vh - 64px)" }}
         >
           <NewsPanel onSelect={setSelected} />
         </aside>

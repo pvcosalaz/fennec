@@ -230,7 +230,11 @@ export default function DesktopShell({
         {immersive ? (
           <div className="relative z-10 w-full flex-1">{children}</div>
         ) : (
-          <div className="relative z-10 mx-auto w-full max-w-5xl flex-1 px-6 py-6" style={{ minHeight: "100vh" }}>
+          /* One canonical content frame for every module: 1100px column,
+             40px gutters, generous bottom padding so scroll always lands
+             with breathing room. Modules must NOT add their own mx-auto/
+             max-w/px — this is the single source of page margins. */
+          <div className="relative z-10 mx-auto w-full max-w-[1100px] flex-1 px-10 pb-20 pt-8">
             {children}
           </div>
         )}
