@@ -63,7 +63,7 @@ const IDEA_CATEGORIES: { id: IdeaCategory; label: string; icon: React.ComponentT
 // ─── Ideas Bank ───────────────────────────────────────────────────────────────
 
 function IdeasBankView({
-  ideas, onBack, onAdd, onDelete, onRequestSchedule, onWriteScript,
+  ideas, onBack, onAdd, onDelete, onRequestSchedule, onWriteScript, isDesktop = false,
 }: {
   ideas: Idea[];
   onBack: () => void;
@@ -73,6 +73,8 @@ function IdeasBankView({
   /** Opens the full-screen script writer pre-filled from this idea; the
    *  saved script lands in My Scripts, same as writing from an Inspire ref. */
   onWriteScript?: (idea: Idea) => void;
+  /** Desktop modal: labeled tabs + wider grid instead of the phone layout */
+  isDesktop?: boolean;
 }) {
   const [tab,          setTab]          = useState<IdeaCategory>("meme");
   const [showForm,     setShowForm]     = useState(false);
@@ -108,26 +110,47 @@ function IdeasBankView({
         </button>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 rounded-2xl border border-white/10 bg-white/5 p-1">
-        {IDEA_CATEGORIES.map(({ id, label, icon: Icon }) => {
-          const active = tab === id;
-          return (
-            <button
-              key={id}
-              onClick={() => { setTab(id); setSchedulingId(null); }}
-              className={`flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-medium transition-all duration-200 ${
-                active
-                  ? "bg-accent text-black px-3 flex-shrink-0"
-                  : "text-zinc-500 hover:text-zinc-300 flex-1"
-              }`}
-            >
-              <Icon className="h-4 w-4 shrink-0" />
-              {active && <span className="whitespace-nowrap">{label}</span>}
-            </button>
-          );
-        })}
-      </div>
+      {/* Tabs — the icon-only-until-active trick is a phone space hack;
+          on desktop every tab shows its label, always. */}
+      {isDesktop ? (
+        <div className="flex gap-1">
+          {IDEA_CATEGORIES.map(({ id, label, icon: Icon }) => {
+            const active = tab === id;
+            return (
+              <button
+                key={id}
+                onClick={() => { setTab(id); setSchedulingId(null); }}
+                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium transition ${
+                  active ? "bg-accent text-black" : "text-zinc-500 hover:bg-white/5 hover:text-zinc-200"
+                }`}
+              >
+                <Icon className="h-3.5 w-3.5 shrink-0" />
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="flex gap-1 rounded-2xl border border-white/10 bg-white/5 p-1">
+          {IDEA_CATEGORIES.map(({ id, label, icon: Icon }) => {
+            const active = tab === id;
+            return (
+              <button
+                key={id}
+                onClick={() => { setTab(id); setSchedulingId(null); }}
+                className={`flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-medium transition-all duration-200 ${
+                  active
+                    ? "bg-accent text-black px-3 flex-shrink-0"
+                    : "text-zinc-500 hover:text-zinc-300 flex-1"
+                }`}
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                {active && <span className="whitespace-nowrap">{label}</span>}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Add form */}
       {showForm && (
@@ -174,7 +197,7 @@ function IdeasBankView({
           <p className="text-zinc-600 text-xs mt-1">Hit "New idea" to add one.</p>
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className={`grid gap-3 sm:grid-cols-2 ${isDesktop ? "lg:grid-cols-3" : ""}`}>
           {filtered.map((idea) => (
             // min-w-0: without it, a grid item won't shrink below its content's
             // intrinsic width — a long unbroken URL blew the card (and the
@@ -230,7 +253,7 @@ function IdeasBankView({
 // ─── Scripts (tap-to-select + bottom sheet) ───────────────────────────────────
 
 function ScriptsView({
-  briefs, onBack, onAdd, onDelete, onRequestSchedule, onOpenDetail, videoRef,
+  briefs, onBack, onAdd, onDelete, onRequestSchedule, onOpenDetail, videoRef, isDesktop = false,
 }: {
   briefs: Brief[];
   onBack: () => void;
@@ -239,6 +262,8 @@ function ScriptsView({
   onRequestSchedule?: (title: string, notes?: string) => void;
   onOpenDetail: (brief: Brief) => void;
   videoRef?: VideoRef | null;
+  /** Desktop modal: inline compose form + 2-col list instead of phone layout */
+  isDesktop?: boolean;
 }) {
   // Default to the list of what's already there — "Create" is the empty
   // action, most visits are to check/open an existing script (Paco, 2026-07-13).
@@ -281,44 +306,98 @@ function ScriptsView({
         </div>
       </div>
 
-      {/* Tab switcher — My Scripts first: that's what most visits are for */}
-      <div className="flex gap-1 rounded-2xl border border-white/10 bg-white/5 p-1">
-        <button
-          onClick={() => setTab("list")}
-          className={`flex-1 rounded-xl py-2 text-xs font-medium transition ${tab === "list" ? "bg-accent text-black" : "text-zinc-400 hover:text-white"}`}
-        >
-          My Scripts {briefs.length > 0 && `(${briefs.length})`}
-        </button>
-        <button
-          onClick={() => setTab("create")}
-          className={`flex-1 rounded-xl py-2 text-xs font-medium transition ${tab === "create" ? "bg-accent text-black" : "text-zinc-400 hover:text-white"}`}
-        >
-          Create
-        </button>
-      </div>
-
-      {/* CREATE tab */}
-      {tab === "create" && (
-        <div className="flex flex-col items-center justify-center py-12 text-center gap-4">
-          <Sparkles className="h-8 w-8 text-accent/60" />
-          <div className="space-y-1">
-            <p className="text-white font-semibold">Ready to write?</p>
-            <p className="text-xs text-zinc-500">Tap below to create a new script brief.</p>
-          </div>
+      {/* Tab switcher — My Scripts first: that's what most visits are for.
+          Desktop: inline auto-width tabs; the full-width phone pill bar
+          stretched across the modal read as mobile UI. */}
+      {isDesktop ? (
+        <div className="flex gap-1">
           <button
-            onClick={() => setSheetOpen(true)}
-            className="flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-black"
+            onClick={() => setTab("list")}
+            className={`rounded-lg px-3 py-1.5 text-[12px] font-medium transition ${tab === "list" ? "bg-accent text-black" : "text-zinc-500 hover:bg-white/5 hover:text-zinc-200"}`}
           >
-            <Plus className="h-4 w-4" /> New Script
+            My Scripts {briefs.length > 0 && `(${briefs.length})`}
+          </button>
+          <button
+            onClick={() => setTab("create")}
+            className={`rounded-lg px-3 py-1.5 text-[12px] font-medium transition ${tab === "create" ? "bg-accent text-black" : "text-zinc-500 hover:bg-white/5 hover:text-zinc-200"}`}
+          >
+            Create
+          </button>
+        </div>
+      ) : (
+        <div className="flex gap-1 rounded-2xl border border-white/10 bg-white/5 p-1">
+          <button
+            onClick={() => setTab("list")}
+            className={`flex-1 rounded-xl py-2 text-xs font-medium transition ${tab === "list" ? "bg-accent text-black" : "text-zinc-400 hover:text-white"}`}
+          >
+            My Scripts {briefs.length > 0 && `(${briefs.length})`}
+          </button>
+          <button
+            onClick={() => setTab("create")}
+            className={`flex-1 rounded-xl py-2 text-xs font-medium transition ${tab === "create" ? "bg-accent text-black" : "text-zinc-400 hover:text-white"}`}
+          >
+            Create
           </button>
         </div>
       )}
 
+      {/* CREATE tab — desktop writes inline (no ceremony between you and
+          the form); mobile keeps the CTA that opens the compose sheet */}
+      {tab === "create" && (
+        isDesktop ? (
+          <div className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+            {videoRef && (
+              <div className="space-y-1 rounded-xl border border-purple-400/20 bg-purple-400/5 p-3">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-purple-400">Inspire Reference</p>
+                <p className="text-sm font-medium text-white line-clamp-2">{videoRef.title}</p>
+              </div>
+            )}
+            <input
+              autoFocus
+              type="text"
+              value={fTitle}
+              onChange={(e) => setFTitle(e.target.value)}
+              placeholder="Title or hook for this piece..."
+              className="h-11 w-full rounded-xl border border-white/15 bg-black/30 px-4 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
+            />
+            <textarea
+              value={fScript}
+              onChange={(e) => setFScript(e.target.value)}
+              placeholder="Write your script, idea, or execution notes..."
+              rows={7}
+              className="w-full resize-none rounded-xl border border-white/15 bg-black/30 px-4 py-3 text-sm leading-relaxed text-white outline-none placeholder:text-zinc-500 focus:border-accent"
+            />
+            <div className="flex justify-end gap-2">
+              <button onClick={() => { setFTitle(""); setFScript(""); setTab("list"); }} className="rounded-xl border border-white/10 px-4 py-2 text-xs text-zinc-400 transition hover:text-white">
+                Cancel
+              </button>
+              <button onClick={submitBrief} disabled={!fTitle.trim()} className="rounded-xl bg-accent px-5 py-2 text-xs font-bold text-black disabled:opacity-40">
+                Save script
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-12 text-center gap-4">
+            <Sparkles className="h-8 w-8 text-accent/60" />
+            <div className="space-y-1">
+              <p className="text-white font-semibold">Ready to write?</p>
+              <p className="text-xs text-zinc-500">Tap below to create a new script brief.</p>
+            </div>
+            <button
+              onClick={() => setSheetOpen(true)}
+              className="flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-black"
+            >
+              <Plus className="h-4 w-4" /> New Script
+            </button>
+          </div>
+        )
+      )}
+
       {/* MY SCRIPTS tab */}
       {tab === "list" && (
-        <div className="space-y-3">
+        <div className={isDesktop ? "grid grid-cols-2 items-start gap-3" : "space-y-3"}>
           {briefs.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className={`flex flex-col items-center justify-center py-16 text-center ${isDesktop ? "col-span-2" : ""}`}>
               <Pencil className="h-8 w-8 text-zinc-700 mb-3" />
               <p className="text-zinc-500 text-sm">No scripts yet.</p>
               <p className="text-zinc-600 text-xs mt-1">Go to Create and pick a format + line to start.</p>
@@ -352,8 +431,8 @@ function ScriptsView({
         </div>
       )}
 
-      {/* Bottom sheet backdrop */}
-      {sheetOpen && (
+      {/* Bottom sheet backdrop — mobile only; desktop composes inline */}
+      {!isDesktop && sheetOpen && (
         <div
           className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm"
           onClick={dismissComposeSheet}
@@ -365,8 +444,9 @@ function ScriptsView({
           cases where it lags the keyboard animation, an un-scrollable sheet
           left the script textarea + Save button unreachable below the title
           field ("no sale el lugar para escribir", Paco 2026-07-13). Now the
-          content can always be reached by scrolling within the sheet. */}
-      <div
+          content can always be reached by scrolling within the sheet.
+          Mobile only — desktop's Create tab renders the form inline. */}
+      {!isDesktop && <div
         ref={composeSheetRef}
         className={`fixed left-0 right-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-3xl border-t border-white/10 bg-zinc-950 px-5 pt-4 pb-8 shadow-2xl transition-transform duration-300 ease-out ${
         sheetOpen ? "translate-y-0" : "translate-y-full"
@@ -408,7 +488,7 @@ function ScriptsView({
             </button>
           </div>
         </div>
-      </div>
+      </div>}
     </div>
   );
 }
@@ -487,7 +567,9 @@ function LoadingFeed() {
   );
 }
 
-function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule, onUpgrade, genres = [] }: {
+function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule, onUpgrade, genres = [], isDesktop = false }: {
+  /** Desktop modal: 2-col video grid instead of the phone's single stack */
+  isDesktop?: boolean;
   isPro: boolean;
   onBack: () => void;
   onUseAsReference?: (video: VideoRef) => void;
@@ -596,7 +678,7 @@ function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule, onUp
           <p className="text-zinc-500 text-sm">No trending videos found. Check back tomorrow.</p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className={isDesktop ? "grid grid-cols-2 items-start gap-4" : "space-y-4"}>
           {videos.map((v) => (
             <div key={v.id} className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
 
@@ -792,6 +874,7 @@ export default function ContentModule({ isPro = false, onUpgrade, genres = [] }:
       {sheet === "inspire" && (
         <TrendingView
           isPro={isPro}
+          isDesktop={isDesktop}
           onBack={closeSheet}
           onUseAsReference={useVideoAsReference}
           onRequestSchedule={(title: string, notes?: string) => requestSchedule(title, "inspire", notes)}
@@ -802,6 +885,7 @@ export default function ContentModule({ isPro = false, onUpgrade, genres = [] }:
       {sheet === "ideas" && (
         <IdeasBankView
           ideas={ideas}
+          isDesktop={isDesktop}
           onBack={closeSheet}
           onAdd={(i) => setIdeas((prev) => [i, ...prev])}
           onDelete={(id) => setIdeas((prev) => prev.filter((i) => i.id !== id))}
@@ -813,6 +897,7 @@ export default function ContentModule({ isPro = false, onUpgrade, genres = [] }:
         <ScriptsView
           briefs={briefs}
           videoRef={videoRef}
+          isDesktop={isDesktop}
           onBack={closeSheet}
           onAdd={(b) => setBriefs((prev) => [b, ...prev])}
           onDelete={(id) => setBriefs((prev) => prev.filter((b) => b.id !== id))}
@@ -884,7 +969,7 @@ export default function ContentModule({ isPro = false, onUpgrade, genres = [] }:
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              <div className="px-4 pb-16 pt-1">{sheetContent}</div>
+              <div className="px-6 pb-14 pt-1">{sheetContent}</div>
             </div>
           ) : (
             <div
