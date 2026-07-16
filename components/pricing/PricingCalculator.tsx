@@ -392,6 +392,9 @@ export default function PricingCalculator() {
   // Bottom sheets (tape intro, My Tracks) hide the nav while open so their
   // actions never collide with it; it slides back when the sheet closes.
   const [navHidden, setNavHidden] = useState(false);
+  // Content (Marketing) tools report when one is open so the bottom nav gets
+  // out of the way — several tool UIs own the bottom edge and collided with it.
+  const [contentToolOpen, setContentToolOpen] = useState(false);
   // Upgrade sheet: swipe-down to dismiss, like every sheet in the app
   const { sheetRef: upgradeSheetRef, dismiss: dismissUpgrade } = useSheetDismiss(() => setShowUpgrade(false));
 
@@ -701,6 +704,14 @@ export default function PricingCalculator() {
       </div>
     );
   }
+
+  // Hide the bottom nav whenever a tool takes over the screen: audio sheets
+  // (navHidden), any Business sub-view past the hub, or an open Marketing tool.
+  // Several of those tool UIs own the bottom edge and collided with the nav.
+  const hideNav =
+    navHidden ||
+    (activeTab === "pricing" && businessView !== "hub") ||
+    (activeTab === "contenido" && contentToolOpen);
 
   return (
     <div className="flex flex-col bg-background" style={{ position: "fixed", top: 0, left: 0, right: 0, height: "var(--app-h, 100dvh)" }}>
@@ -1232,7 +1243,7 @@ export default function PricingCalculator() {
         />
       ) : activeTab === "contenido" ? (
         <div className="flex-1 flex flex-col overflow-hidden">
-          <ContentModule isPro={profile?.is_pro ?? false} onUpgrade={() => openUpgrade("content")} genres={profile?.genres ?? []} />
+          <ContentModule isPro={profile?.is_pro ?? false} onUpgrade={() => openUpgrade("content")} genres={profile?.genres ?? []} onToolOpenChange={setContentToolOpen} />
         </div>
       ) : activeTab === "ideas" ? (
         <AudioModule userId={authUser.id} isPro={profile?.is_pro ?? false} onSheetChange={setNavHidden} />
@@ -1255,9 +1266,9 @@ export default function PricingCalculator() {
           background: "rgba(10, 9, 8, 0.94)",
           WebkitBackdropFilter: "blur(24px)",
           backdropFilter: "blur(24px)",
-          transform: navHidden ? "translateY(110%)" : "translateY(0)",
-          opacity: navHidden ? 0 : 1,
-          pointerEvents: navHidden ? "none" : "auto",
+          transform: hideNav ? "translateY(110%)" : "translateY(0)",
+          opacity: hideNav ? 0 : 1,
+          pointerEvents: hideNav ? "none" : "auto",
           transition: "transform .28s cubic-bezier(.22,1,.36,1), opacity .22s ease",
         }}
       >

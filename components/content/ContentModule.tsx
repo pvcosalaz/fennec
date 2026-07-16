@@ -662,7 +662,7 @@ function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule, onUp
 
 // ─── Main module ──────────────────────────────────────────────────────────────
 
-export default function ContentModule({ isPro = false, onUpgrade, genres = [] }: { isPro?: boolean; onUpgrade?: () => void; genres?: string[] }) {
+export default function ContentModule({ isPro = false, onUpgrade, genres = [], onToolOpenChange }: { isPro?: boolean; onUpgrade?: () => void; genres?: string[]; onToolOpenChange?: (open: boolean) => void }) {
   const [ideas,  setIdeas]  = useState<Idea[]>([]);
   const [briefs, setBriefs] = useState<Brief[]>([]);
   const [tasks,  setTasks]  = useState<ContentTask[]>([]);
@@ -719,6 +719,15 @@ export default function ContentModule({ isPro = false, onUpgrade, genres = [] }:
   useEffect(() => { localStorage.setItem(IDEAS_BANK_KEY, JSON.stringify(ideas));   }, [ideas]);
   useEffect(() => { localStorage.setItem(BRIEFS_KEY,     JSON.stringify(briefs));  }, [briefs]);
   useEffect(() => { localStorage.setItem(TASKS_KEY,      JSON.stringify(tasks));   }, [tasks]);
+
+  // ── Report tool-open state so the shell can hide the bottom nav ──
+  // A tool "owns the screen" when a sheet, the script writer, or the detail
+  // view is open; the nav collides with those UIs otherwise.
+  const toolOpen = sheet !== "none" || !!scriptWriter || !!detailBrief;
+  useEffect(() => {
+    onToolOpenChange?.(toolOpen);
+    return () => onToolOpenChange?.(false);
+  }, [toolOpen, onToolOpenChange]);
 
   // ── Task handlers ──
   function addTask(title: string, date: string, source: ContentTask["source"], notes?: string) {
