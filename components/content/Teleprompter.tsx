@@ -159,9 +159,13 @@ export default function Teleprompter({
         )}
       </div>
 
-      {/* controls */}
+      {/* controls — the 56px play button is the tallest thing on the bar, so
+          it needs real clearance from the home indicator. env(safe-area-inset-
+          bottom) can come back as 0 in the standalone PWA, leaving only 1rem
+          and letting the indicator clip the play button's lower arc (Paco,
+          2026-07-16). max() guarantees a floor even when env() reports 0. */}
       <div className="shrink-0 px-4 pt-3 border-t border-white/8"
-        style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 1rem)" }}>
+        style={{ paddingBottom: "max(calc(env(safe-area-inset-bottom) + 1rem), 2.75rem)" }}>
         <div className="flex items-center justify-between gap-3">
           {/* font size */}
           <div className="flex items-center gap-1.5">
