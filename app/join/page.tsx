@@ -102,7 +102,9 @@ export default function JoinWaitlistPage() {
     // 23505 = duplicate email = they're already on the list = success.
     const { error } = await supabase
       .from("waitlist")
-      .insert({ email: clean, name: name.trim() || null, genre: genre || null, source: src || "landing" });
+      // Store the language they filled the form in, so launch/update emails
+      // can be sent in that same language (es/en).
+      .insert({ email: clean, name: name.trim() || null, genre: genre || null, lang, source: src || "landing" });
     if (error && error.code !== "23505") {
       setErrMsg(t.genericError);
       setState("error");

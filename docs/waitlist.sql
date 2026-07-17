@@ -7,9 +7,14 @@ create table if not exists public.waitlist (
   email      text not null unique,      -- stored lowercased by the app
   name       text,
   genre      text,                      -- what they produce, from lib/genres.ts
+  lang       text,                      -- 'es' | 'en' — the form language, so
+                                        -- launch emails go out in that language
   source     text,                      -- campaign tag from ?src= (e.g. a video id)
   created_at timestamptz not null default now()
 );
+
+-- Add columns for tables created before these fields existed (idempotent).
+alter table public.waitlist add column if not exists lang text;
 
 -- Row Level Security: the public (anon key) may ONLY insert their own signup.
 -- Nobody can read the list with the anon key — you read/export it from the
