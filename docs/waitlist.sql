@@ -6,7 +6,7 @@ create table if not exists public.waitlist (
   id         uuid primary key default gen_random_uuid(),
   email      text not null unique,      -- stored lowercased by the app
   name       text,
-  role       text,                      -- 'producer' | 'artist' | 'label' | 'other'
+  genre      text,                      -- what they produce, from lib/genres.ts
   source     text,                      -- campaign tag from ?src= (e.g. a video id)
   created_at timestamptz not null default now()
 );

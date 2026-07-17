@@ -10,6 +10,7 @@ import NotificationPreferences from "./NotificationPreferences";
 import { submitSuggestion, fetchMySuggestions, type Suggestion } from "@/lib/suggestionsDb";
 import { SiInstagram, SiSpotify, SiYoutube, SiTiktok } from "react-icons/si";
 import Select from "@/components/ui/Select";
+import { GENRE_OPTIONS } from "@/lib/genres";
 import { fetchProfile, updateProfile } from "@/lib/communityDb";
 import { supabase } from "@/lib/supabase";
 
@@ -31,12 +32,7 @@ const DEFAULT_PROFILE: UserProfile = {
   instagram: "", spotify: "", youtube: "", tiktok: "",
 };
 
-const GENRE_OPTIONS = [
-  "Trap", "Hip-Hop", "R&B", "Pop", "Reggaeton", "Latin",
-  "Electronic", "House", "Techno", "Ambient", "Lo-fi",
-  "Jazz", "Soul", "Funk", "Gospel", "Rock", "Indie",
-  "Cinematic", "Film/TV", "Experimental", "Classical",
-];
+// Genre catalog now lives in lib/genres.ts so the /join waitlist form shares it.
 
 export const CURRENCY_KEY = "fennec-currency-v1";
 export type Currency = "COP" | "MXN" | "USD";

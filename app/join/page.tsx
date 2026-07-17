@@ -3,22 +3,21 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import FennecFox from "@/components/dashboard/FennecFox";
+import { GENRE_OPTIONS } from "@/lib/genres";
 
 /* Waitlist / early-access landing for the Instagram campaign.
-   Comment "Fennec" → DM link → capture email + name + role into the
+   Comment "Fennec" → DM link → capture email + name + genre into the
    `waitlist` table (see docs/waitlist.sql). Bilingual (ES default for the
    campaign audience, EN toggle) — the language is picked from ?lang=, then
    the browser, then falls back to Spanish; a toggle overrides it live. A
-   ?src= param tags which video/link the signup came from. */
+   ?src= param tags which video/link the signup came from. The genre list is
+   the same catalog Settings uses (lib/genres.ts) — producer-focused. */
 
 type Lang = "es" | "en";
 
-const ROLE_VALUES = ["producer", "artist", "label", "other"] as const;
-
 const COPY: Record<Lang, {
   eyebrow: string; headline: string; sub: string;
-  emailPh: string; namePh: string; rolePh: string;
-  roles: Record<(typeof ROLE_VALUES)[number], string>;
+  emailPh: string; namePh: string; genrePh: string;
   cta: string; ctaLoading: string;
   invalidEmail: string; genericError: string;
   finePrint: string; privacy: string;
@@ -30,8 +29,7 @@ const COPY: Record<Lang, {
     sub: "La app que centraliza el negocio del productor musical. Déjanos tu correo y te avisamos apenas abramos y en cada actualización.",
     emailPh: "tu@correo.com",
     namePh: "Tu nombre",
-    rolePh: "¿Qué haces?",
-    roles: { producer: "Productor / Compositor", artist: "Artista", label: "Sello / Manager", other: "Otro" },
+    genrePh: "¿Qué produces?",
     cta: "Unirme a la lista",
     ctaLoading: "Un momento…",
     invalidEmail: "Escribe un correo válido.",
@@ -48,8 +46,7 @@ const COPY: Record<Lang, {
     sub: "The app that centralizes the music producer's business. Drop your email and we'll tell you the moment we open and with every update.",
     emailPh: "you@email.com",
     namePh: "Your name",
-    rolePh: "What do you do?",
-    roles: { producer: "Producer / Composer", artist: "Artist", label: "Label / Manager", other: "Other" },
+    genrePh: "What do you produce?",
     cta: "Join the list",
     ctaLoading: "One sec…",
     invalidEmail: "Enter a valid email.",
@@ -68,7 +65,7 @@ export default function JoinWaitlistPage() {
   const [lang,  setLang]  = useState<Lang>("es");
   const [email, setEmail] = useState("");
   const [name,  setName]  = useState("");
-  const [role,  setRole]  = useState("");
+  const [genre, setGenre] = useState("");
   const [state, setState] = useState<State>("idle");
   const [errMsg, setErrMsg] = useState("");
   const [src, setSrc] = useState<string | null>(null);
@@ -105,7 +102,7 @@ export default function JoinWaitlistPage() {
     // 23505 = duplicate email = they're already on the list = success.
     const { error } = await supabase
       .from("waitlist")
-      .insert({ email: clean, name: name.trim() || null, role: role || null, source: src || "landing" });
+      .insert({ email: clean, name: name.trim() || null, genre: genre || null, source: src || "landing" });
     if (error && error.code !== "23505") {
       setErrMsg(t.genericError);
       setState("error");
@@ -201,14 +198,14 @@ export default function JoinWaitlistPage() {
                 className="h-12 w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 text-[15px] text-white outline-none transition placeholder:text-zinc-600 focus:border-accent/60"
               />
               <select
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
+                value={genre}
+                onChange={(e) => setGenre(e.target.value)}
                 className="h-12 w-full appearance-none rounded-xl border border-white/10 bg-white/[0.04] px-4 text-[15px] outline-none transition focus:border-accent/60"
-                style={{ color: role ? "#fff" : "#71717a" }}
+                style={{ color: genre ? "#fff" : "#71717a" }}
               >
-                <option value="" disabled style={{ color: "#71717a" }}>{t.rolePh}</option>
-                {ROLE_VALUES.map((r) => (
-                  <option key={r} value={r} style={{ color: "#000" }}>{t.roles[r]}</option>
+                <option value="" disabled style={{ color: "#71717a" }}>{t.genrePh}</option>
+                {GENRE_OPTIONS.map((g) => (
+                  <option key={g} value={g} style={{ color: "#000" }}>{g}</option>
                 ))}
               </select>
 
