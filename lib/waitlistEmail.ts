@@ -18,7 +18,7 @@ const COPY: Record<Lang, {
     p1: "Ya estás en la lista de acceso anticipado. Estamos afinando los últimos detalles y muy pronto vas a ser de los primeros en entrar y en enterarte del lanzamiento.",
     p2: "Mientras tanto, síguenos en Instagram para no perderte ninguna novedad.",
     cta: "Seguir a @fennec.audio",
-    signoff: "Nos vemos pronto,<br>Paco · Fennec",
+    signoff: "Nos vemos pronto,<br>El equipo de Fennec",
     footer: "Fennec · La app de negocios para productores musicales",
   },
   en: {
@@ -29,7 +29,7 @@ const COPY: Record<Lang, {
     p1: "You're on the early-access list. We're putting the final touches together, and very soon you'll be among the first to get in and hear about the launch.",
     p2: "In the meantime, follow us on Instagram so you don't miss anything.",
     cta: "Follow @fennec.audio",
-    signoff: "See you soon,<br>Paco · Fennec",
+    signoff: "See you soon,<br>The Fennec team",
     footer: "Fennec · The business app for music producers",
   },
 };
@@ -45,7 +45,8 @@ export function waitlistWelcomeEmail(langInput: string | null | undefined, name?
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0b0a08;padding:32px 16px;">
     <tr><td align="center">
       <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#111010;border:1px solid rgba(255,255,255,0.06);border-radius:14px;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-        <tr><td align="center" style="padding:40px 36px 4px;">
+        <tr><td align="center" style="padding:38px 36px 4px;">
+          <img src="https://app.fennec.audio/fennec-icon-transparent.png" width="60" alt="Fennec" style="display:block;margin:0 auto 14px;width:60px;height:auto;" />
           <span style="font-size:30px;font-weight:800;letter-spacing:-0.03em;color:#ffffff;">fennec</span><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#f5a623;margin-left:2px;"></span>
         </td></tr>
         <tr><td align="center" style="padding:20px 36px 0;">
