@@ -2,23 +2,70 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import FennecFox from "@/components/dashboard/FennecFox";
 
 /* Waitlist / early-access landing for the Instagram campaign.
-   Comment "Fennec" → DM with this link → capture email + name + role into the
-   `waitlist` table (see docs/waitlist.sql). Copy is Spanish for the campaign
-   audience; the app itself stays English. A ?src= param tags which video/link
-   the signup came from. */
+   Comment "Fennec" → DM link → capture email + name + role into the
+   `waitlist` table (see docs/waitlist.sql). Bilingual (ES default for the
+   campaign audience, EN toggle) — the language is picked from ?lang=, then
+   the browser, then falls back to Spanish; a toggle overrides it live. A
+   ?src= param tags which video/link the signup came from. */
 
-const ROLES = [
-  { value: "producer", label: "Productor / Compositor" },
-  { value: "artist",   label: "Artista" },
-  { value: "label",    label: "Sello / Manager" },
-  { value: "other",    label: "Otro" },
-];
+type Lang = "es" | "en";
+
+const ROLE_VALUES = ["producer", "artist", "label", "other"] as const;
+
+const COPY: Record<Lang, {
+  eyebrow: string; headline: string; sub: string;
+  emailPh: string; namePh: string; rolePh: string;
+  roles: Record<(typeof ROLE_VALUES)[number], string>;
+  cta: string; ctaLoading: string;
+  invalidEmail: string; genericError: string;
+  finePrint: string; privacy: string;
+  doneTitle: string; doneSub: string; instagram: string;
+}> = {
+  es: {
+    eyebrow: "Acceso anticipado",
+    headline: "Sé el primero en tener Fennec.",
+    sub: "La app que centraliza el negocio del productor musical. Déjanos tu correo y te avisamos apenas abramos y en cada actualización.",
+    emailPh: "tu@correo.com",
+    namePh: "Tu nombre",
+    rolePh: "¿Qué haces?",
+    roles: { producer: "Productor / Compositor", artist: "Artista", label: "Sello / Manager", other: "Otro" },
+    cta: "Unirme a la lista",
+    ctaLoading: "Un momento…",
+    invalidEmail: "Escribe un correo válido.",
+    genericError: "Algo salió mal. Intenta de nuevo en un momento.",
+    finePrint: "Sin spam. Solo lo importante.",
+    privacy: "Privacidad",
+    doneTitle: "¡Estás dentro!",
+    doneSub: "Serás de los primeros en enterarte del lanzamiento de Fennec y de cada novedad. Sin spam, solo lo importante.",
+    instagram: "Sígueme en Instagram →",
+  },
+  en: {
+    eyebrow: "Early access",
+    headline: "Be the first to get Fennec.",
+    sub: "The app that centralizes the music producer's business. Drop your email and we'll tell you the moment we open and with every update.",
+    emailPh: "you@email.com",
+    namePh: "Your name",
+    rolePh: "What do you do?",
+    roles: { producer: "Producer / Composer", artist: "Artist", label: "Label / Manager", other: "Other" },
+    cta: "Join the list",
+    ctaLoading: "One sec…",
+    invalidEmail: "Enter a valid email.",
+    genericError: "Something went wrong. Try again in a moment.",
+    finePrint: "No spam. Only what matters.",
+    privacy: "Privacy",
+    doneTitle: "You're in!",
+    doneSub: "You'll be among the first to hear about Fennec's launch and every update. No spam, only what matters.",
+    instagram: "Follow me on Instagram →",
+  },
+};
 
 type State = "idle" | "submitting" | "done" | "error";
 
 export default function JoinWaitlistPage() {
+  const [lang,  setLang]  = useState<Lang>("es");
   const [email, setEmail] = useState("");
   const [name,  setName]  = useState("");
   const [role,  setRole]  = useState("");
@@ -26,12 +73,19 @@ export default function JoinWaitlistPage() {
   const [errMsg, setErrMsg] = useState("");
   const [src, setSrc] = useState<string | null>(null);
 
-  // Read the campaign tag client-side (avoids the useSearchParams Suspense
-  // requirement and keeps the page statically renderable).
+  const t = COPY[lang];
+
+  // Pick language + campaign tag client-side: ?lang= wins, else the browser,
+  // else Spanish (the campaign default). Reading here (not useSearchParams)
+  // keeps the page statically renderable.
   useEffect(() => {
     try {
-      const p = new URLSearchParams(window.location.search).get("src");
-      if (p) setSrc(p.slice(0, 60));
+      const p = new URLSearchParams(window.location.search);
+      const q = p.get("lang");
+      if (q === "en" || q === "es") setLang(q);
+      else if (!navigator.language?.toLowerCase().startsWith("es")) setLang("en");
+      const s = p.get("src");
+      if (s) setSrc(s.slice(0, 60));
     } catch { /* ignore */ }
   }, []);
 
@@ -39,7 +93,7 @@ export default function JoinWaitlistPage() {
     e.preventDefault();
     const clean = email.trim().toLowerCase();
     if (!clean || !clean.includes("@")) {
-      setErrMsg("Escribe un correo válido.");
+      setErrMsg(t.invalidEmail);
       setState("error");
       return;
     }
@@ -47,15 +101,13 @@ export default function JoinWaitlistPage() {
     setErrMsg("");
     // Plain insert with return=minimal — NOT upsert. upsert/.select() ask
     // PostgREST to return the inserted row, which needs a SELECT policy; our
-    // RLS is insert-only (the list stays private), so returning the row 401s
-    // with "violates row-level security". A bare insert never reads back.
-    // 23505 = duplicate email = they're already on the list, which for a
-    // waitlist is success, not an error.
+    // RLS is insert-only (the list stays private), so returning the row 401s.
+    // 23505 = duplicate email = they're already on the list = success.
     const { error } = await supabase
       .from("waitlist")
       .insert({ email: clean, name: name.trim() || null, role: role || null, source: src || "landing" });
     if (error && error.code !== "23505") {
-      setErrMsg("Algo salió mal. Intenta de nuevo en un momento.");
+      setErrMsg(t.genericError);
       setState("error");
       return;
     }
@@ -74,13 +126,33 @@ export default function JoinWaitlistPage() {
         style={{ background: "radial-gradient(120% 80% at 50% -10%, rgba(245,166,35,0.14), transparent 60%)" }}
       />
 
+      {/* language toggle */}
+      <div className="absolute right-5 top-5 z-20 flex overflow-hidden rounded-full border border-white/10 bg-white/[0.04] text-[11px] font-bold">
+        {(["es", "en"] as Lang[]).map((l) => (
+          <button
+            key={l}
+            type="button"
+            onClick={() => setLang(l)}
+            className={`px-3 py-1.5 uppercase tracking-wider transition ${
+              lang === l ? "bg-accent text-black" : "text-zinc-400 hover:text-white"
+            }`}
+            aria-pressed={lang === l}
+          >
+            {l}
+          </button>
+        ))}
+      </div>
+
       <div className="relative w-full max-w-md">
-        {/* wordmark */}
-        <div className="mb-10 flex items-baseline justify-center gap-1">
-          <span className="text-3xl font-extrabold tracking-tight text-white" style={{ letterSpacing: "-0.03em" }}>
-            fennec
-          </span>
-          <span className="mb-1 inline-block h-[7px] w-[7px] rounded-full" style={{ background: "#f5a623", boxShadow: "0 0 10px rgba(245,166,35,0.9)" }} />
+        {/* fox logo + wordmark — same mark as the app's login */}
+        <div className="mb-8 flex flex-col items-center">
+          <FennecFox isActive={false} glow={false} size={84} />
+          <div className="mt-2 flex items-baseline gap-1">
+            <span className="text-3xl font-extrabold tracking-tight text-white" style={{ letterSpacing: "-0.03em" }}>
+              fennec
+            </span>
+            <span className="mb-1 inline-block h-[7px] w-[7px] rounded-full" style={{ background: "#f5a623", boxShadow: "0 0 10px rgba(245,166,35,0.9)" }} />
+          </div>
         </div>
 
         {state === "done" ? (
@@ -90,29 +162,23 @@ export default function JoinWaitlistPage() {
                 <path d="M5 13l4 4L19 7" stroke="#f5a623" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold text-white">¡Estás dentro!</h1>
-            <p className="mx-auto mt-3 max-w-xs text-[15px] leading-relaxed text-zinc-400">
-              Serás de los primeros en enterarte del lanzamiento de Fennec y de cada novedad. Sin spam, solo lo importante.
-            </p>
+            <h1 className="text-2xl font-bold text-white">{t.doneTitle}</h1>
+            <p className="mx-auto mt-3 max-w-xs text-[15px] leading-relaxed text-zinc-400">{t.doneSub}</p>
             <a
               href="https://instagram.com/pacosalaz"
               target="_blank"
               rel="noopener noreferrer"
               className="mt-8 inline-block text-sm font-semibold text-accent transition hover:brightness-110"
             >
-              Sígueme en Instagram →
+              {t.instagram}
             </a>
           </div>
         ) : (
           <>
             <div className="text-center">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-accent">Acceso anticipado</p>
-              <h1 className="mt-4 text-[28px] font-bold leading-tight text-white">
-                Sé el primero en tener Fennec.
-              </h1>
-              <p className="mx-auto mt-3 max-w-sm text-[15px] leading-relaxed text-zinc-400">
-                La app que centraliza el negocio del productor musical. Déjanos tu correo y te avisamos apenas abramos y en cada actualización.
-              </p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-accent">{t.eyebrow}</p>
+              <h1 className="mt-4 text-[28px] font-bold leading-tight text-white">{t.headline}</h1>
+              <p className="mx-auto mt-3 max-w-sm text-[15px] leading-relaxed text-zinc-400">{t.sub}</p>
             </div>
 
             <form onSubmit={submit} className="mt-8 space-y-3">
@@ -123,7 +189,7 @@ export default function JoinWaitlistPage() {
                 required
                 value={email}
                 onChange={(e) => { setEmail(e.target.value); if (state === "error") setState("idle"); }}
-                placeholder="tu@correo.com"
+                placeholder={t.emailPh}
                 className="h-12 w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 text-[15px] text-white outline-none transition placeholder:text-zinc-600 focus:border-accent/60"
               />
               <input
@@ -131,7 +197,7 @@ export default function JoinWaitlistPage() {
                 autoComplete="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Tu nombre"
+                placeholder={t.namePh}
                 className="h-12 w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 text-[15px] text-white outline-none transition placeholder:text-zinc-600 focus:border-accent/60"
               />
               <select
@@ -140,9 +206,9 @@ export default function JoinWaitlistPage() {
                 className="h-12 w-full appearance-none rounded-xl border border-white/10 bg-white/[0.04] px-4 text-[15px] outline-none transition focus:border-accent/60"
                 style={{ color: role ? "#fff" : "#71717a" }}
               >
-                <option value="" disabled style={{ color: "#71717a" }}>¿Qué haces?</option>
-                {ROLES.map((r) => (
-                  <option key={r.value} value={r.value} style={{ color: "#000" }}>{r.label}</option>
+                <option value="" disabled style={{ color: "#71717a" }}>{t.rolePh}</option>
+                {ROLE_VALUES.map((r) => (
+                  <option key={r} value={r} style={{ color: "#000" }}>{t.roles[r]}</option>
                 ))}
               </select>
 
@@ -155,13 +221,13 @@ export default function JoinWaitlistPage() {
                 disabled={state === "submitting"}
                 className="h-12 w-full rounded-xl bg-accent text-[15px] font-bold text-black transition hover:brightness-105 active:scale-[0.99] disabled:opacity-60"
               >
-                {state === "submitting" ? "Un momento…" : "Unirme a la lista"}
+                {state === "submitting" ? t.ctaLoading : t.cta}
               </button>
             </form>
 
             <p className="mt-5 text-center text-[12px] leading-relaxed text-zinc-600">
-              Sin spam. Solo lo importante.{" "}
-              <a href="/privacy" className="underline transition hover:text-zinc-400">Privacidad</a>
+              {t.finePrint}{" "}
+              <a href="/privacy" className="underline transition hover:text-zinc-400">{t.privacy}</a>
             </p>
           </>
         )}
