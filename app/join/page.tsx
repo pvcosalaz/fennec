@@ -111,6 +111,17 @@ export default function JoinWaitlistPage() {
       return;
     }
     setState("done");
+
+    // Fire the branded welcome email (best-effort): a failure here must never
+    // undo a successful signup, so it runs after we've shown the success screen
+    // and any error is swallowed. Only for brand-new signups, not duplicates.
+    if (!error) {
+      fetch("/api/waitlist/welcome", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: clean, name: name.trim() || null, lang }),
+      }).catch(() => { /* ignore — the signup already succeeded */ });
+    }
   }
 
   return (
