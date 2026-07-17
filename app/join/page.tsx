@@ -45,15 +45,16 @@ export default function JoinWaitlistPage() {
     }
     setState("submitting");
     setErrMsg("");
-    // upsert + ignoreDuplicates: re-submitting the same email is a no-op, not
-    // an error — so someone joining twice still lands on the success screen.
+    // Plain insert with return=minimal — NOT upsert. upsert/.select() ask
+    // PostgREST to return the inserted row, which needs a SELECT policy; our
+    // RLS is insert-only (the list stays private), so returning the row 401s
+    // with "violates row-level security". A bare insert never reads back.
+    // 23505 = duplicate email = they're already on the list, which for a
+    // waitlist is success, not an error.
     const { error } = await supabase
       .from("waitlist")
-      .upsert(
-        { email: clean, name: name.trim() || null, role: role || null, source: src || "landing" },
-        { onConflict: "email", ignoreDuplicates: true },
-      );
-    if (error) {
+      .insert({ email: clean, name: name.trim() || null, role: role || null, source: src || "landing" });
+    if (error && error.code !== "23505") {
       setErrMsg("Algo salió mal. Intenta de nuevo en un momento.");
       setState("error");
       return;
