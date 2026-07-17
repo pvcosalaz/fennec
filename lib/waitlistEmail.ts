@@ -7,14 +7,15 @@ const IG_URL = "https://instagram.com/fennec.audio";
 type Lang = "es" | "en";
 
 const COPY: Record<Lang, {
-  subject: string; eyebrow: string; heading: string;
+  subject: string; eyebrow: string; heading: string; tagline: string;
   p1: string; p2: string; cta: string; signoff: string; footer: string;
 }> = {
   es: {
     subject: "Ya estás en la lista de Fennec",
     eyebrow: "Acceso anticipado",
-    heading: "¡Gracias por unirte!",
-    p1: "Ya estás en la lista de acceso anticipado de Fennec. Estamos afinando los últimos detalles y muy pronto vas a ser de los primeros en entrar y en enterarte del lanzamiento.",
+    heading: "¡Gracias por unirte a Fennec!",
+    tagline: "Tu hub de negocio y comunidad musical",
+    p1: "Ya estás en la lista de acceso anticipado. Estamos afinando los últimos detalles y muy pronto vas a ser de los primeros en entrar y en enterarte del lanzamiento.",
     p2: "Mientras tanto, síguenos en Instagram para no perderte ninguna novedad.",
     cta: "Seguir a @fennec.audio",
     signoff: "Nos vemos pronto,<br>Paco · Fennec",
@@ -23,8 +24,9 @@ const COPY: Record<Lang, {
   en: {
     subject: "You're on the Fennec list",
     eyebrow: "Early access",
-    heading: "Thanks for joining!",
-    p1: "You're on the Fennec early-access list. We're putting the final touches together, and very soon you'll be among the first to get in and hear about the launch.",
+    heading: "Thanks for joining Fennec!",
+    tagline: "Your music business & community hub",
+    p1: "You're on the early-access list. We're putting the final touches together, and very soon you'll be among the first to get in and hear about the launch.",
     p2: "In the meantime, follow us on Instagram so you don't miss anything.",
     cta: "Follow @fennec.audio",
     signoff: "See you soon,<br>Paco · Fennec",
@@ -49,6 +51,7 @@ export function waitlistWelcomeEmail(langInput: string | null | undefined, name?
         <tr><td align="center" style="padding:20px 36px 0;">
           <div style="font-size:12px;font-weight:700;letter-spacing:0.28em;color:#f5a623;text-transform:uppercase;">${t.eyebrow}</div>
           <div style="font-size:24px;font-weight:700;color:#ffffff;margin-top:14px;">${t.heading}</div>
+          <div style="font-size:15px;color:rgba(255,255,255,0.55);margin-top:8px;">${t.tagline}</div>
         </td></tr>
         <tr><td style="padding:12px 40px 4px;color:rgba(255,255,255,0.68);font-size:15px;line-height:1.7;text-align:center;">
           ${hi ? `<p style="margin:14px 0;">${hi}</p>` : ""}
