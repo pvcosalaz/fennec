@@ -118,7 +118,10 @@ export default function AdminPage() {
   const maxModule  = Math.max(1, ...(overview?.moduleUsage.map((m) => m.count) ?? [1]));
 
   return (
-    <div className="min-h-screen bg-[#0a0a0b] text-zinc-100 px-5 py-8 md:px-10">
+    // h-[100dvh] + overflow-y-auto: /admin owns its own scroll. The global app
+    // shell locks html/body to overflow:hidden for the PWA, so a plain
+    // min-h-screen page gets clipped and can't scroll past the viewport.
+    <div className="h-[100dvh] overflow-y-auto overscroll-none bg-[#0a0a0b] text-zinc-100 px-5 py-8 md:px-10">
       <style>{`.mono{font-family:ui-monospace,Menlo,monospace}`}</style>
 
       {/* header */}
