@@ -34,7 +34,7 @@ const COPY: Record<Lang, {
   },
 };
 
-export function waitlistWelcomeEmail(langInput: string | null | undefined, name?: string | null): { subject: string; html: string } {
+export function waitlistWelcomeEmail(langInput: string | null | undefined, name?: string | null): { subject: string; html: string; text: string } {
   const lang: Lang = langInput === "en" ? "en" : "es";
   const t = COPY[lang];
   const hi = name?.trim() ? (lang === "es" ? `Hola ${escapeHtml(name.trim())},` : `Hi ${escapeHtml(name.trim())},`) : "";
@@ -83,7 +83,27 @@ export function waitlistWelcomeEmail(langInput: string | null | undefined, name?
 </body>
 </html>`;
 
-  return { subject: t.subject, html };
+  // Plaintext alternative. HTML-only mail scores worse in spam filters; a
+  // real text/plain part is one of the cheapest deliverability wins.
+  const hiText = name?.trim() ? (lang === "es" ? `Hola ${name.trim()},` : `Hi ${name.trim()},`) : "";
+  const text = [
+    t.heading,
+    t.tagline,
+    "",
+    ...(hiText ? [hiText, ""] : []),
+    t.p1,
+    "",
+    t.p2,
+    "",
+    `${t.cta}: ${IG_URL}`,
+    "",
+    t.signoff.replace(/<br\s*\/?>/gi, "\n"),
+    "",
+    t.footer,
+    "https://fennec.audio",
+  ].join("\n");
+
+  return { subject: t.subject, html, text };
 }
 
 function escapeHtml(s: string): string {

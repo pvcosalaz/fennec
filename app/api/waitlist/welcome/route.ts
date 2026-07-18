@@ -28,13 +28,17 @@ export async function POST(req: Request) {
   }
 
   const from = process.env.RESEND_FROM || "Fennec <onboarding@resend.dev>";
-  const { subject, html } = waitlistWelcomeEmail(body.lang ?? null, body.name ?? null);
+  const { subject, html, text } = waitlistWelcomeEmail(body.lang ?? null, body.name ?? null);
 
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from, to: [email], subject, html }),
+      // text (plaintext part) + List-Unsubscribe both improve inbox placement.
+      body: JSON.stringify({
+        from, to: [email], subject, html, text,
+        headers: { "List-Unsubscribe": "<mailto:hello@fennec.audio?subject=unsubscribe>" },
+      }),
     });
     if (!res.ok) {
       const detail = await res.text().catch(() => "");
