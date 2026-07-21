@@ -21,6 +21,8 @@ import ScriptDetailOverlay from "./ScriptDetailOverlay";
 import MusicContentLab from "./MusicContentLab";
 import { supabase } from "@/lib/supabase";
 
+import { useCloudArray } from "@/lib/useCloudArray";
+
 const TASKS_KEY = "fennec-content-tasks-v1";
 
 type ActiveSheet = "none" | "inspire" | "ideas" | "scripts" | "lab";
@@ -715,10 +717,15 @@ export default function ContentModule({ isPro = false, onUpgrade, genres = [], o
     } catch { /* ignore */ }
   }, []);
 
-  // ── Persist ──
+  // ── Persist (device) ──
   useEffect(() => { localStorage.setItem(IDEAS_BANK_KEY, JSON.stringify(ideas));   }, [ideas]);
   useEffect(() => { localStorage.setItem(BRIEFS_KEY,     JSON.stringify(briefs));  }, [briefs]);
   useEffect(() => { localStorage.setItem(TASKS_KEY,      JSON.stringify(tasks));   }, [tasks]);
+
+  // ── Sync (cloud, cross-device + realtime) ──
+  useCloudArray(IDEAS_BANK_KEY, ideas,  setIdeas);
+  useCloudArray(BRIEFS_KEY,     briefs, setBriefs);
+  useCloudArray(TASKS_KEY,      tasks,  setTasks);
 
   // ── Report tool-open state so the shell can hide the bottom nav ──
   // A tool "owns the screen" when a sheet, the script writer, or the detail
