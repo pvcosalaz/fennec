@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import FennecFox from "@/components/dashboard/FennecFox";
 
 /* Pre-launch curtain shown at the app root (app.fennec.audio) while
@@ -32,6 +32,23 @@ export default function ComingSoon() {
   }, []);
   const t = COPY[lang];
 
+  // Secret unlock for the installed PWA. iOS home-screen apps have isolated
+  // storage from Safari, so a Safari ?acceso= bypass never reaches them. Tapping
+  // the wordmark 5x sets the bypass flag in THIS context's storage and reloads,
+  // so the standalone app opens straight into Fennec from then on. Keeps the
+  // preview code out of the public manifest.
+  const tapsRef = useRef(0);
+  const tapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  function secretTap() {
+    tapsRef.current += 1;
+    if (tapTimer.current) clearTimeout(tapTimer.current);
+    tapTimer.current = setTimeout(() => { tapsRef.current = 0; }, 1500);
+    if (tapsRef.current >= 5) {
+      try { localStorage.setItem("fennec-preview", "1"); } catch { /* ignore */ }
+      window.location.reload();
+    }
+  }
+
   return (
     <main
       className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden px-6 py-12"
@@ -45,7 +62,7 @@ export default function ComingSoon() {
       <div className="relative w-full max-w-md text-center">
         <div className="mb-8 flex flex-col items-center">
           <FennecFox isActive={false} glow={false} size={92} />
-          <div className="mt-2 flex items-baseline gap-1">
+          <div className="mt-2 flex items-baseline gap-1 cursor-default select-none" onClick={secretTap}>
             <span className="text-3xl font-extrabold tracking-tight text-white" style={{ letterSpacing: "-0.03em" }}>fennec</span>
             <span className="mb-1 inline-block h-[7px] w-[7px] rounded-full" style={{ background: "#f5a623", boxShadow: "0 0 10px rgba(245,166,35,0.9)" }} />
           </div>
