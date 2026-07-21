@@ -429,7 +429,17 @@ export default function PricingCalculator() {
       }
       if (h > 0) root.style.setProperty("--app-h", `${Math.round(h)}px`);
     };
+    // Keyboard height → --kb-inset, so fixed bottom sheets (SHEET_BOTTOM) rise
+    // above the on-screen keyboard instead of trapping their inputs behind it.
+    // On iOS the keyboard shrinks visualViewport but not window.innerHeight, so
+    // the delta is the keyboard height (0 when closed).
+    const setKbInset = () => {
+      const vv = window.visualViewport;
+      const kb = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
+      root.style.setProperty("--kb-inset", `${Math.round(kb)}px`);
+    };
     setAppHeight();
+    setKbInset();
     // Standalone launches settle the viewport late — re-measure after paint
     const t1 = setTimeout(setAppHeight, 350);
     const t2 = setTimeout(setAppHeight, 1200);
@@ -438,6 +448,11 @@ export default function PricingCalculator() {
     window.addEventListener("pageshow", setAppHeight);
     document.addEventListener("visibilitychange", setAppHeight);
     window.visualViewport?.addEventListener("resize", setAppHeight);
+    // Keyboard tracking: visualViewport resize/scroll fire on open/close;
+    // focusout resets when the field blurs.
+    window.visualViewport?.addEventListener("resize", setKbInset);
+    window.visualViewport?.addEventListener("scroll", setKbInset);
+    window.addEventListener("focusout", setKbInset);
     return () => {
       clearTimeout(t1); clearTimeout(t2);
       window.removeEventListener("resize", setAppHeight);
@@ -445,6 +460,9 @@ export default function PricingCalculator() {
       window.removeEventListener("pageshow", setAppHeight);
       document.removeEventListener("visibilitychange", setAppHeight);
       window.visualViewport?.removeEventListener("resize", setAppHeight);
+      window.visualViewport?.removeEventListener("resize", setKbInset);
+      window.visualViewport?.removeEventListener("scroll", setKbInset);
+      window.removeEventListener("focusout", setKbInset);
     };
   }, []);
 
