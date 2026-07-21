@@ -114,12 +114,16 @@ export function useSheetDismiss(onClose: () => void) {
 }
 
 /**
- * The shared sheet anchor: the TRUE screen bottom. iOS standalone
- * underreports the layout viewport, so `bottom: 0` lands above the real
- * edge; --app-h carries the hardware-corrected height (see
- * PricingCalculator's viewport effect). Resolves to 0 on healthy devices.
+ * The shared sheet anchor: the TRUE screen bottom, LIFTED above the on-screen
+ * keyboard. iOS standalone underreports the layout viewport, so `bottom: 0`
+ * lands above the real edge; --app-h carries the hardware-corrected height
+ * (see PricingCalculator's viewport effect). --kb-inset carries the keyboard
+ * height (0 when closed) so any sheet with a text field rises above the
+ * keyboard instead of leaving its inputs trapped behind it (Paco 2026-07-18,
+ * "no me deja escribir, se queda abajo"). Both resolve to 0 on healthy
+ * devices with no keyboard.
  */
-export const SHEET_BOTTOM = "calc(100dvh - var(--app-h, 100dvh))";
+export const SHEET_BOTTOM = "calc(100dvh - var(--app-h, 100dvh) + var(--kb-inset, 0px))";
 
 /** Shared entrance (keyframes live in globals.css, reduced-motion aware). */
 export const SHEET_ENTER = "sheetUp .32s cubic-bezier(.22,1,.36,1) both";
