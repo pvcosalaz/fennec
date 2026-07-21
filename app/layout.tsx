@@ -14,6 +14,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://app.fennec.audio"),
   title: "Fennec",
   description: "Your music business, organized.",
   manifest: "/manifest.json",
@@ -24,6 +25,21 @@ export const metadata: Metadata = {
   },
   icons: {
     apple: "/apple-touch-icon.png",
+  },
+  // Share card (no image before → chat apps showed a floating transparent fox).
+  openGraph: {
+    type: "website",
+    siteName: "Fennec",
+    title: "Fennec: Run your music like a business.",
+    description: "The music business & community hub for producers and composers.",
+    url: "https://app.fennec.audio",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Fennec — run your music like a business." }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Fennec: Run your music like a business.",
+    description: "The music business & community hub for producers and composers.",
+    images: ["/og-image.png"],
   },
 };
 
