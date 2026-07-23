@@ -12,6 +12,8 @@ import { getColorScheme } from "@/lib/fennecIdPalette";
 import { ensureColorAssigned } from "@/lib/networkDb";
 import { WelcomeModal, ProgressChip, type ChecklistItem } from "@/components/dashboard/WelcomeChecklist";
 import { computeFennecDb, reachDb as reachDbOf, totalReachAudience, FENNEC_DB_MODEL } from "@/lib/fennecDb";
+import { fetchContributionDays, type ContributionDays } from "@/lib/contributions";
+import ContributionsCard from "@/components/dashboard/ContributionsCard";
 import { fetchKarma } from "@/lib/audioDb";
 import { fetchNotifications } from "@/lib/notificationDb";
 import { useIsDesktop } from "@/lib/useIsDesktop";
@@ -176,6 +178,7 @@ export default function Dashboard({
   const [quotes,     setQuotes]     = useState<Quote[]>([]);
   const [clients,    setClients]    = useState<Client[]>([]);
   const [businessLoaded, setBusinessLoaded] = useState(false);
+  const [contributions, setContributions] = useState<ContributionDays | null>(null);
   const [profile,    setProfile]    = useState<UserProfile | null>(null);
   const [karma,      setKarma]      = useState<number | null>(null);
   const [latestNote, setLatestNote] = useState<string | null>(null); // latest feedback on my tracks (desktop band)
@@ -295,7 +298,15 @@ export default function Dashboard({
   useEffect(() => {
     if (!userId) return;
     Promise.all([getProjects(userId), getQuotes(userId), getClients(userId)])
-      .then(([p, q, c]) => { setProjects(p); setQuotes(q); setClients(c); })
+      .then(([p, q, c]) => {
+        setProjects(p); setQuotes(q); setClients(c);
+        // Contributions graph feeds off the same business rows + community/audio
+        // activity (queried inside). Best-effort: a failure just leaves the
+        // graph empty, never blocks the dashboard.
+        fetchContributionDays(userId, p, q, c)
+          .then(setContributions)
+          .catch(() => {});
+      })
       .catch(() => {})
       .finally(() => setBusinessLoaded(true));
   }, [userId]);
@@ -752,26 +763,19 @@ export default function Dashboard({
         )}
       </div>
 
-      {/* Stat chips: Streams · Credits · Projects */}
-      <div className="dash-rise" style={{ animationDelay: "0.2s" }}>
-        <div className="flex items-center gap-2 mb-1.5 px-1">
-          <p className="text-[8px] font-bold uppercase tracking-widest text-zinc-600 flex-shrink-0">
-            Music &amp; Business
-          </p>
-          <div className="h-px flex-1 bg-gradient-to-r from-white/[0.07] to-transparent" />
-        </div>
-        <div className="grid grid-cols-3 divide-x divide-white/[0.06]">
-          <StatChip label="Streams"  pending onConnect={onOpenSettings} />
-          <StatChip label="Credits"  pending onConnect={onOpenSettings} />
-          <StatChip label="Projects" value={activeCount} />
-        </div>
+      {/* Contributions — the dB's visual evidence: real work logged, GitHub-style
+          (v4 layout, Paco 2026-07-22: dB stays solitary above; this lives where
+          the stats zone starts). */}
+      <div className="dash-rise" style={{ animationDelay: "0.18s" }}>
+        <ContributionsCard data={contributions} accent={accent} />
       </div>
 
-      {/* Social chips: Instagram · TikTok · YouTube */}
-      <div className="dash-rise" style={{ animationDelay: "0.28s" }}>
+      {/* Your numbers — Music & Business + Social Reach merged under one header
+          to pay for the Contributions card's height (still a no-scroll panel). */}
+      <div className="dash-rise" style={{ animationDelay: "0.26s" }}>
         <div className="flex items-center gap-2 mb-1.5 px-1">
           <div className="flex items-center gap-1.5 flex-shrink-0">
-            <p className="text-[8px] font-bold uppercase tracking-widest text-zinc-600">Social Reach</p>
+            <p className="text-[8px] font-bold uppercase tracking-widest text-zinc-600">Your Numbers</p>
             <button type="button" onClick={() => setShowSocialInfo((v) => !v)}
               className="text-zinc-600 hover:text-zinc-400 transition leading-none"
               aria-label="How is it updated?">
@@ -786,11 +790,16 @@ export default function Dashboard({
         </div>
         {showSocialInfo && (
           <p className="text-[9px] text-zinc-500 mb-1.5 px-1 leading-relaxed">
-            Updates automatically every week.
+            Socials update automatically every week.
             {syncedAt && <span className="text-zinc-600"> · Last: {timeAgo(syncedAt)}</span>}
           </p>
         )}
         <div className="grid grid-cols-3 divide-x divide-white/[0.06]">
+          <StatChip label="Streams"  pending onConnect={onOpenSettings} />
+          <StatChip label="Credits"  pending onConnect={onOpenSettings} />
+          <StatChip label="Projects" value={activeCount} />
+        </div>
+        <div className="grid grid-cols-3 divide-x divide-white/[0.06] border-t border-white/[0.05]">
           <SocialChip icon={<SiInstagram size={13} />} count={igFollowers}
             label="Instagram" color="#E1306C" hasHandle={hasIg} onConnect={onOpenProfileSettings} />
           <SocialChip icon={<SiTiktok size={13} />}   count={ttFollowers}

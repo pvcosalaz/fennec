@@ -17,6 +17,27 @@ import CalendarHub from "@/components/content/CalendarHub";
 import ProjectReviewPlayer from "@/components/audio/ProjectReviewPlayer";
 import type { Post, Profile } from "@/lib/communityTypes";
 import type { ProjectReview } from "@/lib/audioTypes";
+import Dashboard from "@/components/dashboard/Dashboard";
+import ContributionsCard from "@/components/dashboard/ContributionsCard";
+import { dayKey, type ContributionDays } from "@/lib/contributions";
+
+// Seeded contribution history: ~5 months of uneven work + a live 6-day streak,
+// so the heatmap shows all intensity levels without real data.
+const mockContributions: ContributionDays = (() => {
+  const byDay = new Map<string, number>();
+  let total = 0;
+  for (let back = 0; back < 150; back++) {
+    const wave = Math.abs(Math.sin(back * 0.7) * Math.cos(back * 0.23)) * 5;
+    const count = back < 6 ? 1 + (back % 3) : Math.max(0, Math.round(wave) - 1);
+    if (count > 0) {
+      const d = new Date();
+      d.setDate(d.getDate() - back);
+      byDay.set(dayKey(d), count);
+      total += count;
+    }
+  }
+  return { byDay, totalYear: total, streak: 6 };
+})();
 
 const mockProfile: Profile = {
   id: "mock-1", username: "aria.wav", avatar_url: null, is_pro: true, is_bot: false,
@@ -65,6 +86,14 @@ export default function DevUiPage() {
 
   return (
     <div className="min-h-screen bg-[#111114] px-4 py-8 mx-auto w-full max-w-md space-y-6 overflow-y-auto" id="scroll-root">
+      <p className="text-xs font-bold uppercase tracking-widest text-zinc-600">Contributions card (seeded)</p>
+      <ContributionsCard data={mockContributions} accent="#f5a623" />
+
+      <p className="text-xs font-bold uppercase tracking-widest text-zinc-600">Dashboard · v4 layout (phone frame)</p>
+      <div className="rounded-[28px] border border-white/10 overflow-hidden bg-[#0b0a08]" style={{ height: 720 }}>
+        <Dashboard username="aria.wav" networkProfile={mockProfile} className="h-full" />
+      </div>
+
       <p className="text-xs font-bold uppercase tracking-widest text-zinc-600">Business tool cards</p>
       <div className="grid grid-cols-2 gap-2">
         <div className="relative rounded-2xl overflow-hidden" style={{ height: 90 }}><PricingCalculatorCard /></div>
@@ -103,7 +132,9 @@ export default function DevUiPage() {
       </div>
 
       <p className="text-xs font-bold uppercase tracking-widest text-zinc-600">Audio Module — Track Review Player</p>
-      <div className="border border-white/5 rounded-2xl p-4">
+      {/* relative + fixed height: the player positions absolute inset-0, and
+          without a positioned ancestor it escapes and covers the whole page. */}
+      <div className="relative border border-white/5 rounded-2xl p-4 overflow-hidden" style={{ height: 620 }}>
         <ProjectReviewPlayer
           track={mockTrack}
           userId="mock-user"
