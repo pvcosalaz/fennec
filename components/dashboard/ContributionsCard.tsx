@@ -39,9 +39,11 @@ function Heatmap({ byDay, weeks, cellRadius = 2 }: {
   );
 }
 
-export default function ContributionsCard({ data, accent }: {
+export default function ContributionsCard({ data, accent, weeks = 17 }: {
   data: ContributionDays | null;
   accent: string;
+  /** Columns on the compact strip — mobile fits ~17, desktop bands fit more. */
+  weeks?: number;
 }) {
   const [showYear, setShowYear] = useState(false);
   const byDay = data?.byDay ?? new Map<string, number>();
@@ -63,7 +65,7 @@ export default function ContributionsCard({ data, accent }: {
           )}
         </div>
 
-        <Heatmap byDay={byDay} weeks={17} />
+        <Heatmap byDay={byDay} weeks={weeks} />
 
         <div className="flex items-center justify-between mt-2.5">
           <p className="text-[10px] text-zinc-500">

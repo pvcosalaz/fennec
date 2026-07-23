@@ -6,6 +6,8 @@ import FennecIdCard from "@/components/network/FennecIdCard";
 import type { FennecIdColor } from "@/lib/fennecIdPalette";
 import type { Quote } from "@/lib/pricingData";
 import type { Profile } from "@/lib/communityTypes";
+import type { ContributionDays } from "@/lib/contributions";
+import ContributionsCard from "@/components/dashboard/ContributionsCard";
 
 /* ═══════════════════════════════════════════════════════════════
    DASHBOARD — desktop content (approved mockup language). Uses the
@@ -87,7 +89,7 @@ export default function DashboardDesktop({
   card, networkProfile, fennecDb, cardColorScheme,
   igFollowers, ttFollowers, ytSubs,
   activeProjects, totalProjects, quotesSentCount, quotesOutTotal, karma,
-  sentQuotes, latestNote,
+  sentQuotes, latestNote, contributions,
   onNavigate, onOpenProfileSettings,
 }: {
   card: {
@@ -109,6 +111,7 @@ export default function DashboardDesktop({
   karma: number | null;
   sentQuotes: Quote[];
   latestNote: string | null;
+  contributions?: ContributionDays | null;
   onNavigate?: (tab: "pricing" | "contenido" | "dashboard" | "ideas" | "noticias") => void;
   onOpenProfileSettings?: () => void;
 }) {
@@ -191,6 +194,10 @@ export default function DashboardDesktop({
           </div>
         </div>
       </div>
+
+      {/* Contributions — the dB's visual evidence (same card as mobile, wider
+          strip). Amber like every non-ID accent on desktop. */}
+      <ContributionsCard data={contributions ?? null} accent="#f5a623" weeks={34} />
 
       {/* Music & Business */}
       <Band label="Music & Business">

@@ -466,6 +466,7 @@ export default function Dashboard({
         ytSubs={ytSubs}
         activeProjects={activeCount}
         totalProjects={projects.length}
+        contributions={contributions}
         quotesSentCount={quotesSent}
         quotesOutTotal={quotesOutTotal}
         karma={karma}
