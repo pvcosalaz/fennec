@@ -5,6 +5,7 @@ import NotificationBell from "@/components/notifications/NotificationBell";
 import { getColorScheme } from "@/lib/fennecIdPalette";
 import { getNetworkContacts } from "@/lib/networkDb";
 import { fetchNotifications, type Notification } from "@/lib/notificationDb";
+import { useSidebarCompact } from "@/lib/useIsDesktop";
 import type { Profile } from "@/lib/communityTypes";
 
 /** "5m ago" / "2h ago" / "3d ago" — compact, mono-friendly */
@@ -40,6 +41,11 @@ const NAV: { id: DesktopTab | "network"; label: string; icon: React.ComponentTyp
 
 const RAIL_KEY = "fennec_desktop_rail_off_v1";
 const RAIL_W = 292;
+/** Sidebar: full with labels, or icon-only once the window gets narrow so a
+ *  squeezed desktop window keeps the desktop shell instead of flipping to the
+ *  phone UI (Paco 2026-07-30). */
+const SIDEBAR_FULL = 232;
+const SIDEBAR_MINI = 62;
 const HAIR = "rgba(255,255,255,.06)";
 
 /* The tape's heartbeat in the sidebar: 24 amber bars breathing. Heights are
@@ -70,6 +76,11 @@ export default function DesktopShell({
   const scheme = getColorScheme(profile.color_id ?? null);
   const name = profile.display_name || profile.username || "";
   const initials = name.trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase() || "F";
+
+  // Narrow window → icon-only sidebar. Keeps the desktop shell usable when the
+  // window is dragged small, instead of falling back to the phone UI.
+  const compact = useSidebarCompact();
+  const SIDEBAR_W = compact ? SIDEBAR_MINI : SIDEBAR_FULL;
 
   // ── collapsible rail (persisted) ──
   const [railOff, setRailOff] = useState(false);
@@ -105,16 +116,16 @@ export default function DesktopShell({
       <aside
         className="fixed left-0 top-0 bottom-0 z-40 flex flex-col"
         style={{
-          width: 232,
+          width: SIDEBAR_W,
           borderRight: `1px solid ${HAIR}`,
           background: "linear-gradient(180deg,#131116 0%,#0d0c0f 55%,#0b0a08 100%)",
-          padding: "22px 14px 18px",
+          padding: compact ? "22px 8px 18px" : "22px 14px 18px",
           transform: immersive ? "translateX(-100%)" : "translateX(0)",
           transition: slide,
         }}
       >
-        <div className="flex items-baseline gap-0.5 px-2.5 pb-6">
-          <span className="text-[19px] font-bold tracking-tight text-white">fennec</span>
+        <div className={`flex items-baseline gap-0.5 pb-6 ${compact ? "justify-center px-0" : "px-2.5"}`}>
+          {!compact && <span className="text-[19px] font-bold tracking-tight text-white">fennec</span>}
           <span className="inline-block h-[5px] w-[5px] rounded-full bg-accent" style={{ boxShadow: "0 0 8px rgba(245,166,35,.8)" }} />
         </div>
 
@@ -129,15 +140,16 @@ export default function DesktopShell({
                 type="button"
                 onClick={() => (id === "network" ? onOpenNetwork() : onNavigate(id))}
                 aria-current={active ? "page" : undefined}
-                className={`relative flex items-center gap-3 rounded-[10px] px-2.5 py-[9px] text-left text-[13.5px] font-medium transition ${active ? "" : "hover:bg-white/[0.04] hover:text-zinc-200"}`}
+                title={compact ? label : undefined}
+                className={`relative flex items-center rounded-[10px] py-[9px] text-[13.5px] font-medium transition ${compact ? "justify-center px-0" : "gap-3 px-2.5 text-left"} ${active ? "" : "hover:bg-white/[0.04] hover:text-zinc-200"}`}
                 style={active ? { background: "rgba(245,166,35,.09)", color: "#ffc861" } : { color: "#8b8b93" }}
               >
                 {/* active marker — the platform-standard left bar */}
                 {active && (
                   <span className="absolute left-0 top-1/2 h-4 w-[2.5px] -translate-y-1/2 rounded-full" style={{ background: "#f5a623" }} />
                 )}
-                <Icon className="h-4 w-4" />
-                {label}
+                <Icon className="h-4 w-4 shrink-0" />
+                {!compact && label}
               </button>
             );
           })}
@@ -149,14 +161,15 @@ export default function DesktopShell({
             type="button"
             onClick={() => onNavigate("ideas")}
             aria-label="Open The Tape"
-            className="rounded-[14px] px-3 pb-2.5 pt-3 text-left transition hover:border-accent/40"
+            title={compact ? "The Tape · live" : undefined}
+            className={`rounded-[14px] transition hover:border-accent/40 ${compact ? "grid place-items-center py-2.5" : "px-3 pb-2.5 pt-3 text-left"}`}
             style={{
               background: "linear-gradient(150deg,rgba(245,166,35,.07),rgba(245,166,35,.02))",
               border: "1px solid rgba(245,166,35,.14)",
             }}
           >
             <div className="flex h-[26px] items-center gap-[2px]">
-              {PULSE_BARS.map((h, i) => (
+              {(compact ? PULSE_BARS.slice(0, 6) : PULSE_BARS).map((h, i) => (
                 <i
                   key={i}
                   className="fennec-pulse-bar w-[3px] rounded-[2px]"
@@ -168,16 +181,19 @@ export default function DesktopShell({
                 />
               ))}
             </div>
-            <div className="mt-[7px] flex items-baseline justify-between">
-              <b className="text-[9px] font-bold uppercase tracking-[0.2em] text-accent">The Tape · live</b>
-            </div>
+            {!compact && (
+              <div className="mt-[7px] flex items-baseline justify-between">
+                <b className="text-[9px] font-bold uppercase tracking-[0.2em] text-accent">The Tape · live</b>
+              </div>
+            )}
           </button>
 
           {/* mini profile — on-brand chrome; the producer's color belongs to
               the FennecIdCard only (avatar initials keep it: it's their photo) */}
           <div
-            className="rounded-[14px] p-3"
-            style={{ border: `1px solid ${HAIR}`, background: "linear-gradient(150deg,#17151c,#100f13)" }}
+            className={compact ? "grid place-items-center py-1" : "rounded-[14px] p-3"}
+            style={compact ? undefined : { border: `1px solid ${HAIR}`, background: "linear-gradient(150deg,#17151c,#100f13)" }}
+            title={compact ? name : undefined}
           >
             <div className="flex items-center gap-2.5">
               {profile.avatar_url ? (
@@ -188,15 +204,19 @@ export default function DesktopShell({
                   {initials}
                 </div>
               )}
-              <div className="min-w-0">
-                <div className="truncate text-[12.5px] font-semibold text-white">{name}</div>
-                <div className="text-[9.5px] uppercase tracking-[0.12em] text-zinc-500">{profile.role ?? "Producer"}</div>
+              {!compact && (
+                <div className="min-w-0">
+                  <div className="truncate text-[12.5px] font-semibold text-white">{name}</div>
+                  <div className="text-[9.5px] uppercase tracking-[0.12em] text-zinc-500">{profile.role ?? "Producer"}</div>
+                </div>
+              )}
+            </div>
+            {!compact && (
+              <div className="mt-2 flex items-baseline gap-1.5 border-t pt-2" style={{ borderColor: "rgba(255,255,255,.06)" }}>
+                <span className="text-[8px] font-bold uppercase tracking-[0.16em] text-zinc-600">Fennec dB</span>
+                <b className="text-[16px] text-accent">{profile.fennec_db_score}</b>
               </div>
-            </div>
-            <div className="mt-2 flex items-baseline gap-1.5 border-t pt-2" style={{ borderColor: "rgba(255,255,255,.06)" }}>
-              <span className="text-[8px] font-bold uppercase tracking-[0.16em] text-zinc-600">Fennec dB</span>
-              <b className="text-[16px] text-accent">{profile.fennec_db_score}</b>
-            </div>
+            )}
           </div>
         </div>
       </aside>
@@ -211,13 +231,13 @@ export default function DesktopShell({
           and rail are `fixed`, so they're unaffected by this scrolling. */}
       <div
         className="relative flex h-screen flex-col overflow-y-auto"
-        style={{ marginLeft: immersive ? 0 : 232, marginRight: railHidden ? 0 : RAIL_W, transition: "margin .32s cubic-bezier(.22,1,.36,1)" }}
+        style={{ marginLeft: immersive ? 0 : SIDEBAR_W, marginRight: railHidden ? 0 : RAIL_W, transition: "margin .32s cubic-bezier(.22,1,.36,1)" }}
       >
         {/* Giant fox, deep background layer — the brand present at all times,
             like the landing's first screen. Barely-there so content wins.
             Hidden in immersive: the reel owns the whole surface. */}
         {!immersive && (
-          <div aria-hidden className="pointer-events-none fixed inset-0 z-0 overflow-hidden" style={{ left: 232, right: railHidden ? 0 : RAIL_W, transition: "right .32s cubic-bezier(.22,1,.36,1)" }}>
+          <div aria-hidden className="pointer-events-none fixed inset-0 z-0 overflow-hidden" style={{ left: SIDEBAR_W, right: railHidden ? 0 : RAIL_W, transition: "right .32s cubic-bezier(.22,1,.36,1)" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/fennec-icon-transparent.png"
