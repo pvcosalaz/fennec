@@ -5,6 +5,9 @@ import { ChevronLeft, ChevronRight, Check, ArrowRight, Pencil, Lock } from "luci
 import InspireHero from "@/components/remotion/InspireHero";
 import { QuickIdeasCard, ContentLabCard, MyScriptsCard } from "@/components/remotion/ContentToolCards";
 import { useSheetDismiss, SHEET_BOTTOM, SHEET_ENTER } from "@/components/ui/useSheetDismiss";
+import { GCAL_ENABLED, connectGoogleCalendar, fetchGCalEvents } from "@/lib/gcalClient";
+import type { GCalEvent } from "@/lib/googleCalendar";
+import { CalendarPlus } from "lucide-react";
 
 const TRENDING_CACHE_KEY = "fennec-trending-ideas-v3";
 
@@ -27,6 +30,8 @@ type Props = {
   userName?: string;
   isPro?: boolean;
   onUpgrade?: () => void;
+  /** Enables the Google Calendar overlay (events shown alongside content). */
+  userId?: string;
 };
 
 function toYMD(d: Date): string {
@@ -100,9 +105,15 @@ export default function CalendarHub({
   userName = "Paco",
   isPro = false,
   onUpgrade,
+  userId,
 }: Props) {
   const today = new Date();
   const todayYMD = toYMD(today);
+
+  // ── Google Calendar overlay (opt-in, only when the OAuth app is configured) ──
+  const gcalOn = GCAL_ENABLED && !!userId;
+  const [gcalConnected, setGcalConnected] = useState(false);
+  const [gcalEvents, setGcalEvents] = useState<GCalEvent[]>([]);
 
   const [anchorDate, setAnchorDate] = useState<Date>(today);
   const [selectedDay, setSelectedDay] = useState<string>(todayYMD);
@@ -124,6 +135,23 @@ export default function CalendarHub({
   const weekDays = getWeekDays(anchorDate);
   const weekStart = toYMD(weekDays[0]);
   const weekEnd = toYMD(weekDays[6]);
+
+  // Pull Google events for the visible week whenever it changes.
+  useEffect(() => {
+    if (!gcalOn || !userId) return;
+    const min = new Date(weekDays[0]); min.setHours(0, 0, 0, 0);
+    const max = new Date(weekDays[6]); max.setHours(23, 59, 59, 999);
+    let alive = true;
+    fetchGCalEvents(userId, min.toISOString(), max.toISOString())
+      .then((r) => { if (alive) { setGcalConnected(r.connected); setGcalEvents(r.events); } })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [gcalOn, userId, weekStart, weekEnd]);
+
+  const gcalByDate = gcalEvents.reduce<Record<string, GCalEvent[]>>((acc, e) => {
+    (acc[e.day] ??= []).push(e);
+    return acc;
+  }, {});
 
   const weekTasks = tasks.filter((t) => t.date >= weekStart && t.date <= weekEnd);
   const pendingThisWeek = weekTasks.filter((t) => t.status === "pending").length;
@@ -176,6 +204,18 @@ export default function CalendarHub({
         </p>
       </div>
 
+      {/* Google Calendar connect — only when the OAuth app is configured and
+          not yet linked. Once linked, events just appear (blue dots). */}
+      {gcalOn && !gcalConnected && (
+        <button
+          onClick={() => userId && connectGoogleCalendar(userId)}
+          className="flex-shrink-0 flex items-center gap-2 self-start rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-[12px] font-medium text-zinc-300 transition hover:border-accent/40 hover:text-white"
+        >
+          <CalendarPlus size={14} className="text-accent" />
+          Connect Google Calendar
+        </button>
+      )}
+
       {/* 2. Calendar (gráfica) */}
       <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4 space-y-3 flex-shrink-0">
       <div className="flex items-center justify-between">
@@ -203,6 +243,7 @@ export default function CalendarHub({
           const isSelected = ymd === selectedDay;
           const isToday = ymd === todayYMD;
           const hasTasks = (tasksByDate[ymd]?.length ?? 0) > 0;
+          const hasGcal = (gcalByDate[ymd]?.length ?? 0) > 0;
 
           let buttonClass =
             "flex flex-col items-center gap-1 py-2 rounded-xl transition-colors ";
@@ -222,15 +263,16 @@ export default function CalendarHub({
             >
               <span className="text-xs uppercase">{DAY_LABELS[i]}</span>
               <span className="text-sm font-bold">{day.getDate()}</span>
-              <span
-                className={`h-1.5 w-1.5 rounded-full ${
-                  hasTasks
-                    ? isSelected
-                      ? "bg-black"
-                      : "bg-amber-400"
-                    : "bg-transparent"
-                }`}
-              />
+              {/* two dots: amber = content tasks, blue = Google events */}
+              <span className="flex h-1.5 items-center gap-[3px]">
+                {hasTasks && (
+                  <span className={`h-1.5 w-1.5 rounded-full ${isSelected ? "bg-black" : "bg-amber-400"}`} />
+                )}
+                {hasGcal && (
+                  <span className={`h-1.5 w-1.5 rounded-full ${isSelected ? "bg-black/60" : "bg-sky-400"}`} />
+                )}
+                {!hasTasks && !hasGcal && <span className="h-1.5 w-1.5" />}
+              </span>
             </button>
           );
         })}
@@ -291,11 +333,26 @@ export default function CalendarHub({
               </button>
             </div>
 
-            {selectedTasks.length === 0 ? (
+            {/* Google Calendar events for this day — read-only, from your Google */}
+            {(gcalByDate[selectedDay]?.length ?? 0) > 0 && (
+              <div className="mb-2 flex flex-col gap-1.5">
+                {gcalByDate[selectedDay].map((ev) => (
+                  <div key={ev.id} className="flex items-center gap-2.5 rounded-xl border border-sky-400/20 bg-sky-400/[0.06] px-3 py-2">
+                    <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-sky-400" />
+                    <span className="min-w-0 flex-1 truncate text-[13px] text-zinc-200">{ev.title}</span>
+                    <span className="flex-shrink-0 font-mono text-[10px] text-sky-300/80">
+                      {ev.allDay ? "All day" : ev.time}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {selectedTasks.length === 0 && (gcalByDate[selectedDay]?.length ?? 0) === 0 ? (
               <p className="text-xs text-zinc-600 py-8 text-center">
                 Nothing scheduled for this day.
               </p>
-            ) : (
+            ) : selectedTasks.length === 0 ? null : (
               <div className="flex flex-col gap-2">
                 {selectedTasks.map((task) => {
                   const isDone = task.status === "done";

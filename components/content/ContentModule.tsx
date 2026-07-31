@@ -749,7 +749,7 @@ function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule, onUp
 
 // ─── Main module ──────────────────────────────────────────────────────────────
 
-export default function ContentModule({ isPro = false, onUpgrade, genres = [], onToolOpenChange }: { isPro?: boolean; onUpgrade?: () => void; genres?: string[]; onToolOpenChange?: (open: boolean) => void }) {
+export default function ContentModule({ isPro = false, onUpgrade, genres = [], onToolOpenChange, userId }: { isPro?: boolean; onUpgrade?: () => void; genres?: string[]; onToolOpenChange?: (open: boolean) => void; userId?: string }) {
   const [ideas,  setIdeas]  = useState<Idea[]>([]);
   const [briefs, setBriefs] = useState<Brief[]>([]);
   const isDesktop = useIsDesktop();
@@ -974,6 +974,7 @@ export default function ContentModule({ isPro = false, onUpgrade, genres = [], o
           {/* Mobile: week-strip hub + the active tool as a bottom sheet
               (sliding up from the bottom is a phone gesture). */}
           <CalendarHub
+            userId={userId}
             tasks={tasks}
             isPro={isPro}
             onUpgrade={onUpgrade}
