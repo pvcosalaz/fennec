@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import { ChevronRight } from "lucide-react";
 import { SiInstagram, SiTiktok, SiYoutube } from "react-icons/si";
 import FennecIdCard from "@/components/network/FennecIdCard";
 import type { FennecIdColor } from "@/lib/fennecIdPalette";
@@ -8,6 +7,7 @@ import type { Quote } from "@/lib/pricingData";
 import type { Profile } from "@/lib/communityTypes";
 import type { ContributionDays } from "@/lib/contributions";
 import ContributionsCard from "@/components/dashboard/ContributionsCard";
+import { RiseStyle, Band, Tile, Cols, Col, Instrument } from "@/components/desktop/ui";
 
 /* ═══════════════════════════════════════════════════════════════
    DASHBOARD — desktop content (approved mockup language). Uses the
@@ -52,55 +52,9 @@ function fmtDate(d: string): string {
   return dt.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }).toUpperCase();
 }
 
-function Band({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
-  return (
-    <div className={className ?? "mt-5"}>
-      <div className="mb-1 flex items-center gap-2.5">
-        <span className="text-[8.5px] font-bold uppercase tracking-[0.22em] text-zinc-600">{label}</span>
-        <div className="h-px flex-1" style={{ background: "linear-gradient(90deg, rgba(255,255,255,.07), transparent)" }} />
-      </div>
-      {children}
-    </div>
-  );
-}
 
-/* Subtle grouping surface — the dB panel's materiality (top highlight + tinted
-   floor shadow), just lighter. Groups by function without a heavy card box. */
-function Tile({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div
-      className="relative overflow-hidden rounded-2xl px-4 pb-3 pt-3.5"
-      style={{
-        background: "linear-gradient(180deg,rgba(255,255,255,0.025),rgba(255,255,255,0.008))",
-        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05), 0 14px 30px -20px rgba(0,0,0,0.6)",
-      }}
-    >
-      <span className="mb-1.5 block text-[8.5px] font-bold uppercase tracking-[0.22em] text-zinc-600">{label}</span>
-      {children}
-    </div>
-  );
-}
 
-function Cols({ children }: { children: React.ReactNode }) {
-  return <div className="grid" style={{ gridAutoFlow: "column", gridAutoColumns: "1fr" }}>{children}</div>;
-}
 
-function Col({ value, label, sub, muted, onClick, icon }: { value: string; label: string; sub?: string; muted?: boolean; onClick?: () => void; icon?: React.ReactNode }) {
-  const Tag = onClick ? "button" : "div";
-  return (
-    <Tag type={onClick ? "button" : undefined} onClick={onClick}
-      className={`group relative border-l border-white/[0.05] px-[18px] py-[11px] text-left first:border-l-0 first:pl-0.5 ${onClick ? "transition hover:bg-white/[0.02]" : ""}`}>
-      {/* hover affordance: a quiet chevron says "this goes somewhere" */}
-      {onClick && (
-        <ChevronRight className="absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-600 opacity-0 transition-opacity duration-150 group-hover:opacity-100" />
-      )}
-      {icon && <div className="mb-1.5">{icon}</div>}
-      <b className={`text-[21px] font-extrabold tabular-nums ${muted ? "text-zinc-600" : "text-white"}`}>{value}</b>
-      <span className="mt-[3px] block text-[9px] uppercase tracking-[0.16em] text-zinc-600">{label}</span>
-      {sub && <span className="text-[10px] font-semibold text-accent">{sub}</span>}
-    </Tag>
-  );
-}
 
 export default function DashboardDesktop({
   card, networkProfile, fennecDb, cardColorScheme,
@@ -139,13 +93,7 @@ export default function DashboardDesktop({
 
   return (
     <div>
-      {/* Staggered entrance — a quiet waterfall so the panel feels assembled,
-          not dumped. Enhances an already-laid-out screen (both: fill mode). */}
-      <style>{`
-        @keyframes ddRise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-        .dd-rise { animation: ddRise .5s cubic-bezier(.16,1,.3,1) both; }
-        @media (prefers-reduced-motion: reduce) { .dd-rise { animation: none; } }
-      `}</style>
+      <RiseStyle />
       {/* header — greeting follows the actual clock, not a hardcoded evening */}
       <div className="dd-rise mb-6 flex items-center justify-between">
         <h1 className="text-[21px] font-bold tracking-tight text-white">
@@ -186,35 +134,22 @@ export default function DashboardDesktop({
             collectionNumber={card.collectionNumber} smallDb
           />
         </div>
-        {/* dB reading — an instrument, not a boxed stat. Layered surface (top
-            highlight + tinted floor shadow) reads as physical; solid amber
-            number instead of the gradient-text + outer glow (both AI tells). */}
-        <div
-          className="relative flex flex-col items-center justify-center overflow-hidden rounded-2xl p-6"
-          style={{
-            background: "linear-gradient(180deg,#151318,#100f13)",
-            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06), 0 16px 34px -18px rgba(0,0,0,0.7)",
-          }}
-        >
-          {/* a soft amber floor, low and wide — light pooling under the meter,
-              not a neon halo around it */}
-          <div className="pointer-events-none absolute inset-0" style={{ background: `radial-gradient(60% 42% at 50% 100%, ${accent}12, transparent 72%)` }} />
-          <span className="relative text-[9px] font-bold uppercase tracking-[0.35em] text-zinc-500">Fennec dB</span>
-          <div className="relative flex items-baseline" style={{ padding: "2px 4px" }}>
-            <span className="text-[92px] font-black tabular-nums leading-none tracking-[-0.035em]" style={{ color: accent }}>
-              {fennecDb}
-            </span>
-          </div>
-          {/* the tape's soundwave — same EQ bars as the mobile Fennec ID card.
-              No subtitle: the dB stands alone (Paco likes it solitary), and a
-              "total reach = followers" line pushed producers toward creator/
-              vanity metrics, which is exactly what Fennec avoids. */}
-          <div className="relative flex items-end gap-[3px]" style={{ height: 24, marginTop: 10 }}>
-            {EQ_HEIGHTS.map((h, i) => (
-              <span key={i} className="fennec-eq-bar" style={{ height: h, width: 3, background: accent, animationDelay: `${i * 0.15}s` }} />
-            ))}
-          </div>
-        </div>
+        {/* dB reading — the shared Instrument, same piece Business uses for
+            revenue. No subtitle: the dB stands alone (Paco likes it solitary),
+            and a "total reach = followers" line pushed producers toward
+            creator/vanity metrics, which is exactly what Fennec avoids. */}
+        <Instrument
+          label="Fennec dB"
+          value={String(fennecDb)}
+          footer={
+            /* the tape's soundwave — same EQ bars as the mobile Fennec ID card */
+            <div className="relative flex items-end gap-[3px]" style={{ height: 24, marginTop: 10 }}>
+              {EQ_HEIGHTS.map((h, i) => (
+                <span key={i} className="fennec-eq-bar" style={{ height: h, width: 3, background: accent, animationDelay: `${i * 0.15}s` }} />
+              ))}
+            </div>
+          }
+        />
       </div>
 
       {/* Contributions — the dB's visual evidence (same card as mobile, wider

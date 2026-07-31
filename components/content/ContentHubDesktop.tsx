@@ -5,6 +5,7 @@ import {
   ChevronLeft, ChevronRight, Check, Pencil, Lock, Plus,
   Zap, Sparkles, FlaskConical, FileText,
 } from "lucide-react";
+import { RiseStyle, SURFACE } from "@/components/desktop/ui";
 
 /* ═══════════════════════════════════════════════════════════════
    MARKETING — desktop. The mobile hub is a week strip + big tool
@@ -121,6 +122,7 @@ export default function ContentHubDesktop({
 
   return (
     <div className="text-white">
+      <RiseStyle />
       {/* ── header: month + navigation only ── */}
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-[21px] font-bold tracking-tight">
@@ -143,14 +145,15 @@ export default function ContentHubDesktop({
       </div>
 
       {/* ── the four tools, first-class ── */}
-      <div className="mb-4 grid grid-cols-4 gap-3">
+      <div className="dd-rise mb-4 grid grid-cols-4 gap-3" style={{ animationDelay: ".06s" }}>
         {TOOLS.map(({ id, label, sub, icon: Icon, pro }) => {
           const locked = pro && !isPro;
           return (
             <button
               key={id}
               onClick={() => (locked ? onUpgrade?.() : onOpenSheet(id))}
-              className="group flex items-center gap-3.5 rounded-xl border border-white/[0.07] bg-white/[0.02] px-4 py-4 text-left transition hover:border-accent/30 hover:bg-white/[0.04]"
+              style={SURFACE}
+              className="group flex items-center gap-3.5 rounded-xl px-4 py-4 text-left transition hover:brightness-125"
             >
               <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg transition group-hover:bg-accent/10" style={{ background: "rgba(255,255,255,.04)" }}>
                 <Icon className="h-4 w-4 text-accent" />

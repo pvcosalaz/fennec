@@ -1,6 +1,7 @@
 "use client";
 import { type Project, type Quote, type Client, formatCOP } from "@/lib/pricingData";
 import type { BusinessView } from "./BusinessHub";
+import { RiseStyle, Tile, Instrument, Cols, Col, ACCENT } from "@/components/desktop/ui";
 
 /* ═══════════════════════════════════════════════════════════════
    BUSINESS HUB — desktop content. Enterprise register (KPI band,
@@ -54,16 +55,6 @@ function ClientsIcon() {
   );
 }
 
-function KPI({ label, value, sub, accent }: { label: string; value: string; sub?: string; accent?: boolean }) {
-  return (
-    <div className="rounded-xl border border-white/[0.07] bg-white/[0.02] px-5 py-4">
-      <span className="text-[9.5px] uppercase tracking-[0.18em] text-zinc-600">{label}</span>
-      <b className={`mt-1.5 block text-[26px] font-extrabold tabular-nums tracking-tight ${accent ? "text-accent" : "text-white"}`}>{value}</b>
-      {sub && <div className="mt-0.5 text-[10.5px] text-zinc-500">{sub}</div>}
-    </div>
-  );
-}
-
 const STATUS_STYLE: Record<string, string> = {
   sent:  "bg-accent/15 text-accent",
   paid:  "bg-emerald-400/10 text-emerald-400",
@@ -91,7 +82,9 @@ export default function BusinessHubDesktop({
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
+      <RiseStyle />
+
+      <div className="dd-rise mb-6 flex items-center justify-between">
         <h1 className="text-[21px] font-bold tracking-tight text-white">Business</h1>
         <div className="flex items-center gap-2.5">
           <button type="button" onClick={() => onOpenView("clients")} className="rounded-full border border-white/10 px-3.5 py-1.5 text-[11.5px] text-zinc-400 transition hover:text-white">
@@ -103,46 +96,66 @@ export default function BusinessHubDesktop({
         </div>
       </div>
 
-      {/* tools — same illustrated icons as the mobile app, up top so the
-          quick actions read before the numbers */}
-      <div className="mb-4 grid grid-cols-3 gap-3">
-        {([
-          { v: "calculator", t: "Pricing Calculator", d: "Know exactly what to charge", icon: <CalculatorIcon /> },
-          { v: "projects",   t: "Active Projects",     d: `${activeProjects.length} in progress`, icon: <ProjectsIcon /> },
-          { v: "clients",    t: "Clients & Leads",     d: `${clients.length} in your roster`, icon: <ClientsIcon /> },
-        ] as { v: BusinessView; t: string; d: string; icon: React.ReactNode }[]).map(({ v, t, d, icon }) => (
-          <button
-            key={v}
-            type="button"
-            onClick={() => onOpenView(v)}
-            className="flex items-center gap-3.5 rounded-xl border border-white/[0.07] bg-white/[0.02] px-5 py-4 text-left transition hover:border-accent/30 hover:bg-white/[0.04]"
-          >
-            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg" style={{ background: "rgba(255,255,255,.04)" }}>{icon}</div>
-            <div>
-              <b className="block text-[13.5px] font-bold text-white">{t}</b>
-              <span className="mt-0.5 block text-[11px] text-zinc-500">{d}</span>
-            </div>
-          </button>
-        ))}
+      {/* Hero: the money. A business module's one number is revenue, so it
+          gets the dashboard's Instrument treatment instead of hiding as one
+          of four identical KPI boxes. Trend sits beside it — number, then
+          shape (design pass 2026-07-31). */}
+      <div className="dd-rise grid items-stretch gap-4" style={{ gridTemplateColumns: ".85fr 1.35fr", animationDelay: ".06s" }}>
+        <Instrument
+          label="Revenue · MTD"
+          value={revenue > 0 ? formatCOP(revenue) : "$0"}
+          size={54}
+          footer={
+            <span className="relative mt-2 text-[10px] text-zinc-500">
+              {paidProjects.length > 0 ? `${paidProjects.length} paid this month` : "No paid work yet"}
+            </span>
+          }
+        />
+        <Tile label="Revenue · last 6 months">
+          <div className="mt-3 flex h-[132px] items-end gap-2.5">
+            {months.map((m, i) => {
+              const pct = revenues[i] > 0 ? Math.max((revenues[i] / maxRev) * 100, 6) : 3;
+              return (
+                <div key={i} className="flex-1 rounded-t-[4px] transition-all duration-500"
+                  style={{ height: `${pct}%`, background: m.isCurrent ? ACCENT : "rgba(255,255,255,.08)" }} />
+              );
+            })}
+          </div>
+          <div className="mt-2 flex gap-2.5">
+            {months.map((m, i) => (
+              <span key={i} className={`flex-1 text-center font-mono text-[9.5px] ${m.isCurrent ? "text-accent" : "text-zinc-600"}`}>{m.label}</span>
+            ))}
+          </div>
+        </Tile>
       </div>
 
-      {/* KPI band */}
-      <div className="grid grid-cols-4 gap-3">
-        <KPI label="Revenue · MTD" value={revenue > 0 ? formatCOP(revenue) : "$0"} accent sub={`${paidProjects.length} paid this month`} />
-        <KPI label="Outstanding quotes" value={outstanding > 0 ? usd(outstanding) : "—"} sub={`${sentQuotes.length} awaiting reply`} />
-        <KPI label="Active projects" value={String(activeProjects.length)} sub={activeProjects.length ? "in progress" : "none yet"} />
-        <KPI label="Avg. project" value={avgProject > 0 ? usd(avgProject) : "—"} sub={paidProjects.length ? "from paid work" : "—"} />
+      {/* Secondary metrics — hairline columns, not four more boxes. */}
+      <div className="dd-rise mt-4" style={{ animationDelay: ".12s" }}>
+        <Tile label="Pipeline">
+          <Cols>
+            <Col value={outstanding > 0 ? usd(outstanding) : "—"} label="Outstanding" muted={outstanding === 0}
+              sub={sentQuotes.length ? `${sentQuotes.length} awaiting reply` : undefined} onClick={() => onOpenView("quotes")} />
+            <Col value={String(activeProjects.length)} label="Active projects" muted={activeProjects.length === 0}
+              sub={activeProjects.length ? "in progress" : undefined} onClick={() => onOpenView("projects")} />
+            <Col value={avgProject > 0 ? usd(avgProject) : "—"} label="Avg. project" muted={avgProject === 0}
+              sub={paidProjects.length ? "from paid work" : undefined} />
+            <Col value={String(clients.length)} label="Clients" muted={clients.length === 0}
+              sub={clients.length ? "in your roster" : undefined} onClick={() => onOpenView("clients")} />
+          </Cols>
+        </Tile>
       </div>
 
-      {/* quotes table + revenue chart */}
-      <div className="mt-4 grid gap-4" style={{ gridTemplateColumns: "1.55fr 1fr" }}>
-        <div className="overflow-hidden rounded-xl border border-white/[0.07]">
-          <div className="flex items-center justify-between border-b border-white/[0.07] px-5 py-3.5">
+      {/* Quotes + tools. The three tool cards used to be an equal 3-across
+          row (the generic feature-row shape); they're now a compact rail
+          beside the table, which also gives the table the width it wants. */}
+      <div className="dd-rise mt-4 grid gap-4" style={{ gridTemplateColumns: "1.55fr 1fr", animationDelay: ".18s" }}>
+        <Tile padded={false}>
+          <div className="flex items-center justify-between px-5 py-3.5">
             <b className="text-[13.5px] font-bold text-white">Quotes</b>
-            <button type="button" onClick={() => onOpenView("quotes")} className="text-[11px] font-semibold text-accent">View all →</button>
+            <button type="button" onClick={() => onOpenView("quotes")} className="text-[11px] font-semibold text-accent transition hover:brightness-110">View all →</button>
           </div>
           {recentQuotes.length === 0 ? (
-            <div className="px-5 py-10 text-center text-[12.5px] text-zinc-600">
+            <div className="px-5 pb-10 pt-4 text-center text-[12.5px] text-zinc-600">
               No quotes yet. Turn a calculated rate into a client-ready quote.
             </div>
           ) : (
@@ -150,7 +163,7 @@ export default function BusinessHubDesktop({
               <thead>
                 <tr>
                   {["Client", "Project", "Amount", "Status"].map((h) => (
-                    <th key={h} className="border-b border-white/[0.07] px-5 py-2.5 text-left text-[9.5px] font-semibold uppercase tracking-[0.16em] text-zinc-600">{h}</th>
+                    <th key={h} className="border-y border-white/[0.06] px-5 py-2.5 text-left text-[9.5px] font-semibold uppercase tracking-[0.16em] text-zinc-600">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -168,24 +181,29 @@ export default function BusinessHubDesktop({
               </tbody>
             </table>
           )}
-        </div>
+        </Tile>
 
-        <div className="rounded-xl border border-white/[0.07] p-5">
-          <b className="text-[13.5px] font-bold text-white">Revenue · last 6 months</b>
-          <div className="mt-5 flex h-[150px] items-end gap-2.5">
-            {months.map((m, i) => {
-              const pct = revenues[i] > 0 ? Math.max((revenues[i] / maxRev) * 100, 6) : 3;
-              return (
-                <div key={i} className="flex-1 rounded-t-[4px]" style={{ height: `${pct}%`, background: m.isCurrent ? "linear-gradient(180deg,#ffc861,#f5a623)" : "rgba(255,255,255,.08)" }} />
-              );
-            })}
-          </div>
-          <div className="mt-2 flex gap-2.5">
-            {months.map((m, i) => (
-              <span key={i} className={`flex-1 text-center font-mono text-[9.5px] ${m.isCurrent ? "text-accent" : "text-zinc-600"}`}>{m.label}</span>
+        <Tile label="Tools">
+          <div className="flex flex-col divide-y divide-white/[0.05]">
+            {([
+              { v: "calculator", t: "Pricing Calculator", d: "Know what to charge", icon: <CalculatorIcon /> },
+              { v: "projects",   t: "Active Projects",    d: `${activeProjects.length} in progress`, icon: <ProjectsIcon /> },
+              { v: "clients",    t: "Clients & Leads",    d: `${clients.length} in your roster`, icon: <ClientsIcon /> },
+            ] as { v: BusinessView; t: string; d: string; icon: React.ReactNode }[]).map(({ v, t, d, icon }) => (
+              <button key={v} type="button" onClick={() => onOpenView(v)}
+                className="group flex items-center gap-3 py-2.5 text-left transition first:pt-1">
+                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg" style={{ background: "rgba(255,255,255,.04)" }}>{icon}</div>
+                <div className="min-w-0 flex-1">
+                  <b className="block truncate text-[12.5px] font-bold text-white">{t}</b>
+                  <span className="block truncate text-[10.5px] text-zinc-500">{d}</span>
+                </div>
+                <span className="flex-shrink-0 text-zinc-600 opacity-0 transition-opacity group-hover:opacity-100">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6" /></svg>
+                </span>
+              </button>
             ))}
           </div>
-        </div>
+        </Tile>
       </div>
     </div>
   );

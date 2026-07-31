@@ -67,7 +67,7 @@ function Reel({ plateRef, pancakeRef, edgeRef, r0 }: {
       {/* wound tape: flat dark disc + amber edge as the level indicator */}
       <circle ref={pancakeRef} cx="100" cy="100" r={r0} fill="#1a1511" />
       <circle ref={edgeRef} cx="100" cy="100" r={r0} fill="none" stroke={AMBER} strokeWidth="1.5" opacity="0.85"
-        style={{ filter: `drop-shadow(0 0 6px ${AMBER}50)` }} />
+        /* no neon glow: the accent carries it (design pass 2026-07-31) */ />
 
       {/* rotating hub — three thin spokes + an amber index dot that makes
           the spin legible without any metal plate */}
