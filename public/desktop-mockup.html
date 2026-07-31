@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Fennec Desktop — Explorable Prototype</title>
+<link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --canvas:#0b0a08; --surface:#111114; --tape:#131216; --raise:#17171b;
+    --ink:#f5f5f5; --mut:#8b8b93; --dim:#55555c; --hair:rgba(255,255,255,.07);
+    --amber:#f5a623; --amber-hot:#ffc861;
+    --ui:"General Sans","Helvetica Neue",sans-serif;
+    --serif:"Newsreader",Georgia,serif; --mono:"Space Mono",monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--canvas);color:var(--ink);font-family:var(--ui);-webkit-font-smoothing:antialiased}
+  a.ni{text-decoration:none}
+  .zonebar{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;gap:2px;background:rgba(11,10,8,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--hair);padding:9px 16px}
+  .zonebar a{text-decoration:none;font:600 11.5px var(--ui);letter-spacing:.02em;color:var(--mut);padding:7px 14px;border-radius:9px}
+  .zonebar a:hover{color:var(--ink);background:rgba(255,255,255,.05)}
+  .zonebar a.star{color:var(--amber)}
+  .zonebar .lbl{margin-left:auto;align-self:center;font:700 9px var(--mono);letter-spacing:.18em;color:var(--dim);text-transform:uppercase}
+  
+  .zone{min-height:100vh;display:flex;flex-direction:column;border-bottom:1px solid var(--hair)}
+  .zone-tag{position:absolute;top:14px;right:18px;font:700 10px var(--mono);letter-spacing:.2em;color:var(--dim);text-transform:uppercase;z-index:50}
+
+  /* ═══ SHELL ═══ */
+  .shell{display:grid;grid-template-columns:232px 1fr;flex:1;position:relative}
+  .side{border-right:1px solid var(--hair);background:var(--canvas);display:flex;flex-direction:column;padding:22px 14px 18px}
+  .brand{display:flex;align-items:baseline;gap:2px;padding:0 10px 26px}
+  .brand b{font-size:19px;font-weight:700;letter-spacing:-.02em}
+  .brand i{width:5px;height:5px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px rgba(245,166,35,.8)}
+  .nav{display:flex;flex-direction:column;gap:2px}
+  .ni{display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:10px;color:var(--mut);font-size:13.5px;font-weight:500}
+  .ni svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  .ni.on{background:rgba(245,166,35,.09);color:var(--amber-hot)}
+  .ni .k{margin-left:auto;font:400 10px var(--mono);color:var(--dim)}
+  .side-foot{margin-top:auto;display:flex;flex-direction:column;gap:10px}
+  .mini-id{border:1px solid rgba(167,139,250,.25);background:linear-gradient(150deg,#1a1526,#120f1a);border-radius:14px;padding:12px}
+  .mini-id .who{display:flex;gap:9px;align-items:center}
+  .mini-id .av{width:30px;height:30px;border-radius:50%;background:#f87171;display:grid;place-items:center;font-size:11px;font-weight:700;color:#111}
+  .mini-id .nm{font-size:12.5px;font-weight:600}
+  .mini-id .rl{font-size:9.5px;color:var(--dim);letter-spacing:.12em;text-transform:uppercase}
+  .mini-db{display:flex;align-items:baseline;gap:6px;margin-top:9px;padding-top:9px;border-top:1px solid rgba(255,255,255,.06)}
+  .mini-db em{font:700 8px var(--ui);letter-spacing:.16em;color:rgba(167,139,250,.6);font-style:normal}
+  .mini-db b{font-size:16px;color:#a78bfa}
+
+  .main{padding:30px 38px;overflow:hidden;position:relative}
+  .crumb{display:flex;justify-content:space-between;align-items:center;margin-bottom:26px}
+  .crumb h1{font-size:21px;font-weight:700;letter-spacing:-.01em}
+  .crumb .orb{display:flex;gap:10px;align-items:center}
+  .pill{border:1px solid var(--hair);border-radius:999px;padding:6px 13px;font-size:11.5px;color:var(--mut)}
+  .pill.hot{border-color:rgba(245,166,35,.35);color:var(--amber);font-weight:600}
+
+  /* ═══ DASHBOARD ═══ */
+  .dash{display:grid;grid-template-columns:1.25fr .9fr;gap:16px}
+  .card{background:var(--surface);border:1px solid var(--hair);border-radius:16px;padding:22px}
+  .db-hero{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:34px 22px;position:relative;overflow:hidden}
+  .db-hero:before{content:"";position:absolute;inset:-40%;background:radial-gradient(40% 32% at 50% 58%,rgba(167,139,250,.13),transparent 70%)}
+  .db-lab{font:700 9px var(--ui);letter-spacing:.35em;color:var(--dim);text-transform:uppercase}
+  .db-num{font-size:104px;font-weight:800;line-height:1;letter-spacing:-.04em;background:linear-gradient(180deg,#c4b5fd,#8b5cf6);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 26px rgba(139,92,246,.25))}
+  .eq{display:flex;align-items:flex-end;gap:3px;height:22px;margin-top:10px}
+  .eq i{width:3px;border-radius:2px;background:linear-gradient(180deg,#c4b5fd,#8b5cf6)}
+  .fid{background:linear-gradient(150deg,#221a33,#151021);border:1px solid rgba(167,139,250,.3);border-radius:18px;padding:24px;position:relative;overflow:hidden}
+  .fid .fx{position:absolute;right:-30px;bottom:-38px;font-size:150px;opacity:.05}
+  .fid .role{font:700 9px var(--ui);letter-spacing:.3em;color:rgba(196,181,253,.55);text-transform:uppercase}
+  .fid h2{font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1.02;margin-top:6px}
+  .fid .tags{display:flex;gap:6px;margin-top:12px}
+  .fid .tag{border:1px solid rgba(196,181,253,.35);color:#c4b5fd;border-radius:999px;font-size:10.5px;padding:3px 10px}
+  .fid .meta{margin-top:16px;font:400 10px var(--mono);color:rgba(196,181,253,.5);letter-spacing:.12em}
+  .statrow{grid-column:1/-1;display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+  .stat{background:var(--surface);border:1px solid var(--hair);border-radius:14px;padding:16px 18px}
+  .stat b{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}
+  .stat span{display:block;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-top:4px}
+  .stat .up{color:var(--amber);font-size:10.5px;font-weight:600}
+
+  /* ═══ THE TAPE ═══ */
+  .tapez{background:var(--tape);position:relative}
+  .tapez .main{padding:0;display:flex;flex-direction:column;flex:1}
+  .tape-top{display:flex;justify-content:space-between;align-items:center;padding:26px 38px 8px}
+  .tape-title{display:flex;align-items:baseline;gap:14px}
+  .tape-title h1{font-size:21px;font-weight:700}
+  .tape-title .tt{font:400 11px var(--mono);color:var(--dim)}
+  .vu{display:flex;gap:14px}
+  .vu .m{width:118px;height:8px;border-radius:4px;background:rgba(255,255,255,.05);position:relative;overflow:hidden}
+  .vu .m i{position:absolute;inset:0;width:62%;background:linear-gradient(90deg,rgba(245,166,35,.25),var(--amber));border-radius:4px}
+  .vu .m.r i{width:48%}
+  .tape-stage{flex:1;display:grid;grid-template-columns:1fr 296px;gap:0;min-height:520px}
+  .reelbox{position:relative;overflow:hidden;padding:30px 0 0 38px}
+  .track-head{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+  .track-head .cover{width:44px;height:44px;border-radius:10px;background:linear-gradient(140deg,#2a2030,#191319);border:1px solid var(--hair)}
+  .track-head .t1{font-size:16.5px;font-weight:700}
+  .track-head .t2{font:400 11px var(--mono);color:var(--dim)}
+  .track-head .badge{margin-left:14px;border:1px solid rgba(245,166,35,.3);color:var(--amber);font:700 9px var(--mono);letter-spacing:.18em;padding:4px 10px;border-radius:6px}
+  .reel{position:relative;height:290px;margin-top:26px}
+  .spool{position:absolute;top:6px;width:104px;height:104px;border-radius:50%;border:1px solid rgba(255,255,255,.10);background:radial-gradient(circle at 50% 50%,#232028 0 26%,#141216 27% 62%,#1c1a20 63% 100%);box-shadow:inset 0 2px 12px rgba(0,0,0,.7)}
+  .spool:after{content:"";position:absolute;inset:38px;border-radius:50%;background:#0b0a08;border:1px solid rgba(255,255,255,.12)}
+  .spool.l{left:6px}.spool.r{right:34px;transform:scale(.88)}
+  .tape-line{position:absolute;left:112px;right:118px;top:56px;height:2px;background:linear-gradient(90deg,rgba(255,255,255,.16),rgba(255,255,255,.09))}
+  .wave{position:absolute;left:130px;right:140px;top:88px;height:120px;display:flex;align-items:center;gap:2px}
+  .wave i{flex:1;border-radius:1.5px;background:rgba(255,255,255,.13)}
+  .wave i.hot{background:linear-gradient(180deg,var(--amber-hot),var(--amber));box-shadow:0 0 12px rgba(245,166,35,.35)}
+  .nowline{position:absolute;top:70px;bottom:44px;left:46%;width:1.5px;background:var(--amber);box-shadow:0 0 14px rgba(245,166,35,.7)}
+  .nowline:after{content:"1:24.6";position:absolute;top:-22px;left:-24px;font:700 10px var(--mono);color:var(--amber)}
+  .mark{position:absolute;width:12px;height:12px;border-radius:50%;background:var(--amber);box-shadow:0 0 10px rgba(245,166,35,.55);top:142px}
+  .mark.m1{left:24%}.mark.m2{left:57%}.mark.m3{left:74%;opacity:.55}
+  .note{position:absolute;max-width:330px;font-family:var(--serif);font-size:16.5px;line-height:1.5;color:#e8e6e1}
+  .note .who{font:700 10px var(--ui);letter-spacing:.05em;color:var(--amber);margin-bottom:4px;display:flex;gap:8px;align-items:baseline}
+  .note .who s{font:400 9.5px var(--mono);color:var(--dim);text-decoration:none}
+  .note.n1{left:15%;top:236px}
+  .note.n2{left:56%;top:236px;font-style:italic}
+  .queue{border-left:1px solid var(--hair);background:rgba(255,255,255,.015);display:flex;flex-direction:column;padding:26px 22px}
+  .drop{border:1.5px dashed rgba(245,166,35,.4);border-radius:16px;background:rgba(245,166,35,.05);padding:30px 18px;text-align:center}
+  .drop .ic{font-size:26px}
+  .drop b{display:block;font-size:14px;margin-top:8px}
+  .drop span{display:block;font-size:11px;color:var(--mut);margin-top:4px}
+  .drop .fmt{display:inline-block;margin-top:12px;font:400 9.5px var(--mono);color:var(--dim);letter-spacing:.14em}
+  .q-lab{font:700 9px var(--ui);letter-spacing:.25em;color:var(--dim);text-transform:uppercase;margin:24px 0 10px}
+  .q-item{display:flex;align-items:center;gap:11px;padding:10px 10px;border-radius:11px;border:1px solid transparent}
+  .q-item.on{border-color:rgba(245,166,35,.25);background:rgba(245,166,35,.05)}
+  .q-item .sq{width:32px;height:32px;border-radius:8px;background:#1c1a20;border:1px solid var(--hair)}
+  .q-item .qa{font-size:12.5px;font-weight:600}
+  .q-item .qb{font:400 10px var(--mono);color:var(--dim)}
+  .q-item .marks{margin-left:auto;font:700 10px var(--mono);color:var(--amber)}
+  .transport{display:flex;align-items:center;gap:18px;padding:18px 38px 24px;border-top:1px solid var(--hair)}
+  .tbtn{width:42px;height:42px;border-radius:50%;border:1px solid var(--hair);display:grid;place-items:center;color:var(--mut);font-size:13px}
+  .tbtn.play{width:52px;height:52px;background:linear-gradient(180deg,var(--amber-hot),var(--amber));color:#111;border:none;box-shadow:0 6px 22px rgba(245,166,35,.35);font-size:16px}
+  .thint{font:400 10.5px var(--mono);color:var(--dim);letter-spacing:.08em;margin-left:8px}
+  .karma{margin-left:auto;display:flex;align-items:center;gap:8px;border:1px solid rgba(245,166,35,.3);border-radius:999px;padding:7px 15px;color:var(--amber);font-size:12px;font-weight:700}
+
+  /* ═══ BUSINESS ═══ */
+  .biz .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+  .kpi{background:var(--surface);border:1px solid var(--hair);border-radius:12px;padding:18px 20px}
+  .kpi span{font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+  .kpi b{display:block;font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:6px;letter-spacing:-.01em}
+  .kpi .sub{font-size:10.5px;color:var(--mut);margin-top:3px}
+  .kpi.rev b{color:var(--amber)}
+  .bgrid{display:grid;grid-template-columns:1.55fr 1fr;gap:16px}
+  .tablecard{background:var(--surface);border:1px solid var(--hair);border-radius:12px;overflow:hidden}
+  .tc-head{display:flex;justify-content:space-between;align-items:center;padding:15px 20px;border-bottom:1px solid var(--hair)}
+  .tc-head b{font-size:13.5px;font-weight:700}
+  .tc-head .act{font-size:11px;color:var(--amber);font-weight:600}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th{font:600 9.5px var(--ui);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);text-align:left;padding:10px 20px;border-bottom:1px solid var(--hair)}
+  td{padding:12px 20px;border-bottom:1px solid rgba(255,255,255,.04);color:#d6d6db}
+  td.num{font-variant-numeric:tabular-nums;font-weight:600;color:var(--ink)}
+  .st{font-size:10px;font-weight:700;letter-spacing:.06em;border-radius:6px;padding:3px 9px}
+  .st.sent{background:rgba(245,166,35,.12);color:var(--amber)}
+  .st.paid{background:rgba(74,222,128,.1);color:#4ade80}
+  .st.draft{background:rgba(255,255,255,.06);color:var(--mut)}
+  .chartcard{background:var(--surface);border:1px solid var(--hair);border-radius:12px;padding:20px}
+  .chartcard b{font-size:13.5px}
+  .bars{display:flex;align-items:flex-end;gap:10px;height:150px;margin-top:20px}
+  .bars .b{flex:1;border-radius:4px 4px 2px 2px;background:rgba(255,255,255,.08)}
+  .bars .b.now{background:linear-gradient(180deg,var(--amber-hot),var(--amber))}
+  .bars-lab{display:flex;gap:10px;margin-top:8px}
+  .bars-lab span{flex:1;text-align:center;font:400 9.5px var(--mono);color:var(--dim)}
+
+  /* ═══ MARKETING + COMMUNITY ═══ */
+  .duo{display:grid;grid-template-columns:1fr 1fr;gap:0;flex:1}
+  .half{padding:30px 38px;position:relative}
+  .half+.half{border-left:1px solid var(--hair)}
+  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:18px}
+  .cal .d{aspect-ratio:1.15;background:var(--surface);border:1px solid var(--hair);border-radius:9px;padding:7px;font-size:10.5px;color:var(--dim);position:relative}
+  .cal .d i{position:absolute;bottom:7px;left:7px;width:6px;height:6px;border-radius:50%;background:var(--amber)}
+  .cal .d.today{border-color:rgba(245,166,35,.5)}
+  .ideas{display:flex;gap:10px;margin-top:18px}
+  .idea{flex:1;background:var(--surface);border:1px solid var(--hair);border-radius:12px;padding:14px}
+  .idea .yt{font:700 8.5px var(--mono);letter-spacing:.14em;color:#f87171}
+  .idea p{font-size:12px;line-height:1.45;margin-top:7px;color:#d6d6db}
+  .idea .ang{margin-top:9px;font-size:10.5px;color:var(--amber)}
+  .post{background:var(--surface);border:1px solid var(--hair);border-radius:14px;padding:16px;margin-top:14px}
+  .post .ph{display:flex;gap:9px;align-items:center}
+  .post .pav{width:28px;height:28px;border-radius:50%;background:#38bdf8;display:grid;place-items:center;font-size:10px;font-weight:700;color:#082f49}
+  .post .pn{font-size:12.5px;font-weight:600}
+  .post .pt{font-size:10px;color:var(--dim)}
+  .post p{font-size:13px;line-height:1.5;margin-top:10px;color:#d6d6db}
+  .radio{margin-top:18px;background:linear-gradient(150deg,#181318,#100d10);border:1px solid var(--hair);border-radius:14px;padding:18px;display:flex;align-items:center;gap:14px}
+  .radio .rec{width:44px;height:44px;border-radius:50%;background:rgba(245,166,35,.12);border:1px solid rgba(245,166,35,.4);display:grid;place-items:center;color:var(--amber);font-size:15px}
+  .radio .rw{display:flex;align-items:center;gap:2px;flex:1;height:26px}
+  .radio .rw i{width:3px;border-radius:2px;background:rgba(245,166,35,.5)}
+  .sec-h{font-size:18px;font-weight:700;letter-spacing:-.01em}
+  .sec-s{font-size:11.5px;color:var(--mut);margin-top:4px}
+
+  /* ═══ DASH v2 — no boxes: hairline bands (same evolution as mobile) ═══ */
+  .band{grid-column:1/-1;margin-top:6px}
+  .band-h{display:flex;align-items:center;gap:10px;margin-bottom:2px}
+  .band-h span{font:700 8.5px var(--ui);letter-spacing:.22em;text-transform:uppercase;color:var(--dim);flex-shrink:0}
+  .band-h i{height:1px;flex:1;background:linear-gradient(90deg,rgba(255,255,255,.07),transparent)}
+  .cols{display:grid;grid-auto-flow:column;grid-auto-columns:1fr}
+  .cols .c{padding:14px 18px;border-left:1px solid rgba(255,255,255,.05)}
+  .cols .c:first-child{border-left:none;padding-left:2px}
+  .cols b{font-size:21px;font-weight:800;font-variant-numeric:tabular-nums}
+  .cols b.mut{color:var(--dim);font-weight:600}
+  .cols span{display:block;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-top:3px}
+  .cols .up{color:var(--amber);font-size:10px;font-weight:600}
+  .act3{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:0;margin-top:4px}
+  .act3 .c{padding:12px 18px;border-left:1px solid rgba(255,255,255,.05)}
+  .act3 .c:first-child{border-left:none;padding-left:2px}
+  .aq{font-family:var(--serif);font-size:14px;line-height:1.45;color:#d9d7d2}
+  .aq .w{font:700 10px var(--ui);color:var(--amber)}
+  .aq .t{font:400 9px var(--mono);color:var(--dim)}
+  .arow{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12.5px;color:#d6d6db}
+  .arow:last-child{border-bottom:none}
+  .arow .n{font-variant-numeric:tabular-nums;font-weight:600}
+  .arow .st{font-size:9px}
+  .anext{font-size:12.5px;color:#d6d6db;line-height:1.5}
+  .anext .d{font:400 10px var(--mono);color:var(--amber)}
+  .alink{display:inline-block;margin-top:8px;font-size:11px;font-weight:600;color:var(--amber);cursor:pointer}
+
+  /* ═══ EXPLORABLE PROTOTYPE — v3: zone contrast + social rail ═══ */
+  .app{display:grid;grid-template-columns:232px 1fr;min-height:100vh}
+  .content-col{min-width:0;margin-right:292px;transition:margin-right .32s cubic-bezier(.22,1,.36,1)}
+  body.rail-off .content-col{margin-right:0}
+  .side{position:sticky;top:0;height:100vh;background:linear-gradient(180deg,#131116 0%,#0d0c0f 55%,#0b0a08 100%)}
+  /* live tape pulse — the reel's heartbeat, always present */
+  .pulse{margin:0 2px 12px;padding:12px 12px 10px;border-radius:14px;cursor:pointer;
+    background:linear-gradient(150deg,rgba(245,166,35,.07),rgba(245,166,35,.02));
+    border:1px solid rgba(245,166,35,.14);transition:border-color .15s ease}
+  .pulse:hover{border-color:rgba(245,166,35,.4)}
+  .pulse .pw{display:flex;align-items:center;gap:2px;height:26px}
+  .pulse .pw i{width:3px;border-radius:2px;background:linear-gradient(180deg,var(--amber-hot),rgba(245,166,35,.35));animation:pw 1.6s ease-in-out infinite alternate}
+  .pulse .pl{display:flex;justify-content:space-between;align-items:baseline;margin-top:7px}
+  .pulse .pl b{font:700 9px var(--ui);letter-spacing:.2em;color:var(--amber);text-transform:uppercase}
+  .pulse .pl s{font:400 9.5px var(--mono);color:var(--dim);text-decoration:none}
+  @keyframes pw{from{transform:scaleY(.45)}to{transform:scaleY(1)}}
+  @media (prefers-reduced-motion: reduce){.pulse .pw i{animation:none}}
+  /* right social rail */
+  .rail{position:fixed;right:0;top:0;height:100vh;width:292px;overflow-y:auto;z-index:60;transition:transform .32s cubic-bezier(.22,1,.36,1);background:linear-gradient(180deg,#12101a 0%,#0d0c11 60%,#0b0a08 100%);border-left:1px solid rgba(255,255,255,.06);padding:22px 18px}
+  body.rail-off .rail{transform:translateX(100%)}
+  /* rail toggle — floats at the content's top-right, follows the rail edge */
+  /* rail toggle — a quiet chevron riding the rail's edge, vertically centered */
+  .rail-toggle{position:fixed;top:50%;right:292px;transform:translate(50%,-50%);z-index:70;
+    width:28px;height:52px;display:grid;place-items:center;
+    border:1px solid var(--hair);background:rgba(17,16,20,.92);color:var(--dim);
+    border-radius:8px;cursor:pointer;
+    transition:right .32s cubic-bezier(.22,1,.36,1),color .15s ease,border-color .15s ease}
+  .rail-toggle:hover{color:var(--amber);border-color:rgba(245,166,35,.35)}
+  body.rail-off .rail-toggle{right:0;transform:translate(-8px,-50%);
+    color:var(--amber);border-color:rgba(245,166,35,.45);
+    background:rgba(245,166,35,.08);
+    box-shadow:0 0 14px rgba(245,166,35,.18)}
+  .rail-toggle svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;
+    transition:transform .32s cubic-bezier(.22,1,.36,1)}
+  body.rail-off .rail-toggle svg{transform:rotate(180deg)}
+  /* rail top icons — notifications + settings (the app's real chrome) */
+  .rail-top{display:flex;justify-content:flex-end;gap:8px;padding:0 2px 14px;position:relative}
+  .rico{width:34px;height:34px;border-radius:11px;border:1px solid var(--hair);background:rgba(255,255,255,.03);
+    display:grid;place-items:center;color:var(--mut);cursor:pointer;position:relative;
+    transition:color .15s ease,border-color .15s ease}
+  .rico:hover{color:var(--amber);border-color:rgba(245,166,35,.35)}
+  .rico svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  .rico .dot{position:absolute;top:7px;right:8px;width:6px;height:6px;border-radius:50%;background:var(--amber);
+    box-shadow:0 0 6px rgba(245,166,35,.8)}
+  .notipop{position:fixed;top:64px;right:16px;width:272px;z-index:120;display:none;
+    background:#141218;border:1px solid var(--hair);border-radius:14px;padding:8px;
+    box-shadow:0 18px 50px rgba(0,0,0,.6)}
+  .notipop.open{display:block}
+  .notipop .nh{font:700 8.5px var(--ui);letter-spacing:.22em;text-transform:uppercase;color:var(--dim);padding:6px 8px}
+  .noti{display:flex;gap:9px;padding:8px;border-radius:10px;font-size:11.5px;line-height:1.45;color:#c9c9cf;cursor:pointer}
+  .noti:hover{background:rgba(255,255,255,.04)}
+  .noti .ni2{width:26px;height:26px;border-radius:8px;background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.25);
+    display:grid;place-items:center;font-size:11px;flex-shrink:0}
+  .noti b{color:var(--amber)}
+  .noti .t{display:block;font:400 9px var(--mono);color:var(--dim);margin-top:2px}
+  /* settings view rows */
+  .set-row{display:flex;justify-content:space-between;align-items:center;padding:15px 2px;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer}
+  .set-row:hover .sl{color:var(--ink)}
+  .set-row .sl{font-size:13.5px;font-weight:600;color:#d6d6db;transition:color .15s ease}
+  .set-row .sd{font-size:10.5px;color:var(--dim);margin-top:2px}
+  .set-row .sv{font:400 11px var(--mono);color:var(--dim)}
+  .set-row .sv.hot{color:var(--amber)}
+  .rail-me{text-align:center;padding:10px 0 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+  .rail-me .rav{width:64px;height:64px;border-radius:50%;margin:0 auto;background:#f87171;display:grid;place-items:center;font-size:20px;font-weight:800;color:#111;border:2px solid rgba(167,139,250,.5);box-shadow:0 0 24px rgba(167,139,250,.25)}
+  .rail-me .rn{font-size:15px;font-weight:700;margin-top:10px}
+  .rail-me .rr{font:400 10px var(--mono);color:var(--dim);margin-top:2px}
+  .rail-me .rdb{display:inline-flex;align-items:baseline;gap:6px;margin-top:9px;border:1px solid rgba(167,139,250,.3);border-radius:999px;padding:4px 12px}
+  .rail-me .rdb em{font:700 8px var(--ui);letter-spacing:.16em;color:rgba(167,139,250,.65);font-style:normal}
+  .rail-me .rdb b{font-size:14px;color:#a78bfa}
+  .rail-h{display:flex;justify-content:space-between;align-items:baseline;margin:18px 0 8px}
+  .rail-h span{font:700 8.5px var(--ui);letter-spacing:.22em;text-transform:uppercase;color:var(--dim)}
+  .rail-h a{font-size:10px;color:var(--amber);font-weight:600;cursor:pointer}
+  .rp{display:flex;align-items:center;gap:10px;padding:8px 6px;border-radius:11px;cursor:pointer}
+  .rp:hover{background:rgba(255,255,255,.04)}
+  .rp .pa{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:10.5px;font-weight:700;flex-shrink:0}
+  .rp .pn{font-size:12.5px;font-weight:600}
+  .rp .pm{font:400 9.5px var(--mono);color:var(--dim)}
+  .rp .pdb{margin-left:auto;font:700 11px var(--mono)}
+  .ract{padding:9px 6px;border-bottom:1px solid rgba(255,255,255,.04);font-size:11.5px;line-height:1.5;color:#c9c9cf}
+  .ract:last-child{border-bottom:none}
+  .ract b{color:var(--amber);font-weight:700}
+  .ract .t{display:block;font:400 9px var(--mono);color:var(--dim);margin-top:2px}
+  .view{display:none;min-height:100vh;flex-direction:column;position:relative}
+  .view.active{display:flex}
+  .ni{cursor:pointer;user-select:none}
+  .clickcard{cursor:pointer;transition:border-color .15s ease, transform .12s ease}
+  .clickcard:hover{border-color:rgba(245,166,35,.35)}
+  .clickcard:active{transform:scale(.99)}
+  /* network deck */
+  .deck{display:flex;gap:-40px;margin-top:26px;height:210px;position:relative}
+  .ncard{position:absolute;width:300px;height:180px;border-radius:18px;padding:18px;border:1px solid var(--hair)}
+  .ncard .nrole{font:700 8px var(--ui);letter-spacing:.28em;text-transform:uppercase;opacity:.6}
+  .ncard .nname{font-size:21px;font-weight:800;margin-top:5px}
+  .ncard .nnum{position:absolute;bottom:14px;right:16px;font:400 10px var(--mono);opacity:.5}
+  .scan{margin-top:36px;border:1.5px dashed rgba(245,166,35,.4);border-radius:16px;background:rgba(245,166,35,.05);padding:26px;text-align:center;max-width:420px}
+  .scan b{font-size:14px}
+  .scan span{display:block;font-size:11px;color:var(--mut);margin-top:5px}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ── persistent sidebar ─────────────────────────────── -->
+  <aside class="side">
+    <div class="brand"><b>fennec</b><i></i></div>
+    <nav class="nav">
+      <div class="ni" data-view="dashboard"><svg viewBox="0 0 24 24"><path d="M3 12l9-8 9 8M5 10v10h14V10"/></svg>Dashboard</div>
+      <div class="ni" data-view="business"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>Business</div>
+      <div class="ni" data-view="tape"><svg viewBox="0 0 24 24"><circle cx="7" cy="12" r="3.4"/><circle cx="17" cy="12" r="3.4"/><path d="M10.4 12h3.2"/></svg>The Tape <span class="k">3 new</span></div>
+      <div class="ni" data-view="marketing"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Marketing</div>
+      <div class="ni" data-view="community"><svg viewBox="0 0 24 24"><path d="M17 8a5 5 0 10-10 0c0 5-2 6-2 6h14s-2-1-2-6M10.5 19a2 2 0 003 0"/></svg>Community</div>
+      <div class="ni" data-view="network"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.7-3 3-4.5 5.5-4.5S13.8 16 14.5 19M16 3.8a3.2 3.2 0 010 8.4M17.5 14.7c2 .6 3 2.2 3.5 4.3"/></svg>Network</div>
+    </nav>
+    <div class="side-foot">
+      <div class="pulse" data-go2="tape" title="The Tape — live">
+        <div class="pw"><i style="height:8px;animation-delay:0ms"></i><i style="height:14px;animation-delay:97ms"></i><i style="height:7px;animation-delay:194ms"></i><i style="height:18px;animation-delay:291ms"></i><i style="height:11px;animation-delay:388ms"></i><i style="height:22px;animation-delay:485ms"></i><i style="height:9px;animation-delay:582ms"></i><i style="height:15px;animation-delay:679ms"></i><i style="height:7px;animation-delay:776ms"></i><i style="height:12px;animation-delay:873ms"></i><i style="height:17px;animation-delay:70ms"></i><i style="height:8px;animation-delay:167ms"></i><i style="height:13px;animation-delay:264ms"></i><i style="height:20px;animation-delay:361ms"></i><i style="height:10px;animation-delay:458ms"></i><i style="height:6px;animation-delay:555ms"></i><i style="height:16px;animation-delay:652ms"></i><i style="height:9px;animation-delay:749ms"></i><i style="height:14px;animation-delay:846ms"></i><i style="height:7px;animation-delay:43ms"></i><i style="height:19px;animation-delay:140ms"></i><i style="height:11px;animation-delay:237ms"></i><i style="height:8px;animation-delay:334ms"></i><i style="height:15px;animation-delay:431ms"></i></div>
+        <div class="pl"><b>The Tape · live</b><s>3 new</s></div>
+      </div>
+      <div class="mini-id">
+        <div class="who"><div class="av">PD</div><div><div class="nm">Paco Daniel</div><div class="rl">Mix Engineer</div></div></div>
+        <div class="mini-db"><em>FENNEC dB</em><b>37</b></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="content-col">
+
+  <!-- ── DASHBOARD ──────────────────────────────────────── -->
+  <section class="view" id="view-dashboard">
+    <div class="main">
+      <div class="crumb">
+        <h1>Good evening, Paco.</h1>
+        <div class="orb"><span class="pill">⌘K · Quick actions</span><span class="pill hot">Share my ID</span></div>
+      </div>
+      <div class="dash">
+        <div class="card db-hero">
+          <span class="db-lab">Fennec dB</span>
+          <div class="db-num">37</div>
+          <div class="eq"><i style="height:8px"></i><i style="height:14px"></i><i style="height:6px"></i><i style="height:18px"></i><i style="height:11px"></i><i style="height:22px"></i><i style="height:9px"></i><i style="height:15px"></i><i style="height:7px"></i><i style="height:12px"></i></div>
+        </div>
+        <div class="fid clickcard" data-go="network">
+          <div class="fx">🦊</div>
+          <div class="role">Mix Engineer</div>
+          <h2>PACO<br>DANIEL</h2>
+          <div class="tags"><span class="tag">Reggaeton</span><span class="tag">Techno</span></div>
+          <div class="meta">MEXICO · #0003 · fennec ID</div>
+        </div>
+        <div class="band">
+          <div class="band-h"><span>Music &amp; Business</span><i></i></div>
+          <div class="cols">
+            <div class="c clickcard" data-go="business"><b>$3,400</b><span>Revenue · July</span></div>
+            <div class="c clickcard" data-go="business"><b>4</b><span>Projects</span><span class="up">2 active</span></div>
+            <div class="c clickcard" data-go="business"><b>$5,850</b><span>Quotes out</span></div>
+            <div class="c clickcard" data-go="tape"><b>12</b><span>Karma</span></div>
+          </div>
+        </div>
+        <div class="band">
+          <div class="band-h"><span>Social Reach</span><i></i></div>
+          <div class="cols">
+            <div class="c"><b>1.2k</b><span>Instagram</span></div>
+            <div class="c"><b class="mut">—</b><span>TikTok</span><span class="up">connect →</span></div>
+            <div class="c"><b class="mut">—</b><span>YouTube</span><span class="up">connect →</span></div>
+          </div>
+        </div>
+        <div class="band">
+          <div class="band-h"><span>Today on Fennec</span><i></i></div>
+          <div class="act3">
+            <div class="c clickcard" data-go="tape">
+              <div class="aq"><span class="w">@lena.wav</span> <span class="t">on Marea (demo 2) · 1:49</span><br>
+              &ldquo;The pad is fighting the vocal at 400Hz. A gentle shelf there&hellip;&rdquo;</div>
+              <span class="alink">2 new notes on your tracks →</span>
+            </div>
+            <div class="c clickcard" data-go="business">
+              <div class="arow"><span>Altavista Films</span><span class="n">$2,400 <span class="st sent" style="padding:2px 7px">SENT</span></span></div>
+              <div class="arow"><span>Marcela R.</span><span class="n">$1,850 <span class="st sent" style="padding:2px 7px">SENT</span></span></div>
+              <span class="alink">Quotes awaiting reply →</span>
+            </div>
+            <div class="c clickcard" data-go="marketing">
+              <div class="anext"><span class="d">FRI · JUL 11</span><br>Next post: &ldquo;Layering strings over trap drums&rdquo; · reel 0:45</div>
+              <span class="alink">Open calendar →</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── THE TAPE ───────────────────────────────────────── -->
+  <section class="view tapez" id="view-tape">
+    <div class="main" style="padding:0;display:flex;flex-direction:column;flex:1">
+      <div class="tape-top">
+        <div class="tape-title"><h1>The Tape</h1><span class="tt">REEL 04 · SIDE A</span></div>
+        <div class="vu"><div class="m"><i></i></div><div class="m r"><i></i></div></div>
+      </div>
+      <div class="tape-stage">
+        <div class="reelbox">
+          <div class="track-head">
+            <div class="cover"></div>
+            <div><div class="t1">Midnight Reel</div><div class="t2">@torohumo · 3:12 · needs mix notes</div></div>
+            <span class="badge">MISSING MIX</span>
+          </div>
+          <div class="reel">
+            <div class="spool l"></div><div class="spool r"></div>
+            <div class="tape-line"></div>
+            <div class="wave" id="wave"></div>
+            <div class="nowline"></div>
+            <div class="mark m1"></div><div class="mark m2"></div><div class="mark m3"></div>
+            <div class="note n1">
+              <div class="who">@kavernamx <s>0:46</s></div>
+              That filter opening the intro. Let it breathe two more bars before the kick comes in.
+            </div>
+            <div class="note n2">
+              <div class="who">@lena.wav <s>1:49</s></div>
+              The pad is fighting the vocal at 400Hz. A gentle shelf there and the mix opens on its own.
+            </div>
+          </div>
+        </div>
+        <aside class="queue">
+          <div class="drop">
+            <div class="ic">⤓</div>
+            <b>Drop your track</b>
+            <span>Drag a file from your session folder</span>
+            <span class="fmt">WAV · MP3 · AIFF — up to 100MB</span>
+          </div>
+          <div class="q-lab">Up next on the reel</div>
+          <div class="q-item on"><div class="sq"></div><div><div class="qa">Midnight Reel</div><div class="qb">@torohumo · 3:12</div></div><span class="marks">5 ●</span></div>
+          <div class="q-item"><div class="sq"></div><div><div class="qa">Norte 130bpm</div><div class="qb">@sierra.k · 2:47</div></div><span class="marks">2 ●</span></div>
+          <div class="q-item"><div class="sq"></div><div><div class="qa">Marea (demo 2)</div><div class="qb">@pvcosalaz · 4:05</div></div><span class="marks">—</span></div>
+        </aside>
+      </div>
+      <div class="transport">
+        <div class="tbtn">⏮</div>
+        <div class="tbtn play">▶</div>
+        <div class="tbtn">⏭</div>
+        <span class="thint">SPACE play · CLICK the reel to mark · ⌘↵ send note</span>
+        <div class="karma">◈ 12 karma</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── BUSINESS ───────────────────────────────────────── -->
+  <section class="view" id="view-business">
+    <div class="main biz">
+      <div class="crumb">
+        <h1>Business</h1>
+        <div class="orb"><span class="pill">Export CSV</span><span class="pill hot">+ New quote</span></div>
+      </div>
+      <div class="kpis">
+        <div class="kpi rev"><span>Revenue · MTD</span><b>$3,400</b><div class="sub">+18% vs June</div></div>
+        <div class="kpi"><span>Outstanding quotes</span><b>$5,850</b><div class="sub">3 awaiting reply</div></div>
+        <div class="kpi"><span>Active projects</span><b>2</b><div class="sub">1 due this week</div></div>
+        <div class="kpi"><span>Avg. project</span><b>$1,700</b><div class="sub">recommended: $2,100</div></div>
+      </div>
+      <div class="bgrid">
+        <div class="tablecard">
+          <div class="tc-head"><b>Quotes</b><span class="act">View all →</span></div>
+          <table>
+            <tr><th>Client</th><th>Project</th><th>Amount</th><th>Status</th><th>Sent</th></tr>
+            <tr><td>Altavista Films</td><td>Short film score</td><td class="num">$2,400</td><td><span class="st sent">SENT</span></td><td>Jul 07</td></tr>
+            <tr><td>Marcela R.</td><td>EP mix · 5 tracks</td><td class="num">$1,850</td><td><span class="st sent">SENT</span></td><td>Jul 05</td></tr>
+            <tr><td>Norte Estudio</td><td>Jingle 30s</td><td class="num">$1,600</td><td><span class="st paid">PAID</span></td><td>Jun 28</td></tr>
+            <tr><td>—</td><td>Documental (draft)</td><td class="num">$3,200</td><td><span class="st draft">DRAFT</span></td><td>—</td></tr>
+          </table>
+        </div>
+        <div class="chartcard">
+          <b>Revenue · last 6 months</b>
+          <div class="bars">
+            <div class="b" style="height:34%"></div><div class="b" style="height:52%"></div>
+            <div class="b" style="height:41%"></div><div class="b" style="height:66%"></div>
+            <div class="b" style="height:58%"></div><div class="b now" style="height:78%"></div>
+          </div>
+          <div class="bars-lab"><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── MARKETING ──────────────────────────────────────── -->
+  <section class="view" id="view-marketing">
+    <div class="main">
+      <div class="crumb"><h1>Marketing</h1><div class="orb"><span class="pill hot">+ Schedule post</span></div></div>
+      <div class="sec-s" style="margin-top:-18px">July · 4 posts scheduled</div>
+      <div class="cal">
+        <div class="d">7</div><div class="d">8<i></i></div><div class="d today">9</div><div class="d">10</div><div class="d">11<i></i></div><div class="d">12</div><div class="d">13</div>
+        <div class="d">14<i></i></div><div class="d">15</div><div class="d">16</div><div class="d">17<i></i></div><div class="d">18</div><div class="d">19</div><div class="d">20</div>
+      </div>
+      <div class="ideas">
+        <div class="idea"><div class="yt">INSPIRE · TRENDING</div><p>"Iron Man 3 Recording Session" · Brian Tyler</p><div class="ang">Your angle · layer orchestral strings over trap drums, film the session</div></div>
+        <div class="idea"><div class="yt">CONTENT LAB</div><p>How Midnight Reel would sound as a boom-bap flip</p><div class="ang">Script ready · 0:45 reel</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── COMMUNITY ──────────────────────────────────────── -->
+  <section class="view" id="view-community">
+    <div class="main">
+      <div class="crumb"><h1>Community</h1><div class="orb"><span class="pill hot">+ New post</span></div></div>
+      <div style="max-width:620px">
+        <div class="post">
+          <div class="ph"><div class="pav">LW</div><div><div class="pn">@lena.wav</div><div class="pt">2h · Berlin</div></div></div>
+          <p>Just closed my first sync placement for a series. The brief asked for "tension without percussion". Strings + granular pads did the trick. Ask me anything.</p>
+        </div>
+        <div class="radio">
+          <div class="rec">●</div>
+          <div class="rw" id="rw"></div>
+          <span style="font:400 10px var(--mono);color:var(--dim)">0:12 · voice note from @kavernamx</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── NETWORK ────────────────────────────────────────── -->
+  <section class="view" id="view-network">
+    <div class="main">
+      <div class="crumb"><h1>Network</h1><div class="orb"><span class="pill hot">Scan QR</span></div></div>
+      <div class="sec-s" style="margin-top:-18px">Producers in your collection</div>
+      <div class="deck">
+        <div class="ncard" style="left:0;background:linear-gradient(150deg,#221a33,#151021);border-color:rgba(167,139,250,.35);z-index:1">
+          <div class="nrole" style="color:#c4b5fd">Mix Engineer</div>
+          <div class="nname">Paco Daniel</div>
+          <div class="nnum" style="color:#c4b5fd">#0003</div>
+        </div>
+        <div class="ncard" style="left:230px;background:linear-gradient(150deg,#0f2027,#0a1418);border-color:rgba(56,189,248,.3);z-index:2;box-shadow:-14px 0 30px rgba(0,0,0,.5)">
+          <div class="nrole" style="color:#7dd3fc">Composer</div>
+          <div class="nname">Lena W.</div>
+          <div class="nnum" style="color:#7dd3fc">#0007</div>
+        </div>
+        <div class="ncard" style="left:460px;background:linear-gradient(150deg,#271414,#170d0d);border-color:rgba(248,113,113,.3);z-index:3;box-shadow:-14px 0 30px rgba(0,0,0,.5)">
+          <div class="nrole" style="color:#fca5a5">Producer</div>
+          <div class="nname">Kaverna MX</div>
+          <div class="nnum" style="color:#fca5a5">#0011</div>
+        </div>
+      </div>
+      <div class="scan">
+        <b>Add a producer</b>
+        <span>Scan their Fennec ID QR, or share yours. Voice notes unlock once you're connected.</span>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ── SETTINGS ───────────────────────────────────────── -->
+  <section class="view" id="view-settings">
+    <div class="main" style="max-width:640px">
+      <div class="crumb"><h1>Settings</h1></div>
+      <div class="band-h"><span>Profile</span><i style="height:1px;flex:1;background:linear-gradient(90deg,rgba(255,255,255,.07),transparent)"></i></div>
+      <div class="set-row"><div><div class="sl">Name, role &amp; country</div><div class="sd">Paco Daniel · Mix Engineer · Mexico</div></div><span class="sv">edit →</span></div>
+      <div class="set-row"><div><div class="sl">Genres</div><div class="sd">Reggaeton · Techno</div></div><span class="sv">edit →</span></div>
+      <div class="set-row"><div><div class="sl">Socials</div><div class="sd">Instagram connected · TikTok, YouTube pending</div></div><span class="sv hot">connect →</span></div>
+      <div class="band-h" style="margin-top:26px"><span>App</span><i style="height:1px;flex:1;background:linear-gradient(90deg,rgba(255,255,255,.07),transparent)"></i></div>
+      <div class="set-row"><div><div class="sl">Language</div></div><span class="sv">English</span></div>
+      <div class="set-row"><div><div class="sl">Membership</div><div class="sd">Fennec Pro · $9.99/mo</div></div><span class="sv">manage →</span></div>
+      <div class="set-row"><div><div class="sl">Suggest a feature</div><div class="sd">Tell us what Fennec should do next</div></div><span class="sv hot">open →</span></div>
+      <div class="set-row"><div><div class="sl" style="color:#f87171">Sign out</div></div><span class="sv"></span></div>
+    </div>
+  </section>
+
+  </div>
+
+  <!-- rail toggle -->
+  <button class="rail-toggle" id="railToggle" title="Show / hide your network" aria-label="Toggle network rail"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+
+  <!-- ── right social rail: you + your network, always present ── -->
+  <aside class="rail">
+    <div class="rail-top">
+      <div class="rico" id="bellBtn" title="Notifications">
+        <svg viewBox="0 0 24 24"><path d="M17 8a5 5 0 10-10 0c0 5-2 6-2 6h14s-2-1-2-6M10.5 19a2 2 0 003 0"/></svg>
+        <span class="dot"></span>
+        <div class="notipop" id="notiPop">
+          <div class="nh">Notifications</div>
+          <div class="noti" data-go2="tape"><div class="ni2">◈</div><div><b>@torohumo</b> sealed your note · +2 karma<span class="t">5 MIN AGO</span></div></div>
+          <div class="noti" data-go2="tape"><div class="ni2">✎</div><div><b>@lena.wav</b> left a note on Marea (demo 2)<span class="t">2 H AGO</span></div></div>
+          <div class="noti" data-go2="network"><div class="ni2">+</div><div><b>@sierra.k</b> joined your network · #0014<span class="t">YESTERDAY</span></div></div>
+        </div>
+      </div>
+      <div class="rico" data-go2="settings" title="Settings">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33h.01a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51h.01a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v.01a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      </div>
+    </div>
+    <div class="rail-me">
+      <div class="rav">PD</div>
+      <div class="rn">Paco Daniel</div>
+      <div class="rr">@pvcosalaz · MIX ENGINEER</div>
+      <div class="rdb"><em>FENNEC dB</em><b>37</b></div>
+    </div>
+
+    <div class="rail-h"><span>Your Network</span><a data-go2="network">See all</a></div>
+    <div class="rp" data-go2="network">
+      <div class="pa" style="background:#38bdf8;color:#082f49">LW</div>
+      <div><div class="pn">Lena W.</div><div class="pm">Composer · Berlin</div></div>
+      <div class="pdb" style="color:#7dd3fc">52</div>
+    </div>
+    <div class="rp" data-go2="network">
+      <div class="pa" style="background:#f87171;color:#111">KM</div>
+      <div><div class="pn">Kaverna MX</div><div class="pm">Producer · CDMX</div></div>
+      <div class="pdb" style="color:#fca5a5">44</div>
+    </div>
+    <div class="rp" data-go2="network">
+      <div class="pa" style="background:#4ade80;color:#052e16">SK</div>
+      <div><div class="pn">Sierra K.</div><div class="pm">Beatmaker · Bogotá</div></div>
+      <div class="pdb" style="color:#86efac">31</div>
+    </div>
+
+    <div class="rail-h"><span>Recent activity</span><a data-go2="tape">See all</a></div>
+    <div class="ract"><b>@torohumo</b> sealed your note on Midnight Reel · +2 karma<span class="t">5 MIN AGO</span></div>
+    <div class="ract"><b>@lena.wav</b> left a note on Marea (demo 2) at 1:49<span class="t">2 H AGO</span></div>
+    <div class="ract"><b>@sierra.k</b> joined your network · #0014<span class="t">YESTERDAY</span></div>
+    <div class="ract"><b>Altavista Films</b> opened your quote<span class="t">YESTERDAY</span></div>
+  </aside>
+</div>
+
+<script>
+  // ── view router (hash-synced) ──
+  const views = ["dashboard","business","tape","marketing","community","network","settings"];
+  function show(v){
+    if(!views.includes(v)) v = "dashboard";
+    views.forEach(id => document.getElementById("view-"+id).classList.toggle("active", id===v));
+    document.querySelectorAll(".ni").forEach(n => n.classList.toggle("on", n.dataset.view===v));
+    history.replaceState(null, "", "#"+v);
+    window.scrollTo(0,0);
+  }
+  document.querySelectorAll(".ni").forEach(n => n.addEventListener("click", () => show(n.dataset.view)));
+  document.querySelectorAll("[data-go]").forEach(c => c.addEventListener("click", () => show(c.dataset.go)));
+  document.querySelectorAll("[data-go2]").forEach(c => c.addEventListener("click", () => show(c.dataset.go2)));
+  show((location.hash||"#dashboard").slice(1));
+  window.addEventListener("hashchange", () => show(location.hash.slice(1)));
+
+  // ── notifications popover ──
+  const bell = document.getElementById("bellBtn");
+  const pop  = document.getElementById("notiPop");
+  bell.addEventListener("click", (e) => {
+    if (e.target.closest(".noti")) { pop.classList.remove("open"); return; }
+    pop.classList.toggle("open");
+    e.stopPropagation();
+  });
+  document.addEventListener("click", (e) => { if (!bell.contains(e.target)) pop.classList.remove("open"); });
+
+  // ── rail toggle (persisted) ──
+  const railBtn = document.getElementById("railToggle");
+  function setRail(off){
+    document.body.classList.toggle("rail-off", off);
+    try{ localStorage.setItem("mock_rail_off", off ? "1" : "0"); }catch(e){}
+  }
+  railBtn.addEventListener("click", () => setRail(!document.body.classList.contains("rail-off")));
+  try{ setRail(localStorage.getItem("mock_rail_off") === "1"); }catch(e){}
+
+  // ── waveform bars ──
+  const w = document.getElementById('wave');
+  for (let i=0;i<120;i++){
+    const b=document.createElement('i');
+    const h=14+Math.abs(Math.sin(i*.32)*70)+Math.random()*26;
+    b.style.height=h+'px';
+    if(i>38&&i<56) b.className='hot';
+    w.appendChild(b);
+  }
+  const r=document.getElementById('rw');
+  for(let i=0;i<46;i++){const b=document.createElement('i');b.style.height=(4+Math.abs(Math.sin(i*.6))*18+Math.random()*4)+'px';r.appendChild(b);}
+</script>
+
+</body>
+</html>

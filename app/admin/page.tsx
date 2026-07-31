@@ -36,6 +36,16 @@ type CrmUser = {
 
 type UserEvent = { type: string; meta: { tab?: string } | null; created_at: string };
 
+type WaitlistEntry = {
+  id: string;
+  email: string;
+  name: string | null;
+  genre: string | null;
+  lang: string | null;
+  source: string | null;
+  created_at: string;
+};
+
 const TAB_LABELS: Record<string, string> = {
   dashboard: "Home",
   pricing: "Business Hub",
@@ -72,6 +82,7 @@ export default function AdminPage() {
   const [state, setState] = useState<"loading" | "signedout" | "forbidden" | "error" | "ready">("loading");
   const [overview, setOverview] = useState<Overview | null>(null);
   const [users, setUsers] = useState<CrmUser[]>([]);
+  const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([]);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [timeline, setTimeline] = useState<Record<string, UserEvent[]>>({});
 
@@ -81,15 +92,18 @@ export default function AdminPage() {
     if (!session) { setState("signedout"); return; }
     const headers = { Authorization: `Bearer ${session.access_token}` };
     try {
-      const [ovRes, usRes] = await Promise.all([
+      const [ovRes, usRes, wlRes] = await Promise.all([
         fetch("/api/admin/overview", { headers }),
         fetch("/api/admin/users", { headers }),
+        fetch("/api/admin/waitlist", { headers }),
       ]);
       if (ovRes.status === 401) { setState("signedout"); return; }
       if (ovRes.status === 403) { setState("forbidden"); return; }
       if (!ovRes.ok || !usRes.ok) { setState("error"); return; }
       setOverview(await ovRes.json() as Overview);
       setUsers(((await usRes.json()) as { users: CrmUser[] }).users);
+      // Waitlist is best-effort: a failure here shouldn't blank the CRM.
+      if (wlRes.ok) setWaitlist(((await wlRes.json()) as { waitlist: WaitlistEntry[] }).waitlist);
       setState("ready");
     } catch {
       setState("error");
@@ -116,6 +130,25 @@ export default function AdminPage() {
 
   const maxSignups = Math.max(1, ...(overview?.signupsByDay.map((d) => d.count) ?? [1]));
   const maxModule  = Math.max(1, ...(overview?.moduleUsage.map((m) => m.count) ?? [1]));
+
+  // Waitlist breakdown by which video/link brought each signup (?src=)
+  const waitlistBySource = Object.entries(
+    waitlist.reduce<Record<string, number>>((acc, w) => {
+      const s = w.source || "—";
+      acc[s] = (acc[s] ?? 0) + 1;
+      return acc;
+    }, {}),
+  ).sort((a, b) => b[1] - a[1]);
+
+  function exportWaitlistCsv() {
+    const rows = [["email", "name", "genre", "lang", "source", "created_at"]];
+    for (const w of waitlist) rows.push([w.email, w.name ?? "", w.genre ?? "", w.lang ?? "", w.source ?? "", w.created_at]);
+    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    const a = document.createElement("a");
+    a.href = url; a.download = "fennec-waitlist.csv"; a.click();
+    URL.revokeObjectURL(url);
+  }
 
   return (
     // h-[100dvh] + overflow-y-auto: /admin owns its own scroll. The global app
@@ -286,6 +319,49 @@ export default function AdminPage() {
                   </div>
                 );
               })}
+            </div>
+
+            {/* ─── Waitlist · campaign signups ─── */}
+            <div className="mt-12">
+              <div className="mb-4 flex flex-wrap items-baseline gap-3">
+                <p className="mono text-[10px] uppercase tracking-[0.25em] text-zinc-500">Waitlist · campaign signups</p>
+                <span className="text-2xl font-black tabular-nums text-[#f5a623]">{waitlist.length}</span>
+                {waitlist.length > 0 && (
+                  <button onClick={exportWaitlistCsv}
+                    className="mono ml-auto rounded-lg border border-white/10 px-3 py-1.5 text-[11px] uppercase tracking-wider text-zinc-400 hover:border-[#f5a623]/40 hover:text-white transition">
+                    Export CSV
+                  </button>
+                )}
+              </div>
+
+              {waitlistBySource.length > 0 && (
+                <div className="mb-5 flex flex-wrap gap-2">
+                  {waitlistBySource.map(([src, n]) => (
+                    <span key={src} className="mono rounded-full border border-white/10 bg-white/[0.02] px-3 py-1 text-[11px] text-zinc-400">
+                      {src} <b className="text-[#f5a623]">{n}</b>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <div className="overflow-hidden rounded-2xl border border-white/[0.07]">
+                <div className="mono hidden grid-cols-[1.6fr_1fr_.8fr_.4fr_.7fr_.6fr] gap-3 border-b border-white/[0.06] bg-white/[0.02] px-5 py-3 text-[10px] uppercase tracking-[0.15em] text-zinc-500 md:grid">
+                  <span>Email</span><span>Name</span><span>Produces</span><span>Lang</span><span>Source</span><span>Joined</span>
+                </div>
+                {waitlist.length === 0 && (
+                  <p className="mono px-5 py-6 text-[11px] text-zinc-600">No signups yet.</p>
+                )}
+                {waitlist.map((w) => (
+                  <div key={w.id} className="grid grid-cols-2 gap-2 border-b border-white/[0.04] px-5 py-3 last:border-0 md:grid-cols-[1.6fr_1fr_.8fr_.4fr_.7fr_.6fr] md:items-center">
+                    <span className="truncate text-[13px]">{w.email}</span>
+                    <span className="mono text-[11px] text-zinc-400">{w.name ?? "—"}</span>
+                    <span className="mono text-[11px] text-zinc-400">{w.genre ?? "—"}</span>
+                    <span className="mono text-[11px] uppercase text-zinc-500">{w.lang ?? "—"}</span>
+                    <span className="mono text-[11px] text-zinc-500">{w.source ?? "—"}</span>
+                    <span className="mono text-[11px] text-zinc-500">{new Date(w.created_at).toLocaleDateString()}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </>
         )}
