@@ -46,7 +46,9 @@ export function WelcomeModal({
 
         {/* Logo + welcome */}
         <div className="flex flex-col items-center text-center gap-1 mb-5">
-          <FennecFox isActive={false} glow size={64} />
+          {/* glow off: the amber orb behind the mark read as a smudge against
+              the modal's flat dark panel (Paco 2026-07-30). */}
+          <FennecFox isActive={false} glow={false} size={64} />
           <h2 className="text-xl font-bold text-white mt-1">
             Welcome to Fennec{userName ? `, ${userName}` : ""}!
           </h2>
