@@ -52,13 +52,30 @@ function fmtDate(d: string): string {
   return dt.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }).toUpperCase();
 }
 
-function Band({ label, children }: { label: string; children: React.ReactNode }) {
+function Band({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
   return (
-    <div className="mt-5">
+    <div className={className ?? "mt-5"}>
       <div className="mb-1 flex items-center gap-2.5">
         <span className="text-[8.5px] font-bold uppercase tracking-[0.22em] text-zinc-600">{label}</span>
         <div className="h-px flex-1" style={{ background: "linear-gradient(90deg, rgba(255,255,255,.07), transparent)" }} />
       </div>
+      {children}
+    </div>
+  );
+}
+
+/* Subtle grouping surface — the dB panel's materiality (top highlight + tinted
+   floor shadow), just lighter. Groups by function without a heavy card box. */
+function Tile({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div
+      className="relative overflow-hidden rounded-2xl px-4 pb-3 pt-3.5"
+      style={{
+        background: "linear-gradient(180deg,rgba(255,255,255,0.025),rgba(255,255,255,0.008))",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05), 0 14px 30px -20px rgba(0,0,0,0.6)",
+      }}
+    >
+      <span className="mb-1.5 block text-[8.5px] font-bold uppercase tracking-[0.22em] text-zinc-600">{label}</span>
       {children}
     </div>
   );
@@ -122,8 +139,15 @@ export default function DashboardDesktop({
 
   return (
     <div>
+      {/* Staggered entrance — a quiet waterfall so the panel feels assembled,
+          not dumped. Enhances an already-laid-out screen (both: fill mode). */}
+      <style>{`
+        @keyframes ddRise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+        .dd-rise { animation: ddRise .5s cubic-bezier(.16,1,.3,1) both; }
+        @media (prefers-reduced-motion: reduce) { .dd-rise { animation: none; } }
+      `}</style>
       {/* header — greeting follows the actual clock, not a hardcoded evening */}
-      <div className="mb-6 flex items-center justify-between">
+      <div className="dd-rise mb-6 flex items-center justify-between">
         <h1 className="text-[21px] font-bold tracking-tight text-white">
           {(() => {
             const h = new Date().getHours();
@@ -151,7 +175,7 @@ export default function DashboardDesktop({
       </div>
 
       {/* the real Fennec ID card (left, hero) + dB reading (right) */}
-      <div className="grid items-stretch gap-4" style={{ gridTemplateColumns: "1.35fr .85fr" }}>
+      <div className="dd-rise grid items-stretch gap-4" style={{ gridTemplateColumns: "1.35fr .85fr", animationDelay: ".06s" }}>
         <div>
           <FennecIdCard
             firstName={card.firstName} lastName={card.lastName}
@@ -162,131 +186,112 @@ export default function DashboardDesktop({
             collectionNumber={card.collectionNumber} smallDb
           />
         </div>
-        <div className="relative flex flex-col items-center justify-center rounded-2xl border border-white/[0.07] p-6" style={{ background: "#111114" }}>
-          {/* radial glow only — clipped on its own layer so it never crops the
-              number above it (the old shared overflow:hidden was cutting off
-              ascenders like "8") */}
-          <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
-            <div className="absolute inset-[-40%]" style={{ background: `radial-gradient(40% 32% at 50% 58%, ${accent}22, transparent 70%)` }} />
-          </div>
-          <span className="relative text-[9px] font-bold uppercase tracking-[0.35em] text-zinc-600">Fennec dB</span>
-          <div className="relative text-[76px] font-extrabold" style={{ lineHeight: 1.15, padding: "6px 10px" }}>
-            {/* inline-block gives this its own compositing box — a plain inline
-                span with filter:drop-shadow + -webkit-background-clip:text
-                clips its own right edge in Chromium once the last glyph
-                nears the box boundary (the "8" getting cut). */}
-            <span
-              style={{
-                display: "inline-block",
-                background: `linear-gradient(180deg, ${accent}, ${accent}cc)`,
-                WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent",
-                filter: `drop-shadow(0 4px 24px ${accent}40)`,
-              }}
-            >
+        {/* dB reading — an instrument, not a boxed stat. Layered surface (top
+            highlight + tinted floor shadow) reads as physical; solid amber
+            number instead of the gradient-text + outer glow (both AI tells). */}
+        <div
+          className="relative flex flex-col items-center justify-center overflow-hidden rounded-2xl p-6"
+          style={{
+            background: "linear-gradient(180deg,#151318,#100f13)",
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06), 0 16px 34px -18px rgba(0,0,0,0.7)",
+          }}
+        >
+          {/* a soft amber floor, low and wide — light pooling under the meter,
+              not a neon halo around it */}
+          <div className="pointer-events-none absolute inset-0" style={{ background: `radial-gradient(60% 42% at 50% 100%, ${accent}12, transparent 72%)` }} />
+          <span className="relative text-[9px] font-bold uppercase tracking-[0.35em] text-zinc-500">Fennec dB</span>
+          <div className="relative flex items-baseline" style={{ padding: "2px 4px" }}>
+            <span className="text-[92px] font-black tabular-nums leading-none tracking-[-0.035em]" style={{ color: accent }}>
               {fennecDb}
             </span>
           </div>
           {/* the tape's soundwave — same EQ bars as the mobile Fennec ID card */}
-          <div className="relative flex items-end gap-[3px]" style={{ height: 26, marginTop: 4 }}>
+          <div className="relative flex items-end gap-[3px]" style={{ height: 24, marginTop: 8 }}>
             {EQ_HEIGHTS.map((h, i) => (
               <span key={i} className="fennec-eq-bar" style={{ height: h, width: 3, background: accent, animationDelay: `${i * 0.15}s` }} />
             ))}
           </div>
+          {/* Real context, not a vanity delta: the audience that actually drives
+              the score. Anchors the lone number to its inputs. */}
+          {(() => {
+            const reach = (igFollowers ?? 0) + (ttFollowers ?? 0) + (ytSubs ?? 0);
+            return (
+              <span className="relative mt-3 text-[10px] font-medium tracking-wide text-zinc-500">
+                {reach > 0
+                  ? <><span className="font-bold text-zinc-300">{fmtCount(reach)}</span> total reach</>
+                  : "Connect socials to grow"}
+              </span>
+            );
+          })()}
         </div>
       </div>
 
       {/* Contributions — the dB's visual evidence (same card as mobile, wider
           strip). Amber like every non-ID accent on desktop. */}
-      <ContributionsCard data={contributions ?? null} accent="#f5a623" weeks={52} cellSize={11} />
+      <div className="dd-rise" style={{ animationDelay: ".12s" }}>
+        <ContributionsCard data={contributions ?? null} accent="#f5a623" weeks={52} cellSize={11} />
+      </div>
 
-      {/* Music & Business */}
-      <Band label="Music & Business">
-        <Cols>
-          <Col value={String(totalProjects)} label="Projects" sub={activeProjects > 0 ? `${activeProjects} active` : undefined} onClick={() => onNavigate?.("pricing")} />
-          <Col value={String(quotesSentCount)} label="Quotes sent" onClick={() => onNavigate?.("pricing")} />
-          <Col value={quotesOutTotal > 0 ? usd(quotesOutTotal) : "—"} label="Quotes out" muted={quotesOutTotal === 0} onClick={() => onNavigate?.("pricing")} />
-          <Col value={karma != null ? String(karma) : "—"} label="Karma" muted={karma == null} onClick={() => onNavigate?.("ideas")} />
-        </Cols>
-      </Band>
+      {/* Operational bento — asymmetric surfaces group by function instead of
+          stacking three identical hairline bands (design pass 2026-07-31).
+          Left (wider): the money & work numbers. Right: today's action feed. */}
+      <div className="dd-rise mt-4 grid gap-4" style={{ gridTemplateColumns: "1.55fr 1fr", animationDelay: ".18s" }}>
+        <Tile label="Music & Business">
+          <Cols>
+            <Col value={String(totalProjects)} label="Projects" sub={activeProjects > 0 ? `${activeProjects} active` : undefined} onClick={() => onNavigate?.("pricing")} />
+            <Col value={String(quotesSentCount)} label="Quotes sent" onClick={() => onNavigate?.("pricing")} />
+            <Col value={quotesOutTotal > 0 ? usd(quotesOutTotal) : "—"} label="Quotes out" muted={quotesOutTotal === 0} onClick={() => onNavigate?.("pricing")} />
+            <Col value={karma != null ? String(karma) : "—"} label="Karma" muted={karma == null} onClick={() => onNavigate?.("ideas")} />
+          </Cols>
+        </Tile>
 
-      {/* Social Reach — same brand-color icons + glow as the mobile SocialChip */}
-      {/* Desktop uses its width: the two lightest bands sit side by side so the
-          dashboard stays one screen with no scroll (Paco 2026-07-30). */}
-      <div className="grid gap-x-10" style={{ gridTemplateColumns: "1fr 1fr" }}>
-      <Band label="Social Reach">
+        <Tile label="Today on Fennec">
+          <div className="flex flex-col divide-y divide-white/[0.05]">
+            {/* latest note on your tracks */}
+            <button type="button" onClick={() => onNavigate?.("ideas")} className="group flex items-center justify-between gap-3 py-[9px] text-left transition first:pt-0">
+              <span className="min-w-0 truncate text-[12px] text-zinc-400">
+                {latestNote ? "New note on your track" : "No track feedback yet"}
+              </span>
+              <span className="flex-shrink-0 text-[11px] font-semibold text-accent transition group-hover:brightness-110">
+                {latestNote ? "Open →" : "Upload →"}
+              </span>
+            </button>
+            {/* quotes awaiting reply */}
+            <button type="button" onClick={() => onNavigate?.("pricing")} className="group flex items-center justify-between gap-3 py-[9px] text-left">
+              <span className="min-w-0 truncate text-[12px] text-zinc-400">
+                {sentQuotes.length > 0 ? `${sentQuotes.length} quote${sentQuotes.length > 1 ? "s" : ""} awaiting reply` : "No open quotes"}
+              </span>
+              <span className="flex-shrink-0 text-[11px] font-semibold text-accent transition group-hover:brightness-110">
+                {sentQuotes.length > 0 ? "View →" : "Send →"}
+              </span>
+            </button>
+            {/* next scheduled post */}
+            <button type="button" onClick={() => onNavigate?.("contenido")} className="group flex items-center justify-between gap-3 py-[9px] text-left">
+              <span className="min-w-0 truncate text-[12px] text-zinc-400">
+                {nextPost ? `Next post · ${fmtDate(nextPost.date)}` : "Nothing scheduled"}
+              </span>
+              <span className="flex-shrink-0 text-[11px] font-semibold text-accent transition group-hover:brightness-110">
+                {nextPost ? "Calendar →" : "Plan →"}
+              </span>
+            </button>
+          </div>
+        </Tile>
+      </div>
+
+      {/* Social Reach — slim full-width strip, flat brand icons (no neon glow) */}
+      <Band label="Social Reach" className="dd-rise mt-5">
         <Cols>
           <Col
-            icon={<SiInstagram size={14} style={{ color: "#E1306C", opacity: 0.85, filter: "drop-shadow(0 0 6px #E1306C40)" }} />}
+            icon={<SiInstagram size={14} style={{ color: "#E1306C", opacity: 0.9 }} />}
             value={igFollowers != null ? fmtCount(igFollowers) : "—"} label="Instagram" muted={igFollowers == null} sub={igFollowers == null ? "connect →" : undefined} onClick={onOpenProfileSettings} />
           <Col
-            icon={<SiTiktok size={14} style={{ color: "#e6e6e9", opacity: 0.85, filter: "drop-shadow(0 0 6px #ffffff30)" }} />}
+            icon={<SiTiktok size={14} style={{ color: "#e6e6e9", opacity: 0.9 }} />}
             value={ttFollowers != null ? fmtCount(ttFollowers) : "—"} label="TikTok" muted={ttFollowers == null} sub={ttFollowers == null ? "connect →" : undefined} onClick={onOpenProfileSettings} />
           <Col
-            icon={<SiYoutube size={14} style={{ color: "#FF0000", opacity: 0.85, filter: "drop-shadow(0 0 6px #FF000040)" }} />}
+            icon={<SiYoutube size={14} style={{ color: "#FF0000", opacity: 0.9 }} />}
             value={ytSubs != null ? fmtCount(ytSubs) : "—"} label="YouTube" muted={ytSubs == null} sub={ytSubs == null ? "connect →" : undefined} onClick={onOpenProfileSettings} />
         </Cols>
       </Band>
-
-      {/* Today on Fennec — real data (note · quotes · next post) */}
-      <Band label="Today on Fennec">
-        <div className="grid gap-0" style={{ gridTemplateColumns: "1.2fr 1fr 1fr" }}>
-          {/* latest note on your tracks */}
-          <button type="button" onClick={() => onNavigate?.("ideas")} className="border-l border-white/[0.05] px-[18px] py-[11px] text-left first:border-l-0 first:pl-0.5 transition hover:bg-white/[0.02]">
-            {latestNote ? (
-              <>
-                <p className="text-[13px] leading-relaxed text-zinc-300" style={{ fontFamily: "var(--font-tape-serif, Georgia, serif)" }}>
-                  &ldquo;{latestNote.length > 90 ? latestNote.slice(0, 90) + "…" : latestNote}&rdquo;
-                </p>
-                <span className="mt-2 block text-[11px] font-semibold text-accent">Open the tape →</span>
-              </>
-            ) : (
-              <>
-                <p className="text-[12.5px] text-zinc-600">No notes on your tracks yet.</p>
-                <span className="mt-2 block text-[11px] font-semibold text-accent">Upload a track for feedback →</span>
-              </>
-            )}
-          </button>
-
-          {/* quotes awaiting reply */}
-          <button type="button" onClick={() => onNavigate?.("pricing")} className="border-l border-white/[0.05] px-[18px] py-[14px] text-left transition hover:bg-white/[0.02]">
-            {sentQuotes.length > 0 ? (
-              <>
-                {sentQuotes.slice(0, 2).map((q) => (
-                  <div key={q.id} className="flex items-baseline justify-between border-b border-white/[0.04] py-1.5 last:border-b-0">
-                    <span className="truncate text-[12.5px] text-zinc-300">{q.clientName || "—"}</span>
-                    <span className="ml-2 flex-shrink-0 text-[12px] font-semibold tabular-nums text-white">{usd(q.finalPrice)}
-                      <span className="ml-1.5 rounded bg-accent/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-accent">SENT</span>
-                    </span>
-                  </div>
-                ))}
-                <span className="mt-2 block text-[11px] font-semibold text-accent">Quotes awaiting reply →</span>
-              </>
-            ) : (
-              <>
-                <p className="text-[12.5px] text-zinc-600">No open quotes.</p>
-                <span className="mt-2 block text-[11px] font-semibold text-accent">Send a quote →</span>
-              </>
-            )}
-          </button>
-
-          {/* next scheduled post */}
-          <button type="button" onClick={() => onNavigate?.("contenido")} className="border-l border-white/[0.05] px-[18px] py-[14px] text-left transition hover:bg-white/[0.02]">
-            {nextPost ? (
-              <>
-                <span className="block font-mono text-[10px] tracking-[0.1em] text-accent">{fmtDate(nextPost.date)}</span>
-                <p className="mt-1 text-[12.5px] leading-relaxed text-zinc-300">Next post: {nextPost.title}</p>
-                <span className="mt-2 block text-[11px] font-semibold text-accent">Open calendar →</span>
-              </>
-            ) : (
-              <>
-                <p className="text-[12.5px] text-zinc-600">Nothing scheduled.</p>
-                <span className="mt-2 block text-[11px] font-semibold text-accent">Plan your content →</span>
-              </>
-            )}
-          </button>
-        </div>
-      </Band>
-      </div>
     </div>
   );
 }

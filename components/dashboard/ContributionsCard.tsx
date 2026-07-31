@@ -6,7 +6,7 @@
 // Amber ramp only — same accent language as the rest of the panel.
 
 import { useState } from "react";
-import { X } from "lucide-react";
+import { X, Flame } from "lucide-react";
 import { buildHeatmapGrid, type ContributionDays } from "@/lib/contributions";
 
 const LEVEL_BG = [
@@ -74,8 +74,9 @@ export default function ContributionsCard({ data, accent, weeks = 17, cellSize }
             Contributions
           </p>
           {(data?.streak ?? 0) > 1 && (
-            <p className="text-[11px] font-extrabold" style={{ color: accent }}>
-              🔥 {data!.streak}
+            <p className="flex items-center gap-1 text-[11px] font-extrabold" style={{ color: accent }}>
+              <Flame size={12} strokeWidth={2.5} className="fill-current" />
+              {data!.streak}
             </p>
           )}
         </div>
