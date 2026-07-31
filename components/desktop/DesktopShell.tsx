@@ -257,8 +257,12 @@ export default function DesktopShell({
           /* One canonical content frame for every module: 1100px column,
              40px gutters, generous bottom padding so scroll always lands
              with breathing room. Modules must NOT add their own mx-auto/
-             max-w/px — this is the single source of page margins. */
-          <div className="relative z-10 mx-auto w-full max-w-[1100px] flex-1 px-10 pb-8 pt-6">
+             max-w/px — this is the single source of page margins.
+             flex-col + min-h-0 so a module can claim h-full and distribute
+             its own vertical space (Business fills the screen instead of
+             leaving a 340px dead zone) while still scrolling when it
+             outgrows one viewport. */
+          <div className="relative z-10 mx-auto flex w-full min-h-0 max-w-[1100px] flex-1 flex-col px-10 pb-8 pt-6">
             {children}
           </div>
         )}

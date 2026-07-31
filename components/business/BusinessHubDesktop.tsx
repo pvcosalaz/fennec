@@ -81,10 +81,13 @@ export default function BusinessHubDesktop({
   const recentQuotes   = [...quotes].sort((a, b) => b.createdAt - a.createdAt).slice(0, 5);
 
   return (
-    <div>
+    // Fill the shell's height and let the bottom row absorb the slack: with
+    // real data (one quote, an empty chart) the module left 340px of dead
+    // screen and squeezed the tools (Paco 2026-07-31).
+    <div className="flex flex-col">
       <RiseStyle />
 
-      <div className="dd-rise mb-6 flex items-center justify-between">
+      <div className="dd-rise mb-6 flex flex-shrink-0 items-center justify-between">
         <h1 className="text-[21px] font-bold tracking-tight text-white">Business</h1>
         <div className="flex items-center gap-2.5">
           <button type="button" onClick={() => onOpenView("clients")} className="rounded-full border border-white/10 px-3.5 py-1.5 text-[11.5px] text-zinc-400 transition hover:text-white">
@@ -96,6 +99,10 @@ export default function BusinessHubDesktop({
         </div>
       </div>
 
+      {/* The three data blocks share the leftover height with generous but
+          capped rhythm, so a sparse month reads as airy rather than as a
+          truncated page with a dead zone (Paco 2026-07-31). */}
+      <div className="flex flex-col gap-10">
       {/* Hero: the money. A business module's one number is revenue, so it
           gets the dashboard's Instrument treatment instead of hiding as one
           of four identical KPI boxes. Trend sits beside it — number, then
@@ -104,7 +111,7 @@ export default function BusinessHubDesktop({
         <Instrument
           label="Revenue · MTD"
           value={revenue > 0 ? formatCOP(revenue) : "$0"}
-          size={54}
+          size={64}
           footer={
             <span className="relative mt-2 text-[10px] text-zinc-500">
               {paidProjects.length > 0 ? `${paidProjects.length} paid this month` : "No paid work yet"}
@@ -112,15 +119,23 @@ export default function BusinessHubDesktop({
           }
         />
         <Tile label="Revenue · last 6 months">
-          <div className="mt-3 flex h-[132px] items-end gap-2.5">
-            {months.map((m, i) => {
-              const pct = revenues[i] > 0 ? Math.max((revenues[i] / maxRev) * 100, 6) : 3;
-              return (
-                <div key={i} className="flex-1 rounded-t-[4px] transition-all duration-500"
-                  style={{ height: `${pct}%`, background: m.isCurrent ? ACCENT : "rgba(255,255,255,.08)" }} />
-              );
-            })}
-          </div>
+          {revenues.every((r) => r === 0) ? (
+            /* Flat hairlines across an empty chart read as broken. Say it. */
+            <div className="flex h-[168px] flex-col items-center justify-center gap-1">
+              <p className="text-[12.5px] text-zinc-600">No revenue logged yet.</p>
+              <p className="text-[11px] text-zinc-700">Mark a project paid and it lands here.</p>
+            </div>
+          ) : (
+            <div className="mt-3 flex h-[168px] items-end gap-2.5">
+              {months.map((m, i) => {
+                const pct = revenues[i] > 0 ? Math.max((revenues[i] / maxRev) * 100, 6) : 3;
+                return (
+                  <div key={i} className="flex-1 rounded-t-[4px] transition-all duration-500"
+                    style={{ height: `${pct}%`, background: m.isCurrent ? ACCENT : "rgba(255,255,255,.08)" }} />
+                );
+              })}
+            </div>
+          )}
           <div className="mt-2 flex gap-2.5">
             {months.map((m, i) => (
               <span key={i} className={`flex-1 text-center font-mono text-[9.5px] ${m.isCurrent ? "text-accent" : "text-zinc-600"}`}>{m.label}</span>
@@ -130,8 +145,8 @@ export default function BusinessHubDesktop({
       </div>
 
       {/* Secondary metrics — hairline columns, not four more boxes. */}
-      <div className="dd-rise mt-4" style={{ animationDelay: ".12s" }}>
-        <Tile label="Pipeline">
+      <div className="dd-rise" style={{ animationDelay: ".12s" }}>
+        <Tile label="Pipeline" className="py-1">
           <Cols>
             <Col value={outstanding > 0 ? usd(outstanding) : "—"} label="Outstanding" muted={outstanding === 0}
               sub={sentQuotes.length ? `${sentQuotes.length} awaiting reply` : undefined} onClick={() => onOpenView("quotes")} />
@@ -148,9 +163,9 @@ export default function BusinessHubDesktop({
       {/* Quotes + tools. The three tool cards used to be an equal 3-across
           row (the generic feature-row shape); they're now a compact rail
           beside the table, which also gives the table the width it wants. */}
-      <div className="dd-rise mt-4 grid gap-4" style={{ gridTemplateColumns: "1.55fr 1fr", animationDelay: ".18s" }}>
-        <Tile padded={false}>
-          <div className="flex items-center justify-between px-5 py-3.5">
+      <div className="dd-rise grid gap-4" style={{ gridTemplateColumns: "1.55fr 1fr", animationDelay: ".18s" }}>
+        <Tile padded={false} className="flex flex-col">
+          <div className="flex flex-shrink-0 items-center justify-between px-5 py-3.5">
             <b className="text-[13.5px] font-bold text-white">Quotes</b>
             <button type="button" onClick={() => onOpenView("quotes")} className="text-[11px] font-semibold text-accent transition hover:brightness-110">View all →</button>
           </div>
@@ -181,9 +196,25 @@ export default function BusinessHubDesktop({
               </tbody>
             </table>
           )}
+          {/* The table rarely fills the column. Rather than leave raw void,
+              the leftover space carries the next action. */}
+          {recentQuotes.length > 0 && (
+            <button
+              type="button"
+              onClick={() => onOpenView("quotes")}
+              className="group flex flex-col items-center justify-center gap-1 px-5 py-8 text-center transition hover:bg-white/[0.015]"
+            >
+              <span className="text-[12px] text-zinc-600">
+                {recentQuotes.length === 1 ? "One quote out." : `${recentQuotes.length} quotes out.`}
+              </span>
+              <span className="text-[11.5px] font-semibold text-accent transition group-hover:brightness-110">
+                Build the next one →
+              </span>
+            </button>
+          )}
         </Tile>
 
-        <Tile label="Tools">
+        <Tile label="Tools" className="self-start">
           <div className="flex flex-col divide-y divide-white/[0.05]">
             {([
               { v: "calculator", t: "Pricing Calculator", d: "Know what to charge", icon: <CalculatorIcon /> },
@@ -191,11 +222,11 @@ export default function BusinessHubDesktop({
               { v: "clients",    t: "Clients & Leads",    d: `${clients.length} in your roster`, icon: <ClientsIcon /> },
             ] as { v: BusinessView; t: string; d: string; icon: React.ReactNode }[]).map(({ v, t, d, icon }) => (
               <button key={v} type="button" onClick={() => onOpenView(v)}
-                className="group flex items-center gap-3 py-2.5 text-left transition first:pt-1">
-                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg" style={{ background: "rgba(255,255,255,.04)" }}>{icon}</div>
+                className="group flex items-center gap-3.5 py-3.5 text-left transition first:pt-2 hover:bg-white/[0.02]">
+                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl transition group-hover:bg-accent/10" style={{ background: "rgba(255,255,255,.045)" }}>{icon}</div>
                 <div className="min-w-0 flex-1">
-                  <b className="block truncate text-[12.5px] font-bold text-white">{t}</b>
-                  <span className="block truncate text-[10.5px] text-zinc-500">{d}</span>
+                  <b className="block truncate text-[13.5px] font-bold text-white">{t}</b>
+                  <span className="mt-0.5 block truncate text-[11.5px] text-zinc-500">{d}</span>
                 </div>
                 <span className="flex-shrink-0 text-zinc-600 opacity-0 transition-opacity group-hover:opacity-100">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6" /></svg>
@@ -204,6 +235,7 @@ export default function BusinessHubDesktop({
             ))}
           </div>
         </Tile>
+      </div>
       </div>
     </div>
   );
