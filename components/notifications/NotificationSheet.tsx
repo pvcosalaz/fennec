@@ -25,9 +25,13 @@ type Props = {
   userId: string;
   onClose: () => void;
   onRead: () => void;
+  /** Which edge the panel hangs from. The bell sits left in the mobile header
+   *  but right in the desktop rail, where anchoring left pushed the 320px
+   *  panel off the screen (Paco 2026-07-30). */
+  align?: "left" | "right";
 };
 
-export default function NotificationSheet({ userId, onClose, onRead }: Props) {
+export default function NotificationSheet({ userId, onClose, onRead, align = "left" }: Props) {
   const [items, setItems] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const ref = useRef<HTMLDivElement>(null);
@@ -69,7 +73,7 @@ export default function NotificationSheet({ userId, onClose, onRead }: Props) {
   return (
     <div
       ref={ref}
-      className="absolute left-0 top-full mt-2 w-80 z-50 rounded-2xl bg-[#1a1a1e] border border-white/10 shadow-xl overflow-hidden"
+      className={`absolute ${align === "right" ? "right-0" : "left-0"} top-full mt-2 w-80 max-w-[calc(100vw-1.5rem)] z-50 rounded-2xl bg-[#1a1a1e] border border-white/10 shadow-xl overflow-hidden`}
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-white/8">

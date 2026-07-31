@@ -54,7 +54,7 @@ function fmtDate(d: string): string {
 
 function Band({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="mt-6">
+    <div className="mt-5">
       <div className="mb-1 flex items-center gap-2.5">
         <span className="text-[8.5px] font-bold uppercase tracking-[0.22em] text-zinc-600">{label}</span>
         <div className="h-px flex-1" style={{ background: "linear-gradient(90deg, rgba(255,255,255,.07), transparent)" }} />
@@ -72,7 +72,7 @@ function Col({ value, label, sub, muted, onClick, icon }: { value: string; label
   const Tag = onClick ? "button" : "div";
   return (
     <Tag type={onClick ? "button" : undefined} onClick={onClick}
-      className={`group relative border-l border-white/[0.05] px-[18px] py-[14px] text-left first:border-l-0 first:pl-0.5 ${onClick ? "transition hover:bg-white/[0.02]" : ""}`}>
+      className={`group relative border-l border-white/[0.05] px-[18px] py-[11px] text-left first:border-l-0 first:pl-0.5 ${onClick ? "transition hover:bg-white/[0.02]" : ""}`}>
       {/* hover affordance: a quiet chevron says "this goes somewhere" */}
       {onClick && (
         <ChevronRight className="absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-600 opacity-0 transition-opacity duration-150 group-hover:opacity-100" />
@@ -197,7 +197,7 @@ export default function DashboardDesktop({
 
       {/* Contributions — the dB's visual evidence (same card as mobile, wider
           strip). Amber like every non-ID accent on desktop. */}
-      <ContributionsCard data={contributions ?? null} accent="#f5a623" weeks={34} />
+      <ContributionsCard data={contributions ?? null} accent="#f5a623" weeks={52} cellSize={11} />
 
       {/* Music & Business */}
       <Band label="Music & Business">
@@ -210,6 +210,9 @@ export default function DashboardDesktop({
       </Band>
 
       {/* Social Reach — same brand-color icons + glow as the mobile SocialChip */}
+      {/* Desktop uses its width: the two lightest bands sit side by side so the
+          dashboard stays one screen with no scroll (Paco 2026-07-30). */}
+      <div className="grid gap-x-10" style={{ gridTemplateColumns: "1fr 1fr" }}>
       <Band label="Social Reach">
         <Cols>
           <Col
@@ -228,7 +231,7 @@ export default function DashboardDesktop({
       <Band label="Today on Fennec">
         <div className="grid gap-0" style={{ gridTemplateColumns: "1.2fr 1fr 1fr" }}>
           {/* latest note on your tracks */}
-          <button type="button" onClick={() => onNavigate?.("ideas")} className="border-l border-white/[0.05] px-[18px] py-[14px] text-left first:border-l-0 first:pl-0.5 transition hover:bg-white/[0.02]">
+          <button type="button" onClick={() => onNavigate?.("ideas")} className="border-l border-white/[0.05] px-[18px] py-[11px] text-left first:border-l-0 first:pl-0.5 transition hover:bg-white/[0.02]">
             {latestNote ? (
               <>
                 <p className="text-[13px] leading-relaxed text-zinc-300" style={{ fontFamily: "var(--font-tape-serif, Georgia, serif)" }}>
@@ -283,6 +286,7 @@ export default function DashboardDesktop({
           </button>
         </div>
       </Band>
+      </div>
     </div>
   );
 }

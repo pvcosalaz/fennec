@@ -258,7 +258,7 @@ export default function DesktopShell({
              40px gutters, generous bottom padding so scroll always lands
              with breathing room. Modules must NOT add their own mx-auto/
              max-w/px — this is the single source of page margins. */
-          <div className="relative z-10 mx-auto w-full max-w-[1100px] flex-1 px-10 pb-20 pt-8">
+          <div className="relative z-10 mx-auto w-full max-w-[1100px] flex-1 px-10 pb-8 pt-6">
             {children}
           </div>
         )}
@@ -315,7 +315,7 @@ export default function DesktopShell({
       >
         {/* top icons: the app's real chrome (bell + settings) */}
         <div className="flex justify-end gap-2 pb-3.5">
-          <NotificationBell userId={userId} />
+          <NotificationBell userId={userId} align="right" />
           <button
             type="button"
             onClick={onOpenSettings}

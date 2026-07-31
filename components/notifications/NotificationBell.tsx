@@ -6,9 +6,10 @@ import NotificationSheet from "./NotificationSheet";
 
 type Props = {
   userId: string;
+  align?: "left" | "right";
 };
 
-export default function NotificationBell({ userId }: Props) {
+export default function NotificationBell({ userId, align = "left" }: Props) {
   const [unread, setUnread]         = useState(0);
   const [open, setOpen]             = useState(false);
   const [subscribed, setSubscribed] = useState(false);
@@ -83,6 +84,7 @@ export default function NotificationBell({ userId }: Props) {
 
       {open && (
         <NotificationSheet
+          align={align}
           userId={userId}
           onClose={() => setOpen(false)}
           onRead={refreshCount}

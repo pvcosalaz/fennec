@@ -17,20 +17,33 @@ const LEVEL_BG = [
   "#f5a623",
 ];
 
-function Heatmap({ byDay, weeks, cellRadius = 2 }: {
+function Heatmap({ byDay, weeks, cellRadius = 2, cellSize }: {
   byDay: ContributionDays["byDay"]; weeks: number; cellRadius?: number;
+  /** Fixed px per cell. Without it cells stretch to fill the width, which on a
+   *  wide desktop blew them up to ~40px squares (GitHub's are ~12px) and made
+   *  the card eat half the dashboard. */
+  cellSize?: number;
 }) {
   const grid = buildHeatmapGrid(byDay, weeks);
+  const fixed = cellSize != null;
   return (
-    <div className="flex gap-[3px] w-full">
+    <div className={`flex gap-[3px] ${fixed ? "" : "w-full"}`}>
       {grid.map((col, i) => (
-        <div key={i} className="flex flex-1 flex-col gap-[3px] min-w-0">
+        <div
+          key={i}
+          className={`flex flex-col gap-[3px] ${fixed ? "" : "flex-1 min-w-0"}`}
+          style={fixed ? { width: cellSize } : undefined}
+        >
           {col.map((cell) => (
             <div
               key={cell.key}
               title={`${cell.key} · ${cell.count}`}
-              className="w-full aspect-square"
-              style={{ background: LEVEL_BG[cell.level], borderRadius: cellRadius }}
+              className={fixed ? "" : "w-full aspect-square"}
+              style={{
+                background: LEVEL_BG[cell.level],
+                borderRadius: cellRadius,
+                ...(fixed ? { width: cellSize, height: cellSize } : null),
+              }}
             />
           ))}
         </div>
@@ -39,11 +52,13 @@ function Heatmap({ byDay, weeks, cellRadius = 2 }: {
   );
 }
 
-export default function ContributionsCard({ data, accent, weeks = 17 }: {
+export default function ContributionsCard({ data, accent, weeks = 17, cellSize }: {
   data: ContributionDays | null;
   accent: string;
   /** Columns on the compact strip — mobile fits ~17, desktop bands fit more. */
   weeks?: number;
+  /** Fixed px per cell (desktop). Omit on mobile so cells stretch to width. */
+  cellSize?: number;
 }) {
   const [showYear, setShowYear] = useState(false);
   const byDay = data?.byDay ?? new Map<string, number>();
@@ -65,20 +80,32 @@ export default function ContributionsCard({ data, accent, weeks = 17 }: {
           )}
         </div>
 
-        <Heatmap byDay={byDay} weeks={weeks} />
+        <Heatmap byDay={byDay} weeks={weeks} cellSize={cellSize} />
 
         <div className="flex items-center justify-between mt-2.5">
           <p className="text-[10px] text-zinc-500">
             <span className="font-extrabold text-zinc-200 tabular-nums">{data?.totalYear ?? 0}</span> this year
           </p>
-          <button
-            type="button"
-            onClick={() => setShowYear(true)}
-            className="text-[10px] font-bold transition hover:brightness-110"
-            style={{ color: accent }}
-          >
-            View year →
-          </button>
+          {weeks >= 52 ? (
+            // Full year already on screen (desktop): nothing more to open, so
+            // the space goes to the scale legend instead of a dead link.
+            <div className="flex items-center gap-1.5">
+              <span className="text-[9px] text-zinc-600">Less</span>
+              {LEVEL_BG.map((bg, i) => (
+                <span key={i} className="inline-block h-[9px] w-[9px] rounded-[2px]" style={{ background: bg }} />
+              ))}
+              <span className="text-[9px] text-zinc-600">More</span>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowYear(true)}
+              className="text-[10px] font-bold transition hover:brightness-110"
+              style={{ color: accent }}
+            >
+              View year →
+            </button>
+          )}
         </div>
       </div>
 
