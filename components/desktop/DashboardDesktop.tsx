@@ -205,24 +205,15 @@ export default function DashboardDesktop({
               {fennecDb}
             </span>
           </div>
-          {/* the tape's soundwave — same EQ bars as the mobile Fennec ID card */}
-          <div className="relative flex items-end gap-[3px]" style={{ height: 24, marginTop: 8 }}>
+          {/* the tape's soundwave — same EQ bars as the mobile Fennec ID card.
+              No subtitle: the dB stands alone (Paco likes it solitary), and a
+              "total reach = followers" line pushed producers toward creator/
+              vanity metrics, which is exactly what Fennec avoids. */}
+          <div className="relative flex items-end gap-[3px]" style={{ height: 24, marginTop: 10 }}>
             {EQ_HEIGHTS.map((h, i) => (
               <span key={i} className="fennec-eq-bar" style={{ height: h, width: 3, background: accent, animationDelay: `${i * 0.15}s` }} />
             ))}
           </div>
-          {/* Real context, not a vanity delta: the audience that actually drives
-              the score. Anchors the lone number to its inputs. */}
-          {(() => {
-            const reach = (igFollowers ?? 0) + (ttFollowers ?? 0) + (ytSubs ?? 0);
-            return (
-              <span className="relative mt-3 text-[10px] font-medium tracking-wide text-zinc-500">
-                {reach > 0
-                  ? <><span className="font-bold text-zinc-300">{fmtCount(reach)}</span> total reach</>
-                  : "Connect socials to grow"}
-              </span>
-            );
-          })()}
         </div>
       </div>
 
