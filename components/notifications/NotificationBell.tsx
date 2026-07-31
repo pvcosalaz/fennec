@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Bell } from "lucide-react";
 import { countUnread } from "@/lib/notificationDb";
 import NotificationSheet from "./NotificationSheet";
@@ -13,6 +13,39 @@ export default function NotificationBell({ userId, align = "left" }: Props) {
   const [unread, setUnread]         = useState(0);
   const [open, setOpen]             = useState(false);
   const [subscribed, setSubscribed] = useState(false);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  // Screen coords of the bell, handed to the panel so it can render in a
+  // portal. The desktop rail both clips (overflow-y:auto) and traps
+  // (transform) its descendants, so an in-place dropdown gets cut off there
+  // no matter its z-index (Paco 2026-07-30).
+  const [anchor, setAnchor] = useState<{ top: number; left: number; right: number } | null>(null);
+
+  function toggle() {
+    setOpen((o) => {
+      const next = !o;
+      if (next && btnRef.current) {
+        const r = btnRef.current.getBoundingClientRect();
+        setAnchor({ top: r.bottom, left: r.left, right: window.innerWidth - r.right });
+      }
+      return next;
+    });
+  }
+
+  // Keep the panel glued to the bell while the window moves under it.
+  useEffect(() => {
+    if (!open) return;
+    const sync = () => {
+      if (!btnRef.current) return;
+      const r = btnRef.current.getBoundingClientRect();
+      setAnchor({ top: r.bottom, left: r.left, right: window.innerWidth - r.right });
+    };
+    window.addEventListener("resize", sync);
+    window.addEventListener("scroll", sync, true);
+    return () => {
+      window.removeEventListener("resize", sync);
+      window.removeEventListener("scroll", sync, true);
+    };
+  }, [open]);
 
   const refreshCount = useCallback(() => {
     countUnread(userId).then(setUnread).catch(console.error);
@@ -70,7 +103,8 @@ export default function NotificationBell({ userId, align = "left" }: Props) {
   return (
     <div className="relative">
       <button
-        onClick={() => setOpen((o) => !o)}
+        ref={btnRef}
+        onClick={toggle}
         className="relative flex items-center justify-center h-8 w-8 rounded-xl border border-white/10 bg-white/5 text-zinc-400 hover:text-accent hover:border-accent/30 transition"
         aria-label="Notifications"
       >
@@ -85,6 +119,8 @@ export default function NotificationBell({ userId, align = "left" }: Props) {
       {open && (
         <NotificationSheet
           align={align}
+          anchor={anchor}
+          ignoreRef={btnRef}
           userId={userId}
           onClose={() => setOpen(false)}
           onRead={refreshCount}

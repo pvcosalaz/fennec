@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Bell, Mic, Calendar, Clock, Newspaper, X, CheckCheck } from "lucide-react";
 import type { Notification, NotificationType } from "@/lib/notificationDb";
 import { fetchNotifications, markAllRead, markOneRead } from "@/lib/notificationDb";
@@ -29,9 +30,17 @@ type Props = {
    *  but right in the desktop rail, where anchoring left pushed the 320px
    *  panel off the screen (Paco 2026-07-30). */
   align?: "left" | "right";
+  /** Viewport coords of the bell. When present the panel renders in a portal
+   *  on document.body, positioned fixed — the only way out of an ancestor
+   *  that clips (overflow) or traps (transform) it, like the desktop rail. */
+  anchor?: { top: number; left: number; right: number } | null;
+  /** The bell itself. Portaled out of the bell's subtree, the panel would
+   *  treat a click on the bell as "outside" and close on mousedown, only for
+   *  the button's own click to reopen it — so the bell could never close it. */
+  ignoreRef?: React.RefObject<HTMLElement | null>;
 };
 
-export default function NotificationSheet({ userId, onClose, onRead, align = "left" }: Props) {
+export default function NotificationSheet({ userId, onClose, onRead, align = "left", anchor, ignoreRef }: Props) {
   const [items, setItems] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const ref = useRef<HTMLDivElement>(null);
@@ -46,11 +55,13 @@ export default function NotificationSheet({ userId, onClose, onRead, align = "le
   // Close on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+      const t = e.target as Node;
+      if (ignoreRef?.current?.contains(t)) return;
+      if (ref.current && !ref.current.contains(t)) onClose();
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
-  }, [onClose]);
+  }, [onClose, ignoreRef]);
 
   async function handleMarkAll() {
     await markAllRead(userId);
@@ -70,10 +81,13 @@ export default function NotificationSheet({ userId, onClose, onRead, align = "le
 
   const unreadCount = items.filter((n) => !n.read).length;
 
-  return (
+  const panel = (
     <div
       ref={ref}
-      className={`absolute ${align === "right" ? "right-0" : "left-0"} top-full mt-2 w-80 max-w-[calc(100vw-1.5rem)] z-50 rounded-2xl bg-[#1a1a1e] border border-white/10 shadow-xl overflow-hidden`}
+      className={`${anchor ? "fixed z-[140]" : `absolute ${align === "right" ? "right-0" : "left-0"} top-full mt-2 z-50`} w-80 max-w-[calc(100vw-1.5rem)] rounded-2xl bg-[#1a1a1e] border border-white/10 shadow-xl overflow-hidden`}
+      style={anchor
+        ? { top: anchor.top + 8, ...(align === "right" ? { right: anchor.right } : { left: anchor.left }) }
+        : undefined}
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-white/8">
@@ -140,4 +154,10 @@ export default function NotificationSheet({ userId, onClose, onRead, align = "le
       </div>
     </div>
   );
+
+  // Portal only when anchored: the mobile header has no clipping ancestor, so
+  // there the in-place dropdown keeps working as before.
+  return anchor && typeof document !== "undefined"
+    ? createPortal(panel, document.body)
+    : panel;
 }
