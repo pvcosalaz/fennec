@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { Play, Pause, SkipForward, Plus, Upload } from "lucide-react";
+import { Play, Pause, SkipForward, Plus, Upload, ZoomIn, ZoomOut } from "lucide-react";
 import type { ProjectReview, ReviewComment } from "@/lib/audioTypes";
 import { fetchReviewComments, createReviewComment, fetchKarma } from "@/lib/audioDb";
 
@@ -19,7 +19,18 @@ const AMBER = "#f5a623";
 const AMBER_HOT = "#ffc861";
 const DECK = "#131216";
 
-const PX_PER_SEC = 16;      // tape strip scale
+/* Tape strip scale — dynamic (Paco 2026-07-30: "zoom dinámico en la
+   soundwave"). 16 px/s is the resting scale; pinch / ⌘-scroll on the strip
+   or the −/+ buttons move it. Zoom anchors at the fixed head, so the moment
+   under the needle never shifts while zooming. */
+const PX_PER_SEC = 16;
+const ZOOM_MIN = 4;         // whole track at a glance
+const ZOOM_MAX = 80;        // note-precision detail
+/** Timecode tick spacing that keeps labels readable at any zoom (~≥70px apart). */
+function tickInterval(pxPerSec: number): number {
+  for (const s of [5, 10, 15, 30, 60, 120, 300]) if (s * pxPerSec >= 70) return s;
+  return 600;
+}
 const R_FULL = 86;          // pancake radius, viewBox units (reel viewBox 0..200)
 const R_EMPTY = 40;
 const TAPE_SPEED = 110;     // linear tape speed in viewBox units/s → reel spin
@@ -137,6 +148,15 @@ export default function TapeDeckDesktop({
 
   const [playing, setPlaying]   = useState(false);
   const [t, setT]               = useState(0);
+  // Zoom lives in state (ticks/marks re-render) AND a ref (the rAF loop and
+  // event handlers read it without re-subscribing).
+  const [pxPerSec, setPxPerSec] = useState(PX_PER_SEC);
+  const pxPerSecRef = useRef(PX_PER_SEC);
+  function applyZoom(next: number) {
+    const z = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, next));
+    pxPerSecRef.current = z;
+    setPxPerSec(z);
+  }
   const [comments, setComments] = useState<ReviewComment[]>([]);
   const [karma, setKarma]       = useState<number | null>(null);
   const [marking, setMarking]   = useState(false);
@@ -186,7 +206,7 @@ export default function TapeDeckDesktop({
       // tape strip — time cur sits exactly under the head (viewport center)
       const vp = stripVpRef.current, strip = stripRef.current;
       if (vp && strip) {
-        strip.style.transform = `translateX(${vp.clientWidth / 2 - cur * PX_PER_SEC}px)`;
+        strip.style.transform = `translateX(${vp.clientWidth / 2 - cur * pxPerSecRef.current}px)`;
       }
 
       // pancake transfer — the amber edge rides the pancake's radius
@@ -274,13 +294,29 @@ export default function TapeDeckDesktop({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [track.id]);
 
+  // Pinch / ⌘-scroll over the tape = dynamic zoom. Trackpad pinch arrives as
+  // wheel+ctrlKey; non-passive so preventDefault stops the browser page-zoom.
+  // The head anchor is free: the rAF loop repositions the strip from
+  // cur * pxPerSecRef every frame, so the time under the needle stays put.
+  useEffect(() => {
+    const vp = stripVpRef.current;
+    if (!vp) return;
+    const onWheel = (e: WheelEvent) => {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      e.preventDefault();
+      applyZoom(pxPerSecRef.current * Math.exp(-e.deltaY * 0.0025));
+    };
+    vp.addEventListener("wheel", onWheel, { passive: false });
+    return () => vp.removeEventListener("wheel", onWheel);
+  }, []);
+
   /** Click the tape to scrub: x-offset from the head = time offset. */
   function seekFromClient(clientX: number) {
     const vp = stripVpRef.current;
     const a = audioRef.current;
     if (!vp || !a) return;
     const r = vp.getBoundingClientRect();
-    const offset = (clientX - (r.left + r.width / 2)) / PX_PER_SEC;
+    const offset = (clientX - (r.left + r.width / 2)) / pxPerSecRef.current;
     const time = Math.min(duration, Math.max(0, t + offset));
     a.currentTime = time;
     setT(time);
@@ -303,8 +339,9 @@ export default function TapeDeckDesktop({
     .filter((c) => c.timestamp_seconds != null && Math.abs((c.timestamp_seconds ?? 0) - t) < 3)
     .sort((a, b) => Math.abs((a.timestamp_seconds ?? 0) - t) - Math.abs((b.timestamp_seconds ?? 0) - t))[0];
 
-  const ticks = Array.from({ length: Math.max(0, Math.floor(duration / 15)) }, (_, i) => (i + 1) * 15);
-  const stripWidth = duration * PX_PER_SEC;
+  const tickStep = tickInterval(pxPerSec);
+  const ticks = Array.from({ length: Math.max(0, Math.floor(duration / tickStep)) }, (_, i) => (i + 1) * tickStep);
+  const stripWidth = duration * pxPerSec;
 
   return (
     <div className="relative flex h-screen min-h-0 flex-col overflow-hidden" style={{ background: DECK }}>
@@ -368,7 +405,7 @@ export default function TapeDeckDesktop({
 
             {/* timecode ticks every 15s — same ruler as the mobile tape */}
             {ticks.map((tk) => (
-              <div key={tk} className="absolute top-0 bottom-0 pointer-events-none" style={{ left: tk * PX_PER_SEC }}>
+              <div key={tk} className="absolute top-0 bottom-0 pointer-events-none" style={{ left: tk * pxPerSec }}>
                 <div className="absolute bottom-0 h-[9px] w-px" style={{ background: "rgba(255,255,255,.25)" }} />
                 <span className="absolute bottom-[12px] left-1 font-mono text-[8.5px]" style={{ color: "rgba(255,255,255,.28)" }}>{fmt(tk)}</span>
               </div>
@@ -383,7 +420,7 @@ export default function TapeDeckDesktop({
                   onClick={(e) => { e.stopPropagation(); const a = audioRef.current; if (a) { a.currentTime = c.timestamp_seconds ?? 0; setT(c.timestamp_seconds ?? 0); } }}
                   title={`@${c.profile?.username ?? ""} · ${fmt(c.timestamp_seconds ?? 0)}`}
                   className="absolute top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
-                  style={{ transition: "opacity 150ms var(--ease-out)", left: (c.timestamp_seconds ?? 0) * PX_PER_SEC }}
+                  style={{ transition: "opacity 150ms var(--ease-out)", left: (c.timestamp_seconds ?? 0) * pxPerSec }}
                 >
                   <span className="rounded-full" style={{
                     width: isSpeaking ? 7 : 5, height: isSpeaking ? 7 : 5,
@@ -458,7 +495,22 @@ export default function TapeDeckDesktop({
         <button onClick={onPass} className="flex items-center gap-1.5 rounded-full border border-white/10 px-4 py-2.5 text-[13px] text-zinc-400 transition hover:text-white">
           Next <SkipForward className="h-4 w-4" />
         </button>
-        <span className="ml-2 font-mono text-[10.5px] tracking-[0.06em] text-zinc-700">SPACE play · CLICK tape to scrub · ＋ note</span>
+        {/* zoom cluster — % resets to the resting scale */}
+        <div className="ml-2 flex items-center gap-0.5 rounded-full border border-white/10 px-1.5 py-1">
+          <button onClick={() => applyZoom(pxPerSecRef.current / 1.35)} aria-label="Zoom out"
+            className="grid h-6 w-6 place-items-center rounded-full text-zinc-500 transition hover:text-white">
+            <ZoomOut className="h-3.5 w-3.5" />
+          </button>
+          <button onClick={() => applyZoom(PX_PER_SEC)} title="Reset zoom"
+            className="min-w-[42px] text-center font-mono text-[10px] font-bold tabular-nums text-zinc-400 transition hover:text-white">
+            {Math.round((pxPerSec / PX_PER_SEC) * 100)}%
+          </button>
+          <button onClick={() => applyZoom(pxPerSecRef.current * 1.35)} aria-label="Zoom in"
+            className="grid h-6 w-6 place-items-center rounded-full text-zinc-500 transition hover:text-white">
+            <ZoomIn className="h-3.5 w-3.5" />
+          </button>
+        </div>
+        <span className="ml-1 font-mono text-[10.5px] tracking-[0.06em] text-zinc-700">SPACE play · CLICK scrub · ⌘scroll / pinch zoom · ＋ note</span>
         <button onClick={onOpenMyTracks} className="ml-auto flex items-center gap-2 rounded-full border px-4 py-2.5 text-[13px] font-bold text-black transition hover:brightness-110" style={{ borderColor: "transparent", background: `linear-gradient(180deg,${AMBER_HOT},${AMBER})` }}>
           <Upload className="h-4 w-4" /> Upload Tracks
         </button>
