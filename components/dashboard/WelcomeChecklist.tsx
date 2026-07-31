@@ -3,6 +3,7 @@
 import { Check } from "lucide-react";
 import FennecFox from "@/components/dashboard/FennecFox";
 import { useSheetDismiss, SHEET_BOTTOM, SHEET_ENTER } from "@/components/ui/useSheetDismiss";
+import { useIsDesktop } from "@/lib/useIsDesktop";
 
 export type ChecklistItem = {
   id: string;
@@ -25,24 +26,33 @@ export function WelcomeModal({
   const doneCount = items.filter((i) => i.done).length;
   const allDone = doneCount === items.length;
   const { sheetRef, dismiss } = useSheetDismiss(onClose);
+  const isDesktop = useIsDesktop();
 
   return (
     <>
       <div className="fixed inset-0 z-[60] bg-black/75 backdrop-blur-sm"
         style={{ animation: "sheetFadeIn .25s ease both" }} onClick={dismiss} />
+      {/* Desktop: centered dialog rather than a full-width phone sheet
+          (Paco 2026-07-30, "ajustar los anuncios al tamaño desktop"). */}
       <div
-        ref={sheetRef}
-        className="fixed inset-x-0 z-[70] mx-auto w-full max-w-md rounded-t-3xl border-t border-white/10 bg-zinc-950 px-6 pt-3"
-        style={{
-          bottom: SHEET_BOTTOM,
-          paddingBottom: "calc(env(safe-area-inset-bottom) + 1.5rem)",
-          animation: SHEET_ENTER,
-        }}
+        ref={isDesktop ? undefined : sheetRef}
+        className={
+          isDesktop
+            ? "fennec-dialog-in fixed left-1/2 top-1/2 z-[70] w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-white/10 bg-zinc-950 px-6 pt-5 pb-6 max-h-[86vh] overflow-y-auto"
+            : "fixed inset-x-0 z-[70] mx-auto w-full max-w-md rounded-t-3xl border-t border-white/10 bg-zinc-950 px-6 pt-3"
+        }
+        style={
+          isDesktop
+            ? { boxShadow: "0 32px 80px rgba(0,0,0,.55)" }
+            : { bottom: SHEET_BOTTOM, paddingBottom: "calc(env(safe-area-inset-bottom) + 1.5rem)", animation: SHEET_ENTER }
+        }
       >
-        {/* drag handle */}
-        <div className="flex justify-center mb-3">
-          <div className="w-10 h-1 rounded-full bg-white/20" />
-        </div>
+        {/* drag handle — touch affordance, mobile only */}
+        {!isDesktop && (
+          <div className="flex justify-center mb-3">
+            <div className="w-10 h-1 rounded-full bg-white/20" />
+          </div>
+        )}
 
         {/* Logo + welcome */}
         <div className="flex flex-col items-center text-center gap-1 mb-5">

@@ -1260,12 +1260,24 @@ export default function PricingCalculator() {
         showUpgrade && !profile?.is_pro && (
           <>
             <div className="fixed inset-0 z-[150] bg-black/70 backdrop-blur-sm" style={{ animation: "sheetFadeIn .25s ease both" }} onClick={dismissUpgrade} />
+            {/* Desktop: centered dialog (same pattern as TapeIntro/SchedulePrompt) —
+                the phone bottom-sheet stretched across the whole desktop viewport
+                (Paco 2026-07-30, "ajustar los anuncios al tamaño desktop"). The
+                swipe-dismiss ref stays mobile-only: it's a touch gesture. */}
             <div
-              ref={upgradeSheetRef}
-              className="fixed left-0 right-0 z-[160] rounded-t-3xl bg-zinc-950 border-t border-white/10 p-6 space-y-5"
-              style={{ bottom: SHEET_BOTTOM, paddingBottom: "calc(env(safe-area-inset-bottom) + 24px)", animation: SHEET_ENTER }}
+              ref={isDesktop ? undefined : upgradeSheetRef}
+              className={
+                isDesktop
+                  ? "fennec-dialog-in fixed left-1/2 top-1/2 z-[160] w-full max-w-md -translate-x-1/2 -translate-y-1/2 space-y-5 rounded-3xl border border-white/10 bg-zinc-950 p-7 max-h-[86vh] overflow-y-auto"
+                  : "fixed left-0 right-0 z-[160] rounded-t-3xl bg-zinc-950 border-t border-white/10 p-6 space-y-5"
+              }
+              style={
+                isDesktop
+                  ? { boxShadow: "0 32px 80px rgba(0,0,0,.55)" }
+                  : { bottom: SHEET_BOTTOM, paddingBottom: "calc(env(safe-area-inset-bottom) + 24px)", animation: SHEET_ENTER }
+              }
             >
-              <div className="w-10 h-1 bg-white/20 rounded-full mx-auto" />
+              {!isDesktop && <div className="w-10 h-1 bg-white/20 rounded-full mx-auto" />}
   
               <div className="space-y-1">
                 <p className="text-xl font-black text-white">{UPGRADE_COPY[upgradeContext].line1}</p>
