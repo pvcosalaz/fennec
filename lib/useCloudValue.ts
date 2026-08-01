@@ -17,6 +17,13 @@ import { pullUserState, pushUserState, subscribeUserState } from "@/lib/userStat
    their own settings on two devices doesn't need CRDTs.
    ═══════════════════════════════════════════════════════════════ */
 
+/** How long after a local edit we refuse remote writes. Long enough to cover
+ *  a realtime round trip, short enough that a genuine edit from another device
+ *  lands almost immediately once you stop typing. */
+const LOCAL_EDIT_GUARD_MS = 2500;
+/** Typing shouldn't hit the network on every keystroke. */
+const PUSH_DEBOUNCE_MS = 700;
+
 export function useCloudValue<T>(
   key: string,
   value: T | null,
@@ -25,6 +32,8 @@ export function useCloudValue<T>(
   const ready = useRef(false);          // first hydrate finished
   const applyingRemote = useRef(false); // suppress the echo push
   const lastPushed = useRef<string>("");
+  const lastLocalEdit = useRef(0);      // timestamp of the last local change
+  const pushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── hydrate from the cloud once, then subscribe ──
   useEffect(() => {
@@ -46,6 +55,11 @@ export function useCloudValue<T>(
       const serialized = JSON.stringify(incoming);
       // Ignore the echo of our own write.
       if (serialized === lastPushed.current) return;
+      // While the user is typing, THEY win. Echoes of earlier keystrokes
+      // arrive after later ones, and applying them rewinds the field —
+      // literally eating digits mid-entry (Paco 2026-08-01, my regression
+      // from shipping this sync).
+      if (Date.now() - lastLocalEdit.current < LOCAL_EDIT_GUARD_MS) return;
       applyingRemote.current = true;
       setValue(incoming as T);
       lastPushed.current = serialized;
@@ -55,7 +69,7 @@ export function useCloudValue<T>(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
 
-  // ── push local edits ──
+  // ── push local edits (debounced) ──
   useEffect(() => {
     if (!ready.current) return;           // don't push the pre-hydrate default
     if (applyingRemote.current) { applyingRemote.current = false; return; }
@@ -63,7 +77,14 @@ export function useCloudValue<T>(
 
     const serialized = JSON.stringify(value);
     if (serialized === lastPushed.current) return;
-    lastPushed.current = serialized;
-    void pushUserState(key, value);
+
+    lastLocalEdit.current = Date.now();
+    if (pushTimer.current) clearTimeout(pushTimer.current);
+    pushTimer.current = setTimeout(() => {
+      lastPushed.current = serialized;
+      void pushUserState(key, value);
+    }, PUSH_DEBOUNCE_MS);
+
+    return () => { if (pushTimer.current) clearTimeout(pushTimer.current); };
   }, [key, value]);
 }

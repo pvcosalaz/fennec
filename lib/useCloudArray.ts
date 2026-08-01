@@ -25,6 +25,12 @@ export function useCloudArray<T extends { id: string }>(
   const ready = useRef(false);          // first hydrate finished
   const applyingRemote = useRef(false); // suppress push for cloud-originated changes
   const pushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Timestamp of the last local edit. While someone is typing (a script
+   *  title, an idea name), a late echo of an earlier keystroke would rewind
+   *  the field under them — the digit-eating bug this hook's sibling hit
+   *  (Paco 2026-08-01). Local edits win for a beat. */
+  const lastLocalEdit = useRef(0);
+  const LOCAL_EDIT_GUARD_MS = 2500;
   const latest = useRef(value);
   latest.current = value;
 
@@ -55,6 +61,7 @@ export function useCloudArray<T extends { id: string }>(
 
     const unsub = subscribeUserState(key, (remote) => {
       if (!Array.isArray(remote)) return;
+      if (Date.now() - lastLocalEdit.current < LOCAL_EDIT_GUARD_MS) return;
       applyingRemote.current = true;
       setValue(() => remote as T[]);
     });
@@ -67,6 +74,7 @@ export function useCloudArray<T extends { id: string }>(
     if (!ready.current) return;
     if (applyingRemote.current) { applyingRemote.current = false; return; }
     if (pushTimer.current) clearTimeout(pushTimer.current);
+    lastLocalEdit.current = Date.now();
     pushTimer.current = setTimeout(() => { void pushUserState(key, latest.current); }, 700);
   }, [value, key]);
 }
