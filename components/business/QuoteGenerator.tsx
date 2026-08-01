@@ -76,6 +76,8 @@ export default function QuoteGenerator({
   /** Quote being edited, or null when composing a new one. Edits save in
    *  place (no v2 versioning) — Paco 2026-07-31. */
   const [editingId, setEditingId] = useState<string | null>(null);
+  /** Quote awaiting confirmation of an approval — approving can't be undone. */
+  const [confirmApproveId, setConfirmApproveId] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [pricing, setPricing] = useState({ minPricePerProject: 0, isSetupComplete: false });
 
@@ -695,14 +697,41 @@ export default function QuoteGenerator({
 
                 {(quote.status === "draft" || quote.status === "sent") && (
                   <>
-                    <button
-                      onClick={() => handleApprove(quote)}
-                      className="flex items-center gap-1.5 rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1.5 text-xs font-medium text-emerald-400 transition hover:bg-emerald-400/20"
-                      title="The client approved — start the project"
-                    >
-                      <CheckCircle2 className="h-3 w-3" />
-                      Client approved
-                    </button>
+                    {/* Neutral until hovered, on purpose. A filled emerald button
+                        read as the APPROVED state itself (that's what the status
+                        pill uses), so a quote you'd just written looked already
+                        approved. Green is a state in this module, not an action.
+                        Label follows the module's verb pattern — "Mark as sent",
+                        "Mark as In Review" — so it reads as something you do. */}
+                    {confirmApproveId === quote.id ? (
+                      /* Two-step, because approving is not undoable: it creates
+                         the project and locks the quote to it. Same pattern the
+                         delete button already uses in this module. */
+                      <span className="flex items-center gap-2">
+                        <span className="text-[11px] text-zinc-400">Start the project?</span>
+                        <button
+                          onClick={() => { setConfirmApproveId(null); handleApprove(quote); }}
+                          className="rounded-lg border border-emerald-500/30 bg-emerald-500/20 px-2.5 py-1.5 text-[11px] font-semibold text-emerald-400 transition hover:bg-emerald-500/30"
+                        >
+                          Yes, approved
+                        </button>
+                        <button
+                          onClick={() => setConfirmApproveId(null)}
+                          className="rounded-lg border border-white/10 px-2.5 py-1.5 text-[11px] font-semibold text-zinc-400 transition hover:border-white/20"
+                        >
+                          Cancel
+                        </button>
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmApproveId(quote.id)}
+                        className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs font-medium text-zinc-300 transition hover:border-emerald-400/50 hover:text-emerald-400"
+                        title="The client said yes. This starts the project."
+                      >
+                        <CheckCircle2 className="h-3 w-3" />
+                        Mark as approved
+                      </button>
+                    )}
                     <button
                       onClick={() => setQuoteStatus(quote, "declined")}
                       className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-zinc-500 transition hover:border-red-400/40 hover:text-red-400"
