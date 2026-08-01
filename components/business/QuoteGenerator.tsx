@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useCloudValue } from "@/lib/useCloudValue";
 import { getCurrency, formatMoney, useCurrency, currencyMeta } from "@/lib/currency";
 import {
   ArrowLeft,
@@ -50,6 +51,9 @@ type Props = {
 
 const newItem = (): QuoteItem => ({ id: crypto.randomUUID(), concept: "", qty: 1, unitPrice: 0 });
 
+/** Terms the producer reuses on every quote (payment details, revision policy). */
+const NOTES_DEFAULT_KEY = "fennec-quote-notes-default-v1";
+
 const emptyForm = {
   projectName: "",
   projectTypeId: projectTypes[0].id,
@@ -81,8 +85,22 @@ export default function QuoteGenerator({
   const [confirmApproveId, setConfirmApproveId] = useState<string | null>(null);
   /** Live so the breakdown's symbol follows a change in Settings. */
   const currencySymbol = currencyMeta(useCurrency()).symbol;
-  /** "Where do these two numbers come from?" — collapsed by default. */
+  /** "Where do these two numbers come from?" Collapsed by default. */
   const [showPriceInfo, setShowPriceInfo] = useState(false);
+
+  /* Reusable notes: bank details and terms are the same on every quote, and
+     retyping a CLABE each time is how they end up missing from the one that
+     mattered. Kept in user_state so it follows the account across devices. */
+  const [notesDefault, setNotesDefaultState] = useState("");
+  const applyNotesDefault = (v: string) => {
+    setNotesDefaultState(v);
+    try { localStorage.setItem(NOTES_DEFAULT_KEY, v); } catch { /* ignore */ }
+  };
+  useEffect(() => {
+    try { setNotesDefaultState(localStorage.getItem(NOTES_DEFAULT_KEY) ?? ""); } catch { /* ignore */ }
+  }, []);
+  useCloudValue(NOTES_DEFAULT_KEY, notesDefault, applyNotesDefault);
+  const setNotesDefault = applyNotesDefault;
   const [saved, setSaved] = useState(false);
   const [pricing, setPricing] = useState<ReturnType<typeof computePricing>>({
     minPricePerProject: 0, monthlyTarget: 0,
@@ -166,6 +184,9 @@ export default function QuoteGenerator({
     setForm({
       ...emptyForm,
       finalPrice: defaultFinal > 0 ? String(defaultFinal) : "",
+      // Start from the saved terms so payment details are never the thing you
+      // forgot. Editable per quote, and editing doesn't touch the default.
+      notes: notesDefault,
     });
     setShowForm(true);
   };
@@ -668,16 +689,48 @@ export default function QuoteGenerator({
 
           {/* Notes */}
           <label className="flex flex-col gap-1.5">
-            <span className="text-xs text-zinc-400">Notes (optional)</span>
+            <span className="text-xs text-zinc-400">Notes &amp; terms (optional)</span>
             <textarea
-              placeholder="Deliverables, deadlines, revisions included..."
+              placeholder={"Payment terms and where to pay you.\nDeliverables, deadlines, revisions included…"}
               value={form.notes}
               onChange={(e) =>
                 setForm((p) => ({ ...p, notes: e.target.value }))
               }
-              rows={3}
+              rows={4}
               className="resize-none rounded-xl border border-white/15 bg-black/30 px-3 py-2.5 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
             />
+            {/* This block ends up on the client's PDF under "Notes & terms",
+                which makes it the natural home for bank details. Nobody wants
+                to retype a CLABE on every quote, so it can be saved as the
+                starting point for the next one (Paco 2026-08-01). */}
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+              <span className="text-[11px] text-zinc-500">
+                Appears on the client&rsquo;s PDF.
+              </span>
+              {form.notes.trim() && form.notes !== notesDefault && (
+                <button
+                  type="button"
+                  onClick={() => setNotesDefault(form.notes)}
+                  className="text-[11px] font-semibold text-accent transition hover:brightness-110"
+                >
+                  Save as default for future quotes
+                </button>
+              )}
+              {form.notes.trim() !== "" && form.notes === notesDefault && (
+                <span className="text-[11px] font-medium text-emerald-400/80">
+                  Saved as your default
+                </span>
+              )}
+              {!form.notes.trim() && notesDefault.trim() && (
+                <button
+                  type="button"
+                  onClick={() => setForm((p) => ({ ...p, notes: notesDefault }))}
+                  className="text-[11px] font-semibold text-accent transition hover:brightness-110"
+                >
+                  Insert my default terms
+                </button>
+              )}
+            </div>
           </label>
 
           {/* Actions */}
