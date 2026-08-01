@@ -96,7 +96,7 @@ export default function QuoteGenerator({
   const [showPriceInfo, setShowPriceInfo] = useState(false);
 
   /* Reusable notes: bank details and terms are the same on every quote, and
-     retyping a CLABE each time is how they end up missing from the one that
+     retyping account details each time is how they go missing from the one that
      mattered. Kept in user_state so it follows the account across devices. */
   const [notesDefault, setNotesDefaultState] = useState("");
   const applyNotesDefault = (v: string) => {
@@ -841,7 +841,7 @@ export default function QuoteGenerator({
             />
             {/* This block ends up on the client's PDF under "Notes & terms",
                 which makes it the natural home for bank details. Nobody wants
-                to retype a CLABE on every quote, so it can be saved as the
+                to retype account details on every quote, so it can be saved as the
                 starting point for the next one (Paco 2026-08-01). */}
             <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
               <span className="text-[11px] text-zinc-500">
