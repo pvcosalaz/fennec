@@ -27,6 +27,10 @@ import {
   QUOTE_STATUS_META,
   deliverablesFromQuote,
   EMPTY_BRIEF,
+  PAYMENT_METHODS,
+  paymentMethodMeta,
+  type PaymentMethod,
+  type PaymentMethodId,
   itemsSubtotal,
   type QuoteItem,
   computePricing,
@@ -53,6 +57,8 @@ const newItem = (): QuoteItem => ({ id: crypto.randomUUID(), concept: "", qty: 1
 
 /** Terms the producer reuses on every quote (payment details, revision policy). */
 const NOTES_DEFAULT_KEY = "fennec-quote-notes-default-v1";
+/** How the producer gets paid. Typed once, reused on every quote. */
+const PAYMENT_DEFAULT_KEY = "fennec-payment-methods-default-v1";
 
 const emptyForm = {
   projectName: "",
@@ -64,6 +70,7 @@ const emptyForm = {
   items: [newItem()] as QuoteItem[],
   taxLabel: "",
   taxRate: 0,
+  paymentMethods: [] as PaymentMethod[],
 };
 
 export default function QuoteGenerator({
@@ -101,6 +108,33 @@ export default function QuoteGenerator({
   }, []);
   useCloudValue(NOTES_DEFAULT_KEY, notesDefault, applyNotesDefault);
   const setNotesDefault = applyNotesDefault;
+
+  /* Same idea for how you get paid: typed once, reused on every quote. */
+  const [paymentDefault, setPaymentDefaultState] = useState<PaymentMethod[]>([]);
+  const applyPaymentDefault = (v: PaymentMethod[]) => {
+    setPaymentDefaultState(v);
+    try { localStorage.setItem(PAYMENT_DEFAULT_KEY, JSON.stringify(v)); } catch { /* ignore */ }
+  };
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(PAYMENT_DEFAULT_KEY);
+      if (raw) setPaymentDefaultState(JSON.parse(raw) as PaymentMethod[]);
+    } catch { /* ignore */ }
+  }, []);
+  useCloudValue(PAYMENT_DEFAULT_KEY, paymentDefault, applyPaymentDefault);
+  const setPaymentDefault = applyPaymentDefault;
+
+  /** Compared on method+label+details: the row ids differ every time. */
+  const paymentSignature = (list: PaymentMethod[]) =>
+    JSON.stringify(list.map((m) => [m.method, m.label ?? "", m.details]));
+  const samePaymentAsDefault =
+    paymentSignature(form.paymentMethods) === paymentSignature(paymentDefault);
+
+  const updatePaymentMethod = (id: string, patch: Partial<PaymentMethod>) =>
+    setForm((p) => ({
+      ...p,
+      paymentMethods: p.paymentMethods.map((m) => (m.id === id ? { ...m, ...patch } : m)),
+    }));
   const [saved, setSaved] = useState(false);
   const [pricing, setPricing] = useState<ReturnType<typeof computePricing>>({
     minPricePerProject: 0, monthlyTarget: 0,
@@ -184,9 +218,10 @@ export default function QuoteGenerator({
     setForm({
       ...emptyForm,
       finalPrice: defaultFinal > 0 ? String(defaultFinal) : "",
-      // Start from the saved terms so payment details are never the thing you
-      // forgot. Editable per quote, and editing doesn't touch the default.
+      // Start from the saved terms and payment methods so they're never the
+      // thing you forgot. Editable per quote; editing doesn't touch the default.
       notes: notesDefault,
+      paymentMethods: paymentDefault.map((m) => ({ ...m, id: crypto.randomUUID() })),
     });
     setShowForm(true);
   };
@@ -226,6 +261,9 @@ export default function QuoteGenerator({
         : [{ id: crypto.randomUUID(), concept: quote.projectName || "Project", qty: 1, unitPrice: quote.finalPrice }],
       taxLabel: quote.taxLabel ?? "",
       taxRate: quote.taxRate ?? 0,
+      // Quotes written before payment methods existed open with none rather
+      // than inheriting today's default, which would rewrite their history.
+      paymentMethods: (quote.paymentMethods ?? []).map((m) => ({ ...m })),
     });
     setShowForm(true);
   }
@@ -251,6 +289,8 @@ export default function QuoteGenerator({
       taxLabel: form.taxLabel.trim(),
       taxRate: form.taxRate || 0,
       currency: getCurrency(),
+      // Blank rows would print an empty line on the client's PDF.
+      paymentMethods: form.paymentMethods.filter((m) => m.details.trim()),
       notes: form.notes.trim(),
       createdAt: existing?.createdAt ?? Date.now(),
       updatedAt: existing ? Date.now() : undefined,
@@ -664,6 +704,106 @@ export default function QuoteGenerator({
             )}
           </div>
 
+          {/* ── Payment options ──
+              Its own block, not a line buried in the notes: this is the part
+              of the quote that decides whether you actually get paid, and the
+              PDF renders it as a "How to pay" section (Paco 2026-08-01). */}
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs text-zinc-400">Payment options</span>
+
+            {form.paymentMethods.length > 0 && (
+              <div className="flex flex-col gap-1.5">
+                {form.paymentMethods.map((pm) => {
+                  const meta = paymentMethodMeta(pm.method);
+                  return (
+                    <div key={pm.id} className="flex items-center gap-1.5">
+                      <span className="w-28 flex-shrink-0 truncate text-xs font-medium text-zinc-300">
+                        {meta.label}
+                      </span>
+                      {pm.method === "other" && (
+                        <input
+                          type="text"
+                          aria-label="Method name"
+                          placeholder="Name it"
+                          value={pm.label ?? ""}
+                          onChange={(e) => updatePaymentMethod(pm.id, { label: e.target.value })}
+                          className="h-10 w-28 flex-shrink-0 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
+                        />
+                      )}
+                      <input
+                        type="text"
+                        aria-label={`${meta.label} details`}
+                        placeholder={meta.placeholder}
+                        value={pm.details}
+                        onChange={(e) => updatePaymentMethod(pm.id, { details: e.target.value })}
+                        className="h-10 min-w-0 flex-1 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
+                      />
+                      <button
+                        type="button"
+                        aria-label={`Remove ${meta.label}`}
+                        onClick={() => setForm((p) => ({
+                          ...p,
+                          paymentMethods: p.paymentMethods.filter((x) => x.id !== pm.id),
+                        }))}
+                        className="flex h-10 w-8 flex-shrink-0 items-center justify-center rounded-lg text-zinc-600 transition hover:text-white"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Add-a-method picker. Resets to its placeholder after each pick so
+                it reads as an action, not as a field holding a value. */}
+            <div className="flex items-center gap-2">
+              <select
+                aria-label="Add a payment method"
+                value=""
+                onChange={(e) => {
+                  const id = e.target.value as PaymentMethodId;
+                  if (!id) return;
+                  setForm((p) => ({
+                    ...p,
+                    paymentMethods: [
+                      ...p.paymentMethods,
+                      { id: crypto.randomUUID(), method: id, details: "" },
+                    ],
+                  }));
+                }}
+                style={{ colorScheme: "dark" }}
+                className="h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-zinc-300 outline-none transition focus:border-accent"
+              >
+                <option value="">+ Add payment method</option>
+                {PAYMENT_METHODS.map((m) => (
+                  <option key={m.id} value={m.id}>{m.label}</option>
+                ))}
+              </select>
+
+              {form.paymentMethods.length > 0 && !samePaymentAsDefault && (
+                <button
+                  type="button"
+                  onClick={() => setPaymentDefault(form.paymentMethods)}
+                  className="text-[11px] font-semibold text-accent transition hover:brightness-110"
+                >
+                  Save as default
+                </button>
+              )}
+              {form.paymentMethods.length > 0 && samePaymentAsDefault && (
+                <span className="text-[11px] font-medium text-emerald-400/80">
+                  Saved as your default
+                </span>
+              )}
+            </div>
+
+            {form.paymentMethods.length === 0 && (
+              <p className="text-[11px] text-zinc-600">
+                Add at least one so the client knows where to send the money.
+              </p>
+            )}
+          </div>
+
           {/* Client */}
           <div className="flex flex-col gap-1.5">
             <span className="text-xs text-zinc-400">Client *</span>
@@ -691,11 +831,7 @@ export default function QuoteGenerator({
           <label className="flex flex-col gap-1.5">
             <span className="text-xs text-zinc-400">Notes &amp; terms (optional)</span>
             <textarea
-              /* Naming the methods matters more than it looks: a Mexican
-                 producer reaches for a CLABE, but a client abroad needs
-                 PayPal, SWIFT/IBAN or Wise, and the field has to say so or
-                 the quote goes out with no way to pay it (Paco 2026-08-01). */
-              placeholder={"How to pay you: bank transfer, PayPal email, SWIFT/IBAN, Wise…\nTerms: deposit, deadlines, revisions included…"}
+              placeholder={"Deposit, deadlines, revisions included, usage rights…"}
               value={form.notes}
               onChange={(e) =>
                 setForm((p) => ({ ...p, notes: e.target.value }))

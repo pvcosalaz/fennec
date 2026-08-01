@@ -20,7 +20,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { getQuotes } from "@/lib/businessDb";
-import { quoteItems, quoteTotals, type Quote } from "@/lib/pricingData";
+import { quoteItems, quoteTotals, paymentMethodName, type Quote } from "@/lib/pricingData";
 import { formatMoneyDoc, type Currency } from "@/lib/currency";
 import { fetchProfile } from "@/lib/communityDb";
 import type { Profile } from "@/lib/communityTypes";
@@ -131,6 +131,25 @@ export default function QuotePrintPage() {
           <div className="row total"><span>Total</span><span>{money(total)}</span></div>
         </section>
 
+        {/* How to pay, as its own block. It used to be a sentence inside the
+            notes paragraph, which is how a quote goes out with no usable way
+            to pay it (Paco 2026-08-01). */}
+        {quote.paymentMethods?.length > 0 && (
+          <section className="pay">
+            <p className="label">How to pay</p>
+            <table className="pay-table">
+              <tbody>
+                {quote.paymentMethods.map((m) => (
+                  <tr key={m.id}>
+                    <th>{paymentMethodName(m)}</th>
+                    <td>{m.details}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        )}
+
         {quote.notes && (
           <section className="notes">
             <p className="label">Notes &amp; terms</p>
@@ -225,6 +244,14 @@ function Shell({ children }: { children: React.ReactNode }) {
           font-size: 16px; font-weight: 700; color: #18181b;
         }
 
+        .pay { margin-top: 32px; }
+        .pay-table { border-collapse: collapse; font-size: 12.5px; }
+        .pay-table th {
+          text-align: left; vertical-align: top; padding: 4px 22px 4px 0;
+          font-weight: 600; color: #18181b; white-space: nowrap;
+        }
+        .pay-table td { vertical-align: top; padding: 4px 0; color: #3f3f46; }
+
         .notes { margin-top: 34px; font-size: 12.5px; color: #3f3f46; line-height: 1.65; max-width: 62ch; }
         .notes p:last-child { margin: 0; white-space: pre-wrap; }
 
@@ -244,7 +271,7 @@ function Shell({ children }: { children: React.ReactNode }) {
             max-width: none; padding: 0; border-radius: 0; box-shadow: none;
           }
           /* Never split a line item or the totals across pages. */
-          .items tr, .totals, .notes { break-inside: avoid; }
+          .items tr, .totals, .notes, .pay { break-inside: avoid; }
         }
         @media (prefers-reduced-motion: reduce) { .btn-print { transition: none; } }
       `}</style>

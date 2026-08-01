@@ -27,6 +27,50 @@ export type QuoteItem = {
   note?: string;
 };
 
+/* ── Payment methods ──────────────────────────────────────────────────────────
+   The METHOD is a picklist, the DETAILS are free text, on purpose. Bank data
+   refuses to be modelled: Mexico wants bank + holder + CLABE, a US wire wants
+   routing + account, SWIFT wants IBAN + BIC, PayPal wants one email. A rigid
+   form per country would be wrong for somebody; free text is right for
+   everybody. The picklist is what makes the PDF render a clean block.
+
+   List chosen from 2026 freelance-payment data rather than guesswork: Wise is
+   the fastest-growing cross-border option, PayPal the most recognised despite
+   its fees, Payoneer the default for Upwork/Fiverr work, and local transfer
+   (SPEI in Mexico) still the norm for domestic clients. */
+export type PaymentMethodId =
+  | "bank" | "swift" | "paypal" | "wise" | "payoneer"
+  | "stripe" | "mercadopago" | "zelle" | "other";
+
+export type PaymentMethod = {
+  id: string;
+  method: PaymentMethodId;
+  /** Only for "other": what the producer calls it. */
+  label?: string;
+  details: string;
+};
+
+export const PAYMENT_METHODS: {
+  id: PaymentMethodId; label: string; placeholder: string;
+}[] = [
+  { id: "bank",        label: "Bank transfer",   placeholder: "Bank, account holder, CLABE or account number" },
+  { id: "swift",       label: "Wire · SWIFT",    placeholder: "IBAN or account, BIC/SWIFT, bank name and address" },
+  { id: "paypal",      label: "PayPal",          placeholder: "PayPal email" },
+  { id: "wise",        label: "Wise",            placeholder: "Wise email or account details" },
+  { id: "payoneer",    label: "Payoneer",        placeholder: "Payoneer email" },
+  { id: "stripe",      label: "Stripe link",     placeholder: "Payment link" },
+  { id: "mercadopago", label: "Mercado Pago",    placeholder: "Mercado Pago email, phone or link" },
+  { id: "zelle",       label: "Zelle",           placeholder: "Zelle email or phone" },
+  { id: "other",       label: "Other",           placeholder: "How the client pays you" },
+];
+
+export const paymentMethodMeta = (id: PaymentMethodId) =>
+  PAYMENT_METHODS.find((m) => m.id === id) ?? PAYMENT_METHODS[PAYMENT_METHODS.length - 1];
+
+/** Display name, honouring the custom label on "other". */
+export const paymentMethodName = (m: PaymentMethod) =>
+  m.method === "other" ? (m.label?.trim() || "Other") : paymentMethodMeta(m.method).label;
+
 export type Quote = {
   id: string;
   clientId: string;
@@ -50,6 +94,9 @@ export type Quote = {
   /** Derived: subtotal(items) * (1 + taxRate). Kept as a column for fast
    *  list/aggregate queries. */
   finalPrice: number;
+  /** How the client pays. Frozen per quote like the currency: changing banks
+   *  must never rewrite a PDF the client already has. */
+  paymentMethods: PaymentMethod[];
   notes: string;
   createdAt: number;
   updatedAt?: number;
