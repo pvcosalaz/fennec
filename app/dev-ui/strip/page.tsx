@@ -8,6 +8,7 @@ import { notFound } from "next/navigation";
 import {
   StripCurrent, StripMoneyJourney, StripKeepClients, StripCountsFirst, StripThree,
 } from "@/components/business/PipelineStripVariants";
+import QuoteGenerator from "@/components/business/QuoteGenerator";
 
 export default function StripVariantsPage() {
   if (process.env.NODE_ENV === "production") notFound();
@@ -23,6 +24,20 @@ export default function StripVariantsPage() {
         <StripKeepClients />
         <StripCountsFirst />
         <StripThree />
+
+        <p className="pt-6 text-xs font-bold uppercase tracking-widest text-zinc-600">
+          Quote generator (real component)
+        </p>
+        {/* The real component, so the breakdown row can be checked without a
+            login. Needs a completed pricing setup in localStorage to get past
+            its gate — see the note in the page comment above. */}
+        <QuoteGenerator
+          onBack={() => {}}
+          onGoToProjects={() => {}}
+          onGoToClients={() => {}}
+          onGoToCalculator={() => {}}
+          userId="00000000-0000-0000-0000-000000000000"
+        />
       </div>
     </div>
   );

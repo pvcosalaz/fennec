@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { getCurrency, formatMoney } from "@/lib/currency";
+import { getCurrency, formatMoney, useCurrency, currencyMeta } from "@/lib/currency";
 import {
   ArrowLeft,
   FilePlus,
@@ -79,6 +79,8 @@ export default function QuoteGenerator({
   const [editingId, setEditingId] = useState<string | null>(null);
   /** Quote awaiting confirmation of an approval — approving can't be undone. */
   const [confirmApproveId, setConfirmApproveId] = useState<string | null>(null);
+  /** Live so the breakdown's symbol follows a change in Settings. */
+  const currencySymbol = currencyMeta(useCurrency()).symbol;
   const [saved, setSaved] = useState(false);
   const [pricing, setPricing] = useState({ minPricePerProject: 0, isSetupComplete: false });
 
@@ -132,12 +134,21 @@ export default function QuoteGenerator({
     [form.projectTypeId],
   );
   const minPrice = pricing.minPricePerProject;
-  const recommendedPrice = minPrice * activeProjectType.multiplier;
+
+  /* The minimum is a floor by definition: below it the project doesn't cover
+     your own costs. Multipliers under 1 (student short film is 0.5) used to
+     drag the RECOMMENDED price beneath it, so the app suggested a number and
+     then warned you that same number was too low — it argued with itself
+     (Paco 2026-08-01). Recommending a loss is never right; if the producer
+     wants to subsidise a student film that's their call to make by typing it. */
+  const rawRecommended = minPrice * activeProjectType.multiplier;
+  const recommendedPrice = Math.max(minPrice, rawRecommended);
+  const recommendedIsFloored = minPrice > 0 && rawRecommended < minPrice;
 
   // When project type changes, update the final price suggestion
   const handleProjectTypeChange = (id: string) => {
     const pt = projectTypes.find((p) => p.id === id) ?? projectTypes[0];
-    const newRecommended = Math.round(minPrice * pt.multiplier);
+    const newRecommended = Math.round(Math.max(minPrice, minPrice * pt.multiplier));
     setForm((prev) => ({
       ...prev,
       projectTypeId: id,
@@ -425,6 +436,12 @@ export default function QuoteGenerator({
                 <p className="mt-0.5 text-sm font-semibold text-accent">
                   {formatCOP(recommendedPrice)}
                 </p>
+                {recommendedIsFloored && (
+                  <p className="mt-1 text-[10px] leading-snug text-zinc-500">
+                    This project type usually pays less, but your minimum is the
+                    floor.
+                  </p>
+                )}
               </div>
             </div>
           )}
@@ -447,24 +464,47 @@ export default function QuoteGenerator({
                     }))}
                     className="h-10 min-w-0 flex-1 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
                   />
-                  <input
-                    type="number" min="1" step="1" aria-label="Quantity"
-                    value={it.qty}
-                    onChange={(e) => setForm((p) => ({
-                      ...p,
-                      items: p.items.map((x) => x.id === it.id ? { ...x, qty: Number(e.target.value) || 1 } : x),
-                    }))}
-                    className="h-10 w-14 flex-shrink-0 rounded-xl border border-white/15 bg-black/30 px-2 text-center text-sm text-white outline-none focus:border-accent"
-                  />
-                  <input
-                    type="number" min="0" step="1000" placeholder="0" aria-label="Unit price"
-                    value={it.unitPrice || ""}
-                    onChange={(e) => setForm((p) => ({
-                      ...p,
-                      items: p.items.map((x) => x.id === it.id ? { ...x, unitPrice: Number(e.target.value) || 0 } : x),
-                    }))}
-                    className="h-10 w-28 flex-shrink-0 rounded-xl border border-white/15 bg-black/30 px-3 text-right text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
-                  />
+                  {/* Same ambiguity as the price: a lone "1" doesn't say it's
+                      a count. "×1" is unmistakable at a glance. */}
+                  <div className="relative h-10 w-16 flex-shrink-0">
+                    <span
+                      aria-hidden
+                      className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-zinc-600"
+                    >
+                      ×
+                    </span>
+                    <input
+                      type="number" min="1" step="1" aria-label="Quantity"
+                      value={it.qty}
+                      onChange={(e) => setForm((p) => ({
+                        ...p,
+                        items: p.items.map((x) => x.id === it.id ? { ...x, qty: Number(e.target.value) || 1 } : x),
+                      }))}
+                      className="h-10 w-full rounded-xl border border-white/15 bg-black/30 pl-6 pr-2 text-center text-sm text-white outline-none focus:border-accent"
+                    />
+                  </div>
+                  {/* A bare "0" doesn't say whether it's money, minutes or
+                      units (Paco 2026-08-01). The symbol is the user's actual
+                      currency, not a hardcoded "$" — a Brazilian sees R$. */}
+                  <div className="relative h-10 w-28 flex-shrink-0">
+                    <span
+                      aria-hidden
+                      className={`pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm transition-colors ${
+                        it.unitPrice ? "text-zinc-400" : "text-zinc-600"
+                      }`}
+                    >
+                      {currencySymbol}
+                    </span>
+                    <input
+                      type="number" min="0" step="1000" placeholder="0" aria-label="Unit price"
+                      value={it.unitPrice || ""}
+                      onChange={(e) => setForm((p) => ({
+                        ...p,
+                        items: p.items.map((x) => x.id === it.id ? { ...x, unitPrice: Number(e.target.value) || 0 } : x),
+                      }))}
+                      className="h-10 w-full rounded-xl border border-white/15 bg-black/30 pl-8 pr-3 text-right text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
+                    />
+                  </div>
                   <button
                     type="button"
                     aria-label="Remove concept"
