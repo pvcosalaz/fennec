@@ -11,6 +11,7 @@ import {
   QuickIdeasCard, ContentLabCard, MyScriptsCard,
 } from "@/components/remotion/ContentToolCards";
 import NetworkHero from "@/components/remotion/NetworkHero";
+import { PipelineStepper, PIPELINE, pipelineIndex } from "@/components/business/PipelineStepper";
 import PostCard from "@/components/community/PostCard";
 import BusinessHub from "@/components/business/BusinessHub";
 import CalendarHub from "@/components/content/CalendarHub";
@@ -92,6 +93,23 @@ export default function DevUiPage() {
       <p className="text-xs font-bold uppercase tracking-widest text-zinc-600">Dashboard · v4 layout (phone frame)</p>
       <div className="rounded-[28px] border border-white/10 overflow-hidden bg-[#0b0a08]" style={{ height: 720 }}>
         <Dashboard username="aria.wav" networkProfile={mockProfile} className="h-full" />
+      </div>
+
+      <p className="text-xs font-bold uppercase tracking-widest text-zinc-600">Pipeline stepper · every stage</p>
+      <div className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-5">
+        {PIPELINE.map((s) => (
+          <div key={s.key} className="space-y-1">
+            <p className="text-[10px] text-zinc-600">current: {s.key} ({s.owner})</p>
+            <PipelineStepper
+              current={s.key}
+              canSelect={(k) => {
+                const idx = pipelineIndex(k), cur = pipelineIndex(s.key);
+                return idx !== cur && idx <= cur + 1;
+              }}
+              onSelect={() => {}}
+            />
+          </div>
+        ))}
       </div>
 
       <p className="text-xs font-bold uppercase tracking-widest text-zinc-600">Business tool cards</p>

@@ -28,6 +28,9 @@ import {
   projectMoney, deliverableProgress, EMPTY_BRIEF,
 } from "@/lib/pricingData";
 import { formatMoney, getCurrency, type Currency } from "@/lib/currency";
+import {
+  PipelineStepper, PIPELINE, pipelineIndex, type PipelineKey,
+} from "@/components/business/PipelineStepper";
 
 // ─── Shared bits ──────────────────────────────────────────────────────────────
 
@@ -557,7 +560,8 @@ function BriefSection({
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function ProjectDetail({
-  project, statusMeta, onBack, onChange, onAdvance, onRevert, nextLabel, prevLabel,
+  project, statusMeta, onBack, onChange, onAdvance, onRevert, onSetStatus,
+  nextLabel, prevLabel,
 }: {
   project: Project;
   statusMeta: { label: string; color: string; bg: string; icon: React.ComponentType<{ className?: string }> };
@@ -565,6 +569,7 @@ export default function ProjectDetail({
   onChange: (p: Project) => void;
   onAdvance: () => void;
   onRevert: () => void;
+  onSetStatus: (s: Project["status"]) => void;
   nextLabel: string | null;
   prevLabel: string | null;
 }) {
@@ -602,6 +607,24 @@ export default function ProjectDetail({
             )}
           </div>
         </div>
+      </div>
+
+      {/* Same seven stages as the quote screen, seen from the other end: the
+          quote's stages read as already done. They're not selectable — going
+          back across that boundary would orphan this project. */}
+      <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4">
+        <PipelineStepper
+          current={project.status as PipelineKey}
+          canSelect={(key) => {
+            const step = PIPELINE.find((s) => s.key === key);
+            if (!step || step.owner !== "project") return false;
+            const idx = pipelineIndex(key);
+            const cur = pipelineIndex(project.status as PipelineKey);
+            // Backwards anywhere, forwards one at a time.
+            return idx !== cur && idx <= cur + 1;
+          }}
+          onSelect={(key) => onSetStatus(key as Project["status"])}
+        />
       </div>
 
       {/* Deadline lives up top: it's the thing that changes what you do today */}

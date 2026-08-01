@@ -516,6 +516,16 @@ export default function ActiveProjects({ onBack, userId }: { onBack: () => void;
     if (proj) upsertProject(userId, proj);
   };
 
+  /** Jump straight to a stage from the stepper. The stepper itself enforces
+   *  which jumps are legal (back anywhere, forward one). */
+  const handleSetStatus = (id: string, status: ProjectStatus) => {
+    cancelPendingWrite();
+    const updated = projects.map((p) => (p.id === id ? { ...p, status } : p));
+    save(updated);
+    const proj = updated.find((p) => p.id === id);
+    if (proj) upsertProject(userId, proj);
+  };
+
   const handleRevert = (id: string) => {
     cancelPendingWrite();
     const updated = projects.map((p) => {
@@ -557,6 +567,7 @@ export default function ActiveProjects({ onBack, userId }: { onBack: () => void;
         onChange={handleUpdate}
         onAdvance={() => handleAdvance(selected.id)}
         onRevert={() => handleRevert(selected.id)}
+        onSetStatus={(s) => handleSetStatus(selected.id, s)}
         nextLabel={selected.status === "paid" ? null : STATUS_META[nextStatus(selected.status)].label}
         prevLabel={prev ? STATUS_META[prev].label : null}
       />

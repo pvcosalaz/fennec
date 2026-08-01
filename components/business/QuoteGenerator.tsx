@@ -16,6 +16,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import Select from "@/components/ui/Select";
+import { PipelineStepper, type PipelineKey } from "@/components/business/PipelineStepper";
 import {
   type Client,
   type Quote,
@@ -683,6 +684,26 @@ export default function QuoteGenerator({
                   that move money: what the client actually answered. Only the
                   hops that are legal from the current stage are shown, so the
                   card reads as "here's what can happen next". */}
+              {/* The whole run, seen from the quote. Project stages show ahead
+                  but aren't reachable here — they belong to the project. */}
+              {quote.status !== "declined" && (
+                <div className="mt-3 border-t border-white/5 pt-3">
+                  <PipelineStepper
+                    current={quote.status as PipelineKey}
+                    canSelect={(key) =>
+                      // Only the quote's own stages, and only from a live quote.
+                      (quote.status === "draft" || quote.status === "sent") &&
+                      (key === "draft" || key === "sent" || key === "approved") &&
+                      key !== quote.status
+                    }
+                    onSelect={(key) => {
+                      if (key === "approved") { setConfirmApproveId(quote.id); return; }
+                      setQuoteStatus(quote, key as Quote["status"]);
+                    }}
+                  />
+                </div>
+              )}
+
               <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-white/5 pt-3">
                 {quote.status === "draft" && (
                   <button
