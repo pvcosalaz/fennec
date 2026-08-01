@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { formatMoney } from "@/lib/currency";
 import { SiInstagram, SiTiktok, SiYoutube } from "react-icons/si";
 import FennecIdCard from "@/components/network/FennecIdCard";
 import type { FennecIdColor } from "@/lib/fennecIdPalette";
@@ -21,7 +22,6 @@ function fmtCount(n: number): string {
   if (n >= 1_000)     return `${(n / 1_000).toFixed(1)}k`;
   return n.toString();
 }
-const usd = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`;
 
 // Same soundwave as the mobile Fennec ID card (fennec-eq-bar keyframe in
 // globals.css), just a taller set of bars for the bigger desktop hero.
@@ -166,7 +166,7 @@ export default function DashboardDesktop({
           <Cols>
             <Col value={String(totalProjects)} label="Projects" sub={activeProjects > 0 ? `${activeProjects} active` : undefined} onClick={() => onNavigate?.("pricing")} />
             <Col value={String(quotesSentCount)} label="Quotes sent" onClick={() => onNavigate?.("pricing")} />
-            <Col value={quotesOutTotal > 0 ? usd(quotesOutTotal) : "—"} label="Quotes out" muted={quotesOutTotal === 0} onClick={() => onNavigate?.("pricing")} />
+            <Col value={quotesOutTotal > 0 ? formatMoney(quotesOutTotal) : "—"} label="Quotes out" muted={quotesOutTotal === 0} onClick={() => onNavigate?.("pricing")} />
             <Col value={karma != null ? String(karma) : "—"} label="Karma" muted={karma == null} onClick={() => onNavigate?.("ideas")} />
           </Cols>
         </Tile>

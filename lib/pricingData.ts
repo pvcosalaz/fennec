@@ -16,6 +16,17 @@ export type Client = {
   createdAt: number;
 };
 
+/** One billable concept inside a quote. Producers quote bundles, not a single
+ *  number: a soundtrack + a 1-min variation + a rush premium are three lines
+ *  the client needs to see (Paco, quoting a real project 2026-07-31). */
+export type QuoteItem = {
+  id: string;
+  concept: string;
+  qty: number;
+  unitPrice: number;
+  note?: string;
+};
+
 export type Quote = {
   id: string;
   clientId: string;
@@ -26,11 +37,47 @@ export type Quote = {
   projectTypeName: string;
   minPrice: number;
   recommendedPrice: number;
+  /** Line items. Empty on quotes created before the breakdown existed —
+   *  read them through `quoteItems()` which migrates those in memory. */
+  items: QuoteItem[];
+  /** Tax is per-quote and NOT hardcoded to 16%: Fennec has users in Mexico,
+   *  Colombia and Argentina, and quoting without tax is legitimate. */
+  taxLabel: string;
+  taxRate: number;
+  /** The currency the quote was WRITTEN in. Frozen at creation so changing
+   *  the app-wide setting never rewrites a price a client already saw. */
+  currency: Currency;
+  /** Derived: subtotal(items) * (1 + taxRate). Kept as a column for fast
+   *  list/aggregate queries. */
   finalPrice: number;
   notes: string;
   createdAt: number;
+  updatedAt?: number;
   status: "draft" | "sent";
 };
+
+/** Items for a quote, migrating legacy ones (no breakdown) to a single line
+ *  so every consumer can assume `items` is populated. */
+export function quoteItems(q: Quote): QuoteItem[] {
+  if (q.items?.length) return q.items;
+  return [{
+    id: `${q.id}-legacy`,
+    concept: q.projectName || q.projectTypeName || "Project",
+    qty: 1,
+    unitPrice: q.finalPrice,
+  }];
+}
+
+export const itemsSubtotal = (items: QuoteItem[]) =>
+  items.reduce((sum, it) => sum + (Number(it.qty) || 0) * (Number(it.unitPrice) || 0), 0);
+
+/** subtotal, tax and total for a quote — one place, so the form, the list and
+ *  the PDF can never disagree. */
+export function quoteTotals(q: Pick<Quote, "items" | "taxRate"> & Partial<Quote>) {
+  const subtotal = itemsSubtotal(q.items?.length ? q.items : []);
+  const tax = subtotal * (Number(q.taxRate) || 0);
+  return { subtotal, tax, total: subtotal + tax };
+}
 
 export type ProjectStatus = "in_progress" | "review" | "delivered" | "paid";
 
@@ -75,12 +122,11 @@ export const projectTypes: ProjectType[] = [
 
 // ─── Formatters ───────────────────────────────────────────────────────────────
 
-export const formatCOP = (value: number) =>
-  new Intl.NumberFormat("es-CO", {
-    style: "currency",
-    currency: "COP",
-    maximumFractionDigits: 0,
-  }).format(value);
+/** @deprecated Misleading name kept for call sites: it no longer forces COP,
+ *  it formats in the user's chosen currency. Prefer formatMoney directly. */
+export const formatCOP = (value: number) => formatMoney(value);
+
+import { formatMoney, type Currency } from "@/lib/currency";
 
 // ─── Pricing computation ──────────────────────────────────────────────────────
 

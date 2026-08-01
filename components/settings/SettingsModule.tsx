@@ -13,6 +13,7 @@ import Select from "@/components/ui/Select";
 import { GENRE_OPTIONS } from "@/lib/genres";
 import { fetchProfile, updateProfile } from "@/lib/communityDb";
 import { supabase } from "@/lib/supabase";
+import { CURRENCY_KEY, CURRENCIES, notifyCurrencyChange, type Currency } from "@/lib/currency";
 
 export const PROFILE_KEY = "fennec-profile-v1";
 
@@ -34,14 +35,9 @@ const DEFAULT_PROFILE: UserProfile = {
 
 // Genre catalog now lives in lib/genres.ts so the /join waitlist form shares it.
 
-export const CURRENCY_KEY = "fennec-currency-v1";
-export type Currency = "COP" | "MXN" | "USD";
-
-export const CURRENCIES: { id: Currency; label: string; symbol: string; flag: string }[] = [
-  { id: "COP", label: "Colombian Peso",  symbol: "$",  flag: "🇨🇴" },
-  { id: "MXN", label: "Mexican Peso",    symbol: "$",  flag: "🇲🇽" },
-  { id: "USD", label: "US Dollar",       symbol: "$",  flag: "🇺🇸" },
-];
+// Currency now lives in lib/currency.ts (the formatters need it and a lib must
+// not import from a component). Re-exported so existing imports keep working.
+export { CURRENCY_KEY, CURRENCIES, type Currency };
 
 const ROLES = [
   "Music Producer",
@@ -275,6 +271,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
   function saveCurrency(c: Currency) {
     setCurrency(c);
     localStorage.setItem(CURRENCY_KEY, c);
+    notifyCurrencyChange();
   }
 
   function resetData(key: string, label: string) {

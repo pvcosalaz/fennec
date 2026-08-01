@@ -1,5 +1,6 @@
 "use client";
 import { type Project, type Quote, type Client, formatCOP } from "@/lib/pricingData";
+import { formatMoney } from "@/lib/currency";
 import type { BusinessView } from "./BusinessHub";
 import { RiseStyle, Tile, Instrument, Cols, Col, ACCENT } from "@/components/desktop/ui";
 
@@ -9,7 +10,6 @@ import { RiseStyle, Tile, Instrument, Cols, Col, ACCENT } from "@/components/des
    presentation: all data computed in BusinessHub and passed in.
    ═══════════════════════════════════════════════════════════════ */
 
-const usd = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`;
 
 // Same brand colors as the mobile tool-card illustrations (components/remotion/BusinessToolCards.tsx)
 const AMBER = "#f5a623";
@@ -148,11 +148,11 @@ export default function BusinessHubDesktop({
       <div className="dd-rise" style={{ animationDelay: ".12s" }}>
         <Tile label="Pipeline" className="py-1">
           <Cols>
-            <Col value={outstanding > 0 ? usd(outstanding) : "—"} label="Outstanding" muted={outstanding === 0}
+            <Col value={outstanding > 0 ? formatMoney(outstanding) : "—"} label="Outstanding" muted={outstanding === 0}
               sub={sentQuotes.length ? `${sentQuotes.length} awaiting reply` : undefined} onClick={() => onOpenView("quotes")} />
             <Col value={String(activeProjects.length)} label="Active projects" muted={activeProjects.length === 0}
               sub={activeProjects.length ? "in progress" : undefined} onClick={() => onOpenView("projects")} />
-            <Col value={avgProject > 0 ? usd(avgProject) : "—"} label="Avg. project" muted={avgProject === 0}
+            <Col value={avgProject > 0 ? formatMoney(avgProject) : "—"} label="Avg. project" muted={avgProject === 0}
               sub={paidProjects.length ? "from paid work" : undefined} />
             <Col value={String(clients.length)} label="Clients" muted={clients.length === 0}
               sub={clients.length ? "in your roster" : undefined} onClick={() => onOpenView("clients")} />
@@ -187,7 +187,7 @@ export default function BusinessHubDesktop({
                   <tr key={q.id} className="cursor-pointer transition hover:bg-white/[0.02]" onClick={() => onOpenView("quotes")}>
                     <td className="border-b border-white/[0.04] px-5 py-3 text-zinc-300">{q.clientName || "—"}</td>
                     <td className="border-b border-white/[0.04] px-5 py-3 text-zinc-300">{q.projectName || q.projectTypeName}</td>
-                    <td className="border-b border-white/[0.04] px-5 py-3 font-semibold tabular-nums text-white">{usd(q.finalPrice)}</td>
+                    <td className="border-b border-white/[0.04] px-5 py-3 font-semibold tabular-nums text-white">{formatMoney(q.finalPrice)}</td>
                     <td className="border-b border-white/[0.04] px-5 py-3">
                       <span className={`rounded-md px-2 py-0.5 text-[10px] font-bold uppercase ${STATUS_STYLE[q.status] ?? STATUS_STYLE.draft}`}>{q.status}</span>
                     </td>

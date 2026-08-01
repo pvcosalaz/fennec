@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { getCurrency, formatMoney } from "@/lib/currency";
 import {
   ArrowLeft,
   FilePlus,
@@ -16,6 +17,8 @@ import {
   type Project,
   projectTypes,
   formatCOP,
+  itemsSubtotal,
+  type QuoteItem,
   computePricing,
 } from "@/lib/pricingData";
 import {
@@ -35,12 +38,18 @@ type Props = {
   userId: string;
 };
 
+const newItem = (): QuoteItem => ({ id: crypto.randomUUID(), concept: "", qty: 1, unitPrice: 0 });
+
 const emptyForm = {
   projectName: "",
   projectTypeId: projectTypes[0].id,
   clientId: "",
   finalPrice: "",
   notes: "",
+  /** The breakdown. One blank line to start so the shape is obvious. */
+  items: [newItem()] as QuoteItem[],
+  taxLabel: "",
+  taxRate: 0,
 };
 
 export default function QuoteGenerator({
@@ -134,12 +143,17 @@ export default function QuoteGenerator({
   };
 
   const selectedClient = clients.find((c) => c.id === form.clientId);
-  const finalPriceNum = Number(form.finalPrice) || 0;
+  // The total is derived from the breakdown, never typed: two sources of
+  // truth for a client-facing number is how a quote goes out wrong.
+  const subtotal = itemsSubtotal(form.items);
+  const taxAmount = subtotal * (form.taxRate || 0);
+  const finalPriceNum = subtotal + taxAmount;
   const isBelowMin = finalPriceNum > 0 && finalPriceNum < minPrice;
   const canSave =
     form.projectName.trim() &&
     form.clientId &&
-    finalPriceNum > 0 &&
+    subtotal > 0 &&
+    form.items.some((it) => it.concept.trim()) &&
     pricing.isSetupComplete;
 
   const handleSave = () => {
@@ -156,6 +170,10 @@ export default function QuoteGenerator({
       minPrice,
       recommendedPrice,
       finalPrice: finalPriceNum,
+      items: form.items.filter((it) => it.concept.trim() && it.unitPrice > 0),
+      taxLabel: form.taxLabel.trim(),
+      taxRate: form.taxRate || 0,
+      currency: getCurrency(),
       notes: form.notes.trim(),
       createdAt: Date.now(),
       status: "draft",
@@ -344,30 +362,108 @@ export default function QuoteGenerator({
             </div>
           )}
 
-          {/* Final price */}
-          <label className="flex flex-col gap-1.5">
-            <span className="text-xs text-zinc-400">Your price (COP) *</span>
-            <input
-              type="number"
-              min="0"
-              step="50000"
-              placeholder="0"
-              value={form.finalPrice}
-              onChange={(e) =>
-                setForm((p) => ({ ...p, finalPrice: e.target.value }))
-              }
-              className={`h-10 rounded-xl border bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent ${
-                isBelowMin
-                  ? "border-red-400/50 focus:border-red-400"
-                  : "border-white/15"
-              }`}
-            />
+          {/* Breakdown — a producer quotes a bundle (main track + variation +
+              rush), so the client needs the concepts, not one lump number.
+              The total is computed from these lines. */}
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs text-zinc-400">Breakdown *</span>
+            <div className="flex flex-col gap-1.5">
+              {form.items.map((it, i) => (
+                <div key={it.id} className="flex items-center gap-1.5">
+                  <input
+                    type="text"
+                    placeholder={i === 0 ? "Main soundtrack" : "Concept"}
+                    value={it.concept}
+                    onChange={(e) => setForm((p) => ({
+                      ...p,
+                      items: p.items.map((x) => x.id === it.id ? { ...x, concept: e.target.value } : x),
+                    }))}
+                    className="h-10 min-w-0 flex-1 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
+                  />
+                  <input
+                    type="number" min="1" step="1" aria-label="Quantity"
+                    value={it.qty}
+                    onChange={(e) => setForm((p) => ({
+                      ...p,
+                      items: p.items.map((x) => x.id === it.id ? { ...x, qty: Number(e.target.value) || 1 } : x),
+                    }))}
+                    className="h-10 w-14 flex-shrink-0 rounded-xl border border-white/15 bg-black/30 px-2 text-center text-sm text-white outline-none focus:border-accent"
+                  />
+                  <input
+                    type="number" min="0" step="1000" placeholder="0" aria-label="Unit price"
+                    value={it.unitPrice || ""}
+                    onChange={(e) => setForm((p) => ({
+                      ...p,
+                      items: p.items.map((x) => x.id === it.id ? { ...x, unitPrice: Number(e.target.value) || 0 } : x),
+                    }))}
+                    className="h-10 w-28 flex-shrink-0 rounded-xl border border-white/15 bg-black/30 px-3 text-right text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
+                  />
+                  <button
+                    type="button"
+                    aria-label="Remove concept"
+                    disabled={form.items.length === 1}
+                    onClick={() => setForm((p) => ({ ...p, items: p.items.filter((x) => x.id !== it.id) }))}
+                    className="flex h-10 w-8 flex-shrink-0 items-center justify-center rounded-lg text-zinc-600 transition hover:text-white disabled:opacity-25"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => setForm((p) => ({ ...p, items: [...p.items, newItem()] }))}
+              className="self-start text-xs font-semibold text-accent transition hover:brightness-110"
+            >
+              + Add concept
+            </button>
+          </div>
+
+          {/* Tax — label and rate are free: IVA in Mexico, IVA 19% in Colombia,
+              or none at all. Never hardcode 16%. */}
+          <div className="flex items-end gap-1.5">
+            <label className="flex flex-1 flex-col gap-1.5">
+              <span className="text-xs text-zinc-400">Tax label</span>
+              <input
+                type="text" placeholder="IVA (optional)"
+                value={form.taxLabel}
+                onChange={(e) => setForm((p) => ({ ...p, taxLabel: e.target.value }))}
+                className="h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
+              />
+            </label>
+            <label className="flex w-24 flex-col gap-1.5">
+              <span className="text-xs text-zinc-400">Rate %</span>
+              <input
+                type="number" min="0" max="100" step="1" placeholder="0"
+                value={form.taxRate ? Math.round(form.taxRate * 100) : ""}
+                onChange={(e) => setForm((p) => ({ ...p, taxRate: (Number(e.target.value) || 0) / 100 }))}
+                className="h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-right text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
+              />
+            </label>
+          </div>
+
+          {/* Running total — the number the client will see */}
+          <div className="rounded-xl border border-white/10 bg-black/20 px-4 py-3">
+            <div className="flex items-baseline justify-between text-[13px]">
+              <span className="text-zinc-500">Subtotal</span>
+              <span className="tabular-nums text-zinc-300">{formatMoney(subtotal)}</span>
+            </div>
+            {form.taxRate > 0 && (
+              <div className="mt-1 flex items-baseline justify-between text-[13px]">
+                <span className="text-zinc-500">{form.taxLabel || "Tax"} {Math.round(form.taxRate * 100)}%</span>
+                <span className="tabular-nums text-zinc-300">{formatMoney(taxAmount)}</span>
+              </div>
+            )}
+            <div className="mt-2 flex items-baseline justify-between border-t border-white/10 pt-2">
+              <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Total</span>
+              <span className="text-[19px] font-extrabold tabular-nums text-accent">{formatMoney(finalPriceNum)}</span>
+            </div>
             {isBelowMin && (
-              <p className="text-xs text-red-400">
-                ⚠ Below your minimum rate ({formatCOP(minPrice)})
+              <p className="mt-2 text-xs text-red-400">
+                Below your minimum rate ({formatMoney(minPrice)})
               </p>
             )}
-          </label>
+          </div>
 
           {/* Client */}
           <div className="flex flex-col gap-1.5">
