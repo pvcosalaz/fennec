@@ -815,28 +815,26 @@ export default function QuoteGenerator({
             {/* Add-a-method picker. Resets to its placeholder after each pick so
                 it reads as an action, not as a field holding a value. */}
             <div className="flex items-center gap-2">
-              <select
-                aria-label="Add a payment method"
+              {/* The app's own Select, not a native one: an OS list arrives
+                  with system colours and its own frame and reads as a foreign
+                  object inside the card (Paco 2026-08-01). */}
+              <Select
                 value=""
-                onChange={(e) => {
-                  const id = e.target.value as PaymentMethodId;
-                  if (!id) return;
+                aria-label="Add a payment method"
+                triggerLabel="+ Add payment method"
+                compact
+                options={PAYMENT_METHODS.map((m) => ({ value: m.id, label: m.label }))}
+                onChange={(v) => {
+                  if (!v) return;
                   setForm((p) => ({
                     ...p,
                     paymentMethods: [
                       ...p.paymentMethods,
-                      { id: crypto.randomUUID(), method: id, details: "" },
+                      { id: crypto.randomUUID(), method: v as PaymentMethodId, details: "" },
                     ],
                   }));
                 }}
-                style={{ colorScheme: "dark" }}
-                className="h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-zinc-300 outline-none transition focus:border-accent"
-              >
-                <option value="">+ Add payment method</option>
-                {PAYMENT_METHODS.map((m) => (
-                  <option key={m.id} value={m.id}>{m.label}</option>
-                ))}
-              </select>
+              />
 
               {form.paymentMethods.length > 0 && !samePaymentAsDefault && (
                 <button
