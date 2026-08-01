@@ -141,6 +141,27 @@ const sumObj = (obj: unknown): number =>
     0,
   );
 
+/**
+ * Adopt the account's cloud pricing when this device doesn't have a complete
+ * setup yet. computePricing() reads localStorage synchronously, so a consumer
+ * that mounts before the cloud hydrates would decide "not set up" on a device
+ * where the user simply hasn't opened the calculator (Paco 2026-08-01: set it
+ * up on his phone, got blocked on the desktop mid-quote).
+ *
+ * Returns the freshly computed pricing so callers can just setState with it.
+ */
+export async function syncPricingFromCloud() {
+  if (typeof window === "undefined") return computePricing();
+  const local = computePricing();
+  if (local.isSetupComplete) return local;   // this device already knows
+  try {
+    const { pullUserState } = await import("@/lib/userState");
+    const remote = await pullUserState<Record<string, unknown>>(PRICING_STORAGE_KEY);
+    if (remote) localStorage.setItem(PRICING_STORAGE_KEY, JSON.stringify(remote));
+  } catch { /* offline or signed out: keep the local answer */ }
+  return computePricing();
+}
+
 export function computePricing(): {
   minPricePerProject: number;
   monthlyTarget: number;

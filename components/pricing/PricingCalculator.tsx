@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useCloudValue } from "@/lib/useCloudValue";
 
 function SplashScreen({ exiting }: { exiting: boolean }) {
   const chars = ["f", "e", "n", "n", "e", "c"];
@@ -660,6 +661,15 @@ export default function PricingCalculator() {
     if (typeof window === "undefined") return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }, [state]);
+
+  // Pricing setup belongs to the ACCOUNT, not the browser. Without this it
+  // lived only in localStorage, so setting expenses on the phone left the
+  // desktop showing "Set up your pricing first" mid-quote (Paco 2026-08-01).
+  useCloudValue<PricingState>(STORAGE_KEY, state, (remote) => {
+    const merged = mergePersistedState(remote as Partial<PricingState>);
+    setState(merged);
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(merged)); } catch { /* ignore */ }
+  });
 
   useEffect(() => {
     if (typeof window === "undefined") return;

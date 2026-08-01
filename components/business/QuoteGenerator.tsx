@@ -22,6 +22,7 @@ import {
   itemsSubtotal,
   type QuoteItem,
   computePricing,
+  syncPricingFromCloud,
 } from "@/lib/pricingData";
 import {
   getClients,
@@ -75,6 +76,8 @@ export default function QuoteGenerator({
   // Load on mount
   useEffect(() => {
     setPricing(computePricing());
+    // …then adopt the account-level setup if this device didn't have it.
+    void syncPricingFromCloud().then(setPricing);
     Promise.all([getClients(userId), getQuotes(userId)]).then(([c, q]) => {
       setClients(c);
       setQuotes(q);

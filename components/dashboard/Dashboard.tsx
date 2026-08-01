@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { SiInstagram, SiTiktok, SiYoutube } from "react-icons/si";
-import { type Project, type Quote, type Client } from "@/lib/pricingData";
+import { type Project, type Quote, type Client, syncPricingFromCloud } from "@/lib/pricingData";
 import { getProjects, getQuotes, getClients } from "@/lib/businessDb";
 import { PROFILE_KEY, type UserProfile } from "@/components/settings/SettingsModule";
 import { fetchProfile, updateDbScore } from "@/lib/communityDb";
@@ -179,6 +179,9 @@ export default function Dashboard({
   const [clients,    setClients]    = useState<Client[]>([]);
   const [businessLoaded, setBusinessLoaded] = useState(false);
   const [contributions, setContributions] = useState<ContributionDays | null>(null);
+  // Flips once the account's pricing setup has been pulled, so the checklist
+  // re-reads localStorage and stops asking for a setup done on another device.
+  const [, setPricingSynced] = useState(0);
   const [profile,    setProfile]    = useState<UserProfile | null>(null);
   const [karma,      setKarma]      = useState<number | null>(null);
   const [latestNote, setLatestNote] = useState<string | null>(null); // latest feedback on my tracks (desktop band)
@@ -293,6 +296,10 @@ export default function Dashboard({
         (p.youtube_url && p.yt_subscribers   == null);
       if (missingCount) refreshSocial();
     }).catch(() => {});
+  }, [userId]);
+
+  useEffect(() => {
+    void syncPricingFromCloud().then(() => setPricingSynced((n) => n + 1));
   }, [userId]);
 
   useEffect(() => {
