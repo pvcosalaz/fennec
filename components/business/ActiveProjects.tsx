@@ -32,6 +32,8 @@ import {
   paymentsTotal,
   deliverableProgress,
   EMPTY_BRIEF,
+  totalsByCurrency,
+  formatCurrencyTotals,
 } from "@/lib/pricingData";
 import { formatMoney, getCurrency, type Currency } from "@/lib/currency";
 import ProjectDetail from "@/components/business/ProjectDetail";
@@ -40,6 +42,7 @@ import {
   upsertProject,
   deleteProject,
   getClients,
+  releaseQuoteProject,
 } from "@/lib/businessDb";
 import { supabase } from "@/lib/supabase";
 
@@ -541,8 +544,13 @@ export default function ActiveProjects({ onBack, userId }: { onBack: () => void;
   const handleDelete = (id: string) => {
     // Otherwise a queued write would resurrect the row right after the delete.
     cancelPendingWrite();
+    const gone = projects.find((p) => p.id === id);
     save(projects.filter((p) => p.id !== id));
     deleteProject(userId, id);
+    // Free its quote, or it stays approved pointing at a row that's gone and
+    // can never be turned into a project again.
+    if (gone?.quoteId) releaseQuoteProject(userId, gone.quoteId);
+    if (selectedId === id) setSelectedId(null);
   };
 
   // Group by status
@@ -551,10 +559,14 @@ export default function ActiveProjects({ onBack, userId }: { onBack: () => void;
 
   /* Stats. "Collected" used to mean "projects whose status says paid", which
      is a status flag, not money. It now means money actually logged as
-     received, so the board can tell what's billed from what's in the bank. */
-  const totalActive    = active.reduce((s, p) => s + p.price, 0);
-  const totalCollected = projects.reduce((s, p) => s + paymentsTotal(p.payments), 0);
-  const totalPending   = active.reduce((s, p) => s + projectMoney(p).pending, 0);
+     received, so the board can tell what's billed from what's in the bank.
+
+     Summed per currency: each project freezes its own, and adding MXN to USD
+     produced a number that doesn't exist. */
+  const appCurrency    = getCurrency();
+  const totalActive    = totalsByCurrency(active.map((p) => ({ amount: p.price, currency: p.currency })), appCurrency);
+  const totalCollected = totalsByCurrency(projects.map((p) => ({ amount: paymentsTotal(p.payments), currency: p.currency })), appCurrency);
+  const totalPending   = totalsByCurrency(active.map((p) => ({ amount: projectMoney(p).pending, currency: p.currency })), appCurrency);
 
   const selected = selectedId ? projects.find((p) => p.id === selectedId) ?? null : null;
   if (selected) {
@@ -609,17 +621,40 @@ export default function ActiveProjects({ onBack, userId }: { onBack: () => void;
           <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
             <p className="mb-1 text-xs text-zinc-500">In progress</p>
             <p className="text-lg font-bold text-white">{active.length}</p>
-            <p className="mt-0.5 text-xs text-zinc-400">{formatCOP(totalActive)}</p>
+            <p className="mt-0.5 text-xs text-zinc-400">
+              {formatCurrencyTotals(totalActive, appCurrency).value}
+            </p>
+            {formatCurrencyTotals(totalActive, appCurrency).extra && (
+              <p className="text-[10px] text-zinc-600">
+                {formatCurrencyTotals(totalActive, appCurrency).extra}
+              </p>
+            )}
           </div>
           <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4">
             <p className="mb-1 text-xs text-zinc-500">Collected</p>
-            <p className="text-lg font-bold text-emerald-400">{formatCOP(totalCollected)}</p>
-            <p className="mt-0.5 text-xs text-zinc-500">{paid.length} closed</p>
+            <p className="text-lg font-bold text-emerald-400">
+              {formatCurrencyTotals(totalCollected, appCurrency).value}
+            </p>
+            {formatCurrencyTotals(totalCollected, appCurrency).extra ? (
+              <p className="text-[10px] text-zinc-500">
+                {formatCurrencyTotals(totalCollected, appCurrency).extra}
+              </p>
+            ) : (
+              <p className="mt-0.5 text-xs text-zinc-500">{paid.length} closed</p>
+            )}
           </div>
           <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4">
             <p className="mb-1 text-xs text-zinc-500">Pending</p>
-            <p className="text-lg font-bold text-amber-400">{formatCOP(totalPending)}</p>
-            <p className="mt-0.5 text-xs text-zinc-500">owed to you</p>
+            <p className="text-lg font-bold text-amber-400">
+              {formatCurrencyTotals(totalPending, appCurrency).value}
+            </p>
+            {formatCurrencyTotals(totalPending, appCurrency).extra ? (
+              <p className="text-[10px] text-zinc-500">
+                {formatCurrencyTotals(totalPending, appCurrency).extra}
+              </p>
+            ) : (
+              <p className="mt-0.5 text-xs text-zinc-500">owed to you</p>
+            )}
           </div>
         </div>
       )}

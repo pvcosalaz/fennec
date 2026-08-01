@@ -4,7 +4,9 @@ import { useEffect, useState, useMemo } from "react";
 import {
   type Project, type Quote, type Client,
   formatCOP, computePricing, paymentsTotal,
+  totalsByCurrency, formatCurrencyTotals,
 } from "@/lib/pricingData";
+import { formatMoney, useCurrency, type Currency } from "@/lib/currency";
 import { getProjects, getQuotes, getClients } from "@/lib/businessDb";
 import NetworkHero from "@/components/remotion/NetworkHero";
 import {
@@ -39,14 +41,37 @@ function getLastNMonths(n: number) {
    as March revenue, and a deposit on an open job showed as nothing at all.
    Payments carry their own date, so the chart can finally be honest
    (Paco 2026-08-01). */
-function revenueForMonth(projects: Project[], month: number, year: number) {
-  return projects.reduce((sum, p) => {
-    const inMonth = (p.payments ?? []).filter((pay) => {
-      const d = new Date(`${pay.date}T00:00:00`);
-      return d.getMonth() === month && d.getFullYear() === year;
-    });
-    return sum + paymentsTotal(inMonth);
-  }, 0);
+/** Payments that landed in a given month, still split by their own currency. */
+function revenueTotalsForMonth(projects: Project[], month: number, year: number, fallback: Currency) {
+  return totalsByCurrency(
+    projects.map((p) => {
+      const inMonth = (p.payments ?? []).filter((pay) => {
+        const d = new Date(`${pay.date}T00:00:00`);
+        return d.getMonth() === month && d.getFullYear() === year;
+      });
+      return { amount: paymentsTotal(inMonth), currency: p.currency };
+    }),
+    fallback,
+  );
+}
+
+/* A bar chart can only plot one currency; stacking MXN on USD would draw a
+   height that means nothing. So the chart reports in whichever currency the
+   producer has actually been paid in most, and the hero names the rest
+   underneath rather than folding them in (Paco 2026-08-01). */
+function revenueForMonth(projects: Project[], month: number, year: number, currency: Currency) {
+  return revenueTotalsForMonth(projects, month, year, currency)
+    .filter((t) => t.currency === currency)
+    .reduce((s, t) => s + t.amount, 0);
+}
+
+/** The currency most money has arrived in. Ties go to the app setting. */
+function reportingCurrency(projects: Project[], fallback: Currency): Currency {
+  const totals = totalsByCurrency(
+    projects.map((p) => ({ amount: paymentsTotal(p.payments), currency: p.currency })),
+    fallback,
+  );
+  return totals[0]?.currency ?? fallback;
 }
 
 function EqualizerBars({ months, revenues }: { months: ReturnType<typeof getLastNMonths>; revenues: number[] }) {
@@ -87,9 +112,9 @@ function EqualizerBars({ months, revenues }: { months: ReturnType<typeof getLast
   );
 }
 
-function revenueThisMonth(projects: Project[]) {
+function revenueThisMonth(projects: Project[], currency: Currency) {
   const now = new Date();
-  return revenueForMonth(projects, now.getMonth(), now.getFullYear());
+  return revenueForMonth(projects, now.getMonth(), now.getFullYear(), currency);
 }
 
 type Props = {
@@ -110,9 +135,21 @@ export default function BusinessHub({ onOpenView, userId }: Props) {
   }, [userId]);
 
   const { monthlyTarget } = computePricing();
-  const revenue     = useMemo(() => revenueThisMonth(projects), [projects]);
+  const appCurrency = useCurrency();
+  /** What the chart and the hero report in. See reportingCurrency. */
+  const reportCcy   = useMemo(() => reportingCurrency(projects, appCurrency), [projects, appCurrency]);
+  const revenue     = useMemo(() => revenueThisMonth(projects, reportCcy), [projects, reportCcy]);
   const months      = useMemo(() => getLastNMonths(6), []);
-  const revenues    = useMemo(() => months.map((m) => revenueForMonth(projects, m.month, m.year)), [projects, months]);
+  const revenues    = useMemo(
+    () => months.map((m) => revenueForMonth(projects, m.month, m.year, reportCcy)),
+    [projects, months, reportCcy]);
+  /** Money that landed this month in any OTHER currency, named not folded in. */
+  const revenueExtra = useMemo(() => {
+    const now = new Date();
+    const others = revenueTotalsForMonth(projects, now.getMonth(), now.getFullYear(), appCurrency)
+      .filter((t) => t.currency !== reportCcy);
+    return others.length ? formatCurrencyTotals(others, appCurrency).value : null;
+  }, [projects, reportCcy, appCurrency]);
 
   // Desktop: enterprise layout (same data, band/table render)
   if (isDesktop) {
@@ -120,6 +157,7 @@ export default function BusinessHub({ onOpenView, userId }: Props) {
       <BusinessHubDesktop
         projects={projects} quotes={quotes} clients={clients}
         revenue={revenue} months={months} revenues={revenues}
+        revenueCurrency={reportCcy} revenueExtra={revenueExtra}
         onOpenView={onOpenView}
       />
     );
@@ -150,8 +188,11 @@ export default function BusinessHub({ onOpenView, userId }: Props) {
                  background: "linear-gradient(180deg, #ffffff 0%, #d4d4d8 100%)",
                  WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent",
                }}>
-              {revenue > 0 ? formatCOP(revenue) : "$0"}
+              {revenue > 0 ? formatMoney(revenue, reportCcy) : formatMoney(0, reportCcy)}
             </p>
+            {revenueExtra && (
+              <p className="mt-0.5 text-[10px] text-zinc-600">+ {revenueExtra}</p>
+            )}
           </div>
           <p className="text-[9px] font-bold text-zinc-700 uppercase tracking-[0.2em] pb-1">Last 6 months</p>
         </div>

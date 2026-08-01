@@ -109,6 +109,24 @@ export async function upsertQuote(userId: string, quote: Quote): Promise<void> {
   if (error) console.error("upsertQuote:", error);
 }
 
+/**
+ * Cut a quote loose from a project that no longer exists.
+ *
+ * Deleting a project used to leave its quote marked approved and still
+ * pointing at the dead row, so "View project" led to an empty list and
+ * `handleApprove` refused to rebuild it — the quote was stuck forever
+ * (Paco 2026-08-01). Status stays `approved` because the client really did
+ * approve; only the broken link goes.
+ */
+export async function releaseQuoteProject(userId: string, quoteId: string): Promise<void> {
+  const { error } = await supabase
+    .from("business_quotes")
+    .update({ project_id: null })
+    .eq("id", quoteId)
+    .eq("user_id", userId);
+  if (error) console.error("releaseQuoteProject:", error);
+}
+
 export async function deleteQuote(userId: string, quoteId: string): Promise<void> {
   const { error } = await supabase
     .from("business_quotes")

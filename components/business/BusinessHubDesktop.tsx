@@ -1,9 +1,9 @@
 "use client";
 import {
   type Project, type Quote, type Client, formatCOP,
-  projectMoney, paymentsTotal,
+  projectMoney, paymentsTotal, totalsByCurrency, formatCurrencyTotals,
 } from "@/lib/pricingData";
-import { formatMoney } from "@/lib/currency";
+import { getCurrency, formatMoney, type Currency } from "@/lib/currency";
 import type { BusinessView } from "./BusinessHub";
 import { RiseStyle, Tile, Instrument, Cols, Col, ACCENT } from "@/components/desktop/ui";
 
@@ -65,7 +65,8 @@ const STATUS_STYLE: Record<string, string> = {
 };
 
 export default function BusinessHubDesktop({
-  projects, quotes, clients, revenue, months, revenues, onOpenView,
+  projects, quotes, clients, revenue, months, revenues,
+  revenueCurrency, revenueExtra, onOpenView,
 }: {
   projects: Project[];
   quotes: Quote[];
@@ -73,6 +74,9 @@ export default function BusinessHubDesktop({
   revenue: number;
   months: { label: string; isCurrent: boolean }[];
   revenues: number[];
+  /** The chart plots one currency; these say which, and what else came in. */
+  revenueCurrency: Currency;
+  revenueExtra: string | null;
   onOpenView: (view: BusinessView) => void;
 }) {
   const activeProjects = projects.filter((p) => p.status !== "paid");
@@ -86,9 +90,22 @@ export default function BusinessHubDesktop({
      "Clients" is a directory count that already has its own tool card
      (Paco 2026-08-01). The fourth step of the journey, what actually landed,
      is the hero above — repeating it here would print the same number twice. */
-  const activeValue    = activeProjects.reduce((s, p) => s + p.price, 0);
-  const owed           = activeProjects.reduce((s, p) => s + projectMoney(p).pending, 0);
+  /* Per currency: quotes and projects each freeze their own, and adding MXN to
+     USD produced a number that doesn't exist. */
+  const appCurrency    = getCurrency();
+  const outstandingTot = formatCurrencyTotals(
+    totalsByCurrency(sentQuotes.map((q) => ({ amount: q.finalPrice, currency: q.currency })), appCurrency),
+    appCurrency);
+  const activeTot      = formatCurrencyTotals(
+    totalsByCurrency(activeProjects.map((p) => ({ amount: p.price, currency: p.currency })), appCurrency),
+    appCurrency);
+  const owedTot        = formatCurrencyTotals(
+    totalsByCurrency(activeProjects.map((p) => ({ amount: projectMoney(p).pending, currency: p.currency })), appCurrency),
+    appCurrency);
   const noDeposit      = activeProjects.filter((p) => paymentsTotal(p.payments) === 0).length;
+  const hasOutstanding = sentQuotes.some((q) => q.finalPrice > 0);
+  const hasActiveValue = activeProjects.some((p) => p.price > 0);
+  const hasOwed        = activeProjects.some((p) => projectMoney(p).pending > 0);
 
   /* Revenue comes from payment dates now, so counting projects flagged paid
      would caption the hero with an unrelated number. */
@@ -130,14 +147,17 @@ export default function BusinessHubDesktop({
           shape (design pass 2026-07-31). */}
       <div className="dd-rise grid items-stretch gap-4" style={{ gridTemplateColumns: ".85fr 1.35fr", animationDelay: ".06s" }}>
         <Instrument
-          label="Revenue · MTD"
-          value={revenue > 0 ? formatCOP(revenue) : "$0"}
+          label={`Revenue · MTD · ${revenueCurrency}`}
+          value={formatMoney(revenue, revenueCurrency)}
           size={64}
           footer={
-            <span className="relative mt-2 text-[10px] text-zinc-500">
+            <span className="relative mt-2 block text-[10px] text-zinc-500">
               {paymentsThisMonth > 0
                 ? `${paymentsThisMonth} ${paymentsThisMonth === 1 ? "payment" : "payments"} this month`
                 : "Nothing collected yet"}
+              {revenueExtra && (
+                <span className="mt-0.5 block text-zinc-600">+ {revenueExtra}</span>
+              )}
             </span>
           }
         />
@@ -172,28 +192,31 @@ export default function BusinessHubDesktop({
         <Tile label="Pipeline" className="py-1">
           <Cols>
             <Col
-              value={outstanding > 0 ? formatMoney(outstanding) : "—"}
+              value={hasOutstanding ? outstandingTot.value : "—"}
               label="Awaiting reply"
-              muted={outstanding === 0}
+              muted={!hasOutstanding}
               sub={sentQuotes.length
                 ? `${sentQuotes.length} ${sentQuotes.length === 1 ? "quote" : "quotes"} out`
                 : undefined}
+              extra={hasOutstanding ? outstandingTot.extra : null}
               onClick={() => onOpenView("quotes")}
             />
             <Col
-              value={activeValue > 0 ? formatMoney(activeValue) : "—"}
+              value={hasActiveValue ? activeTot.value : "—"}
               label="In progress"
               muted={activeProjects.length === 0}
               sub={activeProjects.length
                 ? `${activeProjects.length} ${activeProjects.length === 1 ? "project" : "projects"}`
                 : undefined}
+              extra={hasActiveValue ? activeTot.extra : null}
               onClick={() => onOpenView("projects")}
             />
             <Col
-              value={owed > 0 ? formatMoney(owed) : "—"}
+              value={hasOwed ? owedTot.value : "—"}
               label="Owed to you"
-              muted={owed === 0}
+              muted={!hasOwed}
               sub={noDeposit > 0 ? `${noDeposit} without deposit` : undefined}
+              extra={hasOwed ? owedTot.extra : null}
               onClick={() => onOpenView("projects")}
             />
           </Cols>
@@ -227,7 +250,7 @@ export default function BusinessHubDesktop({
                   <tr key={q.id} className="cursor-pointer transition hover:bg-white/[0.02]" onClick={() => onOpenView("quotes")}>
                     <td className="border-b border-white/[0.04] px-5 py-3 text-zinc-300">{q.clientName || "—"}</td>
                     <td className="border-b border-white/[0.04] px-5 py-3 text-zinc-300">{q.projectName || q.projectTypeName}</td>
-                    <td className="border-b border-white/[0.04] px-5 py-3 font-semibold tabular-nums text-white">{formatMoney(q.finalPrice)}</td>
+                    <td className="border-b border-white/[0.04] px-5 py-3 font-semibold tabular-nums text-white">{formatMoney(q.finalPrice, q.currency ?? appCurrency)}</td>
                     <td className="border-b border-white/[0.04] px-5 py-3">
                       <span className={`rounded-md px-2 py-0.5 text-[10px] font-bold uppercase ${STATUS_STYLE[q.status] ?? STATUS_STYLE.draft}`}>{q.status}</span>
                     </td>

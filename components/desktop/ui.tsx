@@ -112,8 +112,11 @@ export function Cols({ children }: { children: React.ReactNode }) {
   return <div className="grid" style={{ gridAutoFlow: "column", gridAutoColumns: "1fr" }}>{children}</div>;
 }
 
-export function Col({ value, label, sub, muted, onClick, icon }: {
-  value: string; label: string; sub?: string; muted?: boolean;
+export function Col({ value, label, sub, extra, muted, onClick, icon }: {
+  value: string; label: string; sub?: string;
+  /** A quieter second line under `sub` — used for totals in other currencies. */
+  extra?: string | null;
+  muted?: boolean;
   onClick?: () => void; icon?: React.ReactNode;
 }) {
   const Tag = onClick ? "button" : "div";
@@ -128,7 +131,8 @@ export function Col({ value, label, sub, muted, onClick, icon }: {
       {icon && <div className="mb-1.5">{icon}</div>}
       <b className={`text-[21px] font-extrabold tabular-nums ${muted ? "text-zinc-600" : "text-white"}`}>{value}</b>
       <span className="mt-[3px] block text-[9px] uppercase tracking-[0.16em] text-zinc-600">{label}</span>
-      {sub && <span className="text-[10px] font-semibold text-accent">{sub}</span>}
+      {sub && <span className="block text-[10px] font-semibold text-accent">{sub}</span>}
+      {extra && <span className="block text-[10px] text-zinc-600">{extra}</span>}
     </Tag>
   );
 }

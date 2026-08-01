@@ -252,6 +252,55 @@ export const deliverableProgress = (d: Deliverable[] = []) => ({
   total: d.length,
 });
 
+// ─── Mixed currencies ─────────────────────────────────────────────────────────
+
+/* Quotes and projects each freeze their own currency, but every total added the
+   raw numbers and formatted the sum in whatever the user's setting says today.
+   Two projects at 50,000 MXN and 3,000 USD read as "$53,000" in one currency,
+   which is not a number that exists (Paco 2026-08-01).
+
+   There is no exchange rate in this app and inventing one would be worse: a
+   stale rate turns a wrong total into a wrong total that looks authoritative.
+   So money is summed PER CURRENCY and shown as what it is. */
+
+export type CurrencyTotal = { currency: Currency; amount: number };
+
+export function totalsByCurrency(
+  rows: { amount: number; currency?: Currency | null }[],
+  fallback: Currency,
+): CurrencyTotal[] {
+  const byCurrency = new Map<Currency, number>();
+  for (const row of rows) {
+    const amount = Number(row.amount) || 0;
+    if (!amount) continue;
+    const currency = (row.currency ?? fallback) as Currency;
+    byCurrency.set(currency, (byCurrency.get(currency) ?? 0) + amount);
+  }
+  return [...byCurrency.entries()]
+    .map(([currency, amount]) => ({ currency, amount }))
+    .sort((a, b) => b.amount - a.amount);
+}
+
+/** The headline figure (largest currency) plus a caption naming the rest, so a
+ *  mixed month is legible instead of silently wrong.
+ *
+ *  When more than one currency is in play the CODE is always shown. Most of
+ *  this list shares the "$" glyph — MXN, USD, COP, ARS, CLP, CAD — so
+ *  "$50,000 · + $3,000" would still read as one pile of money. */
+export function formatCurrencyTotals(totals: CurrencyTotal[], fallback: Currency) {
+  if (totals.length === 0) {
+    return { value: formatMoney(0, fallback), extra: null as string | null };
+  }
+  const [primary, ...rest] = totals;
+  const mixed = totals.length > 1;
+  const show = (t: CurrencyTotal) =>
+    mixed ? `${formatMoney(t.amount, t.currency)} ${t.currency}` : formatMoney(t.amount, t.currency);
+  return {
+    value: show(primary),
+    extra: rest.length ? `+ ${rest.map(show).join(" · ")}` : null,
+  };
+}
+
 export type ProjectType = {
   id: string;
   label: string;

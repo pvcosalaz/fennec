@@ -42,6 +42,7 @@ import {
   upsertQuote,
   deleteQuote,
   upsertProject,
+  getProjects,
 } from "@/lib/businessDb";
 import { supabase } from "@/lib/supabase";
 
@@ -136,6 +137,8 @@ export default function QuoteGenerator({
       paymentMethods: p.paymentMethods.map((m) => (m.id === id ? { ...m, ...patch } : m)),
     }));
   const [saved, setSaved] = useState(false);
+  /** Set when an edit also updated the project this quote became. */
+  const [projectSync, setProjectSync] = useState<{ added: number } | null>(null);
   const [pricing, setPricing] = useState<ReturnType<typeof computePricing>>({
     minPricePerProject: 0, monthlyTarget: 0,
     maxProjects: 0, hoursPerProject: 0, isSetupComplete: false,
@@ -307,6 +310,42 @@ export default function QuoteGenerator({
     setForm(emptyForm);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
+
+    // A quote the client already approved has a project living downstream of
+    // it. Editing the quote used to leave that project on the old price and
+    // the old deliverables, silently (Paco 2026-08-01).
+    if (existing?.status === "approved" && existing.projectId) {
+      void syncApprovedProject(newQuote, existing.projectId);
+    }
+  };
+
+  /**
+   * Push an edited quote's changes onto the project it became.
+   *
+   * Additive on purpose. Price and currency follow the quote, but deliverables
+   * are only ADDED: overwriting would wipe the boxes the producer already
+   * ticked and any concept they added by hand on the project side. Removing a
+   * line from a quote is not the same as saying the work never happened.
+   */
+  const syncApprovedProject = async (quote: Quote, projectId: string) => {
+    const project = (await getProjects(userId)).find((p) => p.id === projectId);
+    if (!project) return;  // deleted — the quote card offers "Rebuild project"
+
+    const have = new Set(
+      (project.deliverables ?? []).map((d) => d.concept.trim().toLowerCase()),
+    );
+    const added = deliverablesFromQuote(quote).filter(
+      (d) => d.concept.trim() && !have.has(d.concept.trim().toLowerCase()),
+    );
+
+    await upsertProject(userId, {
+      ...project,
+      price: quote.finalPrice,
+      currency: quote.currency,
+      deliverables: [...(project.deliverables ?? []), ...added],
+    });
+    setProjectSync({ added: added.length });
+    setTimeout(() => setProjectSync(null), 5000);
   };
 
   const handleDelete = (id: string) => {
@@ -457,6 +496,24 @@ export default function QuoteGenerator({
           <CheckCircle2 className="h-4 w-4" />
           Quote saved. Ready to send.
         </div>
+      )}
+
+      {/* Say it out loud when an edit reached downstream. A silent write to a
+          project the producer isn't looking at is how trust in the numbers
+          goes away. */}
+      {projectSync && (
+        <button
+          onClick={onGoToProjects}
+          className="flex w-full items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-left text-sm text-zinc-300 transition hover:border-accent/40 hover:text-accent"
+        >
+          <ArrowRight className="h-4 w-4 flex-shrink-0" />
+          <span>
+            Its project was updated too
+            {projectSync.added > 0
+              ? ` · ${projectSync.added} new ${projectSync.added === 1 ? "deliverable" : "deliverables"}`
+              : ""}
+          </span>
+        </button>
       )}
 
       {/* New quote form */}
@@ -1073,13 +1130,26 @@ export default function QuoteGenerator({
                     <span className="text-xs text-emerald-400/80">
                       Approved{quote.approvedAt ? ` · ${formatDate(quote.approvedAt)}` : ""}
                     </span>
-                    <button
-                      onClick={onGoToProjects}
-                      className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-zinc-300 transition hover:border-accent/50 hover:text-accent"
-                    >
-                      <ArrowRight className="h-3 w-3" />
-                      View project
-                    </button>
+                    {quote.projectId ? (
+                      <button
+                        onClick={onGoToProjects}
+                        className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-zinc-300 transition hover:border-accent/50 hover:text-accent"
+                      >
+                        <ArrowRight className="h-3 w-3" />
+                        View project
+                      </button>
+                    ) : (
+                      /* Its project was deleted. The client still approved, so
+                         the quote keeps that status and offers to rebuild. */
+                      <button
+                        onClick={() => handleApprove(quote)}
+                        className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-zinc-300 transition hover:border-emerald-400/50 hover:text-emerald-400"
+                        title="Its project was deleted. Create it again from this quote."
+                      >
+                        <RotateCcw className="h-3 w-3" />
+                        Rebuild project
+                      </button>
+                    )}
                   </>
                 )}
 
