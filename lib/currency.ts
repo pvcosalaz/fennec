@@ -25,6 +25,30 @@ export const CURRENCIES: { id: Currency; label: string; symbol: string; flag: st
   { id: "USD", label: "US Dollar",      symbol: "$", flag: "\u{1F1FA}\u{1F1F8}" },
 ];
 
+/** Country → currency. The app defaulted everyone to COP, so a Mexican
+ *  producer quoting in pesos got Colombian formatting and a quote frozen in
+ *  COP without ever being asked (Paco 2026-08-01). Fennec already knows the
+ *  country from the profile; it should never have needed asking. */
+export function defaultCurrencyForCountry(country?: string | null): Currency {
+  const c = (country ?? "").trim().toLowerCase();
+  if (!c) return "USD";
+  if (/m[eé]xico|mexico|^mx$/.test(c)) return "MXN";
+  if (/colombia|^co$/.test(c)) return "COP";
+  // Everything else quotes in USD rather than inheriting someone else's peso.
+  return "USD";
+}
+
+/** Seed the currency from the profile country, but ONLY if the user never
+ *  picked one. An explicit choice in Settings always wins. */
+export function seedCurrencyFromCountry(country?: string | null): void {
+  if (typeof window === "undefined" || !country) return;
+  try {
+    if (localStorage.getItem(CURRENCY_KEY)) return; // already chosen
+    localStorage.setItem(CURRENCY_KEY, defaultCurrencyForCountry(country));
+    notifyCurrencyChange();
+  } catch { /* ignore */ }
+}
+
 const LOCALE: Record<Currency, string> = {
   COP: "es-CO",
   MXN: "es-MX",
@@ -34,12 +58,12 @@ const LOCALE: Record<Currency, string> = {
 /** The user's chosen currency. SSR-safe: falls back to COP (the app default)
  *  on the server and before hydration. */
 export function getCurrency(): Currency {
-  if (typeof window === "undefined") return "COP";
+  if (typeof window === "undefined") return "USD";
   try {
     const c = localStorage.getItem(CURRENCY_KEY) as Currency | null;
-    return c && c in LOCALE ? c : "COP";
+    return c && c in LOCALE ? c : "USD";
   } catch {
-    return "COP";
+    return "USD";
   }
 }
 

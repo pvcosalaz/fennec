@@ -490,7 +490,7 @@ export default function QuoteGenerator({
               </div>
             )}
             <div className="mt-2 flex items-baseline justify-between border-t border-white/10 pt-2">
-              <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Total</span>
+              <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Total · {getCurrency()}</span>
               <span className="text-[19px] font-extrabold tabular-nums text-accent">{formatMoney(finalPriceNum)}</span>
             </div>
             {isBelowMin && (

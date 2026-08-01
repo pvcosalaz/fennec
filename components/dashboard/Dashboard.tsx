@@ -6,6 +6,7 @@ import { type Project, type Quote, type Client, syncPricingFromCloud } from "@/l
 import { getProjects, getQuotes, getClients } from "@/lib/businessDb";
 import { PROFILE_KEY, type UserProfile } from "@/components/settings/SettingsModule";
 import { fetchProfile, updateDbScore } from "@/lib/communityDb";
+import { seedCurrencyFromCountry } from "@/lib/currency";
 import { supabase } from "@/lib/supabase";
 import FennecIdCard from "@/components/network/FennecIdCard";
 import { getColorScheme } from "@/lib/fennecIdPalette";
@@ -274,6 +275,8 @@ export default function Dashboard({
   useEffect(() => {
     if (!userId) return;
     fetchProfile(userId).then((p) => {
+      // Money should follow where you are, not a hardcoded default.
+      seedCurrencyFromCountry(p?.country);
       if (!p) return;
       const loaded: UserProfile = {
         name: p.display_name ?? "", role: p.role ?? "",
