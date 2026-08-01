@@ -101,6 +101,18 @@ function MoneySection({
   const [label, setLabel]   = useState("");
   const [date, setDate]     = useState(() => new Date().toISOString().slice(0, 10));
 
+  const [editingPrice, setEditingPrice] = useState(false);
+  const [priceDraft, setPriceDraft] = useState("");
+
+  const commitPrice = () => {
+    const value = Number(priceDraft);
+    // A blank or nonsense entry keeps the old price rather than zeroing the job.
+    if (Number.isFinite(value) && value >= 0 && priceDraft.trim() !== "") {
+      onChange({ ...project, price: value });
+    }
+    setEditingPrice(false);
+  };
+
   const payments = project.payments ?? [];
   const pct = price > 0 ? Math.min(100, (collected / price) * 100) : 0;
 
@@ -139,7 +151,31 @@ function MoneySection({
       <div className="grid grid-cols-3 gap-3">
         <div>
           <p className="text-[10px] uppercase tracking-wider text-zinc-500">Agreed</p>
-          <p className="mt-0.5 text-sm font-bold text-white">{formatMoney(price, currency)}</p>
+          {/* Editable: scope changes mid-job, and the price was previously
+              locked once the project existed. */}
+          {editingPrice ? (
+            <input
+              type="number"
+              inputMode="decimal"
+              autoFocus
+              value={priceDraft}
+              onChange={(e) => setPriceDraft(e.target.value)}
+              onBlur={commitPrice}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") commitPrice();
+                if (e.key === "Escape") { setPriceDraft(String(price)); setEditingPrice(false); }
+              }}
+              className="mt-0.5 w-full rounded-lg border border-accent/50 bg-black/30 px-2 py-1 text-sm font-bold text-white outline-none"
+            />
+          ) : (
+            <button
+              onClick={() => { setPriceDraft(String(price)); setEditingPrice(true); }}
+              className="mt-0.5 text-sm font-bold text-white transition hover:text-accent"
+              title="Edit the agreed price"
+            >
+              {formatMoney(price, currency)}
+            </button>
+          )}
         </div>
         <div>
           <p className="text-[10px] uppercase tracking-wider text-zinc-500">Collected</p>
