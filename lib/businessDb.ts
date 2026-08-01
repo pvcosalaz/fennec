@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import type { Client, Quote, Project } from "@/lib/pricingData";
+import { EMPTY_BRIEF } from "@/lib/pricingData";
 
 // ─── Clients ──────────────────────────────────────────────────────────────────
 
@@ -134,9 +135,13 @@ export async function getProjects(userId: string): Promise<Project[]> {
     projectTypeId:   row.project_type_id,
     projectTypeName: row.project_type_name,
     price:           row.price,
+    currency:        (row.currency ?? undefined) as Project["currency"],
     deadline:        row.deadline ?? "",
     status:          row.status,
     notes:           row.notes ?? "",
+    deliverables:    Array.isArray(row.deliverables) ? row.deliverables : [],
+    payments:        Array.isArray(row.payments) ? row.payments : [],
+    brief:           { ...EMPTY_BRIEF, ...(row.brief ?? {}) },
     quoteId:         row.quote_id ?? undefined,
     createdAt:       new Date(row.created_at).getTime(),
   }));
@@ -152,9 +157,13 @@ export async function upsertProject(userId: string, project: Project): Promise<v
     project_type_id:   project.projectTypeId,
     project_type_name: project.projectTypeName,
     price:             project.price,
+    currency:          project.currency ?? null,
     deadline:          project.deadline || null,
     status:            project.status,
     notes:             project.notes,
+    deliverables:      project.deliverables ?? [],
+    payments:          project.payments ?? [],
+    brief:             project.brief ?? EMPTY_BRIEF,
     quote_id:          project.quoteId ?? null,
     created_at:        new Date(project.createdAt).toISOString(),
   });

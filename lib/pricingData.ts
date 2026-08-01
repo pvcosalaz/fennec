@@ -101,6 +101,55 @@ export function quoteTotals(q: Pick<Quote, "items" | "taxRate"> & Partial<Quote>
 
 export type ProjectStatus = "in_progress" | "review" | "delivered" | "paid";
 
+/** One thing you owe the client. Born from the approved quote's line items:
+ *  what you charged for IS what you have to hand in, so the two can never
+ *  drift apart. */
+export type Deliverable = {
+  id: string;
+  concept: string;
+  qty: number;
+  done: boolean;
+  doneAt?: number;
+};
+
+/** Money actually received. A composer gets paid in pieces (deposit, midway,
+ *  on delivery), and "did they pay the deposit?" was invisible — the board
+ *  showed one number that couldn't tell owed from collected (Paco 2026-08-01). */
+export type Payment = {
+  id: string;
+  amount: number;
+  date: string;        // YYYY-MM-DD
+  label: string;       // "Deposit", "Second installment", "Final"
+};
+
+/** A track the client sent as "make it like this". The single most important
+ *  artifact of a scoring job, and until now it lived in WhatsApp. */
+export type ProjectReference = {
+  id: string;
+  url: string;
+  title: string;
+  /** WHY it was sent. "Like this" is useless three weeks later; "the drums,
+   *  not the vocal" is what you actually need at 2am. */
+  note: string;
+};
+
+export type ProjectBrief = {
+  references: ProjectReference[];
+  genre: string;
+  mood: string;
+  instrumentation: string;
+  tempo: string;
+  musicalKey: string;
+  /** "60s, 30s, 15s, stems, instrumental" — free text on purpose: every
+   *  agency names their cutdowns differently. */
+  formats: string;
+};
+
+export const EMPTY_BRIEF: ProjectBrief = {
+  references: [], genre: "", mood: "", instrumentation: "",
+  tempo: "", musicalKey: "", formats: "",
+};
+
 export type Project = {
   id: string;
   name: string;
@@ -109,12 +158,46 @@ export type Project = {
   projectTypeId: string;
   projectTypeName: string;
   price: number;
+  /** Frozen like a quote's: changing the app-wide setting must never rewrite
+   *  what a past project was worth. */
+  currency?: Currency;
   deadline: string;       // YYYY-MM-DD
   status: ProjectStatus;
   notes: string;
+  deliverables: Deliverable[];
+  payments: Payment[];
+  brief: ProjectBrief;
   quoteId?: string;       // if created from a quote
   createdAt: number;
 };
+
+// ─── Project derivations ──────────────────────────────────────────────────────
+
+/** The approved quote's line items become the project's checklist. */
+export function deliverablesFromQuote(q: Quote): Deliverable[] {
+  return quoteItems(q).map((it) => ({
+    id: `${it.id}-d`,
+    concept: it.concept,
+    qty: it.qty,
+    done: false,
+  }));
+}
+
+export const paymentsTotal = (payments: Payment[] = []) =>
+  payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+
+/** price / collected / pending, in one place so the card, the detail view and
+ *  the summary strip can never disagree. */
+export function projectMoney(p: Pick<Project, "price" | "payments">) {
+  const price = Number(p.price) || 0;
+  const collected = paymentsTotal(p.payments);
+  return { price, collected, pending: Math.max(0, price - collected) };
+}
+
+export const deliverableProgress = (d: Deliverable[] = []) => ({
+  done: d.filter((x) => x.done).length,
+  total: d.length,
+});
 
 export type ProjectType = {
   id: string;

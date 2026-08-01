@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+
+/** How long after a local edit we ignore realtime echoes. Long enough to cover
+ *  a round trip, short enough that a genuine edit from another device lands
+ *  almost as soon as you stop typing. */
+const LOCAL_EDIT_GUARD_MS = 2500;
+/** Typing shouldn't hit the network on every keystroke. */
+const WRITE_DEBOUNCE_MS = 700;
 import {
   ChevronLeft,
   Plus,
@@ -12,6 +19,7 @@ import {
   X,
   ChevronRight,
   Lock,
+  ListChecks,
 } from "lucide-react";
 import Select from "@/components/ui/Select";
 import {
@@ -20,7 +28,13 @@ import {
   type Client,
   projectTypes,
   formatCOP,
+  projectMoney,
+  paymentsTotal,
+  deliverableProgress,
+  EMPTY_BRIEF,
 } from "@/lib/pricingData";
+import { formatMoney, getCurrency, type Currency } from "@/lib/currency";
+import ProjectDetail from "@/components/business/ProjectDetail";
 import {
   getProjects,
   upsertProject,
@@ -70,13 +84,19 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
       </div>
       <div className="space-y-1">
         <p className="text-sm font-semibold text-white">No active projects</p>
-        <p className="text-xs text-zinc-500">Create one manually or convert a quote.</p>
+        {/* The normal route is a quote the client approved. Manual creation is
+            the exception (work that started before Fennec), so it reads as one
+            instead of sitting here as the primary button. */}
+        <p className="mx-auto max-w-xs text-xs leading-relaxed text-zinc-500">
+          Projects start when a client approves a quote. Head to Quotes and hit
+          &ldquo;Client approved&rdquo;.
+        </p>
       </div>
       <button
         onClick={onAdd}
-        className="flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-black transition hover:bg-accent/90"
+        className="text-xs font-medium text-zinc-500 underline underline-offset-4 transition hover:text-accent"
       >
-        <Plus className="h-3.5 w-3.5" /> New project
+        Or log work that started outside Fennec
       </button>
     </div>
   );
@@ -217,11 +237,13 @@ function ProjectForm({
 
 function ProjectCard({
   project,
+  onOpen,
   onAdvance,
   onRevert,
   onDelete,
 }: {
   project: Project;
+  onOpen: () => void;
   onAdvance: () => void;
   onRevert: () => void;
   onDelete: () => void;
@@ -232,16 +254,29 @@ function ProjectCard({
   const isPaid = project.status === "paid";
   const [confirmDelete, setConfirmDelete] = useState(false);
 
+  const { collected, pending } = projectMoney(project);
+  const progress = deliverableProgress(project.deliverables);
+  const money = (n: number) => formatMoney(n, (project.currency ?? getCurrency()) as Currency);
+
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
       {/* Top row */}
       <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="text-sm font-semibold text-white leading-snug">{project.name}</p>
+        {/* The title is the way in. Deliberately not a whole-card click: the
+            card also holds delete and stage buttons, and nesting those inside
+            a clickable region makes every tap a guess. */}
+        <button
+          onClick={onOpen}
+          className="group min-w-0 text-left"
+        >
+          <p className="flex items-center gap-1.5 text-sm font-semibold leading-snug text-white transition group-hover:text-accent">
+            <span className="truncate">{project.name}</span>
+            <ChevronRight className="h-3.5 w-3.5 shrink-0 text-zinc-600 transition group-hover:text-accent" />
+          </p>
           {project.clientName && (
-            <p className="text-xs text-zinc-500 mt-0.5">{project.clientName}</p>
+            <p className="mt-0.5 text-xs text-zinc-500">{project.clientName}</p>
           )}
-        </div>
+        </button>
         {confirmDelete ? (
           <div className="flex items-center gap-1.5 shrink-0">
             <button
@@ -289,6 +324,32 @@ function ProjectCard({
             {project.projectTypeName}
           </span>
         )}
+
+        {/* Deliverables progress — the answer to "how far along is this?" */}
+        {progress.total > 0 && (
+          <span
+            className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-medium ${
+              progress.done === progress.total
+                ? "bg-emerald-400/10 text-emerald-400"
+                : "bg-white/5 text-zinc-400"
+            }`}
+          >
+            <ListChecks className="h-3 w-3" />
+            {progress.done}/{progress.total}
+          </span>
+        )}
+
+        {/* Deposit status — the thing that was invisible before */}
+        {!isPaid && collected > 0 && (
+          <span className="rounded-full bg-emerald-400/10 px-2.5 py-1 text-[10px] font-medium text-emerald-400">
+            {money(collected)} in
+          </span>
+        )}
+        {!isPaid && collected === 0 && project.price > 0 && (
+          <span className="rounded-full bg-amber-400/10 px-2.5 py-1 text-[10px] font-medium text-amber-400">
+            No deposit yet
+          </span>
+        )}
       </div>
 
       {/* Notes */}
@@ -298,9 +359,14 @@ function ProjectCard({
 
       {/* Bottom row — price + advance */}
       <div className="flex items-center justify-between pt-1 border-t border-white/5">
-        <p className={`text-sm font-bold ${isPaid ? "text-emerald-400" : "text-white"}`}>
-          {formatCOP(project.price)}
-        </p>
+        <div>
+          <p className={`text-sm font-bold ${isPaid ? "text-emerald-400" : "text-white"}`}>
+            {money(project.price)}
+          </p>
+          {!isPaid && pending > 0 && collected > 0 && (
+            <p className="text-[10px] text-amber-400/80">{money(pending)} pending</p>
+          )}
+        </div>
         {!isPaid && (
           <div className="flex items-center gap-2">
             {prevStatus(project.status) !== null && project.status !== "in_progress" && (
@@ -337,6 +403,11 @@ export default function ActiveProjects({ onBack, userId }: { onBack: () => void;
   const [clients, setClients]   = useState<Client[]>([]);
   const [loading, setLoading]   = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  /** Timestamp of the last edit made on THIS device — see the realtime guard. */
+  const lastLocalEdit = useRef(0);
+  const writeTimer    = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingWrite  = useRef<Project | null>(null);
 
   // Load from Supabase
   useEffect(() => {
@@ -357,6 +428,12 @@ export default function ActiveProjects({ onBack, userId }: { onBack: () => void;
         'postgres_changes',
         { event: '*', schema: 'public', table: 'business_projects', filter: `user_id=eq.${userId}` },
         () => {
+          /* While the producer is typing in the detail view, THEY win. Every
+             keystroke in Notes or the brief writes to Supabase, which echoes
+             back here — refetching mid-sentence would replace the field with
+             an older server row and eat characters. Same failure that ate
+             digits in the pricing calculator (2026-08-01). */
+          if (Date.now() - lastLocalEdit.current < LOCAL_EDIT_GUARD_MS) return;
           Promise.all([getProjects(userId), getClients(userId)]).then(([p, c]) => {
             setProjects(p);
             setClients(c);
@@ -383,9 +460,13 @@ export default function ActiveProjects({ onBack, userId }: { onBack: () => void;
       projectTypeId:   form.projectTypeId,
       projectTypeName: pType?.label ?? "",
       price:           Number(form.price) || 0,
+      currency:        getCurrency(),
       deadline:        form.deadline,
       status:          "in_progress",
       notes:           form.notes.trim(),
+      deliverables:    [],
+      payments:        [],
+      brief:           { ...EMPTY_BRIEF },
       createdAt:       Date.now(),
     };
     save([newProject, ...projects]);
@@ -393,7 +474,42 @@ export default function ActiveProjects({ onBack, userId }: { onBack: () => void;
     setShowForm(false);
   };
 
+  /* Any edit made inside the detail view. The screen has no Save button on
+     purpose (a half-filled brief you forgot to save is worse than none), so
+     state updates instantly and the WRITE is debounced — otherwise typing a
+     note would fire one Supabase round trip per character. */
+  const handleUpdate = (updated: Project) => {
+    lastLocalEdit.current = Date.now();
+    save(projects.map((p) => (p.id === updated.id ? updated : p)));
+
+    pendingWrite.current = updated;
+    if (writeTimer.current) clearTimeout(writeTimer.current);
+    writeTimer.current = setTimeout(() => {
+      const p = pendingWrite.current;
+      if (p) { upsertProject(userId, p); pendingWrite.current = null; }
+    }, WRITE_DEBOUNCE_MS);
+  };
+
+  /* Leaving the detail view must not drop an in-flight edit: the debounce
+     timer would still be pending when the component stops rendering it. */
+  const flushWrite = () => {
+    if (writeTimer.current) { clearTimeout(writeTimer.current); writeTimer.current = null; }
+    const p = pendingWrite.current;
+    if (p) { upsertProject(userId, p); pendingWrite.current = null; }
+  };
+  useEffect(() => flushWrite, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* Drop any debounced write before a status change. Both write the WHOLE row,
+     and the queued one carries the pre-change status — letting it land 700ms
+     later would silently undo the stage you just advanced to. Safe to drop:
+     these handlers upsert from current state, so the pending edits ride along. */
+  const cancelPendingWrite = () => {
+    if (writeTimer.current) { clearTimeout(writeTimer.current); writeTimer.current = null; }
+    pendingWrite.current = null;
+  };
+
   const handleAdvance = (id: string) => {
+    cancelPendingWrite();
     const updated = projects.map((p) => p.id === id ? { ...p, status: nextStatus(p.status) } : p);
     save(updated);
     const proj = updated.find((p) => p.id === id);
@@ -401,6 +517,7 @@ export default function ActiveProjects({ onBack, userId }: { onBack: () => void;
   };
 
   const handleRevert = (id: string) => {
+    cancelPendingWrite();
     const updated = projects.map((p) => {
       if (p.id !== id) return p;
       const prev = prevStatus(p.status);
@@ -412,6 +529,8 @@ export default function ActiveProjects({ onBack, userId }: { onBack: () => void;
   };
 
   const handleDelete = (id: string) => {
+    // Otherwise a queued write would resurrect the row right after the delete.
+    cancelPendingWrite();
     save(projects.filter((p) => p.id !== id));
     deleteProject(userId, id);
   };
@@ -420,9 +539,29 @@ export default function ActiveProjects({ onBack, userId }: { onBack: () => void;
   const active  = projects.filter((p) => p.status !== "paid");
   const paid    = projects.filter((p) => p.status === "paid");
 
-  // Stats
-  const totalActive  = active.reduce((s, p) => s + p.price, 0);
-  const totalPaid    = paid.reduce((s, p) => s + p.price, 0);
+  /* Stats. "Collected" used to mean "projects whose status says paid", which
+     is a status flag, not money. It now means money actually logged as
+     received, so the board can tell what's billed from what's in the bank. */
+  const totalActive    = active.reduce((s, p) => s + p.price, 0);
+  const totalCollected = projects.reduce((s, p) => s + paymentsTotal(p.payments), 0);
+  const totalPending   = active.reduce((s, p) => s + projectMoney(p).pending, 0);
+
+  const selected = selectedId ? projects.find((p) => p.id === selectedId) ?? null : null;
+  if (selected) {
+    const prev = prevStatus(selected.status);
+    return (
+      <ProjectDetail
+        project={selected}
+        statusMeta={STATUS_META[selected.status]}
+        onBack={() => { flushWrite(); setSelectedId(null); }}
+        onChange={handleUpdate}
+        onAdvance={() => handleAdvance(selected.id)}
+        onRevert={() => handleRevert(selected.id)}
+        nextLabel={selected.status === "paid" ? null : STATUS_META[nextStatus(selected.status)].label}
+        prevLabel={prev ? STATUS_META[prev].label : null}
+      />
+    );
+  }
 
   return (
     <div className="mx-auto w-full max-w-4xl space-y-6 px-4">
@@ -455,16 +594,21 @@ export default function ActiveProjects({ onBack, userId }: { onBack: () => void;
 
       {/* Summary cards */}
       {!loading && projects.length > 0 && (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <p className="text-xs text-zinc-500 mb-1">In progress</p>
-            <p className="text-lg font-bold text-white">{active.length} projects</p>
-            <p className="text-xs text-zinc-400 mt-0.5">{formatCOP(totalActive)}</p>
+            <p className="mb-1 text-xs text-zinc-500">In progress</p>
+            <p className="text-lg font-bold text-white">{active.length}</p>
+            <p className="mt-0.5 text-xs text-zinc-400">{formatCOP(totalActive)}</p>
           </div>
           <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4">
-            <p className="text-xs text-zinc-500 mb-1">Collected</p>
-            <p className="text-lg font-bold text-emerald-400">{paid.length} projects</p>
-            <p className="text-xs text-zinc-400 mt-0.5">{formatCOP(totalPaid)}</p>
+            <p className="mb-1 text-xs text-zinc-500">Collected</p>
+            <p className="text-lg font-bold text-emerald-400">{formatCOP(totalCollected)}</p>
+            <p className="mt-0.5 text-xs text-zinc-500">{paid.length} closed</p>
+          </div>
+          <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4">
+            <p className="mb-1 text-xs text-zinc-500">Pending</p>
+            <p className="text-lg font-bold text-amber-400">{formatCOP(totalPending)}</p>
+            <p className="mt-0.5 text-xs text-zinc-500">owed to you</p>
           </div>
         </div>
       )}
@@ -489,6 +633,7 @@ export default function ActiveProjects({ onBack, userId }: { onBack: () => void;
             <ProjectCard
               key={p.id}
               project={p}
+              onOpen={() => setSelectedId(p.id)}
               onAdvance={() => handleAdvance(p.id)}
               onRevert={() => handleRevert(p.id)}
               onDelete={() => handleDelete(p.id)}
@@ -505,6 +650,7 @@ export default function ActiveProjects({ onBack, userId }: { onBack: () => void;
             <ProjectCard
               key={p.id}
               project={p}
+              onOpen={() => setSelectedId(p.id)}
               onAdvance={() => handleAdvance(p.id)}
               onRevert={() => handleRevert(p.id)}
               onDelete={() => handleDelete(p.id)}

@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import {
   type Project, type Quote, type Client,
-  formatCOP, computePricing,
+  formatCOP, computePricing, paymentsTotal,
 } from "@/lib/pricingData";
 import { getProjects, getQuotes, getClients } from "@/lib/businessDb";
 import NetworkHero from "@/components/remotion/NetworkHero";
@@ -33,14 +33,20 @@ function getLastNMonths(n: number) {
   });
 }
 
+/* Revenue = money actually received, in the month it landed.
+   It used to mean "price of projects flagged paid, filed under the month the
+   PROJECT WAS CREATED" — so a job started in March and paid in July showed up
+   as March revenue, and a deposit on an open job showed as nothing at all.
+   Payments carry their own date, so the chart can finally be honest
+   (Paco 2026-08-01). */
 function revenueForMonth(projects: Project[], month: number, year: number) {
-  return projects
-    .filter((p) => {
-      if (p.status !== "paid") return false;
-      const d = new Date(p.createdAt);
+  return projects.reduce((sum, p) => {
+    const inMonth = (p.payments ?? []).filter((pay) => {
+      const d = new Date(`${pay.date}T00:00:00`);
       return d.getMonth() === month && d.getFullYear() === year;
-    })
-    .reduce((s, p) => s + p.price, 0);
+    });
+    return sum + paymentsTotal(inMonth);
+  }, 0);
 }
 
 function EqualizerBars({ months, revenues }: { months: ReturnType<typeof getLastNMonths>; revenues: number[] }) {
@@ -83,13 +89,7 @@ function EqualizerBars({ months, revenues }: { months: ReturnType<typeof getLast
 
 function revenueThisMonth(projects: Project[]) {
   const now = new Date();
-  return projects
-    .filter((p) => {
-      if (p.status !== "paid") return false;
-      const d = new Date(p.createdAt);
-      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-    })
-    .reduce((s, p) => s + p.price, 0);
+  return revenueForMonth(projects, now.getMonth(), now.getFullYear());
 }
 
 type Props = {

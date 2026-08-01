@@ -23,6 +23,8 @@ import {
   projectTypes,
   formatCOP,
   QUOTE_STATUS_META,
+  deliverablesFromQuote,
+  EMPTY_BRIEF,
   itemsSubtotal,
   type QuoteItem,
   computePricing,
@@ -241,9 +243,16 @@ export default function QuoteGenerator({
     projectTypeId:   quote.projectTypeId,
     projectTypeName: quote.projectTypeName,
     price:           quote.finalPrice,
+    // Frozen with the quote's own currency, not today's setting.
+    currency:        quote.currency,
     deadline:        "",
     status:          "in_progress",
     notes:           "",
+    // What you charged for is what you owe: the quote's line items become the
+    // project's checklist, so the two can never drift apart.
+    deliverables:    deliverablesFromQuote(quote),
+    payments:        [],
+    brief:           { ...EMPTY_BRIEF },
     quoteId:         quote.id,
     createdAt:       Date.now(),
   });
