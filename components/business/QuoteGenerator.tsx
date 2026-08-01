@@ -9,6 +9,8 @@ import {
   Trash2,
   AlertTriangle,
   CheckCircle2,
+  Pencil,
+  FileText,
 } from "lucide-react";
 import Select from "@/components/ui/Select";
 import {
@@ -64,6 +66,9 @@ export default function QuoteGenerator({
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(emptyForm);
+  /** Quote being edited, or null when composing a new one. Edits save in
+   *  place (no v2 versioning) — Paco 2026-07-31. */
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [pricing, setPricing] = useState({ minPricePerProject: 0, isSetupComplete: false });
 
@@ -139,6 +144,7 @@ export default function QuoteGenerator({
 
   const cancelForm = () => {
     setShowForm(false);
+    setEditingId(null);
     setForm(emptyForm);
   };
 
@@ -156,11 +162,33 @@ export default function QuoteGenerator({
     form.items.some((it) => it.concept.trim()) &&
     pricing.isSetupComplete;
 
+  function startEdit(quote: Quote) {
+    setEditingId(quote.id);
+    setForm({
+      projectName: quote.projectName,
+      projectTypeId: quote.projectTypeId || projectTypes[0].id,
+      clientId: quote.clientId,
+      finalPrice: String(quote.finalPrice),
+      notes: quote.notes ?? "",
+      // Legacy quotes have no breakdown: seed one concept from the old total
+      // so editing them is the moment they gain a real breakdown.
+      items: quote.items?.length
+        ? quote.items.map((it) => ({ ...it }))
+        : [{ id: crypto.randomUUID(), concept: quote.projectName || "Project", qty: 1, unitPrice: quote.finalPrice }],
+      taxLabel: quote.taxLabel ?? "",
+      taxRate: quote.taxRate ?? 0,
+    });
+    setShowForm(true);
+  }
+
   const handleSave = () => {
     if (!canSave || !selectedClient) return;
 
+    const existing = editingId ? quotes.find((q) => q.id === editingId) : null;
+
     const newQuote: Quote = {
-      id: crypto.randomUUID(),
+      // Editing keeps the identity: same id, original creation date and status.
+      id: existing?.id ?? crypto.randomUUID(),
       clientId: selectedClient.id,
       clientName: selectedClient.name,
       clientEmail: selectedClient.email,
@@ -175,14 +203,18 @@ export default function QuoteGenerator({
       taxRate: form.taxRate || 0,
       currency: getCurrency(),
       notes: form.notes.trim(),
-      createdAt: Date.now(),
-      status: "draft",
+      createdAt: existing?.createdAt ?? Date.now(),
+      updatedAt: existing ? Date.now() : undefined,
+      status: existing?.status ?? "draft",
     };
 
-    // Optimistic update
-    setQuotes((prev) => [newQuote, ...prev]);
+    // Optimistic update — replace in place when editing, prepend when new.
+    setQuotes((prev) => existing
+      ? prev.map((q) => (q.id === newQuote.id ? newQuote : q))
+      : [newQuote, ...prev]);
     upsertQuote(userId, newQuote);
     setShowForm(false);
+    setEditingId(null);
     setForm(emptyForm);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
@@ -318,7 +350,7 @@ export default function QuoteGenerator({
       {/* New quote form */}
       {showForm && (
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6 space-y-5">
-          <h2 className="text-sm font-semibold text-white">New quote</h2>
+          <h2 className="text-sm font-semibold text-white">{editingId ? "Edit quote" : "New quote"}</h2>
 
           {/* Project name */}
           <label className="flex flex-col gap-1.5">
@@ -569,7 +601,9 @@ export default function QuoteGenerator({
                   <p className="text-xs text-zinc-400">
                     {quote.clientName} · {quote.projectTypeName}
                   </p>
-                  <p className="text-xs text-zinc-500">{formatDate(quote.createdAt)}</p>
+                  <p className="text-xs text-zinc-500">
+                    {quote.updatedAt ? `Updated ${formatDate(quote.updatedAt)}` : formatDate(quote.createdAt)}
+                  </p>
                 </div>
 
                 {/* Right: price + actions */}
@@ -578,6 +612,22 @@ export default function QuoteGenerator({
                     {formatCOP(quote.finalPrice)}
                   </p>
                   <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => window.open(`/quote/${quote.id}/print`, "_blank")}
+                      className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-zinc-300 transition hover:border-accent/50 hover:text-accent"
+                      title="Open the client-ready PDF"
+                    >
+                      <FileText className="h-3 w-3" />
+                      PDF
+                    </button>
+                    <button
+                      onClick={() => startEdit(quote)}
+                      className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-zinc-300 transition hover:border-accent/50 hover:text-accent"
+                      title="Edit this quote"
+                    >
+                      <Pencil className="h-3 w-3" />
+                      Edit
+                    </button>
                     <button
                       onClick={() => handleSendEmail(quote)}
                       className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-zinc-300 transition hover:border-accent/50 hover:text-accent"
