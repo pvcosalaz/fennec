@@ -37,7 +37,10 @@ create table if not exists business_quotes (
   recommended_price numeric not null default 0,
   final_price       numeric not null default 0,
   notes             text not null default '',
-  status            text not null default 'draft' check (status in ('draft', 'sent')),
+  status            text not null default 'draft'
+                      check (status in ('draft', 'sent', 'approved', 'declined')),
+  approved_at       timestamptz,
+  project_id        text,
   created_at        timestamptz not null default now()
 );
 

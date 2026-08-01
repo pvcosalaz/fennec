@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import {
   ArrowLeft, User, Globe, DollarSign, Trash2,
   ChevronRight, Check, AlertTriangle, Bell, Camera, Loader2,
-  Lightbulb, Send, Lock,
+  Lightbulb, Send, Lock, Coins,
 } from "lucide-react";
 import NotificationPreferences from "./NotificationPreferences";
 import { submitSuggestion, fetchMySuggestions, type Suggestion } from "@/lib/suggestionsDb";
@@ -13,7 +13,10 @@ import Select from "@/components/ui/Select";
 import { GENRE_OPTIONS } from "@/lib/genres";
 import { fetchProfile, updateProfile } from "@/lib/communityDb";
 import { supabase } from "@/lib/supabase";
-import { CURRENCY_KEY, CURRENCIES, notifyCurrencyChange, type Currency } from "@/lib/currency";
+import {
+  CURRENCY_KEY, CURRENCIES, CURRENCY_REGIONS, currencyMeta,
+  notifyCurrencyChange, type Currency,
+} from "@/lib/currency";
 
 export const PROFILE_KEY = "fennec-profile-v1";
 
@@ -108,7 +111,7 @@ type Props = {
 export default function SettingsModule({ onBack, language, onLanguageChange, avatarUrl, onAvatarChange, onSignOut, userId, initialSection }: Props) {
   const [section,       setSection]       = useState<Section>(initialSection ?? "main");
   const [profile,       setProfile]       = useState<UserProfile>(DEFAULT_PROFILE);
-  const [currency,      setCurrency]      = useState<Currency>("COP");
+  const [currency,      setCurrency]      = useState<Currency>("USD");
   const [saved,         setSaved]         = useState(false);
   const [confirmReset,  setConfirmReset]  = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -533,6 +536,60 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
     </div>
   );
 
+  /* ── Currency section ──
+     This screen was declared in `Section` and had a working `saveCurrency()`,
+     but no render branch and no menu row ever shipped — so the currency was
+     unreachable and everyone silently stayed on the default. That's how a
+     Mexican producer's quote got frozen in COP (Paco 2026-08-01). */
+  if (section === "currency") return (
+    <div className="mx-auto w-full max-w-lg space-y-5 px-4">
+      <div className="flex items-center gap-3">
+        <button onClick={() => setSection("main")} className="text-zinc-400 hover:text-accent transition">
+          <ArrowLeft className="h-5 w-5" />
+        </button>
+        <div>
+          <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">Settings</p>
+          <h1 className="text-2xl font-bold text-white">Currency</h1>
+        </div>
+      </div>
+
+      <p className="text-xs leading-relaxed text-zinc-500">
+        Used for new quotes and every amount across Business. Quotes you already
+        saved keep the currency they were written in.
+      </p>
+
+      {CURRENCY_REGIONS.map((region) => (
+        <div key={region}>
+          <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-600">
+            {region}
+          </p>
+          <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+            {CURRENCIES.filter((c) => c.region === region).map((c, i) => (
+              <button
+                key={c.id}
+                onClick={() => saveCurrency(c.id)}
+                className={`flex w-full items-center justify-between px-5 py-3.5 text-left transition hover:bg-white/5 ${
+                  i > 0 ? "border-t border-white/5" : ""
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">{c.flag}</span>
+                  <div>
+                    <p className="text-sm font-medium text-white">
+                      {c.id} <span className="text-zinc-500">· {c.symbol}</span>
+                    </p>
+                    <p className="text-xs text-zinc-500">{c.label}</p>
+                  </div>
+                </div>
+                {currency === c.id && <Check className="h-4 w-4 text-accent" />}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
   // ── Data section ──
   if (section === "password") return (
     <div className="mx-auto w-full max-w-lg space-y-5 px-4">
@@ -692,6 +749,12 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
       label: "Language",
       value: displayLang,
       section: "language" as Section,
+    },
+    {
+      icon: Coins,
+      label: "Currency",
+      value: `${currencyMeta(currency).flag}  ${currency} · ${currencyMeta(currency).label}`,
+      section: "currency" as Section,
     },
     {
       icon: Lock,

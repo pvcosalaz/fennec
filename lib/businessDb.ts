@@ -73,7 +73,9 @@ export async function getQuotes(userId: string): Promise<Quote[]> {
     notes:            row.notes ?? "",
     createdAt:        new Date(row.created_at).getTime(),
     updatedAt:        row.updated_at ? new Date(row.updated_at).getTime() : undefined,
-    status:           row.status as "draft" | "sent",
+    status:           (row.status ?? "draft") as Quote["status"],
+    approvedAt:       row.approved_at ? new Date(row.approved_at).getTime() : undefined,
+    projectId:        row.project_id ?? undefined,
   }));
 }
 
@@ -98,6 +100,8 @@ export async function upsertQuote(userId: string, quote: Quote): Promise<void> {
     notes:             quote.notes,
     created_at:        new Date(quote.createdAt).toISOString(),
     status:            quote.status,
+    approved_at:       quote.approvedAt ? new Date(quote.approvedAt).toISOString() : null,
+    project_id:        quote.projectId ?? null,
   });
   if (error) console.error("upsertQuote:", error);
 }

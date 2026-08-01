@@ -129,6 +129,10 @@ import type { Profile } from "@/lib/communityTypes";
 import AuthGate from "@/components/community/AuthGate";
 import UsernameSetup from "@/components/community/UsernameSetup";
 import Select from "@/components/ui/Select";
+import { CurrencySelect } from "@/components/ui/CurrencySelect";
+import {
+  CURRENCY_KEY, formatMoney, notifyCurrencyChange, useCurrency, type Currency,
+} from "@/lib/currency";
 import { useSheetDismiss, SHEET_BOTTOM, SHEET_ENTER } from "@/components/ui/useSheetDismiss";
 import { useIsDesktop } from "@/lib/useIsDesktop";
 import DesktopShell from "@/components/desktop/DesktopShell";
@@ -275,16 +279,13 @@ const PRO_FEATURES = [
 const sumValues = (values: Record<string, string>) =>
   Object.values(values).reduce((acc, value) => acc + toNumber(value), 0);
 
-type CalcCurrency = "USD" | "MXN" | "COP";
-const CALC_CURRENCY_KEY = "fennec-calc-currency-v1";
-const CURRENCY_LOCALES: Record<CalcCurrency, string> = { USD: "en-US", MXN: "es-MX", COP: "es-CO" };
+/* The calculator used to keep its OWN currency in `fennec-calc-currency-v1`,
+   separate from the app-wide one quotes are stamped with. So you could set MXN
+   here, quote in COP, and never be told (Paco 2026-08-01). One key now. */
+type CalcCurrency = Currency;
 
 const formatCurrency = (value: number, currency: CalcCurrency) =>
-  new Intl.NumberFormat(CURRENCY_LOCALES[currency], {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  }).format(value);
+  formatMoney(Math.round(value), currency);
 
 const mergePersistedState = (persisted: Partial<PricingState>): PricingState => ({
   ...defaultState,
@@ -500,10 +501,12 @@ export default function PricingCalculator() {
     };
   }, [activeTab, showSettings]);
 
-  const [calcCurrency, setCalcCurrency] = useState<CalcCurrency>(() => {
-    try { return (localStorage.getItem(CALC_CURRENCY_KEY) as CalcCurrency) || "USD"; } catch { return "USD"; }
-  });
-  const saveCurrency = (c: CalcCurrency) => { setCalcCurrency(c); try { localStorage.setItem(CALC_CURRENCY_KEY, c); } catch {} };
+  // Reads the app-wide currency and stays live if it changes in Settings.
+  const calcCurrency = useCurrency();
+  const saveCurrency = (c: CalcCurrency) => {
+    try { localStorage.setItem(CURRENCY_KEY, c); } catch { /* ignore */ }
+    notifyCurrencyChange();
+  };
 
   const [pendingAudio, setPendingAudio] = useState<{ url: string; name: string } | null>(null);
   const [settingsSection, setSettingsSection] = useState<SettingsSection>("main");
@@ -823,22 +826,8 @@ export default function PricingCalculator() {
                 <p className="mt-2 text-sm text-zinc-400">{t("calculatorSubtitle")}</p>
               </div>
               <div className="flex flex-col items-end gap-2 shrink-0">
-                {/* Currency selector */}
-                <div className="flex rounded-xl border border-white/10 bg-black/30 overflow-hidden">
-                  {(["USD", "MXN", "COP"] as CalcCurrency[]).map((c) => (
-                    <button
-                      key={c}
-                      onClick={() => saveCurrency(c)}
-                      className={`px-3 py-1.5 text-xs font-semibold transition ${
-                        calcCurrency === c
-                          ? "bg-accent text-black"
-                          : "text-zinc-500 hover:text-white"
-                      }`}
-                    >
-                      {c}
-                    </button>
-                  ))}
-                </div>
+                {/* Currency selector — app-wide, same value quotes are stamped with */}
+                <CurrencySelect value={calcCurrency} onChange={saveCurrency} />
                 <button
                   onClick={() => {
                     setState((prev) => ({ ...prev, step: 1 }));

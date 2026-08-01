@@ -53,7 +53,27 @@ export type Quote = {
   notes: string;
   createdAt: number;
   updatedAt?: number;
-  status: "draft" | "sent";
+  /* The pipeline, stage 1–2 (stages 3–5 live on the Project it becomes):
+       draft    · written, not sent
+       sent     · in the client's hands, waiting
+       approved · client said yes — this is the ONLY thing that starts a project
+       declined · client passed
+     Every hop is a manual action. Sending a quote used to auto-create an
+     active project, so quotes nobody had paid on counted as revenue in
+     progress (Paco 2026-08-01). */
+  status: QuoteStatus;
+  approvedAt?: number;
+  /** The project this quote became, if any. Guards against creating two. */
+  projectId?: string;
+};
+
+export type QuoteStatus = "draft" | "sent" | "approved" | "declined";
+
+export const QUOTE_STATUS_META: Record<QuoteStatus, { label: string; color: string; bg: string }> = {
+  draft:    { label: "Draft",    color: "text-zinc-400",    bg: "bg-white/5"          },
+  sent:     { label: "Sent",     color: "text-amber-400",   bg: "bg-amber-400/10"     },
+  approved: { label: "Approved", color: "text-emerald-400", bg: "bg-emerald-400/10"   },
+  declined: { label: "Declined", color: "text-red-400",     bg: "bg-red-400/10"       },
 };
 
 /** Items for a quote, migrating legacy ones (no breakdown) to a single line

@@ -11,6 +11,9 @@ import {
   CheckCircle2,
   Pencil,
   FileText,
+  XCircle,
+  RotateCcw,
+  ArrowRight,
 } from "lucide-react";
 import Select from "@/components/ui/Select";
 import {
@@ -19,6 +22,7 @@ import {
   type Project,
   projectTypes,
   formatCOP,
+  QUOTE_STATUS_META,
   itemsSubtotal,
   type QuoteItem,
   computePricing,
@@ -244,9 +248,32 @@ export default function QuoteGenerator({
     createdAt:       Date.now(),
   });
 
-  const handleConvertToProject = async (quote: Quote) => {
-    const newProject = makeProject(quote);
-    await upsertProject(userId, newProject);
+  /** Move a quote along the pipeline. Every hop is a deliberate click — the
+   *  app must never decide on the producer's behalf that a client said yes. */
+  const setQuoteStatus = (quote: Quote, status: Quote["status"]) => {
+    const updated: Quote = { ...quote, status };
+    setQuotes((prev) => prev.map((q) => (q.id === quote.id ? updated : q)));
+    upsertQuote(userId, updated);
+  };
+
+  /* Client approved → the quote becomes a real project, in_progress.
+     This is the ONLY path that creates a project. Sending a quote used to do
+     it silently, so two unpaid quotes read as $130,632 of active work
+     (Paco 2026-08-01). */
+  const handleApprove = async (quote: Quote) => {
+    if (quote.projectId) { onGoToProjects(); return; }   // already converted
+    const newProject = { ...makeProject(quote), notes: quote.notes };
+    const updated: Quote = {
+      ...quote,
+      status: "approved",
+      approvedAt: Date.now(),
+      projectId: newProject.id,
+    };
+    setQuotes((prev) => prev.map((q) => (q.id === quote.id ? updated : q)));
+    await Promise.all([
+      upsertProject(userId, newProject),
+      upsertQuote(userId, updated),
+    ]);
     onGoToProjects();
   };
 
@@ -266,16 +293,9 @@ export default function QuoteGenerator({
     );
     window.open(`mailto:${quote.clientEmail}?subject=${subject}&body=${body}`);
 
-    // Mark as sent — optimistic update
-    const updatedQuote = { ...quote, status: "sent" as const };
-    setQuotes((prev) =>
-      prev.map((q) => (q.id === quote.id ? updatedQuote : q)),
-    );
-    upsertQuote(userId, updatedQuote);
-
-    // Auto-create active project
-    const newProject = { ...makeProject(quote), notes: quote.notes };
-    upsertProject(userId, newProject);
+    // Sending advances the quote to `sent` and NOTHING else. A project is born
+    // only when the client actually approves — see handleApprove.
+    if (quote.status === "draft") setQuoteStatus(quote, "sent");
   };
 
   const formatDate = (ts: number) =>
@@ -593,12 +613,10 @@ export default function QuoteGenerator({
                     </p>
                     <span
                       className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                        quote.status === "sent"
-                          ? "bg-green-400/10 text-green-400"
-                          : "bg-white/5 text-zinc-500"
-                      }`}
+                        QUOTE_STATUS_META[quote.status].bg
+                      } ${QUOTE_STATUS_META[quote.status].color}`}
                     >
-                      {quote.status === "sent" ? "Sent" : "Draft"}
+                      {QUOTE_STATUS_META[quote.status].label}
                     </span>
                   </div>
                   <p className="text-xs text-zinc-400">
@@ -634,21 +652,11 @@ export default function QuoteGenerator({
                     <button
                       onClick={() => handleSendEmail(quote)}
                       className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-zinc-300 transition hover:border-accent/50 hover:text-accent"
-                      title="Send quote · creates an active project"
+                      title="Email this quote to the client"
                     >
                       <Send className="h-3 w-3" />
-                      {quote.status === "sent" ? "Resend" : "Send"}
+                      {quote.status === "draft" ? "Send" : "Resend"}
                     </button>
-                    {quote.status !== "sent" && (
-                      <button
-                        onClick={() => handleConvertToProject(quote)}
-                        className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-zinc-300 transition hover:border-emerald-400/50 hover:text-emerald-400"
-                        title="Manually move to active projects"
-                      >
-                        <CheckCircle2 className="h-3 w-3" />
-                        Project
-                      </button>
-                    )}
                     <button
                       onClick={() => handleDelete(quote.id)}
                       className="rounded-lg border border-white/10 p-1.5 text-zinc-600 transition hover:border-red-400/30 hover:text-red-400"
@@ -657,6 +665,71 @@ export default function QuoteGenerator({
                     </button>
                   </div>
                 </div>
+              </div>
+
+              {/* ── Pipeline row ──
+                  Separate from the tools above because these are the decisions
+                  that move money: what the client actually answered. Only the
+                  hops that are legal from the current stage are shown, so the
+                  card reads as "here's what can happen next". */}
+              <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-white/5 pt-3">
+                {quote.status === "draft" && (
+                  <button
+                    onClick={() => setQuoteStatus(quote, "sent")}
+                    className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-zinc-300 transition hover:border-amber-400/50 hover:text-amber-400"
+                    title="You sent it another way (WhatsApp, PDF, in person)"
+                  >
+                    <Send className="h-3 w-3" />
+                    Mark as sent
+                  </button>
+                )}
+
+                {(quote.status === "draft" || quote.status === "sent") && (
+                  <>
+                    <button
+                      onClick={() => handleApprove(quote)}
+                      className="flex items-center gap-1.5 rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1.5 text-xs font-medium text-emerald-400 transition hover:bg-emerald-400/20"
+                      title="The client approved — start the project"
+                    >
+                      <CheckCircle2 className="h-3 w-3" />
+                      Client approved
+                    </button>
+                    <button
+                      onClick={() => setQuoteStatus(quote, "declined")}
+                      className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-zinc-500 transition hover:border-red-400/40 hover:text-red-400"
+                      title="The client passed on this quote"
+                    >
+                      <XCircle className="h-3 w-3" />
+                      Declined
+                    </button>
+                  </>
+                )}
+
+                {quote.status === "approved" && (
+                  <>
+                    <span className="text-xs text-emerald-400/80">
+                      Approved{quote.approvedAt ? ` · ${formatDate(quote.approvedAt)}` : ""}
+                    </span>
+                    <button
+                      onClick={onGoToProjects}
+                      className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-zinc-300 transition hover:border-accent/50 hover:text-accent"
+                    >
+                      <ArrowRight className="h-3 w-3" />
+                      View project
+                    </button>
+                  </>
+                )}
+
+                {quote.status === "declined" && (
+                  <button
+                    onClick={() => setQuoteStatus(quote, "sent")}
+                    className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-zinc-400 transition hover:border-accent/50 hover:text-accent"
+                    title="They came back — put it back in play"
+                  >
+                    <RotateCcw className="h-3 w-3" />
+                    Reopen
+                  </button>
+                )}
               </div>
 
               {/* Notes preview */}
