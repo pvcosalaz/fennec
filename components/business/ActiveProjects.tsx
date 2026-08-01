@@ -227,7 +227,7 @@ function ProjectForm({
         </button>
       </div>
       <p className="text-[11px] text-zinc-500 flex items-center gap-1 pt-0.5">
-        <Send size={9} className="text-amber-500/70" /> Send a quote &amp; get paid faster — available on Pro
+        <Send size={9} className="text-amber-500/70" /> Send a quote &amp; get paid faster. Available on Pro
       </p>
     </div>
   );

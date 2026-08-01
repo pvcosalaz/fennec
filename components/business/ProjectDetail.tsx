@@ -508,7 +508,7 @@ function BriefSection({
             value={note}
             onChange={(e) => setNote(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") addRef(); }}
-            placeholder="What to take from it — e.g. the drums, not the vocal"
+            placeholder="What to take from it: the drums, not the vocal"
             className={inputCls}
           />
           <div className="flex gap-2">

@@ -265,17 +265,25 @@ export async function syncPricingFromCloud() {
   return computePricing();
 }
 
+/* maxProjects and hoursPerProject come out too: the quote screen explains
+   where the minimum comes from, and "your target ÷ 4 projects" only lands if
+   it can name the real 4 (Paco 2026-08-01). */
 export function computePricing(): {
   minPricePerProject: number;
   monthlyTarget: number;
+  maxProjects: number;
+  hoursPerProject: number;
   isSetupComplete: boolean;
 } {
-  if (typeof window === "undefined")
-    return { minPricePerProject: 0, monthlyTarget: 0, isSetupComplete: false };
+  const EMPTY = {
+    minPricePerProject: 0, monthlyTarget: 0,
+    maxProjects: 0, hoursPerProject: 0, isSetupComplete: false,
+  };
+  if (typeof window === "undefined") return EMPTY;
 
   try {
     const stored = localStorage.getItem(PRICING_STORAGE_KEY);
-    if (!stored) return { minPricePerProject: 0, monthlyTarget: 0, isSetupComplete: false };
+    if (!stored) return EMPTY;
 
     const s = JSON.parse(stored) as Record<string, unknown>;
 
@@ -293,8 +301,14 @@ export function computePricing(): {
     const min = maxProjects > 0 ? monthly / maxProjects : 0;
     const complete = !!s.setupCompleted && monthly > 0 && maxProjects > 0;
 
-    return { minPricePerProject: min, monthlyTarget: monthly, isSetupComplete: complete };
+    return {
+      minPricePerProject: min,
+      monthlyTarget: monthly,
+      maxProjects,
+      hoursPerProject: hPerProject,
+      isSetupComplete: complete,
+    };
   } catch {
-    return { minPricePerProject: 0, monthlyTarget: 0, isSetupComplete: false };
+    return EMPTY;
   }
 }

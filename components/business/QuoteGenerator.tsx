@@ -81,8 +81,13 @@ export default function QuoteGenerator({
   const [confirmApproveId, setConfirmApproveId] = useState<string | null>(null);
   /** Live so the breakdown's symbol follows a change in Settings. */
   const currencySymbol = currencyMeta(useCurrency()).symbol;
+  /** "Where do these two numbers come from?" — collapsed by default. */
+  const [showPriceInfo, setShowPriceInfo] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [pricing, setPricing] = useState({ minPricePerProject: 0, isSetupComplete: false });
+  const [pricing, setPricing] = useState<ReturnType<typeof computePricing>>({
+    minPricePerProject: 0, monthlyTarget: 0,
+    maxProjects: 0, hoursPerProject: 0, isSetupComplete: false,
+  });
 
   // Load on mount
   useEffect(() => {
@@ -389,7 +394,7 @@ export default function QuoteGenerator({
       {saved && (
         <div className="flex items-center gap-2 rounded-xl border border-accent/30 bg-accent/10 px-4 py-2 text-sm text-accent">
           <CheckCircle2 className="h-4 w-4" />
-          Quote saved — ready to send.
+          Quote saved. Ready to send.
         </div>
       )}
 
@@ -424,9 +429,28 @@ export default function QuoteGenerator({
 
           {/* Pricing info */}
           {pricing.isSetupComplete && (
-            <div className="grid grid-cols-2 gap-3 rounded-xl border border-white/10 bg-black/20 p-4">
+            <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+              <div className="grid grid-cols-2 gap-3">
               <div>
-                <p className="text-xs text-zinc-500">Minimum price</p>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-xs text-zinc-500">Minimum price</p>
+                  {/* Inline disclosure, not a floating tooltip: this card sits
+                      inside a scrolling form, and absolutely-positioned popovers
+                      have already been clipped twice in this app. */}
+                  <button
+                    type="button"
+                    onClick={() => setShowPriceInfo((v) => !v)}
+                    aria-expanded={showPriceInfo}
+                    aria-label="How these prices are calculated"
+                    className={`flex h-4 w-4 items-center justify-center rounded-full border text-[9px] font-bold transition ${
+                      showPriceInfo
+                        ? "border-accent/60 text-accent"
+                        : "border-white/20 text-zinc-500 hover:border-accent/60 hover:text-accent"
+                    }`}
+                  >
+                    i
+                  </button>
+                </div>
                 <p className="mt-0.5 text-sm font-semibold text-zinc-300">
                   {formatCOP(minPrice)}
                 </p>
@@ -443,6 +467,53 @@ export default function QuoteGenerator({
                   </p>
                 )}
               </div>
+              </div>
+
+              {/* Where the two numbers come from, in the producer's own
+                  figures. A generic formula wouldn't be checkable; these are
+                  the values they typed into the calculator. */}
+              {showPriceInfo && (
+                <div className="mt-3 space-y-2.5 border-t border-white/10 pt-3 text-[11px] leading-relaxed text-zinc-400">
+                  <p>
+                    <b className="font-semibold text-zinc-300">Minimum.</b> What
+                    you need per project for the month to close. Your monthly
+                    target of{" "}
+                    <b className="font-semibold text-zinc-300">
+                      {formatCOP(pricing.monthlyTarget)}
+                    </b>{" "}
+                    split across the{" "}
+                    <b className="font-semibold text-zinc-300">
+                      {pricing.maxProjects}
+                    </b>{" "}
+                    {pricing.maxProjects === 1 ? "project" : "projects"} you can
+                    take at {pricing.hoursPerProject}h each. Charge under this
+                    and the project costs you money.
+                  </p>
+                  <p>
+                    <b className="font-semibold text-zinc-300">Recommended.</b>{" "}
+                    Your minimum adjusted for who&rsquo;s paying.{" "}
+                    {activeProjectType.label} sits at{" "}
+                    <b className="font-semibold text-zinc-300">
+                      ×{activeProjectType.multiplier}
+                    </b>{" "}
+                    of a baseline job
+                    {recommendedIsFloored
+                      ? ", which lands below your minimum, so the minimum wins."
+                      : "."}
+                  </p>
+                  <p className="text-zinc-500">
+                    Both come from your Pricing Calculator. Change your expenses
+                    or hours there and these move with them.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={onGoToCalculator}
+                    className="text-[11px] font-semibold text-accent transition hover:brightness-110"
+                  >
+                    Open Pricing Calculator →
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
