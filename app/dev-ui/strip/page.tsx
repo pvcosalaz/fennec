@@ -1,36 +1,35 @@
 "use client";
 
-// Dev-only. The pipeline strip lives in the DESKTOP hub, and the main
-// /dev-ui gallery is a phone-width column that clips it — so the variants
-// get their own full-width page. 404s in production.
+/* Dev-only, 404s in production.
+
+   Started as a board to pick the Pipeline strip's metrics; that's decided
+   (the money's journey), so the variants are gone. What earns its keep is
+   the quote form at full desktop width: the main /dev-ui gallery is a
+   phone-width column, and this is the only way to exercise the real
+   QuoteGenerator without a login.
+
+   Needs a completed pricing setup to get past the form's gate. Paste this
+   in the console, then reload:
+
+     localStorage.setItem('fennec-pricing-v1', JSON.stringify({
+       personalExpenses:{rent:"38000",food:"12000"}, studioExpenses:{gear:"9000"},
+       taxPercent:"16", reinvestmentPercent:"10", emergencyFund:"5000",
+       hoursPerWeek:"30", weeksPerMonth:"4", hoursPerProject:"24",
+       setupCompleted:true }))
+*/
 
 import { notFound } from "next/navigation";
-import {
-  StripCurrent, StripMoneyJourney, StripKeepClients, StripCountsFirst, StripThree,
-} from "@/components/business/PipelineStripVariants";
 import QuoteGenerator from "@/components/business/QuoteGenerator";
 
-export default function StripVariantsPage() {
+export default function QuoteFormDevPage() {
   if (process.env.NODE_ENV === "production") notFound();
 
   return (
     <div className="min-h-screen bg-[#0b0a08] px-8 py-10">
       <div className="mx-auto w-full space-y-5" style={{ maxWidth: 1040 }}>
         <p className="text-xs font-bold uppercase tracking-widest text-zinc-600">
-          Pipeline strip · variants
-        </p>
-        <StripCurrent />
-        <StripMoneyJourney />
-        <StripKeepClients />
-        <StripCountsFirst />
-        <StripThree />
-
-        <p className="pt-6 text-xs font-bold uppercase tracking-widest text-zinc-600">
           Quote generator (real component)
         </p>
-        {/* The real component, so the breakdown row can be checked without a
-            login. Needs a completed pricing setup in localStorage to get past
-            its gate — see the note in the page comment above. */}
         <QuoteGenerator
           onBack={() => {}}
           onGoToProjects={() => {}}

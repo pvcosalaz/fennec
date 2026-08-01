@@ -1,5 +1,8 @@
 "use client";
-import { type Project, type Quote, type Client, formatCOP } from "@/lib/pricingData";
+import {
+  type Project, type Quote, type Client, formatCOP,
+  projectMoney, paymentsTotal,
+} from "@/lib/pricingData";
 import { formatMoney } from "@/lib/currency";
 import type { BusinessView } from "./BusinessHub";
 import { RiseStyle, Tile, Instrument, Cols, Col, ACCENT } from "@/components/desktop/ui";
@@ -73,11 +76,29 @@ export default function BusinessHubDesktop({
   onOpenView: (view: BusinessView) => void;
 }) {
   const activeProjects = projects.filter((p) => p.status !== "paid");
-  const paidProjects   = projects.filter((p) => p.status === "paid");
   const sentQuotes     = quotes.filter((q) => q.status === "sent");
   const outstanding    = sentQuotes.reduce((s, q) => s + q.finalPrice, 0);
-  const avgProject     = paidProjects.length ? paidProjects.reduce((s, p) => s + p.price, 0) / paidProjects.length : 0;
   const maxRev         = Math.max(...revenues, 1);
+
+  /* The strip now traces the money's journey instead of mixing pipeline with
+     roster size: what's out there → what you're working on → what you're owed.
+     "Avg. project" was vanity computed on the old paid-flag basis, and
+     "Clients" is a directory count that already has its own tool card
+     (Paco 2026-08-01). The fourth step of the journey, what actually landed,
+     is the hero above — repeating it here would print the same number twice. */
+  const activeValue    = activeProjects.reduce((s, p) => s + p.price, 0);
+  const owed           = activeProjects.reduce((s, p) => s + projectMoney(p).pending, 0);
+  const noDeposit      = activeProjects.filter((p) => paymentsTotal(p.payments) === 0).length;
+
+  /* Revenue comes from payment dates now, so counting projects flagged paid
+     would caption the hero with an unrelated number. */
+  const paymentsThisMonth = projects.reduce((n, p) => {
+    const now = new Date();
+    return n + (p.payments ?? []).filter((pay) => {
+      const d = new Date(`${pay.date}T00:00:00`);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }).length;
+  }, 0);
   const recentQuotes   = [...quotes].sort((a, b) => b.createdAt - a.createdAt).slice(0, 5);
 
   return (
@@ -114,7 +135,9 @@ export default function BusinessHubDesktop({
           size={64}
           footer={
             <span className="relative mt-2 text-[10px] text-zinc-500">
-              {paidProjects.length > 0 ? `${paidProjects.length} paid this month` : "No paid work yet"}
+              {paymentsThisMonth > 0
+                ? `${paymentsThisMonth} ${paymentsThisMonth === 1 ? "payment" : "payments"} this month`
+                : "Nothing collected yet"}
             </span>
           }
         />
@@ -148,14 +171,31 @@ export default function BusinessHubDesktop({
       <div className="dd-rise" style={{ animationDelay: ".12s" }}>
         <Tile label="Pipeline" className="py-1">
           <Cols>
-            <Col value={outstanding > 0 ? formatMoney(outstanding) : "—"} label="Outstanding" muted={outstanding === 0}
-              sub={sentQuotes.length ? `${sentQuotes.length} awaiting reply` : undefined} onClick={() => onOpenView("quotes")} />
-            <Col value={String(activeProjects.length)} label="Active projects" muted={activeProjects.length === 0}
-              sub={activeProjects.length ? "in progress" : undefined} onClick={() => onOpenView("projects")} />
-            <Col value={avgProject > 0 ? formatMoney(avgProject) : "—"} label="Avg. project" muted={avgProject === 0}
-              sub={paidProjects.length ? "from paid work" : undefined} />
-            <Col value={String(clients.length)} label="Clients" muted={clients.length === 0}
-              sub={clients.length ? "in your roster" : undefined} onClick={() => onOpenView("clients")} />
+            <Col
+              value={outstanding > 0 ? formatMoney(outstanding) : "—"}
+              label="Awaiting reply"
+              muted={outstanding === 0}
+              sub={sentQuotes.length
+                ? `${sentQuotes.length} ${sentQuotes.length === 1 ? "quote" : "quotes"} out`
+                : undefined}
+              onClick={() => onOpenView("quotes")}
+            />
+            <Col
+              value={activeValue > 0 ? formatMoney(activeValue) : "—"}
+              label="In progress"
+              muted={activeProjects.length === 0}
+              sub={activeProjects.length
+                ? `${activeProjects.length} ${activeProjects.length === 1 ? "project" : "projects"}`
+                : undefined}
+              onClick={() => onOpenView("projects")}
+            />
+            <Col
+              value={owed > 0 ? formatMoney(owed) : "—"}
+              label="Owed to you"
+              muted={owed === 0}
+              sub={noDeposit > 0 ? `${noDeposit} without deposit` : undefined}
+              onClick={() => onOpenView("projects")}
+            />
           </Cols>
         </Tile>
       </div>
