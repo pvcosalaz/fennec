@@ -89,7 +89,7 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
             instead of sitting here as the primary button. */}
         <p className="mx-auto max-w-xs text-xs leading-relaxed text-zinc-500">
           Projects start when a client approves a quote. Head to Quotes and hit
-          &ldquo;Client approved&rdquo;.
+          &ldquo;Mark as approved&rdquo;.
         </p>
       </div>
       <button
