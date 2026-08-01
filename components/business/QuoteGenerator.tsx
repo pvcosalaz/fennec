@@ -691,7 +691,11 @@ export default function QuoteGenerator({
           <label className="flex flex-col gap-1.5">
             <span className="text-xs text-zinc-400">Notes &amp; terms (optional)</span>
             <textarea
-              placeholder={"Payment terms and where to pay you.\nDeliverables, deadlines, revisions included…"}
+              /* Naming the methods matters more than it looks: a Mexican
+                 producer reaches for a CLABE, but a client abroad needs
+                 PayPal, SWIFT/IBAN or Wise, and the field has to say so or
+                 the quote goes out with no way to pay it (Paco 2026-08-01). */
+              placeholder={"How to pay you: bank transfer, PayPal email, SWIFT/IBAN, Wise…\nTerms: deposit, deadlines, revisions included…"}
               value={form.notes}
               onChange={(e) =>
                 setForm((p) => ({ ...p, notes: e.target.value }))
