@@ -423,9 +423,37 @@ export default function TapeDeckDesktop({
           ) : (
             <div className="h-12 w-12 rounded-[10px] border border-white/10" style={{ background: "linear-gradient(140deg,#2a2030,#191319)" }} />
           )}
-          <div>
-            <div className="text-[16.5px] font-bold text-white">{track.title}</div>
-            <div className="font-mono text-[11px] text-zinc-600">@{track.profile?.username ?? "producer"} · {fmt(duration)}</div>
+          {/* De quien es y en que estado esta.
+              El titulo iba a 16.5px, o sea al mismo peso que la barra de
+              herramientas, y el estado de la produccion (demo, master, idea)
+              vivia escondido a 9px bajo los VU, donde nadie lo lee. Es lo
+              PRIMERO que necesitas saber antes de opinar sobre una pista: no se
+              le da la misma nota a una idea cruda que a un master
+              (Paco 2026-08-03). */}
+          <div className="min-w-0">
+            <div className="flex items-center gap-2.5">
+              <h1 className="truncate text-[26px] font-bold leading-none tracking-[-0.02em] text-white">{track.title}</h1>
+              {track.category && (
+                <span
+                  className="flex-shrink-0 rounded-md border px-2 py-[3px] font-mono text-[9px] font-bold uppercase tracking-[0.18em]"
+                  style={{ borderColor: `${AMBER}40`, color: AMBER }}
+                >
+                  {track.category}
+                </span>
+              )}
+            </div>
+            {/* El @ lleva a su perfil de comunidad: si te gusto lo que oiste,
+                el siguiente paso natural es ver de quien es. */}
+            <a
+              href={track.profile?.username ? `/u/${track.profile.username}` : undefined}
+              className="mt-1 inline-flex items-center gap-1.5 font-mono text-[11px] text-zinc-500 transition hover:text-accent"
+            >
+              @{track.profile?.username ?? "producer"}
+              <span className="text-zinc-700">·</span>
+              {fmt(duration)}
+              <span className="text-zinc-700">·</span>
+              <span className="underline decoration-dotted underline-offset-2">view profile</span>
+            </a>
           </div>
           <button onClick={onOpenIntro} className="ml-3 rounded-md border px-2.5 py-1 font-mono text-[9px] font-bold uppercase tracking-[0.18em] transition hover:brightness-125" style={{ borderColor: `${AMBER}4d`, color: AMBER }}>
             How it works
@@ -450,7 +478,6 @@ export default function TapeDeckDesktop({
               <VuMeter needleRef={vuLRef} label="VU · L" />
               <VuMeter needleRef={vuRRef} label="VU · R" />
             </div>
-            <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-zinc-700">{track.category}</span>
           </div>
 
           <Reel plateRef={rightPlateRef} pancakeRef={rightPancakeRef} edgeRef={rightEdgeRef} r0={R_EMPTY} />
@@ -493,8 +520,14 @@ export default function TapeDeckDesktop({
               return (
                 <div
                   key={cl.key}
-                  className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2"
-                  style={{ left: cl.x, zIndex: abierto ? 30 : hablando ? 20 : 10 }}
+                  /* Las caras van ARRIBA de la cinta y el tallo baja hasta
+                     ella. Estaban centradas SOBRE la cinta (top-1/2 con
+                     -translate-y-1/2), asi que tapaban los timecodes y no se
+                     entendia a que segundo apuntaba cada una
+                     (Paco 2026-08-03). Ancladas por abajo, la punta del tallo
+                     marca el segundo exacto y nada se encima. */
+                  className="absolute -translate-x-1/2"
+                  style={{ left: cl.x, bottom: "calc(50% + 20px)", zIndex: abierto ? 30 : hablando ? 20 : 10 }}
                 >
                   <button
                     onClick={(e) => {
@@ -545,7 +578,7 @@ export default function TapeDeckDesktop({
                   {abierto && (
                     <div
                       onClick={(e) => e.stopPropagation()}
-                      className="absolute left-1/2 bottom-[calc(100%+8px)] w-[212px] -translate-x-1/2 overflow-hidden rounded-xl"
+                      className="absolute left-1/2 bottom-[calc(100%+6px)] w-[212px] -translate-x-1/2 overflow-hidden rounded-xl"
                       style={{
                         transformOrigin: "bottom center",
                         background: "rgba(16,14,11,0.96)",
@@ -598,7 +631,17 @@ export default function TapeDeckDesktop({
       <div className="h-16 px-8">
         {speaking ? (
           <div className="mx-auto max-w-2xl text-center">
-            <div className="font-mono text-[10px] font-bold uppercase tracking-[0.1em]" style={{ color: AMBER }}>@{speaking.profile?.username ?? "producer"} · {fmt(speaking.timestamp_seconds ?? 0)}</div>
+            {/* Quien la dejo, con su cara. Antes solo iba el @ en ambar: para
+                saber quien era tenias que acordarte del usuario. */}
+            <a
+              href={speaking.profile?.username ? `/u/${speaking.profile.username}` : undefined}
+              className="mx-auto flex w-fit items-center gap-2 transition hover:brightness-125"
+            >
+              <MarkFace c={speaking} hablando={false} style={{}} />
+              <span className="font-mono text-[10px] font-bold uppercase tracking-[0.1em]" style={{ color: AMBER }}>
+                @{speaking.profile?.username ?? "producer"} · {fmt(speaking.timestamp_seconds ?? 0)}
+              </span>
+            </a>
             <p className="mt-1 text-[16px] leading-snug text-zinc-200" style={{ fontFamily: "var(--font-tape-serif, Georgia, serif)" }}>{speaking.body}</p>
           </div>
         ) : (
