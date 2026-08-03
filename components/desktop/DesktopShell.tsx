@@ -188,13 +188,35 @@ export default function DesktopShell({
       >
         {/* pb-4, no pb-6: el dock ya no tiene una columna entera que llenar, así
             que el aire de arriba pasó de estructural a sobrante. */}
-        <div className={`flex items-baseline gap-0.5 pb-4 ${compact ? "justify-center px-0" : "px-2.5"}`}>
-          {!compact && <span className="text-[19px] font-bold tracking-tight text-white">fennec</span>}
-          <span className="inline-block h-[5px] w-[5px] rounded-full bg-accent" style={{ boxShadow: "0 0 8px rgba(245,166,35,.8)" }} />
+        {/* El punto de la marca se queda quieto y "fennec" se desvanece a su
+            izquierda. Antes el texto se MONTABA de golpe y empujaba el punto de
+            sitio: dos saltos en el mismo frame. */}
+        <div className="relative flex h-[26px] flex-shrink-0 items-center pb-4">
+          <span
+            aria-hidden={compact}
+            className="pointer-events-none absolute left-[13px] whitespace-nowrap text-[19px] font-bold leading-none tracking-tight text-white"
+            style={{
+              opacity: compact ? 0 : 1,
+              transform: compact ? "translateX(-6px)" : "translateX(0)",
+              transition: compact
+                ? "opacity .09s ease, transform .09s ease"
+                : "opacity .22s cubic-bezier(.23,1,.32,1) 30ms, transform .26s cubic-bezier(.23,1,.32,1) 30ms",
+            }}
+          >
+            fennec
+          </span>
+          <span
+            className="absolute inline-block h-[5px] w-[5px] rounded-full bg-accent"
+            style={{
+              boxShadow: "0 0 8px rgba(245,166,35,.8)",
+              left: compact ? 19 : 96,
+              transition: "left .26s cubic-bezier(.23,1,.32,1)",
+            }}
+          />
         </div>
 
         <nav className="flex flex-col gap-0.5">
-          {NAV.map(({ id, label, icon: Icon }) => {
+          {NAV.map(({ id, label, icon: Icon }, i) => {
             const active = id === "network"
               ? networkActive
               : !networkActive && !settingsOpen && activeTab === id;
@@ -205,30 +227,39 @@ export default function DesktopShell({
                 onClick={() => (id === "network" ? onOpenNetwork() : onNavigate(id))}
                 aria-current={active ? "page" : undefined}
                 title={compact ? label : undefined}
-                className={`relative flex items-center rounded-[10px] py-[9px] text-[13.5px] font-medium transition ${compact ? "justify-center px-0" : "gap-3 px-2.5 text-left"} ${active ? "" : "hover:bg-white/[0.04] hover:text-zinc-200"}`}
+                /* El layout del boton es IDENTICO abierto y cerrado: un slot de
+                   icono de ancho fijo y la etiqueta en absoluto. Antes el boton
+                   alternaba justify-center/px y la etiqueta pasaba de width 0 a
+                   auto, o sea que en un solo frame el texto se maquetaba entero
+                   y el icono se movia de sitio. Eso era el corte
+                   (Paco 2026-08-03). */
+                className={`relative flex items-center rounded-[10px] py-[9px] text-[13.5px] font-medium ${active ? "" : "hover:bg-white/[0.04] hover:text-zinc-200"}`}
                 style={active ? { background: "rgba(245,166,35,.09)", color: "#ffc861" } : { color: "#8b8b93" }}
               >
-                {/* active marker — the platform-standard left bar */}
                 {active && (
                   <span className="absolute left-0 top-1/2 h-4 w-[2.5px] -translate-y-1/2 rounded-full" style={{ background: "#f5a623" }} />
                 )}
-                <Icon className="h-4 w-4 shrink-0" />
-                {/* Always in the DOM, faded — popping the text in at t=0 while
-                    the panel is still 62px wide made the label look like it
-                    was escaping the rail. It arrives with the width now. */}
+
+                {/* 42px = el ancho interior del dock cerrado (62 - 10 de padding
+                    a cada lado). Asi el icono queda centrado al estar cerrado y
+                    NO se mueve ni un pixel al abrirse. */}
+                <span className="grid w-[42px] flex-shrink-0 place-items-center">
+                  <Icon className="h-4 w-4" />
+                </span>
+
+                {/* En absoluto: no ocupa espacio, asi que no hay nada de layout
+                    que animar. Solo opacity y transform, las dos en GPU.
+                    Cascada de 22ms: seis etiquetas apareciendo a la vez se leen
+                    como un parpadeo; escalonadas se leen como que llegan. */}
                 <span
-                  className="overflow-hidden whitespace-nowrap"
+                  aria-hidden={compact}
+                  className="pointer-events-none absolute left-[42px] whitespace-nowrap"
                   style={{
                     opacity: compact ? 0 : 1,
-                    // Zero width when collapsed, or the invisible text still
-                    // claims space and shoves the icon off centre.
-                    width: compact ? 0 : "auto",
-                    /* Ajustado al nuevo ancho de 260ms: con .14s de espera y
-                       .28s de duración la etiqueta terminaba en 420ms, o sea
-                       DESPUÉS de que el panel ya había acabado de abrir, y esa
-                       cola era buena parte de la sensación de lentitud. Ahora
-                       aterriza junto con el panel, no detrás de él. */
-                    transition: `opacity ${compact ? ".1s" : ".18s"} ease ${compact ? "0s" : ".07s"}`,
+                    transform: compact ? "translateX(-6px)" : "translateX(0)",
+                    transition: compact
+                      ? "opacity .09s ease, transform .09s ease"
+                      : `opacity .22s cubic-bezier(.23,1,.32,1) ${40 + i * 22}ms, transform .26s cubic-bezier(.23,1,.32,1) ${40 + i * 22}ms`,
                   }}
                 >
                   {label}
