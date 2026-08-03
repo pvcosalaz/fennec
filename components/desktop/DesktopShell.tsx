@@ -3,30 +3,22 @@ import { useEffect, useState } from "react";
 import { Home, Briefcase, Camera, Users, Settings, AudioWaveform, UserPlus, ChevronRight } from "lucide-react";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import { getColorScheme } from "@/lib/fennecIdPalette";
-import { getNetworkContacts } from "@/lib/networkDb";
-import { fetchNotifications, type Notification } from "@/lib/notificationDb";
 import { useSidebarCompact, useSidebarCollapsed } from "@/lib/useIsDesktop";
 import {
   CANVAS_BG, RAIL_BG, RAIL_SHADOW, Grain, Atmosphere,
 } from "@/components/desktop/surfaces";
 import type { Profile } from "@/lib/communityTypes";
 
-/** "5m ago" / "2h ago" / "3d ago" — compact, mono-friendly */
-function timeAgo(iso: string): string {
-  const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60_000);
-  if (mins < 1) return "now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return `${Math.floor(hrs / 24)}d ago`;
-}
-
 /* ═══════════════════════════════════════════════════════════════
    DESKTOP SHELL — the approved prototype language, on real data.
-   Chrome only: gradient sidebar (nav + live tape pulse + mini ID),
-   collapsible right social rail (bell + settings on top, your
-   network + recent activity below), scrolling main area. The module
-   tree renders as children — ONE source of truth in PricingCalculator.
+   Chrome only: the left rail (nav + live tape pulse + mini ID), a
+   three-button account cluster at the top of the content column, and
+   the scrolling main area. The module tree renders as children — ONE
+   source of truth in PricingCalculator.
+
+   The 292px right social rail was removed 2026-08-02: it spent a fifth
+   of the screen on chrome read once a session, and its only real
+   content (Your Network) duplicated a left-nav destination.
    Prototype reference: public/desktop-mockup.html · spec:
    docs/superpowers/specs/2026-07-09-desktop-foundation-design.md
    ═══════════════════════════════════════════════════════════════ */
@@ -42,8 +34,6 @@ const NAV: { id: DesktopTab | "network"; label: string; icon: React.ComponentTyp
   { id: "network",   label: "Network",   icon: UserPlus },
 ];
 
-const RAIL_KEY = "fennec_desktop_rail_off_v1";
-const RAIL_W = 292;
 /** Sidebar: full with labels, or icon-only once the window gets narrow so a
  *  squeezed desktop window keeps the desktop shell instead of flipping to the
  *  phone UI (Paco 2026-07-30). */
@@ -91,32 +81,12 @@ export default function DesktopShell({
   const compact = tooNarrow || collapsed;
   const SIDEBAR_W = compact ? SIDEBAR_MINI : SIDEBAR_FULL;
 
-  // ── collapsible rail (persisted) ──
-  const [railOff, setRailOff] = useState(false);
-  useEffect(() => {
-    try { setRailOff(localStorage.getItem(RAIL_KEY) === "1"); } catch { /* ignore */ }
-  }, []);
-  function toggleRail() {
-    setRailOff((v) => {
-      try { localStorage.setItem(RAIL_KEY, v ? "0" : "1"); } catch { /* ignore */ }
-      return !v;
-    });
-  }
-
-  // ── real data for the rail ──
-  const [contacts, setContacts] = useState<Profile[]>([]);
-  const [activity, setActivity] = useState<Notification[]>([]);
-  useEffect(() => {
-    getNetworkContacts(userId).then(setContacts).catch(() => setContacts([]));
-    fetchNotifications(userId).then((n) => setActivity(n.slice(0, 4))).catch(() => setActivity([]));
-  }, [userId]);
 
   const slide = "transform .32s cubic-bezier(.22,1,.36,1)";
 
   // Immersive: The Tape is the flagship, so entering it clears the chrome —
   // both side rails slide away and the reel takes the whole viewport.
   const immersive = activeTab === "ideas" && !networkActive && !settingsOpen;
-  const railHidden = railOff || immersive;
 
   return (
     <div className="min-h-screen" style={{ background: CANVAS_BG }}>
@@ -274,13 +244,13 @@ export default function DesktopShell({
           and rail are `fixed`, so they're unaffected by this scrolling. */}
       <div
         className="relative flex h-screen flex-col overflow-y-auto"
-        style={{ marginLeft: immersive ? 0 : SIDEBAR_W, marginRight: railHidden ? 0 : RAIL_W, transition: "margin .32s cubic-bezier(.22,1,.36,1)" }}
+        style={{ marginLeft: immersive ? 0 : SIDEBAR_W, transition: "margin .32s cubic-bezier(.22,1,.36,1)" }}
       >
         {/* Giant fox, deep background layer — the brand present at all times,
             like the landing's first screen. Barely-there so content wins.
             Hidden in immersive: the reel owns the whole surface. */}
         {!immersive && (
-          <Atmosphere inset={{ left: SIDEBAR_W, right: railHidden ? 0 : RAIL_W }} />
+          <Atmosphere inset={{ left: SIDEBAR_W }} />
         )}
         {immersive ? (
           <div className="relative z-10 w-full flex-1">{children}</div>
@@ -293,7 +263,51 @@ export default function DesktopShell({
              its own vertical space (Business fills the screen instead of
              leaving a 340px dead zone) while still scrolling when it
              outgrows one viewport. */
-          <div className="relative z-10 mx-auto flex w-full min-h-0 max-w-[1100px] flex-1 flex-col px-10 pb-8 pt-6">
+          <div className="relative z-10 mx-auto flex w-full min-h-0 max-w-[1100px] flex-1 flex-col px-10 pb-8 pt-5">
+            {/* ── Account cluster ──
+                What used to be a 292px rail is three buttons. The rail spent a
+                fifth of the screen on chrome that gets read once a session, and
+                its one piece of real content — Your Network — was a shortcut to
+                a destination already sitting in the left nav (Paco 2026-08-02).
+
+                Its own row above the module rather than floating over it: every
+                module puts its actions in its own header ("+ New quote",
+                "Share my ID"), and a fixed cluster would collide with them. */}
+            <div className="mb-4 flex flex-shrink-0 items-center justify-end gap-2">
+              <NotificationBell userId={userId} align="right" />
+              <button
+                type="button"
+                onClick={onOpenSettings}
+                aria-label="Settings"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-zinc-400 transition hover:border-accent/30 hover:text-accent"
+              >
+                <Settings className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={onOpenNetwork}
+                aria-label={`${name} — your Fennec ID and network`}
+                title={name}
+                className="rounded-full transition hover:brightness-110"
+              >
+                {profile.avatar_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={profile.avatar_url}
+                    alt=""
+                    className="h-9 w-9 rounded-full object-cover"
+                    style={{ border: "1px solid rgba(255,255,255,.16)" }}
+                  />
+                ) : (
+                  <div
+                    className="grid h-9 w-9 place-items-center rounded-full text-[12px] font-extrabold"
+                    style={{ background: scheme.accent, color: scheme.textOnAvatar, border: "1px solid rgba(255,255,255,.16)" }}
+                  >
+                    {initials}
+                  </div>
+                )}
+              </button>
+            </div>
             {children}
           </div>
         )}
@@ -313,151 +327,6 @@ export default function DesktopShell({
           fennec
         </button>
       )}
-
-      {/* ── Rail toggle — quiet chevron riding the rail's edge ──── */}
-      {/* Hidden in immersive: there's no rail to toggle on the tape. */}
-      <button
-        type="button"
-        onClick={toggleRail}
-        aria-label={railOff ? "Show your network" : "Hide your network"}
-        className="fixed top-1/2 z-[70] grid h-[52px] w-[28px] place-items-center rounded-lg"
-        style={{
-          opacity: immersive ? 0 : 1,
-          pointerEvents: immersive ? "none" : "auto",
-          right: railOff ? 0 : RAIL_W,
-          transform: railOff ? "translate(-8px,-50%)" : "translate(50%,-50%)",
-          border: railOff ? "1px solid rgba(245,166,35,.45)" : `1px solid ${HAIR}`,
-          background: railOff ? "rgba(245,166,35,.08)" : "rgba(17,16,20,.92)",
-          color: railOff ? "#f5a623" : "#55555c",
-          boxShadow: railOff ? "0 0 14px rgba(245,166,35,.18)" : "none",
-          transition: `right .32s cubic-bezier(.22,1,.36,1), ${slide}, color .15s ease, border-color .15s ease`,
-        }}
-      >
-        <ChevronRight className="h-[13px] w-[13px]" style={{ transform: railOff ? "rotate(180deg)" : "none", transition: slide }} />
-      </button>
-
-      {/* ── Right social rail ──────────────────────────────────── */}
-      <aside
-        className="fixed right-0 top-0 z-[60] h-screen overflow-y-auto"
-        style={{
-          width: RAIL_W,
-          // Same panel material as the left rail: they're a matched pair
-          // framing the canvas, so one fading out while the other doesn't
-          // would read as a mistake.
-          background: RAIL_BG,
-          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.07), inset 1px 0 0 rgba(255,255,255,0.05), -18px 0 48px -32px rgba(0,0,0,0.9)",
-          padding: "22px 18px",
-          transform: railHidden ? "translateX(100%)" : "translateX(0)",
-          transition: slide,
-        }}
-      >
-        {/* top icons: the app's real chrome (bell + settings) */}
-        <div className="flex justify-end gap-2 pb-3.5">
-          <NotificationBell userId={userId} align="right" />
-          <button
-            type="button"
-            onClick={onOpenSettings}
-            aria-label="Settings"
-            className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-zinc-400 transition hover:border-accent/30 hover:text-accent"
-          >
-            <Settings className="h-4 w-4" />
-          </button>
-        </div>
-
-        {/* me — on-brand amber; producer color stays on the FennecIdCard */}
-        <div className="border-b pb-4 text-center" style={{ borderColor: HAIR }}>
-          {profile.avatar_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={profile.avatar_url}
-              alt=""
-              className="mx-auto h-16 w-16 rounded-full object-cover"
-              style={{ border: "2px solid rgba(255,255,255,.14)" }}
-            />
-          ) : (
-            <div
-              className="mx-auto grid h-16 w-16 place-items-center rounded-full text-[20px] font-extrabold"
-              style={{ background: scheme.accent, color: scheme.textOnAvatar, border: "2px solid rgba(255,255,255,.14)" }}
-            >
-              {initials}
-            </div>
-          )}
-          <div className="mt-2.5 text-[15px] font-bold text-white">{name}</div>
-          <div className="mt-0.5 text-[10px] uppercase tracking-[0.1em] text-zinc-500" style={{ fontFamily: "var(--font-tape-mono, monospace)" }}>
-            @{profile.username} · {profile.role ?? "Producer"}
-          </div>
-          <div className="mt-2 inline-flex items-baseline gap-1.5 rounded-full px-3 py-1" style={{ border: "1px solid rgba(245,166,35,.3)" }}>
-            <em className="text-[8px] font-bold uppercase not-italic tracking-[0.16em] text-zinc-600">Fennec dB</em>
-            <b className="text-[14px] text-accent">{profile.fennec_db_score}</b>
-          </div>
-        </div>
-
-        {/* your network — real contacts */}
-        <div className="mb-2 mt-4 flex items-baseline justify-between">
-          <span className="text-[8.5px] font-bold uppercase tracking-[0.22em] text-zinc-600">Your Network</span>
-          <button type="button" onClick={onOpenNetwork} className="text-[10px] font-semibold text-accent">See all</button>
-        </div>
-        {contacts.length === 0 ? (
-          <button
-            type="button"
-            onClick={onOpenNetwork}
-            className="w-full rounded-xl border border-dashed px-3 py-4 text-center text-[11px] leading-relaxed text-zinc-500 transition hover:border-accent/40"
-            style={{ borderColor: "rgba(245,166,35,.25)", background: "rgba(245,166,35,.04)" }}
-          >
-            No producers yet. Scan a Fennec ID to start your collection →
-          </button>
-        ) : (
-          contacts.slice(0, 5).map((c) => {
-            const cs = getColorScheme(c.color_id ?? null);
-            const ci = (c.display_name || c.username || "?").trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
-            return (
-              <button
-                key={c.id}
-                type="button"
-                onClick={onOpenNetwork}
-                className="flex w-full items-center gap-2.5 rounded-[11px] px-1.5 py-2 text-left transition hover:bg-white/[0.04]"
-              >
-                {c.avatar_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={c.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
-                ) : (
-                  <div className="grid h-8 w-8 flex-shrink-0 place-items-center rounded-full text-[10.5px] font-bold" style={{ background: cs.accent, color: cs.textOnAvatar }}>
-                    {ci}
-                  </div>
-                )}
-                <div className="min-w-0">
-                  <div className="truncate text-[12.5px] font-semibold text-white">{c.display_name || c.username}</div>
-                  <div className="truncate text-[9.5px] text-zinc-600" style={{ fontFamily: "var(--font-tape-mono, monospace)" }}>
-                    {c.role ?? "Producer"}{c.country ? ` · ${c.country}` : ""}
-                  </div>
-                </div>
-                <b className="ml-auto text-[11px] text-accent" style={{ fontFamily: "var(--font-tape-mono, monospace)" }}>
-                  {c.fennec_db_score}
-                </b>
-              </button>
-            );
-          })
-        )}
-
-        {/* recent activity — ambient feed (same data the bell counts) */}
-        {activity.length > 0 && (
-          <>
-            <div className="mb-1 mt-5 flex items-baseline justify-between">
-              <span className="text-[8.5px] font-bold uppercase tracking-[0.22em] text-zinc-600">Recent activity</span>
-            </div>
-            {activity.map((n) => (
-              <div key={n.id} className="border-b px-1.5 py-2.5 last:border-b-0" style={{ borderColor: "rgba(255,255,255,.04)" }}>
-                <p className="text-[11.5px] leading-relaxed text-zinc-400">
-                  <span className={n.read ? "" : "font-semibold text-zinc-200"}>{n.title}</span>
-                </p>
-                <span className="mt-0.5 block text-[9px] uppercase text-zinc-700" style={{ fontFamily: "var(--font-tape-mono, monospace)" }}>
-                  {timeAgo(n.created_at)}
-                </span>
-              </div>
-            ))}
-          </>
-        )}
-      </aside>
 
       <style>{`
         @keyframes fennecPulse { from { transform: scaleY(.45); } to { transform: scaleY(1); } }
