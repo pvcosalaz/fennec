@@ -70,7 +70,11 @@ export default function ContributionsCard({ data, accent, weeks = 17, cellSize }
   return (
     <>
       <div
-        className="rounded-2xl border px-4 pt-3 pb-2.5"
+        /* h-full: la tarjeta llena su celda de la rejilla en vez de quedarse
+           con su alto natural. Sin esto su borde inferior no coincidia con el
+           de "Today on Fennec" —que si se estiraba— y la fila de noticias de
+           abajo arrancaba en una linea torcida (Paco 2026-08-03). */
+        className="flex h-full flex-col rounded-2xl border px-4 pt-3 pb-2.5"
         /* Mismo material que el resto de paneles cuando hay foto: sin esto era
            la única tarjeta sin vidrio, un ámbar al 4% por el que se veía la
            habitación nítida. */
@@ -99,7 +103,9 @@ export default function ContributionsCard({ data, accent, weeks = 17, cellSize }
           )}
         </div>
 
-        <Heatmap byDay={byDay} weeks={weeks} cellSize={cellSize} />
+        <div className="flex min-h-0 flex-1 items-center">
+          <Heatmap byDay={byDay} weeks={weeks} cellSize={cellSize} />
+        </div>
 
         <div className="flex items-center justify-between mt-2.5">
           <p className="text-[10px] text-zinc-500">

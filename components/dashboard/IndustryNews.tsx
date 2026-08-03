@@ -64,7 +64,7 @@ function Card({ item }: { item: NewsItem }) {
            laptop chica quedan compactas y en un monitor grande se acercan al
            cuadrado, que es la forma que se pidió, sin que ninguna de las dos
            reviente la rejilla (Paco 2026-08-03). */
-        height: "clamp(58px, 10vh, 150px)",
+        height: "100%",
         background: "var(--fx-tile-bg, linear-gradient(180deg, rgba(255,255,255,0.048), rgba(255,255,255,0.012)))",
         boxShadow: "var(--fx-tile-shadow, inset 0 1px 0 rgba(255,255,255,0.075), 0 18px 40px -24px rgba(0,0,0,0.75))",
         backdropFilter: "var(--fx-tile-blur, none)",
@@ -116,8 +116,8 @@ function Card({ item }: { item: NewsItem }) {
 function Skeleton() {
   return (
     <div
-      className="animate-pulse rounded-2xl"
-      style={{ height: "clamp(58px, 10vh, 150px)", background: "var(--fx-tile-bg, rgba(255,255,255,0.04))" }}
+      className="h-full animate-pulse rounded-2xl"
+      style={{ background: "var(--fx-tile-bg, rgba(255,255,255,0.04))" }}
     />
   );
 }
@@ -155,8 +155,8 @@ export default function IndustryNews({
   ) : [];
 
   return (
-    <div>
-      <div className="mb-1.5 flex items-center justify-between">
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="mb-1.5 flex flex-shrink-0 items-center justify-between">
         <span className="text-[8.5px] font-bold uppercase tracking-[0.22em] text-zinc-500">
           Industry today
         </span>
@@ -171,7 +171,7 @@ export default function IndustryNews({
         )}
       </div>
 
-      <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))` }}>
+      <div className="grid min-h-0 flex-1 gap-3" style={{ gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))`, maxHeight: 190 }}>
         {items === null && Array.from({ length: count }).map((_, i) => <Skeleton key={i} />)}
         {items !== null && visible.length === 0 && (
           <p className="col-span-full py-4 text-[12px] text-zinc-500">

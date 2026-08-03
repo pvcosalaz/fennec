@@ -202,7 +202,14 @@ export default function DashboardDesktop({
              disponibles y Contributions quedaba en 8.85px: aplastada y encimada
              (medido 2026-08-03). El mínimo garantiza que la rejilla del año
              siempre se vea, y el sobrante sigue yendo ahí en pantallas altas. */
-          gridTemplateRows: "auto auto minmax(132px, 1fr) auto",
+          /* La fila 3 es AUTO, no 1fr. Cuando se llevaba el sobrante, sus dos
+             paneles se comportaban distinto —Contributions centrado con su alto
+             natural, Today estirado a toda la fila— y sus bordes inferiores no
+             coincidian, asi que la fila de noticias arrancaba en una linea
+             torcida (Paco 2026-08-03). En auto los dos miden lo mismo (la
+             rejilla estira por defecto) y el sobrante se va a las noticias, que
+             era donde hacia falta: tarjetas mas grandes y mas cuadradas. */
+          gridTemplateRows: "auto auto auto minmax(96px, 1fr)",
         }}
       >
 
@@ -259,7 +266,7 @@ export default function DashboardDesktop({
       </div>
 
       {/* ── Fila 3: la evidencia, y lo que toca hoy ── */}
-      <div className="dd-rise flex min-h-0 min-w-0 flex-col justify-center" style={{ animationDelay: ".18s" }}>
+      <div className="dd-rise flex min-h-0 min-w-0 flex-col" style={{ animationDelay: ".18s" }}>
         {/* SIN cellSize: la tarjeta tiene dos modos y el flexible es el
             correcto aquí. Con celdas fijas de 10px el año medía 673px de ancho
             (52 columnas × 10 + 51 huecos × 3) dentro de un contenedor de 650, y
@@ -273,7 +280,7 @@ export default function DashboardDesktop({
       <div className="dd-rise flex min-h-0 flex-col" style={{ animationDelay: ".21s" }}>
         <Tile label="Today on Fennec" className="h-full">
           <div className="flex flex-col divide-y divide-white/[0.05]">
-            <button type="button" onClick={() => onNavigate?.("ideas")} className="group flex items-center justify-between gap-3 py-[6px] text-left transition first:pt-0">
+            <button type="button" onClick={() => onNavigate?.("ideas")} className="group flex items-center justify-between gap-3 py-[5px] text-left transition first:pt-0">
               <span className="min-w-0 truncate text-[12px] text-zinc-400">
                 {latestNote ? "New note on your track" : "No track feedback yet"}
               </span>
@@ -281,7 +288,7 @@ export default function DashboardDesktop({
                 {latestNote ? "Open →" : "Upload →"}
               </span>
             </button>
-            <button type="button" onClick={() => onNavigate?.("pricing")} className="group flex items-center justify-between gap-3 py-[6px] text-left">
+            <button type="button" onClick={() => onNavigate?.("pricing")} className="group flex items-center justify-between gap-3 py-[5px] text-left">
               <span className="min-w-0 truncate text-[12px] text-zinc-400">
                 {sentQuotes.length > 0 ? `${sentQuotes.length} quote${sentQuotes.length > 1 ? "s" : ""} awaiting reply` : "No open quotes"}
               </span>
@@ -289,7 +296,7 @@ export default function DashboardDesktop({
                 {sentQuotes.length > 0 ? "View →" : "Send →"}
               </span>
             </button>
-            <button type="button" onClick={() => onNavigate?.("contenido")} className="group flex items-center justify-between gap-3 py-[6px] text-left">
+            <button type="button" onClick={() => onNavigate?.("contenido")} className="group flex items-center justify-between gap-3 py-[5px] text-left">
               <span className="min-w-0 truncate text-[12px] text-zinc-400">
                 {nextPost ? `Next post · ${fmtDate(nextPost.date)}` : "Nothing scheduled"}
               </span>
@@ -302,7 +309,7 @@ export default function DashboardDesktop({
       </div>
 
       {/* ── Fila 4: la industria, a lo ancho ── */}
-      <div className="dd-rise col-span-2 min-w-0" style={{ animationDelay: ".24s" }}>
+      <div className="dd-rise col-span-2 flex min-h-0 min-w-0 flex-col" style={{ animationDelay: ".24s" }}>
         <IndustryNews count={5} onOpen={() => onNavigate?.("noticias")} />
       </div>
       </div>{/* /bento */}
