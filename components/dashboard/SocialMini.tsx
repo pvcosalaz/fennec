@@ -1,7 +1,13 @@
 "use client";
 
 /* ═══════════════════════════════════════════════════════════════
-   SOCIAL MINI — el alcance, resumido.
+   AUDIENCE — la gente que te sigue, resumida.
+
+   Se llamaba "Social reach" y estaba mal dicho: reach es alcance, o sea
+   cuanta gente VIO algo en una ventana de tiempo. Lo que aqui se muestra es
+   cuanta gente te sigue, que es otra cosa y no se mueve igual. Ademas encaja
+   mejor con la postura de Fennec: audiencia es gente, alcance es impresiones
+   (Paco 2026-08-03).
 
    Antes era una banda de ancho completo con tres columnas y números
    de 21px, o sea el mismo peso visual que "Music & Business". Eso es
@@ -54,7 +60,7 @@ export default function SocialMini({
        chips en línea desbordaba y YouTube quedaba fuera del recuadro
        (Paco 2026-08-02, visto en el harness). Apilado cabe con holgura y
        además el total gana el peso que le toca. */
-    <Tile label="Social reach">
+    <Tile label="Audience">
       <button
         type="button"
         onClick={onConnect}
@@ -64,7 +70,7 @@ export default function SocialMini({
           {connected.length ? fmt(total) : "—"}
         </b>
         <span className="text-[9px] uppercase tracking-[0.16em] text-zinc-500">
-          {connected.length ? "reach" : "not connected"}
+          {connected.length ? "following you" : "not connected"}
         </span>
       </button>
 

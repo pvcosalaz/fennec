@@ -9,8 +9,12 @@ import { useState } from "react";
 import { X, Flame } from "lucide-react";
 import { buildHeatmapGrid, type ContributionDays } from "@/lib/contributions";
 
+/* La celda vacía va detrás de una variable: sobre el canvas plano un blanco al
+   6% se lee, pero sobre una fotografía desaparece por completo y la rejilla se
+   volvía invisible (Paco 2026-08-03). El dashboard sube ese valor cuando hay
+   foto, sin que esta tarjeta tenga que saber nada. */
 const LEVEL_BG = [
-  "rgba(255,255,255,0.06)", // 0 — empty day
+  "var(--fx-grid-empty, rgba(255,255,255,0.06))", // 0 — empty day
   "#5c3f12",
   "#97661a",
   "#d18f1f",
@@ -67,7 +71,15 @@ export default function ContributionsCard({ data, accent, weeks = 17, cellSize }
     <>
       <div
         className="rounded-2xl border px-4 pt-3 pb-2.5"
-        style={{ borderColor: `${accent}26`, background: `${accent}0a` }}
+        /* Mismo material que el resto de paneles cuando hay foto: sin esto era
+           la única tarjeta sin vidrio, un ámbar al 4% por el que se veía la
+           habitación nítida. */
+        style={{
+          borderColor: `${accent}26`,
+          background: `var(--fx-tile-bg, ${accent}0a)`,
+          backdropFilter: "var(--fx-tile-blur, none)",
+          WebkitBackdropFilter: "var(--fx-tile-blur, none)",
+        }}
       >
         <div className="flex items-center justify-between mb-2.5">
           <p className="text-[9px] font-bold tracking-[0.2em] uppercase" style={{ color: `${accent}80` }}>

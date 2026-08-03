@@ -44,7 +44,18 @@ export function RiseStyle() {
   return (
     <style>{`
       @keyframes ddRise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-      .dd-rise { animation: ddRise .5s cubic-bezier(.16,1,.3,1) both; }
+      /* fill-mode backwards, NO both.
+         Con "both" la animacion se queda rellenando para siempre, y un
+         elemento con animacion de transform/opacity crea un backdrop root: el
+         backdrop-filter de los paneles que van dentro solo podia muestrear lo
+         pintado DENTRO del wrapper, o sea nada. Desenfocaba vacio y la
+         fotografia se colaba nitida, que es por que el vidrio se veia
+         encimado (Paco 2026-08-03).
+         Con "backwards" el relleno solo aplica ANTES de arrancar; al terminar
+         el elemento vuelve a sus estilos normales (opacity 1, transform none),
+         se libera el backdrop root y el blur funciona. La entrada se ve igual
+         porque el ultimo keyframe ya es el estado por defecto. */
+      .dd-rise { animation: ddRise .5s cubic-bezier(.16,1,.3,1) backwards; }
       @media (prefers-reduced-motion: reduce) { .dd-rise { animation: none; } }
     `}</style>
   );
@@ -106,7 +117,7 @@ export function Instrument({ label, value, footer, size = 92 }: {
 }) {
   return (
     <div
-      className="relative flex flex-col items-center justify-center overflow-hidden rounded-2xl p-6"
+      className="relative flex h-full flex-col items-center overflow-hidden rounded-2xl p-5"
       /* Mismo tratamiento que los Tile: con foto detrás pasa a vidrio. Si se
          quedaba con su gradiente opaco propio, era el único hueco sólido en
          una pantalla de paneles translúcidos y se leía como un parche. */
@@ -119,7 +130,12 @@ export function Instrument({ label, value, footer, size = 92 }: {
     >
       <div className="pointer-events-none absolute inset-0" style={{ background: `radial-gradient(60% 42% at 50% 100%, ${ACCENT}12, transparent 72%)` }} />
       <span className="relative text-[9px] font-bold uppercase tracking-[0.35em] text-zinc-500">{label}</span>
-      <div className="relative flex items-baseline" style={{ padding: "2px 4px" }}>
+      {/* El numero toma el alto sobrante y se centra dentro de el; el pie se
+          queda abajo. Antes todo iba centrado en bloque, asi que al crecer la
+          tarjeta el sobrante se acumulaba DEBAJO del pie y se leia como hueco
+          muerto (Paco 2026-08-03). Ahora el panel se llena de forma simetrica
+          sea cual sea su alto. */}
+      <div className="relative flex flex-1 items-center" style={{ padding: "2px 4px" }}>
         <span
           className="font-black tabular-nums leading-none tracking-[-0.035em]"
           style={{ color: ACCENT, fontSize: size }}

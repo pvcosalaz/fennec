@@ -132,6 +132,7 @@ export default function DashboardDesktop({
         "--fx-tile-bg": TILE_BG_OVER_PHOTO,
         "--fx-tile-blur": TILE_BLUR_OVER_PHOTO,
         "--fx-tile-shadow": TILE_SHADOW_OVER_PHOTO,
+        "--fx-grid-empty": "rgba(255,255,255,0.14)",
       } as React.CSSProperties) : undefined}
     >
       {/* The producer's room, when they've set one. Absent by default, so the
@@ -211,7 +212,7 @@ export default function DashboardDesktop({
 
       {/* Contributions — la evidencia visual del dB. Sigue en la columna ancha
           porque son 52 semanas en horizontal: en la angosta no cabe. */}
-      <div className="dd-rise flex-shrink-0" style={{ animationDelay: ".12s" }}>
+      <div className="dd-rise flex min-h-0 flex-1 flex-col justify-center" style={{ animationDelay: ".12s" }}>
         {/* cellSize 10, no 11: el año completo son 52 columnas y a 11px+gap la
             rejilla pedía ~700px de ancho mínimo, lo que empujaba TODO el grid
             y sacaba la columna derecha de la pantalla. A 10px cabe el año
@@ -219,10 +220,10 @@ export default function DashboardDesktop({
         <ContributionsCard data={contributions ?? null} accent="#f5a623" weeks={52} cellSize={10} />
       </div>
 
-      {/* Lo que pasa hoy en la industria. Toma el alto sobrante porque una
-          lista con fotos es lo único de esta pantalla que de verdad mejora
-          con más espacio. */}
-      <div className="dd-rise flex min-h-0 flex-1 flex-col" style={{ animationDelay: ".24s" }}>
+      {/* Las noticias son dos cuadrados de alto fijo. Quien se lleva ahora el
+          sobrante es Contributions (arriba), que es lo que de verdad mejora con
+          espacio: es una rejilla de un año y a más alto se lee mejor. */}
+      <div className="dd-rise flex-shrink-0" style={{ animationDelay: ".24s" }}>
         <IndustryNews onOpen={() => onNavigate?.("noticias")} />
       </div>
 
@@ -243,10 +244,14 @@ export default function DashboardDesktop({
         <Instrument
           label="Fennec dB"
           value={String(fennecDb)}
-          size={76}
+          /* 56, no 76: en la columna derecha al dB le tocan 132px de alto y a
+             76 el número desbordaba 38px, o sea que las barras del ecualizador
+             salían cortadas por el overflow-hidden del panel (medido
+             2026-08-03). Sigue siendo el número más grande de la pantalla. */
+          size={56}
           footer={
             /* the tape's soundwave — same EQ bars as the mobile Fennec ID card */
-            <div className="relative flex items-end gap-[3px]" style={{ height: 20, marginTop: 8 }}>
+            <div className="relative flex items-end gap-[3px]" style={{ height: 14, marginTop: 4 }}>
               {EQ_HEIGHTS.map((h, i) => (
                 <span key={i} className="fennec-eq-bar" style={{ height: h, width: 3, background: accent, animationDelay: `${i * 0.15}s` }} />
               ))}
