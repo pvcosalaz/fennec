@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Home, Briefcase, Camera, Users, Settings, AudioWaveform, UserPlus, ChevronRight } from "lucide-react";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import { getColorScheme } from "@/lib/fennecIdPalette";
@@ -85,6 +85,31 @@ export default function DesktopShell({
   const compact = !railHover;
   const SIDEBAR_W = SIDEBAR_MINI;
 
+  /* Hover INTENT, not hover. Crossing the rail on the way somewhere else was
+     firing the animation two or three times in a sweep (Paco 2026-08-02), and
+     slowing the animation alone makes that worse: a longer transition means
+     the half-open state lingers.
+
+     So: it only opens once the pointer has rested on the rail, and only closes
+     after a beat, which forgives clipping the edge on the way back in. */
+  const OPEN_DELAY = 190;
+  const CLOSE_DELAY = 140;
+  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function armRail(open: boolean) {
+    if (hoverTimer.current) clearTimeout(hoverTimer.current);
+    hoverTimer.current = setTimeout(
+      () => setRailHover(open),
+      open ? OPEN_DELAY : CLOSE_DELAY,
+    );
+  }
+  /* Keyboard focus is deliberate by definition — no waiting for it. */
+  function setRailNow(open: boolean) {
+    if (hoverTimer.current) clearTimeout(hoverTimer.current);
+    setRailHover(open);
+  }
+  useEffect(() => () => { if (hoverTimer.current) clearTimeout(hoverTimer.current); }, []);
+
 
   const slide = "transform .32s cubic-bezier(.22,1,.36,1)";
 
@@ -101,14 +126,16 @@ export default function DesktopShell({
 
       {/* ── Sidebar ────────────────────────────────────────────── */}
       <aside
-        className="fixed left-0 top-0 bottom-0 z-40 flex flex-col"
-        onMouseEnter={() => setRailHover(true)}
-        onMouseLeave={() => setRailHover(false)}
-        onFocusCapture={() => setRailHover(true)}
+        // overflow-hidden so the always-rendered labels are clipped by the
+        // rail while it's narrow instead of spilling onto the canvas.
+        className="fixed left-0 top-0 bottom-0 z-40 flex flex-col overflow-hidden"
+        onMouseEnter={() => armRail(true)}
+        onMouseLeave={() => armRail(false)}
+        onFocusCapture={() => setRailNow(true)}
         onBlurCapture={(e) => {
           // Only collapse once focus has genuinely left the rail, not while
           // it's moving between two nav buttons inside it.
-          if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setRailHover(false);
+          if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setRailNow(false);
         }}
         style={{
           // Overlays the canvas when expanded; the content margin below is
@@ -121,7 +148,10 @@ export default function DesktopShell({
           boxShadow: RAIL_SHADOW,
           padding: compact ? "22px 8px 18px" : "22px 14px 18px",
           transform: immersive ? "translateX(-100%)" : "translateX(0)",
-          transition: `${slide}, width .28s cubic-bezier(.22,1,.36,1), padding .28s cubic-bezier(.22,1,.36,1)`,
+          /* 280ms read as a snap. 420ms with a long ease-out lets the panel
+             arrive instead of appearing — and paired with the open delay it
+             can afford to be slow, because it no longer fires by accident. */
+          transition: `${slide}, width .42s cubic-bezier(.22,1,.36,1), padding .42s cubic-bezier(.22,1,.36,1)`,
         }}
       >
         <div className={`flex items-baseline gap-0.5 pb-6 ${compact ? "justify-center px-0" : "px-2.5"}`}>
@@ -149,7 +179,21 @@ export default function DesktopShell({
                   <span className="absolute left-0 top-1/2 h-4 w-[2.5px] -translate-y-1/2 rounded-full" style={{ background: "#f5a623" }} />
                 )}
                 <Icon className="h-4 w-4 shrink-0" />
-                {!compact && label}
+                {/* Always in the DOM, faded — popping the text in at t=0 while
+                    the panel is still 62px wide made the label look like it
+                    was escaping the rail. It arrives with the width now. */}
+                <span
+                  className="overflow-hidden whitespace-nowrap"
+                  style={{
+                    opacity: compact ? 0 : 1,
+                    // Zero width when collapsed, or the invisible text still
+                    // claims space and shoves the icon off centre.
+                    width: compact ? 0 : "auto",
+                    transition: `opacity ${compact ? ".12s" : ".28s"} ease ${compact ? "0s" : ".14s"}`,
+                  }}
+                >
+                  {label}
+                </span>
               </button>
             );
           })}
