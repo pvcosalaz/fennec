@@ -257,11 +257,21 @@ export async function uploadAudio(blob: Blob, filename: string): Promise<string>
   return data.publicUrl;
 }
 
-/** The producer's studio photo. Already downscaled and re-encoded to JPEG by
- *  prepareStudioPhoto, so this just stores it. Namespaced by user so a second
- *  upload doesn't collide and old ones stay traceable. */
+/**
+ * The producer's studio photo. Already downscaled and re-encoded to JPEG by
+ * prepareStudioPhoto, so this just stores it.
+ *
+ * Lives under `avatars/` on purpose. The first version used its own `studio/`
+ * folder and storage rejected it (Paco 2026-08-02) while avatars — same
+ * bucket, same `${userId}-${timestamp}` filename, only a different folder —
+ * kept working. That points at folder-scoped policies on the bucket, and
+ * `avatars/` is the prefix already proven to be writable.
+ *
+ * The `studio-` prefix keeps the two kinds of image tellable apart. Moving to
+ * a dedicated folder later just needs a matching storage policy.
+ */
 export async function uploadStudioPhoto(userId: string, blob: Blob): Promise<string> {
-  const path = `studio/${userId}-${Date.now()}.jpg`;
+  const path = `avatars/studio-${userId}-${Date.now()}.jpg`;
   const { error } = await supabase.storage.from("community-images").upload(path, blob, {
     contentType: "image/jpeg",
     upsert: false,
