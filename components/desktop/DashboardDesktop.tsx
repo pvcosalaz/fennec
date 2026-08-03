@@ -209,7 +209,7 @@ export default function DashboardDesktop({
              torcida (Paco 2026-08-03). En auto los dos miden lo mismo (la
              rejilla estira por defecto) y el sobrante se va a las noticias, que
              era donde hacia falta: tarjetas mas grandes y mas cuadradas. */
-          gridTemplateRows: "auto auto auto minmax(96px, 1fr)",
+          gridTemplateRows: "auto auto minmax(144px, auto) minmax(80px, 1fr)",
         }}
       >
 
@@ -284,7 +284,7 @@ export default function DashboardDesktop({
               <span className="min-w-0 truncate text-[12px] text-zinc-400">
                 {latestNote ? "New note on your track" : "No track feedback yet"}
               </span>
-              <span className="flex-shrink-0 text-[11px] font-semibold text-accent transition group-hover:brightness-110">
+              <span className="flex-shrink-0 text-[11px] font-semibold text-zinc-500 transition group-hover:text-accent">
                 {latestNote ? "Open →" : "Upload →"}
               </span>
             </button>
@@ -292,7 +292,7 @@ export default function DashboardDesktop({
               <span className="min-w-0 truncate text-[12px] text-zinc-400">
                 {sentQuotes.length > 0 ? `${sentQuotes.length} quote${sentQuotes.length > 1 ? "s" : ""} awaiting reply` : "No open quotes"}
               </span>
-              <span className="flex-shrink-0 text-[11px] font-semibold text-accent transition group-hover:brightness-110">
+              <span className="flex-shrink-0 text-[11px] font-semibold text-zinc-500 transition group-hover:text-accent">
                 {sentQuotes.length > 0 ? "View →" : "Send →"}
               </span>
             </button>
@@ -300,7 +300,7 @@ export default function DashboardDesktop({
               <span className="min-w-0 truncate text-[12px] text-zinc-400">
                 {nextPost ? `Next post · ${fmtDate(nextPost.date)}` : "Nothing scheduled"}
               </span>
-              <span className="flex-shrink-0 text-[11px] font-semibold text-accent transition group-hover:brightness-110">
+              <span className="flex-shrink-0 text-[11px] font-semibold text-zinc-500 transition group-hover:text-accent">
                 {nextPost ? "Calendar →" : "Plan →"}
               </span>
             </button>
@@ -310,7 +310,10 @@ export default function DashboardDesktop({
 
       {/* ── Fila 4: la industria, a lo ancho ── */}
       <div className="dd-rise col-span-2 flex min-h-0 min-w-0 flex-col" style={{ animationDelay: ".24s" }}>
-        <IndustryNews count={5} onOpen={() => onNavigate?.("noticias")} />
+        {/* Cuatro, no cinco: cinco tarjetas se leian como tira de contactos y
+            era la fila mas ruidosa de la pantalla. Con cuatro hay aire y cada
+            titular se alcanza a leer. */}
+        <IndustryNews count={4} onOpen={() => onNavigate?.("noticias")} />
       </div>
       </div>{/* /bento */}
     </div>

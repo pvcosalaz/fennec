@@ -78,7 +78,13 @@ function Card({ item }: { item: NewsItem }) {
           alt=""
           loading="lazy"
           onError={() => setBroken(true)}
-          className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.05]"
+          /* Desaturadas y apagadas en reposo. Cinco fotos a todo color en la
+             fila de abajo eran lo mas ruidoso de la pantalla, y estaban justo
+             donde deberia haber menos ruido (Paco 2026-08-03). Asi la foto
+             aporta textura y el TITULAR manda; el color vuelve al pasar encima,
+             que es cuando esa nota si te interesa. */
+          className="absolute inset-0 h-full w-full object-cover transition-all duration-700 group-hover:scale-[1.04] group-hover:saturate-100 group-hover:opacity-100"
+          style={{ filter: "saturate(0.15) contrast(1.05)", opacity: 0.55 }}
         />
       )}
 
@@ -164,7 +170,7 @@ export default function IndustryNews({
           <button
             type="button"
             onClick={onOpen}
-            className="text-[10.5px] font-semibold text-accent transition hover:brightness-110"
+            className="text-[10.5px] font-semibold text-zinc-500 transition hover:text-accent"
           >
             All news →
           </button>

@@ -192,7 +192,11 @@ export default function ContributionsCard({ data, accent, weeks = 17, cellSize }
           )}
         </div>
 
-        <div className="flex min-h-0 flex-1 items-center">
+        {/* items-start, NO items-center. Centrado, cuando la rejilla no cabe el
+            sobrante se derrama hacia ARRIBA y los rotulos de mes se encimaban
+            con el titulo de la tarjeta (Paco 2026-08-03). Anclado arriba, lo
+            que sobre cae hacia abajo, que es donde hay recorte y no texto. */}
+        <div className="flex min-h-0 flex-1 items-start overflow-hidden">
           <Heatmap byDay={byDay} weeks={weeks} cellSize={cellSize} selected={day} onSelect={setDay} />
         </div>
 
