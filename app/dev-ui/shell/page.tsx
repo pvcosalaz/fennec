@@ -13,6 +13,8 @@ import { useState } from "react";
 import { notFound } from "next/navigation";
 import DesktopShell, { type DesktopTab } from "@/components/desktop/DesktopShell";
 import DashboardDesktop from "@/components/desktop/DashboardDesktop";
+import ScriptWriterOverlay from "@/components/content/ScriptWriterOverlay";
+import ContentModule from "@/components/content/ContentModule";
 import type { Profile, Post } from "@/lib/communityTypes";
 import { dayKey, type ContributionDays } from "@/lib/contributions";
 import { getColorScheme } from "@/lib/fennecIdPalette";
@@ -60,9 +62,27 @@ const mockPosts: Post[] = [
     "Finished a 40-cue package in six weeks. The thing that saved me wasn't a plugin, it was writing the deliverables list before touching the DAW.", 22, 3),
 ];
 
+const mockRef = {
+  title: "Faraway - What Is Love (Live Loop Cover) | Minilab 3 #ableton #synthmusic",
+  channel: "B-roll with voiceover",
+  angle: "Demonstrate how to transform a recognizable theme or film score snippet using Ableton's tools to show how remixing underscore or creating variations helps maintain continuity across TV episodes.",
+  why: "", url: "", thumbnail: "",
+};
+
 export default function ShellDevPage() {
   if (process.env.NODE_ENV === "production") notFound();
   const [tab, setTab] = useState<DesktopTab>("dashboard");
+  // ?tool=script monta el escritor de guiones DENTRO del shell, que es la única
+  // forma de comprobar que ya no se mete debajo de la barra lateral ni choca
+  // con el avatar pegado al borde derecho.
+  const params = typeof window !== "undefined"
+    ? new URLSearchParams(window.location.search) : null;
+  const tool = params?.get("tool");
+  /* ?photo=<url>&luma=<0..1> para ver el dashboard con foto de estudio sin
+     tener que subir una. Va por parametro y no como asset del repo para no
+     mandar JPEGs de prueba a produccion. */
+  const photo = params?.get("photo") ?? null;
+  const photoLuma = Number(params?.get("luma") ?? "0.5");
 
   return (
     <DesktopShell
@@ -73,6 +93,11 @@ export default function ShellDevPage() {
       onOpenNetwork={() => {}}
       onOpenSettings={() => {}}
     >
+      {tool === "content" ? (
+        <ContentModule isPro genres={[]} userId={mockProfile.id} onUpgrade={() => {}} />
+      ) : tool === "script" ? (
+        <ScriptWriterOverlay isDesktop videoRef={mockRef} onSave={() => {}} onClose={() => {}} />
+      ) : (
       <DashboardDesktop
         card={{
           firstName: "Paco", lastName: "Salaz", role: "Composer", country: "Mexico",
@@ -80,6 +105,9 @@ export default function ShellDevPage() {
           collectionNumber: 1,
         }}
         networkProfile={mockProfile}
+        studioPhotoUrl={photo}
+        studioPhotoLuma={photoLuma}
+        userId={mockProfile.id}
         fennecDb={65}
         cardColorScheme={getColorScheme(null)}
         igFollowers={37000}
@@ -95,6 +123,7 @@ export default function ShellDevPage() {
         contributions={mockContributions}
         communityPosts={mockPosts}
       />
+      )}
     </DesktopShell>
   );
 }

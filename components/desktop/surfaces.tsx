@@ -56,15 +56,81 @@ export const RAIL_SHADOW = [
   "18px 0 48px -32px rgba(0,0,0,0.9)",
 ].join(",");
 
-/** Panels sitting on the canvas. Brushed, not glassy. */
-export const TILE_BG =
-  "linear-gradient(180deg, rgba(255,255,255,0.048), rgba(255,255,255,0.012))";
+/* ── EL DOCK ──────────────────────────────────────────────────
+   La barra dejó de ser una columna pegada al borde y pasó a ser un objeto
+   que flota sobre el fondo, como en la referencia que mandó Paco
+   (2026-08-03). Eso cambia el material: una columna a sangre puede ser
+   opaca porque es pared; algo que flota tiene que dejar ver lo que tiene
+   detrás o se lee como un parche pegado encima.
 
-export const TILE_SHADOW = [
-  "inset 0 1px 0 rgba(255,255,255,0.075)",
-  "inset 0 -1px 0 rgba(0,0,0,0.34)",
-  "0 18px 40px -24px rgba(0,0,0,0.75)",
+   Por eso vidrio de verdad y no un tinte translúcido a secas: el blur es
+   lo que hace legible un panel sobre una fotografía. Deja pasar color y
+   luz, no deja pasar el detalle. Sin blur, translúcido es ruido.        */
+export const DOCK_BG =
+  "linear-gradient(180deg, rgba(255,255,255,0.085), rgba(255,255,255,0.038))";
+
+export const DOCK_BLUR = "blur(22px) saturate(150%)";
+
+/** Borde interior claro arriba + sombra ancha abajo: es lo que separa un
+ *  objeto que flota de un rectángulo dibujado sobre el fondo. */
+export const DOCK_SHADOW = [
+  "inset 0 1px 0 rgba(255,255,255,0.16)",
+  "inset 0 0 0 1px rgba(255,255,255,0.055)",
+  "0 28px 64px -26px rgba(0,0,0,0.92)",
+  "0 4px 14px -8px rgba(0,0,0,0.6)",
 ].join(",");
+
+/** Panels sitting on the canvas. Brushed, not glassy.
+ *
+ *  Va detrás de una variable CSS para que un subárbol pueda cambiar el
+ *  material sin que cada panel sepa nada. Lo usa el dashboard cuando hay foto
+ *  de estudio: sobre un canvas oscuro un blanco al 4.8% se lee como panel, pero
+ *  sobre una fotografía es una ventana y el texto encima compite con los
+ *  monitores y los cables del cuarto (Paco 2026-08-02). */
+export const TILE_BG =
+  "var(--fx-tile-bg, linear-gradient(180deg, rgba(255,255,255,0.048), rgba(255,255,255,0.012)))";
+
+/* ── VIDRIO SOBRE FOTOGRAFÍA ───────────────────────────────────
+   Los paneles eran opacos (0.90) cuando había foto de estudio: legible pero
+   muerto, y contradice la referencia que mandó Paco, donde se ve el cuarto a
+   través de las tarjetas.
+
+   La pieza que lo hace posible es el BLUR, no la transparencia. El blur no
+   cambia el brillo del fondo, solo le quita el detalle: pasa el color y la
+   luz, no pasan los cables ni los monitores. Sin blur, translúcido es ruido y
+   el texto compite con la habitación.
+
+   Y el tinte es OSCURO, no blanco. La referencia es una sala luminosa, así que
+   su vidrio es claro; Fennec es oscuro. Un tinte blanco sobre una foto sube el
+   fondo y tumba el contraste del texto claro.
+
+   ALPHA 0.78, elegido midiendo, no a ojo. El peor caso NO es la pared blanca
+   a mediodía: es un estudio OSCURO con un punto muy brillante (un monitor
+   encendido, una lámpara). Ahí el velo es tenue —porque la foto es oscura— y
+   el brillo se cuela entero. Contraste de zinc-400 en ese escenario:
+     0.66 → 3.88 (falla)   0.70 → 4.22 (falla)
+     0.74 → 4.60 (justo)   0.78 → 4.99 (elegido)
+   El mínimo WCAG para texto normal es 4.5. */
+export const TILE_BG_OVER_PHOTO =
+  "linear-gradient(180deg, rgba(22,21,28,0.76), rgba(15,14,20,0.82))";
+
+export const TILE_BLUR_OVER_PHOTO = "blur(24px) saturate(140%)";
+
+/** Con fondo detrás, el panel necesita canto: un filo claro arriba lo separa
+ *  de la foto, y una sombra ancha lo despega en vez de dejarlo pegado. */
+export const TILE_SHADOW_OVER_PHOTO = [
+  "inset 0 1px 0 rgba(255,255,255,0.13)",
+  "inset 0 0 0 1px rgba(255,255,255,0.05)",
+  "0 22px 50px -26px rgba(0,0,0,0.9)",
+].join(",");
+
+/* Igual que TILE_BG: detrás de una variable para que el dashboard pueda
+   cambiar el canto cuando hay foto, sin que cada panel sepa nada. Las comas
+   del fallback son parte del fallback, es válido en var(). */
+const TILE_SHADOW_FLAT =
+  "inset 0 1px 0 rgba(255,255,255,0.075), inset 0 -1px 0 rgba(0,0,0,0.34), 0 18px 40px -24px rgba(0,0,0,0.75)";
+
+export const TILE_SHADOW = `var(--fx-tile-shadow, ${TILE_SHADOW_FLAT})`;
 
 /* Noise as a data URI: no network request, no asset to lose. Fractal
    turbulence at high frequency reads as fine film grain rather than the

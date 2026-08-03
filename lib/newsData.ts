@@ -29,14 +29,23 @@ export type NewsItem = {
   image?: string;
 };
 
+/* URLs verificadas una por una el 2026-08-03.
+   Tres de las siete llevaban tiempo MUERTAS y fallaban en silencio, porque
+   fetchFeed devuelve [] cuando la respuesta no es ok y Promise.allSettled se
+   traga el resto: Hypebot daba 404, Sound On Sound 410 Gone y KVR 404. O sea
+   que la sección de noticias corría con cuatro fuentes creyendo que tenía
+   siete, sin un solo error en consola. */
 const FEEDS = [
   { url: "https://www.musicbusinessworldwide.com/feed/", source: "Music Business Worldwide" },
-  { url: "https://www.hypebot.com/hypebot/atom.xml",    source: "Hypebot" },
-  { url: "https://musictech.com/feed/",                 source: "MusicTech" },
-  { url: "https://www.soundonsound.com/feed",           source: "Sound On Sound" },
-  { url: "https://www.kvraudio.com/news.rss",           source: "KVR Audio" },
-  { url: "https://bedroomproducersblog.com/feed/",      source: "BPB" },
-  { url: "https://www.musicradar.com/feeds/all",        source: "MusicRadar" },
+  { url: "https://www.hypebot.com/latest/rss/",          source: "Hypebot" },
+  { url: "https://musictech.com/feed/",                  source: "MusicTech" },
+  { url: "https://www.soundonsound.com/rss.xml",         source: "Sound On Sound" },
+  { url: "https://bedroomproducersblog.com/feed/",       source: "BPB" },
+  { url: "https://www.musicradar.com/feeds/all",         source: "MusicRadar" },
+  /* KVR Audio queda fuera: su feed vive detrás de Cloudflare y devuelve un
+     reto de navegador (403 "Just a moment...") tanto a curl como al lector de
+     RSS. No es una URL equivocada, es inalcanzable desde el servidor, así que
+     dejarla solo gastaba una petición por refresco. */
 ];
 
 function stripHtml(html: string, maxLen = 220): string {
@@ -53,13 +62,28 @@ function stripHtml(html: string, maxLen = 220): string {
     .slice(0, maxLen);
 }
 
+/* Miniaturas que existen pero no sirven para mostrarse.
+   Sound On Sound sirve en su feed la variante "teaser" de 184x115 px: cargarla
+   en una tarjeta ancha se ve como una imagen reventada. Su versión grande
+   (1000x558) existe pero lleva otro hash en la URL, así que no se puede derivar
+   de la del teaser. Mejor no tener foto que tener una borrosa. */
+const UNUSABLE_IMAGE = /\/styles\/teaser\//i;
+
 function extractImage(item: RssItem): string | undefined {
-  if (item.thumbnail && item.thumbnail.startsWith("http")) return item.thumbnail;
-  if (item.enclosure?.link?.startsWith("http") && item.enclosure.type?.startsWith("image"))
-    return item.enclosure.link;
-  const src = (item.content || item.description || "").match(/<img[^>]+src=["']([^"']+)["']/i);
-  if (src?.[1]?.startsWith("http")) return src[1];
-  return undefined;
+  const pick = (() => {
+    if (item.thumbnail && item.thumbnail.startsWith("http")) return item.thumbnail;
+    if (item.enclosure?.link?.startsWith("http") && item.enclosure.type?.startsWith("image"))
+      return item.enclosure.link;
+    const src = (item.content || item.description || "").match(/<img[^>]+src=["']([^"']+)["']/i);
+    if (src?.[1]?.startsWith("http")) return src[1];
+    return undefined;
+  })();
+
+  if (!pick) return undefined;
+  // Solo https: una URL http en un <img> la bloquea el CSP y deja el hueco.
+  if (!pick.startsWith("https://")) return undefined;
+  if (UNUSABLE_IMAGE.test(pick)) return undefined;
+  return pick;
 }
 
 function timeAgo(dateStr: string): string {

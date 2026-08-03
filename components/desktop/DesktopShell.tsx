@@ -4,7 +4,7 @@ import { Home, Briefcase, Camera, Users, Settings, AudioWaveform, UserPlus, Chev
 import NotificationBell from "@/components/notifications/NotificationBell";
 import { getColorScheme } from "@/lib/fennecIdPalette";
 import {
-  CANVAS_BG, RAIL_BG, RAIL_SHADOW, Grain, Atmosphere,
+  CANVAS_BG, DOCK_BG, DOCK_BLUR, DOCK_SHADOW, Grain, Atmosphere,
 } from "@/components/desktop/surfaces";
 import type { Profile } from "@/lib/communityTypes";
 
@@ -38,6 +38,12 @@ const NAV: { id: DesktopTab | "network"; label: string; icon: React.ComponentTyp
  *  phone UI (Paco 2026-07-30). */
 const SIDEBAR_FULL = 232;
 const SIDEBAR_MINI = 62;
+/* Cuánto se despega el dock de los bordes. Es la medida que lo convierte en
+   objeto: a 0 vuelve a ser pared. */
+const DOCK_INSET = 12;
+/* Lo que el contenido tiene que dejar libre: el hueco de la izquierda, el
+   ancho del dock cerrado, y un respiro para que el contenido no lo roce. */
+const CONTENT_GUTTER = DOCK_INSET + SIDEBAR_MINI + 10;
 const HAIR = "rgba(255,255,255,.06)";
 
 /* The tape's heartbeat in the sidebar: 24 amber bars breathing. Heights are
@@ -83,7 +89,7 @@ export default function DesktopShell({
      focus-within too, or the labels would be unreachable by keyboard. */
   const [railHover, setRailHover] = useState(false);
   const compact = !railHover;
-  const SIDEBAR_W = SIDEBAR_MINI;
+  const SIDEBAR_W = CONTENT_GUTTER;
 
   /* Hover INTENT, not hover. Crossing the rail on the way somewhere else was
      firing the animation two or three times in a sweep (Paco 2026-08-02), and
@@ -126,9 +132,14 @@ export default function DesktopShell({
 
       {/* ── Sidebar ────────────────────────────────────────────── */}
       <aside
-        // overflow-hidden so the always-rendered labels are clipped by the
-        // rail while it's narrow instead of spilling onto the canvas.
-        className="fixed left-0 top-0 bottom-0 z-40 flex flex-col overflow-hidden"
+        /* DOCK FLOTANTE, no columna a sangre (Paco 2026-08-03).
+           `top-1/2 -translate-y-1/2` con alto automático: la barra mide lo que
+           mide su contenido y se centra sola, en vez de estirarse de borde a
+           borde. Separada de los tres lados, se lee como un objeto encima de la
+           habitación y no como una pared.
+           El tope de alto es por si la ventana es muy baja: antes que
+           desbordar, scrollea por dentro. */
+        className="fixed z-40 flex flex-col overflow-hidden"
         onMouseEnter={() => armRail(true)}
         onMouseLeave={() => armRail(false)}
         onFocusCapture={() => setRailNow(true)}
@@ -138,23 +149,35 @@ export default function DesktopShell({
           if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setRailNow(false);
         }}
         style={{
+          left: DOCK_INSET,
+          top: "50%",
+          maxHeight: `calc(100dvh - ${DOCK_INSET * 2}px)`,
           // Overlays the canvas when expanded; the content margin below is
           // pinned to the mini width, so hovering never reflows the page.
           width: compact ? SIDEBAR_MINI : SIDEBAR_FULL,
-          /* The old gradient faded INTO the canvas value, so the rail
-             dissolved at the bottom. It's a panel now: lighter and cooler at
-             every height, with edge lighting instead of a border. */
-          background: RAIL_BG,
-          boxShadow: RAIL_SHADOW,
-          padding: compact ? "22px 8px 18px" : "22px 14px 18px",
-          transform: immersive ? "translateX(-100%)" : "translateX(0)",
+          /* Vidrio, no el panel opaco de antes: flotando sobre el canvas (y
+             sobre la foto del estudio en el dashboard) tiene que dejar ver lo
+             que hay detrás, o vuelve a leerse como una barra pegada. */
+          background: DOCK_BG,
+          backdropFilter: DOCK_BLUR,
+          WebkitBackdropFilter: DOCK_BLUR,
+          boxShadow: DOCK_SHADOW,
+          // Radio grande y proporcional al ancho: en 62px es casi una píldora,
+          // al abrirse a 232px se relaja para no verse como una cápsula.
+          borderRadius: compact ? 22 : 26,
+          padding: compact ? "16px 8px 14px" : "18px 14px 16px",
+          transform: immersive
+            ? `translate(calc(-100% - ${DOCK_INSET}px), -50%)`
+            : "translate(0, -50%)",
           /* 280ms read as a snap. 420ms with a long ease-out lets the panel
              arrive instead of appearing — and paired with the open delay it
              can afford to be slow, because it no longer fires by accident. */
-          transition: `${slide}, width .42s cubic-bezier(.22,1,.36,1), padding .42s cubic-bezier(.22,1,.36,1)`,
+          transition: `${slide}, width .42s cubic-bezier(.22,1,.36,1), padding .42s cubic-bezier(.22,1,.36,1), border-radius .42s cubic-bezier(.22,1,.36,1)`,
         }}
       >
-        <div className={`flex items-baseline gap-0.5 pb-6 ${compact ? "justify-center px-0" : "px-2.5"}`}>
+        {/* pb-4, no pb-6: el dock ya no tiene una columna entera que llenar, así
+            que el aire de arriba pasó de estructural a sobrante. */}
+        <div className={`flex items-baseline gap-0.5 pb-4 ${compact ? "justify-center px-0" : "px-2.5"}`}>
           {!compact && <span className="text-[19px] font-bold tracking-tight text-white">fennec</span>}
           <span className="inline-block h-[5px] w-[5px] rounded-full bg-accent" style={{ boxShadow: "0 0 8px rgba(245,166,35,.8)" }} />
         </div>
@@ -199,7 +222,15 @@ export default function DesktopShell({
           })}
         </nav>
 
-        <div className="mt-auto flex flex-col gap-2.5">
+        {/* Antes era `mt-auto`, que empujaba este grupo al piso de una columna
+            de alto completo. Con el dock a alto automático ese empujón no
+            existe (no hay sobrante que repartir), así que la separación ahora
+            es explícita: un poco de aire y una hairline, como el bloque de
+            perfil separado del resto en la referencia. */}
+        <div
+          className="mt-4 flex flex-col gap-2.5 pt-4"
+          style={{ borderTop: `1px solid ${HAIR}` }}
+        >
           {/* The Tape · live pulse — the reel's heartbeat, always present */}
           <button
             type="button"

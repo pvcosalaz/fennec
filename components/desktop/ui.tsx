@@ -26,9 +26,16 @@ export const ACCENT = "#f5a623";
    panel read as a physical object rather than a lighter rectangle. Matches
    the rails' edge lighting so the whole shell is one material
    (Paco 2026-08-02). */
+/* `backdropFilter` va como variable con fallback `none`: en los módulos sin
+   fotografía no cuesta nada (none es no-op), y el dashboard lo enciende solo
+   para su subárbol declarando --fx-tile-blur. Así el vidrio no se derrama a
+   Business, La Cinta ni Community, que siguen sobre canvas plano y no lo
+   necesitan. */
 export const SURFACE: React.CSSProperties = {
   background: TILE_BG,
   boxShadow: TILE_SHADOW,
+  backdropFilter: "var(--fx-tile-blur, none)",
+  WebkitBackdropFilter: "var(--fx-tile-blur, none)",
 };
 
 /** Staggered entrance. Drop <RiseStyle/> once per module, then put
@@ -44,11 +51,19 @@ export function RiseStyle() {
 }
 
 /** Section header: a small label with a hairline running off to the right. */
-export function Band({ label, children, className, action }: {
+/* `className` SE SUMA al margen, no lo reemplaza. La versión anterior era
+   `className ?? "mt-5"`, así que pasar cualquier clase (p. ej. "dd-rise" para
+   la animación de entrada) borraba en silencio la separación superior. Eso fue
+   exactamente lo que encimó "SOCIAL REACH" contra la tarjeta de comunidad en el
+   dashboard (Paco 2026-08-02): nadie pidió quitar el margen, se perdió por la
+   forma de la API. Si algún call site necesita otro margen, que lo diga con
+   `spacing`. */
+export function Band({ label, children, className, action, spacing = "mt-5" }: {
   label: string; children: React.ReactNode; className?: string; action?: React.ReactNode;
+  spacing?: string;
 }) {
   return (
-    <div className={className ?? "mt-5"}>
+    <div className={`${spacing} ${className ?? ""}`}>
       <div className="mb-1 flex items-center gap-2.5">
         <span className="text-[8.5px] font-bold uppercase tracking-[0.22em] text-zinc-600">{label}</span>
         <div className="h-px flex-1" style={{ background: "linear-gradient(90deg, rgba(255,255,255,.07), transparent)" }} />
@@ -92,9 +107,14 @@ export function Instrument({ label, value, footer, size = 92 }: {
   return (
     <div
       className="relative flex flex-col items-center justify-center overflow-hidden rounded-2xl p-6"
+      /* Mismo tratamiento que los Tile: con foto detrás pasa a vidrio. Si se
+         quedaba con su gradiente opaco propio, era el único hueco sólido en
+         una pantalla de paneles translúcidos y se leía como un parche. */
       style={{
-        background: "linear-gradient(180deg,#151318,#100f13)",
-        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06), 0 16px 34px -18px rgba(0,0,0,0.7)",
+        background: "var(--fx-tile-bg, linear-gradient(180deg,#151318,#100f13))",
+        boxShadow: "var(--fx-tile-shadow, inset 0 1px 0 rgba(255,255,255,0.06), 0 16px 34px -18px rgba(0,0,0,0.7))",
+        backdropFilter: "var(--fx-tile-blur, none)",
+        WebkitBackdropFilter: "var(--fx-tile-blur, none)",
       }}
     >
       <div className="pointer-events-none absolute inset-0" style={{ background: `radial-gradient(60% 42% at 50% 100%, ${ACCENT}12, transparent 72%)` }} />
