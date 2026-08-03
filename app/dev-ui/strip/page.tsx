@@ -25,7 +25,9 @@ export default function QuoteFormDevPage() {
   if (process.env.NODE_ENV === "production") notFound();
 
   return (
-    <div className="min-h-screen bg-[#0b0a08] px-8 py-10">
+    /* globals.css locks `html` to overflow:hidden for the PWA shell, so a
+       tall dev page clips instead of scrolling. */
+    <div className="h-[100dvh] overflow-y-auto bg-[#0b0a08] px-8 py-10">
       <div className="mx-auto w-full space-y-5" style={{ maxWidth: 1040 }}>
         <p className="text-xs font-bold uppercase tracking-widest text-zinc-600">
           Quote generator (real component)

@@ -195,7 +195,10 @@ export default function SurfacesPreview() {
   if (process.env.NODE_ENV === "production") notFound();
 
   return (
-    <div className="min-h-screen bg-[#08080a] px-8 py-10">
+    /* h-[100dvh] + overflow-y-auto because globals.css locks `html` to
+       overflow:hidden for the PWA shell, so a plain tall page just clips
+       (same bug that made /admin unscrollable, Paco 2026-07-28). */
+    <div className="h-[100dvh] overflow-y-auto bg-[#08080a] px-8 py-10">
       <div className="mx-auto w-full space-y-8" style={{ maxWidth: 1180 }}>
         <div>
           <h1 className="text-[22px] font-bold tracking-tight text-white">Desktop surfaces</h1>
