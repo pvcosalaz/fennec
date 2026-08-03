@@ -17,7 +17,7 @@
 import { useRef, useState } from "react";
 import { ImagePlus, Loader2, X } from "lucide-react";
 import { prepareStudioPhoto, scrimOpacity } from "@/lib/studioPhoto";
-import { uploadStudioPhoto, updateProfile } from "@/lib/communityDb";
+import { uploadStudioPhoto, discardUploadedImage, updateProfile } from "@/lib/communityDb";
 
 /**
  * Pull a readable message out of whatever was thrown.
@@ -28,53 +28,67 @@ import { uploadStudioPhoto, updateProfile } from "@/lib/communityDb";
  * An error message that doesn't say what went wrong is barely better than
  * silence.
  */
-function readError(e: unknown): string {
-  if (e instanceof Error) return e.message;
-  if (e && typeof e === "object") {
-    const o = e as { message?: unknown; error?: unknown; hint?: unknown };
-    const msg = typeof o.message === "string" ? o.message
-      : typeof o.error === "string" ? o.error
-      : null;
-    if (msg) {
-      /* Translated into the actual fix, because these three are the ones that
-         really happen and their raw wording points nowhere useful.
-
-         The schema-cache one is its own case on purpose: PostgREST keeps a
-         cached column list, so a migration that HAS run still fails until it
-         reloads. Telling Paco to "run the migration" there sent him to redo
-         something already done (2026-08-02). */
-      if (/schema cache/i.test(msg)) {
-        return "Supabase hasn't picked up the new columns yet. Reload its schema and retry.";
-      }
-      if (/column .*studio_photo|does not exist/i.test(msg)) {
-        return "The studio photo columns are missing — run the migration.";
-      }
-      if (/row-level security|not authorized|permission|denied/i.test(msg)) {
-        return "Storage rejected the upload (permissions).";
-      }
-      return msg;
+function readError(e: unknown, step: "upload" | "save"): string {
+  const raw = (() => {
+    if (e instanceof Error) return e.message;
+    if (e && typeof e === "object") {
+      const o = e as { message?: unknown; error?: unknown };
+      if (typeof o.message === "string") return o.message;
+      if (typeof o.error === "string") return o.error;
     }
+    return "";
+  })();
+
+  if (!raw) return step === "upload" ? "Couldn't upload the photo." : "Couldn't save the photo.";
+
+  /* La etiqueta la decide el PASO que falló, nunca el texto del error. La
+     versión anterior clasificaba por regex y le ponía "Storage rejected the
+     upload" a cualquier mensaje que dijera "permission", incluido
+     "permission denied for table profiles", que es de la base de datos y no
+     tiene nada que ver con storage. Esa etiqueta mentirosa costó tres
+     diagnósticos equivocados (2026-08-02). Si el mensaje no puede señalar el
+     lugar correcto, es peor que no tener mensaje. */
+  if (/schema cache/i.test(raw)) {
+    return "Supabase hasn't picked up the new columns yet. Reload its schema and retry.";
   }
-  return "Upload failed";
+  if (/violates check constraint/i.test(raw)) {
+    return "That photo URL isn't one of ours. Try uploading again.";
+  }
+
+  const where = step === "upload" ? "Upload failed" : "Saved the photo but couldn't update your profile";
+  return `${where} · ${raw}`;
 }
 
-/** The image + its veil. Sits behind the dashboard's own content. */
+/**
+ * La foto y su velo.
+ *
+ * `fixed`, no `absolute`: colgaba de la columna de 1100px del dashboard, así
+ * que la foto salía como un recuadro flotando sobre el canvas en vez de ser el
+ * fondo (Paco 2026-08-02). Fija al viewport ocupa todo, y no hace falta
+ * descontarle la barra lateral porque la barra es opaca y va en z-40, muy por
+ * encima de esto: se pinta sola encima de su franja.
+ *
+ * Tampoco scrollea con el contenido, que es lo que quieres de un cuarto: la
+ * habitación se queda quieta y las tarjetas pasan por delante.
+ */
 export function StudioBackdrop({ url, luma }: { url: string; luma: number | null }) {
   const scrim = scrimOpacity(luma);
   return (
-    <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+    <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{ backgroundImage: `url(${url})` }}
       />
-      {/* Flat veil for legibility, plus a vertical gradient so the top (where
-          the greeting and the ID card live) is calmer than the bottom. */}
+      {/* Velo plano para legibilidad. */}
       <div className="absolute inset-0" style={{ background: `rgba(10,9,13,${scrim})` }} />
+      {/* Y un degradado vertical: arriba viven el saludo y los botones, que van
+          directo sobre la foto sin tarjeta que los proteja, así que esa franja
+          se hunde más. El centro se deja respirar para que la foto se vea. */}
       <div
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(180deg, rgba(10,9,13,0.55) 0%, rgba(10,9,13,0.12) 42%, rgba(10,9,13,0.62) 100%)",
+            "linear-gradient(180deg, rgba(10,9,13,0.72) 0%, rgba(10,9,13,0.34) 26%, rgba(10,9,13,0.16) 50%, rgba(10,9,13,0.66) 100%)",
         }}
       />
     </div>
@@ -99,17 +113,41 @@ export function StudioPhotoControl({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  /* Los dos pasos van en try SEPARADOS. Cuando compartían uno solo era
+     imposible saber cuál de los dos había fallado, y el mensaje acababa
+     culpando al equivocado. */
   async function handleFile(file: File) {
     setError(null);
     setBusy(true);
     try {
-      const { blob, luma } = await prepareStudioPhoto(file);
-      const url = await uploadStudioPhoto(userId, blob);
-      await updateProfile(userId, { studio_photo_url: url, studio_photo_luma: luma });
-      onChange(url, luma);
-    } catch (e) {
-      setError(readError(e));
-      console.error("studio photo upload:", e);
+      let uploaded: { url: string; path: string };
+      let measuredLuma: number | null;
+      try {
+        const prepared = await prepareStudioPhoto(file);
+        measuredLuma = prepared.luma;
+        uploaded = await uploadStudioPhoto(userId, prepared.blob);
+      } catch (e) {
+        console.error("studio photo · upload:", e);
+        setError(readError(e, "upload"));
+        return;
+      }
+
+      try {
+        await updateProfile(userId, {
+          studio_photo_url: uploaded.url,
+          studio_photo_luma: measuredLuma,
+        });
+      } catch (e) {
+        /* La foto ya está en el bucket pero nadie la va a referenciar: se
+           borra. Sin esto, cada intento fallido dejaba un JPEG huérfano
+           comiendo cuota en silencio. */
+        await discardUploadedImage(uploaded.path);
+        console.error("studio photo · save:", e);
+        setError(readError(e, "save"));
+        return;
+      }
+
+      onChange(uploaded.url, measuredLuma);
     } finally {
       setBusy(false);
       if (input.current) input.current.value = "";
@@ -118,11 +156,13 @@ export function StudioPhotoControl({
 
   async function remove() {
     setBusy(true);
+    setError(null);
     try {
       await updateProfile(userId, { studio_photo_url: null, studio_photo_luma: null });
       onChange(null, null);
     } catch (e) {
-      setError(readError(e));
+      console.error("studio photo · remove:", e);
+      setError(readError(e, "save"));
     } finally {
       setBusy(false);
     }

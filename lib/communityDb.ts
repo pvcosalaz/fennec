@@ -261,24 +261,44 @@ export async function uploadAudio(blob: Blob, filename: string): Promise<string>
  * The producer's studio photo. Already downscaled and re-encoded to JPEG by
  * prepareStudioPhoto, so this just stores it.
  *
- * Lives under `avatars/` on purpose. The first version used its own `studio/`
- * folder and storage rejected it (Paco 2026-08-02) while avatars — same
- * bucket, same `${userId}-${timestamp}` filename, only a different folder —
- * kept working. That points at folder-scoped policies on the bucket, and
- * `avatars/` is the prefix already proven to be writable.
+ * Vive en `avatars/` con el uid al frente, igual que el avatar de
+ * SettingsModule. CORRECCIÓN (2026-08-02): este path se cambió dos veces
+ * persiguiendo un supuesto rechazo de storage, y aquí llegó a estar
+ * documentada como hecho probado una teoría sobre la policy del bucket que
+ * NUNCA se comprobó. Era falsa: la subida siempre funcionó. Lo que fallaba
+ * era el UPDATE posterior a `profiles`, porque a studio_photo_url y
+ * studio_photo_luma les faltaba el grant por columna
+ * (ver 20260802_studio_photo_grants.sql). El error decía "storage" porque el
+ * mismo try envolvía las dos operaciones.
  *
- * The `studio-` prefix keeps the two kinds of image tellable apart. Moving to
- * a dedicated folder later just needs a matching storage policy.
+ * Se conserva este path porque está verificado que funciona, no porque
+ * sepamos que los otros no. Si alguien necesita moverlo, que lo pruebe.
+ *
+ * Devuelve también el `path` para poder borrar el archivo si el paso
+ * siguiente falla y no dejar huérfanos en el bucket.
  */
-export async function uploadStudioPhoto(userId: string, blob: Blob): Promise<string> {
-  const path = `avatars/studio-${userId}-${Date.now()}.jpg`;
+export async function uploadStudioPhoto(
+  userId: string,
+  blob: Blob,
+): Promise<{ url: string; path: string }> {
+  const path = `avatars/${userId}-studio-${Date.now()}.jpg`;
   const { error } = await supabase.storage.from("community-images").upload(path, blob, {
     contentType: "image/jpeg",
     upsert: false,
   });
   if (error) throw error;
   const { data } = supabase.storage.from("community-images").getPublicUrl(path);
-  return data.publicUrl;
+  return { url: data.publicUrl, path };
+}
+
+/** Borra un archivo recién subido cuando el paso que lo iba a referenciar
+ *  falló. Silencioso a propósito: es limpieza, no debe tapar el error real. */
+export async function discardUploadedImage(path: string): Promise<void> {
+  try {
+    await supabase.storage.from("community-images").remove([path]);
+  } catch {
+    /* si no se puede borrar, queda un huérfano: molesto, no grave */
+  }
 }
 
 export async function uploadImage(file: File): Promise<string> {

@@ -96,5 +96,12 @@ export async function prepareStudioPhoto(file: File): Promise<StudioPhoto> {
  */
 export function scrimOpacity(luma: number | null | undefined): number {
   const l = typeof luma === "number" && Number.isFinite(luma) ? luma : 0.5;
-  return Math.min(0.9, Math.max(0.42, 0.34 + l * 0.62));
+  /* Aflojado el 2026-08-02. La curva original (0.34 + l*0.62, tope 0.9) era la
+     única defensa de la legibilidad, así que con una foto luminosa subía a 0.72
+     y borraba el cuarto: quedaba un rectángulo gris con la textura apenas
+     insinuada, que es justo lo contrario de lo que se pidió.
+     Ahora el texto lo protegen los paneles opacos (TILE_BG_OVER_PHOTO), y el
+     velo solo tiene que evitar que la foto compita, no taparla. Sigue subiendo
+     con el brillo: un cuarto blanco a mediodía se hunde más que uno oscuro. */
+  return Math.min(0.72, Math.max(0.28, 0.20 + l * 0.55));
 }
