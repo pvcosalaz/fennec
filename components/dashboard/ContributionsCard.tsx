@@ -7,7 +7,7 @@
 
 import { useState } from "react";
 import { X, Flame } from "lucide-react";
-import { buildHeatmapGrid, type ContributionDays, type DayDetail } from "@/lib/contributions";
+import { buildHeatmapGrid, buildYearGrid, type ContributionDays, type DayDetail } from "@/lib/contributions";
 
 const MESES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
@@ -63,17 +63,27 @@ function Heatmap({ byDay, weeks, cellRadius = 2, cellSize, selected, onSelect }:
   selected: string | null;
   onSelect: (key: string | null) => void;
 }) {
-  const grid = buildHeatmapGrid(byDay, weeks);
+  /* A 52 semanas o mas se muestra el AÑO CALENDARIO (enero a diciembre). Por
+     debajo sigue siendo la tira movil de las ultimas N semanas, que es lo
+     correcto en movil: ahi no cabe un año y lo util es "lo reciente". */
+  const grid = weeks >= 52 ? buildYearGrid(byDay) : buildHeatmapGrid(byDay, weeks);
   const fixed = cellSize != null;
 
   /* Rotulos de mes: sin ellos la rejilla no tiene linea de tiempo y un
      cuadrito encendido no se sabe de cuando es (Paco 2026-08-03). Se marca la
      PRIMERA columna de cada mes, que es como se lee un calendario. */
+  /* El mes de una columna es el del primer dia que SI pertenece al año. Si se
+     toma col[0] a secas, la primera columna es la semana de relleno de
+     diciembre del año anterior y el año arrancaba rotulado "Dec"
+     (Paco 2026-08-03). */
+  const mesDeColumna = (col: typeof grid[number]) =>
+    col.find((c) => !c.outside)?.month ?? null;
+
   const marcasMes = grid.map((col, i) => {
-    const m = col[0]?.month;
+    const m = mesDeColumna(col);
     if (m == null) return null;
-    const anterior = grid[i - 1]?.[0]?.month;
-    return i === 0 || m !== anterior ? MESES[m] : null;
+    const anterior = i > 0 ? mesDeColumna(grid[i - 1]) : null;
+    return m !== anterior ? MESES[m] : null;
   });
 
   return (
@@ -101,15 +111,23 @@ function Heatmap({ byDay, weeks, cellRadius = 2, cellSize, selected, onSelect }:
           >
             {col.map((cell) => {
               const activo = cell.key === selected;
+              /* `outside` son los dias de relleno para cuadrar la primera y la
+                 ultima semana; `future` son los que aun no llegan. Ninguno de
+                 los dos es "un dia sin actividad", asi que no se pintan como
+                 tal ni se pueden elegir. */
+              const fuera = cell.outside;
+              const futuro = cell.future;
               return (
                 <button
                   key={cell.key}
                   type="button"
+                  disabled={fuera || futuro}
                   onClick={() => onSelect(activo ? null : cell.key)}
                   aria-label={`${cell.key}, ${cell.count}`}
-                  className={`${fixed ? "" : "w-full aspect-square"} transition hover:brightness-150`}
+                  aria-hidden={fuera || undefined}
+                  className={`${fixed ? "" : "w-full aspect-square"} transition ${fuera || futuro ? "" : "hover:brightness-150"}`}
                   style={{
-                    background: LEVEL_BG[cell.level],
+                    background: fuera ? "transparent" : futuro ? "rgba(255,255,255,0.025)" : LEVEL_BG[cell.level],
                     borderRadius: cellRadius,
                     ...(fixed ? { width: cellSize, height: cellSize } : null),
                     ...(activo ? { outline: "1.5px solid #f5a623", outlineOffset: 1 } : null),

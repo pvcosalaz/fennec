@@ -94,8 +94,12 @@ export async function fetchContributionDays(
     } catch { /* best-effort */ }
   }));
 
+  /* Año CALENDARIO, no últimos 365 días: el pie dice "this year" y la rejilla
+     ahora va de enero a diciembre, así que el número tiene que contar lo
+     mismo que se está viendo. */
+  const anio = String(new Date().getFullYear());
   let totalYear = 0;
-  for (const n of byDay.values()) totalYear += n;
+  for (const [k, n] of byDay) if (k.startsWith(anio)) totalYear += n;
 
   // Streak: walk back from today; an empty TODAY doesn't break it (the day
   // isn't over), but an empty yesterday does.
@@ -111,6 +115,58 @@ export async function fetchContributionDays(
 }
 
 /**
+ * Rejilla del AÑO CALENDARIO: de enero a diciembre del año en curso.
+ *
+ * La versión anterior era una ventana móvil de 52 semanas hacia atrás, así que
+ * en agosto la gráfica empezaba en agosto del año pasado. Pero el pie decía
+ * "this year", o sea que el rótulo y la rejilla contaban cosas distintas
+ * (Paco 2026-08-03). Un año que empieza en enero es lo que espera cualquiera.
+ *
+ * Se dibuja el año COMPLETO, no solo hasta hoy: así los meses siempre están en
+ * el mismo sitio, el ancho no cambia con el paso del año, y se ve el año
+ * llenándose. Los días que aún no llegan van transparentes (`future`), y los
+ * de relleno para cuadrar las semanas van marcados (`outside`) para no
+ * leerse como días sin actividad.
+ */
+export function buildYearGrid(byDay: Map<string, number>, year = new Date().getFullYear()) {
+  const hoy = new Date();
+  const primero = new Date(year, 0, 1);
+  const ultimo = new Date(year, 11, 31);
+
+  // Arranca en el domingo de la semana del 1 de enero, para que cada columna
+  // sea una semana entera.
+  const inicio = new Date(primero);
+  inicio.setDate(inicio.getDate() - inicio.getDay());
+
+  type Celda = {
+    key: string; count: number; level: 0 | 1 | 2 | 3 | 4;
+    month: number; outside: boolean; future: boolean;
+  };
+  const cols: Celda[][] = [];
+  const cursor = new Date(inicio);
+  while (cursor <= ultimo || cursor.getDay() !== 0) {
+    const col: Celda[] = [];
+    for (let d = 0; d < 7; d++) {
+      const fecha = new Date(cursor);
+      fecha.setDate(cursor.getDate() + d);
+      const key = dayKey(fecha);
+      const count = byDay.get(key) ?? 0;
+      const level = count === 0 ? 0 : count === 1 ? 1 : count === 2 ? 2 : count <= 4 ? 3 : 4;
+      col.push({
+        key, count, level,
+        month: fecha.getMonth(),
+        outside: fecha.getFullYear() !== year,
+        future: fecha > hoy,
+      });
+    }
+    cols.push(col);
+    cursor.setDate(cursor.getDate() + 7);
+    if (cols.length > 54) break;
+  }
+  return cols;
+}
+
+/**
  * Grid for the heatmap: `weeks` columns × 7 rows, ending today.
  * Each cell: its day key, count, and intensity level 0–4 (quartile-ish fixed
  * thresholds — musicians log a handful of items a day, not dozens).
@@ -119,11 +175,17 @@ export function buildHeatmapGrid(byDay: Map<string, number>, weeks: number) {
   const today = new Date();
   // End the grid on the current weekday; start weeks*7-1 days earlier.
   const days = weeks * 7;
-  const cells: { key: string; count: number; level: 0 | 1 | 2 | 3 | 4; month: number }[][] = [];
+  /* Misma forma que buildYearGrid para que la tarjeta pueda pintar cualquiera
+     de los dos sin ramificar. En la tira móvil nunca hay relleno ni futuro. */
+  type Celda = {
+    key: string; count: number; level: 0 | 1 | 2 | 3 | 4;
+    month: number; outside: boolean; future: boolean;
+  };
+  const cells: Celda[][] = [];
   const start = new Date(today);
   start.setDate(start.getDate() - (days - 1));
   for (let w = 0; w < weeks; w++) {
-    const col: { key: string; count: number; level: 0 | 1 | 2 | 3 | 4; month: number }[] = [];
+    const col: Celda[] = [];
     for (let d = 0; d < 7; d++) {
       const date = new Date(start);
       date.setDate(start.getDate() + w * 7 + d);
@@ -131,7 +193,7 @@ export function buildHeatmapGrid(byDay: Map<string, number>, weeks: number) {
       const key = dayKey(date);
       const count = byDay.get(key) ?? 0;
       const level = count === 0 ? 0 : count === 1 ? 1 : count === 2 ? 2 : count <= 4 ? 3 : 4;
-      col.push({ key, count, level, month: date.getMonth() });
+      col.push({ key, count, level, month: date.getMonth(), outside: false, future: false });
     }
     cells.push(col);
   }
