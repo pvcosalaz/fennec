@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Play, Pause, SkipForward, Plus, Upload, ZoomIn, ZoomOut } from "lucide-react";
 import type { ProjectReview, ReviewComment } from "@/lib/audioTypes";
 import { fetchReviewComments, createReviewComment, fetchKarma } from "@/lib/audioDb";
@@ -16,7 +16,43 @@ import { fetchReviewComments, createReviewComment, fetchKarma } from "@/lib/audi
    ═══════════════════════════════════════════════════════════════ */
 
 const AMBER = "#f5a623";
+const MARK_PX = 18;
+
+/** Un grupo de notas que caen tan cerca en pantalla que se encimarian. */
+type Cluster = { key: string; x: number; at: number; items: ReviewComment[] };
 const AMBER_HOT = "#ffc861";
+
+/** La cara de quien dejo la nota. Con foto si la tiene; si no, su inicial,
+ *  que sigue diciendo QUIEN mejor que un punto anonimo. El que esta hablando
+ *  crece y gana anillo: la escala comunica presente, el color comunica marca. */
+function MarkFace({ c, hablando, style }: {
+  c: { profile?: { username?: string; avatar_url?: string | null } | null };
+  hablando: boolean;
+  style: React.CSSProperties;
+}) {
+  const size = hablando ? 22 : MARK_PX;
+  const base: React.CSSProperties = {
+    ...style,
+    height: size, width: size,
+    borderRadius: 999,
+    border: hablando ? `1.5px solid ${AMBER_HOT}` : "1.5px solid rgba(255,255,255,0.16)",
+    boxShadow: hablando ? `0 0 0 3px ${AMBER}26` : "none",
+    transition: "height 200ms var(--ease-out), width 200ms var(--ease-out), border-color 200ms var(--ease-out)",
+    flexShrink: 0,
+  };
+  if (c.profile?.avatar_url) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={c.profile.avatar_url} alt="" className="object-cover" style={base} />;
+  }
+  return (
+    <span
+      className="grid place-items-center font-mono text-[9px] font-bold uppercase text-zinc-300"
+      style={{ ...base, background: "#241d16" }}
+    >
+      {(c.profile?.username ?? "?").slice(0, 1)}
+    </span>
+  );
+}
 const DECK = "#131216";
 
 /* Tape strip scale — dynamic (Paco 2026-07-30: "zoom dinámico en la
@@ -334,6 +370,36 @@ export default function TapeDeckDesktop({
     setPosting(false);
   }
 
+  const [openCluster, setOpenCluster] = useState<string | null>(null);
+
+  function seekTo(sec: number) {
+    const a = audioRef.current;
+    if (a) { a.currentTime = sec; setT(sec); }
+  }
+
+  /* AGRUPADO POR PIXELES, no por segundos.
+     Dos notas a 0:15 y 0:16 se solapan con zoom alto y no con zoom bajo, asi
+     que el criterio tiene que ser la distancia en pantalla, que es lo que de
+     verdad determina si se encima una cara con otra. Al cambiar el zoom los
+     grupos se rehacen solos. */
+  const clusters = useMemo(() => {
+    const conTiempo = comments
+      .filter((c) => c.timestamp_seconds != null)
+      .sort((a, b) => (a.timestamp_seconds ?? 0) - (b.timestamp_seconds ?? 0));
+    const out: Cluster[] = [];
+    for (const c of conTiempo) {
+      const x = (c.timestamp_seconds ?? 0) * pxPerSec;
+      const ultimo = out[out.length - 1];
+      if (ultimo && x - ultimo.x < MARK_PX + 6) ultimo.items.push(c);
+      else out.push({ key: c.id, x, at: c.timestamp_seconds ?? 0, items: [c] });
+    }
+    return out;
+  }, [comments, pxPerSec]);
+
+  // Cerrar el popover al soltar el zoom o cambiar de pista evita que quede
+  // colgado en una posicion que ya no corresponde a su marca.
+  useEffect(() => { setOpenCluster(null); }, [pxPerSec, track.id]);
+
   // the note "speaking" right now — nearest mark within 3s of the head
   const speaking = comments
     .filter((c) => c.timestamp_seconds != null && Math.abs((c.timestamp_seconds ?? 0) - t) < 3)
@@ -411,29 +477,103 @@ export default function TapeDeckDesktop({
               </div>
             ))}
 
-            {/* marks — amber lollipops (stem + dot), the speaking one grows */}
-            {comments.filter((c) => c.timestamp_seconds != null).map((c) => {
-              const isSpeaking = c.id === speaking?.id;
+            {/* ── MARCAS ──
+                Antes eran puntos ambar de 5px: todas identicas, sin decir quien
+                habla, y dos en el mismo segundo se dibujaban EXACTAMENTE encima
+                una de otra, o sea que la de abajo era inalcanzable
+                (Paco 2026-08-03).
+
+                Ahora cada marca lleva la foto de quien dejo la nota (el dato ya
+                venia en el comentario, lib/audioDb.ts:8, y se estaba tirando), y
+                las que caen cerca se agrupan en una baraja que se despliega al
+                hacer clic. */}
+            {clusters.map((cl) => {
+              const abierto = openCluster === cl.key;
+              const hablando = cl.items.some((c) => c.id === speaking?.id);
               return (
-                <button
-                  key={c.id}
-                  onClick={(e) => { e.stopPropagation(); const a = audioRef.current; if (a) { a.currentTime = c.timestamp_seconds ?? 0; setT(c.timestamp_seconds ?? 0); } }}
-                  title={`@${c.profile?.username ?? ""} · ${fmt(c.timestamp_seconds ?? 0)}`}
-                  className="absolute top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
-                  style={{ transition: "opacity 150ms var(--ease-out)", left: (c.timestamp_seconds ?? 0) * pxPerSec }}
+                <div
+                  key={cl.key}
+                  className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2"
+                  style={{ left: cl.x, zIndex: abierto ? 30 : hablando ? 20 : 10 }}
                 >
-                  <span className="rounded-full" style={{
-                    width: isSpeaking ? 7 : 5, height: isSpeaking ? 7 : 5,
-                    background: isSpeaking ? AMBER_HOT : AMBER,
-                    boxShadow: isSpeaking ? `0 0 12px ${AMBER_HOT}b3` : `0 0 6px ${AMBER}50`,
-                    transition: "width 200ms var(--ease-out), height 200ms var(--ease-out), box-shadow 200ms var(--ease-out)",
-                  }} />
-                  <span style={{
-                    width: 1.5, height: isSpeaking ? 26 : 18,
-                    background: isSpeaking ? AMBER_HOT : `${AMBER}b3`,
-                    transition: "height 200ms var(--ease-out)",
-                  }} />
-                </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (cl.items.length === 1) { seekTo(cl.at); setOpenCluster(null); }
+                      else setOpenCluster(abierto ? null : cl.key);
+                    }}
+                    title={cl.items.length === 1
+                      ? `@${cl.items[0].profile?.username ?? ""} · ${fmt(cl.at)}`
+                      : `${cl.items.length} notes · ${fmt(cl.at)}`}
+                    className="flex flex-col items-center outline-none"
+                  >
+                    {/* baraja: hasta tres caras solapadas, el resto como +N */}
+                    <span className="flex items-center">
+                      {cl.items.slice(0, 3).map((c, i) => (
+                        <MarkFace
+                          key={c.id}
+                          c={c}
+                          hablando={c.id === speaking?.id}
+                          style={{ marginLeft: i === 0 ? 0 : -9, zIndex: 3 - i }}
+                        />
+                      ))}
+                      {cl.items.length > 3 && (
+                        <span
+                          className="grid place-items-center rounded-full font-mono text-[8px] font-bold"
+                          style={{
+                            marginLeft: -9, height: 18, minWidth: 18, padding: "0 3px",
+                            background: "#14110d", color: AMBER,
+                            border: `1px solid ${AMBER}59`,
+                          }}
+                        >
+                          +{cl.items.length - 3}
+                        </span>
+                      )}
+                    </span>
+                    {/* el tallo baja hasta la cinta: ancla la cara a su segundo */}
+                    <span style={{
+                      width: 1.5,
+                      height: hablando ? 24 : 16,
+                      background: hablando ? AMBER_HOT : `${AMBER}b3`,
+                      transition: "height 200ms var(--ease-out)",
+                    }} />
+                  </button>
+
+                  {/* Se despliega DESDE la marca, no desde el centro: un popover
+                      que crece desde otro sitio se lee como si viniera de otro
+                      lado. */}
+                  {abierto && (
+                    <div
+                      onClick={(e) => e.stopPropagation()}
+                      className="absolute left-1/2 bottom-[calc(100%+8px)] w-[212px] -translate-x-1/2 overflow-hidden rounded-xl"
+                      style={{
+                        transformOrigin: "bottom center",
+                        background: "rgba(16,14,11,0.96)",
+                        border: "1px solid rgba(255,255,255,0.09)",
+                        boxShadow: "0 18px 40px -18px rgba(0,0,0,0.9)",
+                        animation: "tapePop 160ms cubic-bezier(.23,1,.32,1) both",
+                      }}
+                    >
+                      {cl.items.map((c) => (
+                        <button
+                          key={c.id}
+                          onClick={() => { seekTo(c.timestamp_seconds ?? 0); setOpenCluster(null); }}
+                          className="flex w-full items-center gap-2 px-2.5 py-2 text-left transition hover:bg-white/[0.05]"
+                        >
+                          <MarkFace c={c} hablando={false} style={{}} />
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate font-mono text-[10px] text-zinc-300">
+                              @{c.profile?.username ?? "someone"}
+                            </span>
+                            <span className="block truncate text-[10.5px] leading-snug text-zinc-500">
+                              {c.body}
+                            </span>
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               );
             })}
           </div>
@@ -485,9 +625,30 @@ export default function TapeDeckDesktop({
 
       {/* transport */}
       <div className="flex items-center gap-4 border-t border-white/10 px-8 py-4">
-        <button onClick={onPass} className="rounded-full border border-white/10 px-5 py-2.5 text-[13px] font-semibold text-zinc-400 transition hover:text-white">Pass</button>
-        <button onClick={toggle} className="grid place-items-center rounded-full text-black transition active:scale-95" style={{ height: 52, width: 52, background: `linear-gradient(180deg,${AMBER_HOT},${AMBER})`, boxShadow: `0 6px 22px ${AMBER}59` }}>
-          {playing ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 translate-x-[1px]" />}
+        {/* "Pass" vivia aqui y "Next" mas adelante, los dos llamando a onPass: el
+            mismo boton dos veces, a lados opuestos del play. Se queda uno solo. */}
+        {/* EL PLAY.
+            Era el unico circulo solido con halo en una fila de pastillas con
+            borde: distinto en forma, en relleno y en elevacion a la vez, por eso
+            se sentia pegado encima (Paco 2026-08-03).
+            Ahora comparte la geometria de la fila —misma altura, misma pastilla—
+            y su jerarquia la da el RELLENO, que es lo unico que necesita para
+            leerse como la accion principal. Fuera el halo: el propio sistema de
+            diseño de Fennec prohibe los glows, y esta era la unica pieza de la
+            app que lo hacia. Queda una sombra tintada, que es lo que da cuerpo
+            sin gritar. */}
+          <button
+            onClick={toggle}
+            aria-label={playing ? "Pause" : "Play"}
+            className="flex items-center gap-2 rounded-full px-6 text-[13px] font-bold text-black transition hover:brightness-105 active:scale-[0.97]"
+            style={{
+              height: 44,
+              background: `linear-gradient(180deg,${AMBER_HOT},${AMBER})`,
+              boxShadow: "0 6px 18px -8px rgba(0,0,0,0.8)",
+            }}
+          >
+            {playing ? <Pause className="h-[18px] w-[18px]" /> : <Play className="h-[18px] w-[18px] translate-x-[1px]" />}
+            {playing ? "Pause" : "Play"}
         </button>
         <button onClick={() => { setMarkAt(t); setMarking(true); }} className="flex items-center gap-2 rounded-full border px-4 py-2.5 text-[13px] font-semibold transition hover:brightness-110" style={{ borderColor: `${AMBER}40`, color: AMBER }}>
           <Plus className="h-4 w-4" /> Leave a note
@@ -511,7 +672,11 @@ export default function TapeDeckDesktop({
           </button>
         </div>
         <span className="ml-1 font-mono text-[10.5px] tracking-[0.06em] text-zinc-700">SPACE play · CLICK scrub · ⌘scroll / pinch zoom · ＋ note</span>
-        <button onClick={onOpenMyTracks} className="ml-auto flex items-center gap-2 rounded-full border px-4 py-2.5 text-[13px] font-bold text-black transition hover:brightness-110" style={{ borderColor: "transparent", background: `linear-gradient(180deg,${AMBER_HOT},${AMBER})` }}>
+        <button onClick={onOpenMyTracks} /* Pastilla con borde, no solida. Habia DOS elementos ambar solidos peleando
+             por ser la accion principal, y en un modulo que se llama La Cinta esa
+             es el play. Subir tracks es un destino, no el verbo. */
+          className="ml-auto flex items-center gap-2 rounded-full border px-4 py-2.5 text-[13px] font-semibold transition hover:brightness-110"
+          style={{ borderColor: `${AMBER}40`, color: AMBER }}>
           <Upload className="h-4 w-4" /> Upload Tracks
         </button>
       </div>

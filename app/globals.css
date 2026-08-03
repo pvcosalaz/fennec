@@ -147,3 +147,16 @@ button:where(:not([data-no-press])):active {
   button:where(:not([data-no-press])) { transition: none; }
   button:where(:not([data-no-press])):active { scale: none; }
 }
+
+
+/* Popover de un grupo de notas en La Cinta.
+   Arranca en 0.97 y no en 0: nada en el mundo real aparece de la nada, y una
+   escala minima ya da la sensacion de que el panel estaba ahi. El origen lo
+   pone el componente en la marca, para que crezca DESDE ella. */
+@keyframes tapePop {
+  from { opacity: 0; transform: scale(0.97) translateY(4px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  @keyframes tapePop { from { opacity: 0; } to { opacity: 1; } }
+}
