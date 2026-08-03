@@ -12,8 +12,10 @@
 import { useState } from "react";
 import { notFound } from "next/navigation";
 import DesktopShell, { type DesktopTab } from "@/components/desktop/DesktopShell";
-import { Tile, Cols, Col, Instrument, RiseStyle } from "@/components/desktop/ui";
+import DashboardDesktop from "@/components/desktop/DashboardDesktop";
 import type { Profile } from "@/lib/communityTypes";
+import { dayKey, type ContributionDays } from "@/lib/contributions";
+import { getColorScheme } from "@/lib/fennecIdPalette";
 
 const mockProfile: Profile = {
   id: "00000000-0000-0000-0000-000000000000",
@@ -24,9 +26,21 @@ const mockProfile: Profile = {
   youtube_url: null, tiktok: null, color_id: null,
 };
 
+/** Sparse on purpose: Paco's real dashboard has a handful of contributions,
+ *  and a full heatmap would hide the layout problem instead of showing it. */
+const mockContributions: ContributionDays = (() => {
+  const byDay = new Map<string, number>();
+  [3, 9, 14, 27, 41, 58, 96, 120].forEach((back, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - back);
+    byDay.set(dayKey(d), (i % 3) + 1);
+  });
+  return { byDay, total: 8, totalYear: 8, streak: 2 };
+})();
+
 export default function ShellDevPage() {
   if (process.env.NODE_ENV === "production") notFound();
-  const [tab, setTab] = useState<DesktopTab>("pricing");
+  const [tab, setTab] = useState<DesktopTab>("dashboard");
 
   return (
     <DesktopShell
@@ -37,31 +51,27 @@ export default function ShellDevPage() {
       onOpenNetwork={() => {}}
       onOpenSettings={() => {}}
     >
-      <RiseStyle />
-      <div className="flex flex-col gap-10">
-        <h1 className="text-[21px] font-bold tracking-tight text-white">Business</h1>
-
-        <div className="dd-rise grid items-stretch gap-4" style={{ gridTemplateColumns: ".85fr 1.35fr" }}>
-          <Instrument label="Revenue · MTD · MXN" value="$63,800" size={64}
-            footer={<span className="relative mt-2 block text-[10px] text-zinc-500">2 payments this month</span>} />
-          <Tile label="Revenue · last 6 months">
-            <div className="mt-3 flex h-[168px] items-end gap-2.5">
-              {[8, 26, 18, 52, 38, 100].map((h, i) => (
-                <div key={i} className="flex-1 rounded-t-[4px]"
-                  style={{ height: `${h}%`, background: i === 5 ? "#f5a623" : "rgba(255,255,255,.08)" }} />
-              ))}
-            </div>
-          </Tile>
-        </div>
-
-        <Tile label="Pipeline" className="py-1">
-          <Cols>
-            <Col value="$128,400" label="Awaiting reply" sub="2 quotes out" />
-            <Col value="$130,632" label="In progress" sub="2 projects" />
-            <Col value="$100,632" label="Owed to you" sub="1 without deposit" />
-          </Cols>
-        </Tile>
-      </div>
+      <DashboardDesktop
+        card={{
+          firstName: "Paco", lastName: "Salaz", role: "Composer", country: "Mexico",
+          genres: ["Cinematic", "Film/TV"], initials: "PS", avatarUrl: null,
+          collectionNumber: 1,
+        }}
+        networkProfile={mockProfile}
+        fennecDb={65}
+        cardColorScheme={getColorScheme(null)}
+        igFollowers={37000}
+        ttFollowers={83300}
+        ytSubs={4800}
+        activeProjects={0}
+        totalProjects={0}
+        quotesSentCount={2}
+        quotesOutTotal={139432}
+        karma={5}
+        sentQuotes={[]}
+        latestNote={null}
+        contributions={mockContributions}
+      />
     </DesktopShell>
   );
 }

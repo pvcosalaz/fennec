@@ -91,11 +91,28 @@ export default function DashboardDesktop({
   const accent = "#f5a623";
   const nextPost = useNextPost();
 
+  /* ── Spacing ──
+     The vertical scale used to run 24 → 0 → 16 → 20 between blocks. Arbitrary,
+     and one of them was ZERO: the Fennec ID row and Contributions had nothing
+     between them, which is why the three cards read as one glued mass
+     (Paco 2026-08-02).
+
+     Two tiers now, so space carries meaning instead of just existing:
+       16px  inside a group — these belong together
+       28px  between groups — these are different subjects
+
+     The groups are the actual subjects of the page: who you are (ID, dB,
+     contributions), what you're running (money, today), and where you reach.
+
+     h-full + flex lets the page own the viewport, and Social Reach takes the
+     slack with mt-auto. That kills the dead zone at the bottom without
+     inventing content to fill it: the strip simply sits on the floor, the way
+     a status bar does, and on a short window it just stacks normally. */
   return (
-    <div>
+    <div className="flex h-full flex-col">
       <RiseStyle />
       {/* header — greeting follows the actual clock, not a hardcoded evening */}
-      <div className="dd-rise mb-6 flex items-center justify-between">
+      <div className="dd-rise mb-7 flex flex-shrink-0 items-center justify-between">
         <h1 className="text-[21px] font-bold tracking-tight text-white">
           {(() => {
             const h = new Date().getHours();
@@ -121,6 +138,14 @@ export default function DashboardDesktop({
           Share my ID
         </button>
       </div>
+
+      <div className="flex min-h-0 flex-1 flex-col gap-7">
+
+      {/* ── Who you are ──
+          The card, the reading it produces, and the evidence behind it. One
+          subject, so they sit at group distance from each other and section
+          distance from everything else. */}
+      <div className="flex flex-col gap-4">
 
       {/* the real Fennec ID card (left, hero) + dB reading (right) */}
       <div className="dd-rise grid items-stretch gap-4" style={{ gridTemplateColumns: "1.35fr .85fr", animationDelay: ".06s" }}>
@@ -158,10 +183,12 @@ export default function DashboardDesktop({
         <ContributionsCard data={contributions ?? null} accent="#f5a623" weeks={52} cellSize={11} />
       </div>
 
+      </div>{/* /who you are */}
+
       {/* Operational bento — asymmetric surfaces group by function instead of
           stacking three identical hairline bands (design pass 2026-07-31).
           Left (wider): the money & work numbers. Right: today's action feed. */}
-      <div className="dd-rise mt-4 grid gap-4" style={{ gridTemplateColumns: "1.55fr 1fr", animationDelay: ".18s" }}>
+      <div className="dd-rise grid gap-4" style={{ gridTemplateColumns: "1.55fr 1fr", animationDelay: ".18s" }}>
         <Tile label="Music & Business">
           <Cols>
             <Col value={String(totalProjects)} label="Projects" sub={activeProjects > 0 ? `${activeProjects} active` : undefined} onClick={() => onNavigate?.("pricing")} />
@@ -204,8 +231,10 @@ export default function DashboardDesktop({
         </Tile>
       </div>
 
-      {/* Social Reach — slim full-width strip, flat brand icons (no neon glow) */}
-      <Band label="Social Reach" className="dd-rise mt-5">
+      {/* Social Reach — slim full-width strip, flat brand icons (no neon glow).
+          mt-auto puts the leftover height ABOVE it, so the strip lands on the
+          floor of the viewport instead of leaving a void underneath. */}
+      <Band label="Social Reach" className="dd-rise mt-auto">
         <Cols>
           <Col
             icon={<SiInstagram size={14} style={{ color: "#E1306C", opacity: 0.9 }} />}
@@ -218,6 +247,8 @@ export default function DashboardDesktop({
             value={ytSubs != null ? fmtCount(ytSubs) : "—"} label="YouTube" muted={ytSubs == null} sub={ytSubs == null ? "connect →" : undefined} onClick={onOpenProfileSettings} />
         </Cols>
       </Band>
+
+      </div>{/* /content column */}
     </div>
   );
 }
