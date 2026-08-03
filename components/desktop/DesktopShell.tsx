@@ -91,35 +91,60 @@ export default function DesktopShell({
   const compact = !railHover;
   const SIDEBAR_W = CONTENT_GUTTER;
 
-  /* Hover INTENT, not hover. Crossing the rail on the way somewhere else was
-     firing the animation two or three times in a sweep (Paco 2026-08-02), and
-     slowing the animation alone makes that worse: a longer transition means
-     the half-open state lingers.
+  /* INTENCIÓN POR VELOCIDAD, no por reloj.
+     Antes era un retraso fijo de 110ms antes de abrir. Filtraba bien el
+     barrido accidental, pero un tiempo muerto igual para todos se percibe como
+     traba: mueves el mouse al dock y no pasa nada durante un rato
+     (Paco 2026-08-03).
 
-     So: it only opens once the pointer has rested on the rail, and only closes
-     after a beat, which forgives clipping the edge on the way back in. */
-  /* Recalibrado 2026-08-03: se sentía lenta. Eran 190 + 420 = 610ms hasta
-     abrir del todo, que es mucho para algo que respondes con el mouse.
-     110ms sigue filtrando el barrido accidental —es el umbral donde un hover
-     deliberado ya se registra— sin que se note la espera. El cierre se queda
-     más largo a propósito: perdona rozar el borde de salida y volver. */
-  const OPEN_DELAY = 110;
-  const CLOSE_DELAY = 130;
+     La señal buena no es cuánto llevas encima, es CÓMO llegaste. Un puntero
+     que viene a propósito desacelera al llegar; uno que va cruzando la
+     pantalla pasa rápido. Así que se mide la velocidad dentro del dock:
+     despacio abre YA, rápido espera a que frene.
+
+     El cierre sigue con reloj, y con holgura: perdona rozar el borde de salida
+     y volver a entrar. */
+  const SLOW_ENOUGH = 0.55;   // px/ms — por debajo de esto, el puntero viene a quedarse
+  const GIVE_UP_AFTER = 260;  // si nunca frena, abre igual y no lo dejamos colgado
+  const CLOSE_DELAY = 140;
+
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastMove = useRef<{ x: number; y: number; t: number } | null>(null);
 
-  function armRail(open: boolean) {
-    if (hoverTimer.current) clearTimeout(hoverTimer.current);
-    hoverTimer.current = setTimeout(
-      () => setRailHover(open),
-      open ? OPEN_DELAY : CLOSE_DELAY,
-    );
+  function clearTimer() {
+    if (hoverTimer.current) { clearTimeout(hoverTimer.current); hoverTimer.current = null; }
   }
-  /* Keyboard focus is deliberate by definition — no waiting for it. */
-  function setRailNow(open: boolean) {
-    if (hoverTimer.current) clearTimeout(hoverTimer.current);
-    setRailHover(open);
+
+  function onRailEnter(e: React.MouseEvent) {
+    clearTimer();
+    lastMove.current = { x: e.clientX, y: e.clientY, t: performance.now() };
+    // Red de seguridad: si el puntero entra y se queda quieto, no hay más
+    // mousemove que midan velocidad, así que abrimos de todos modos.
+    hoverTimer.current = setTimeout(() => setRailHover(true), GIVE_UP_AFTER);
   }
-  useEffect(() => () => { if (hoverTimer.current) clearTimeout(hoverTimer.current); }, []);
+
+  function onRailMove(e: React.MouseEvent) {
+    if (railHover) return;
+    const prev = lastMove.current;
+    const now = performance.now();
+    lastMove.current = { x: e.clientX, y: e.clientY, t: now };
+    if (!prev) return;
+    const dt = now - prev.t;
+    if (dt <= 0) return;
+    const dist = Math.hypot(e.clientX - prev.x, e.clientY - prev.y);
+    if (dist / dt < SLOW_ENOUGH) { clearTimer(); setRailHover(true); }
+  }
+
+  function onRailLeave() {
+    clearTimer();
+    lastMove.current = null;
+    hoverTimer.current = setTimeout(() => setRailHover(false), CLOSE_DELAY);
+  }
+
+  /* El foco de teclado es deliberado por definición: sin esperas. */
+  function setRailNow(open: boolean) { clearTimer(); setRailHover(open); }
+
+  useEffect(() => () => clearTimer(), []);
 
 
   const slide = "transform .32s cubic-bezier(.22,1,.36,1)";
@@ -145,8 +170,9 @@ export default function DesktopShell({
            El tope de alto es por si la ventana es muy baja: antes que
            desbordar, scrollea por dentro. */
         className="fixed z-40 flex flex-col overflow-hidden"
-        onMouseEnter={() => armRail(true)}
-        onMouseLeave={() => armRail(false)}
+        onMouseEnter={onRailEnter}
+        onMouseMove={onRailMove}
+        onMouseLeave={onRailLeave}
         onFocusCapture={() => setRailNow(true)}
         onBlurCapture={(e) => {
           // Only collapse once focus has genuinely left the rail, not while

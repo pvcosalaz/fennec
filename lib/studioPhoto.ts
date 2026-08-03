@@ -103,10 +103,17 @@ export function scrimOpacity(luma: number | null | undefined): number {
      Ahora el texto lo protegen los paneles opacos (TILE_BG_OVER_PHOTO), y el
      velo solo tiene que evitar que la foto compita, no taparla. Sigue subiendo
      con el brillo: un cuarto blanco a mediodía se hunde más que uno oscuro. */
-  /* Subido otra vez el 2026-08-03. Con el vidrio ya funcionando, la foto
-     competía con los paneles en vez de quedarse atrás: se pidió que "se sienta
-     como un fondo". El velo es lo que la manda al fondo; el blur solo le quita
-     el detalle. Sube ~12 puntos en todo el rango, y como oscurecer solo puede
-     MEJORAR el contraste del texto claro, no hay que rehacer la cuenta. */
-  return Math.min(0.82, Math.max(0.40, 0.32 + l * 0.55));
+  /* Subido dos veces el 2026-08-03. La foto seguía leyéndose como contenido y
+     no como fondo: se ve original y está buena, pero compite. Un fondo tiene
+     que poder ignorarse.
+
+     La curva SIGUE siendo por foto, no un valor plano: se calcula del brillo
+     medido de la imagen de cada quien al subirla. Un estudio a oscuras recibe
+     0.62 y se sigue distinguiendo; una pared blanca a mediodía llega a 0.90 y
+     se hunde. Así cada productor conserva su cuarto sin que a nadie se le
+     coma la interfaz.
+
+     Oscurecer solo puede MEJORAR el contraste del texto claro, así que la
+     cuenta del alpha del vidrio (0.78) sigue valiendo. */
+  return Math.min(0.90, Math.max(0.62, 0.56 + l * 0.40));
 }

@@ -202,7 +202,7 @@ export default function DashboardDesktop({
              disponibles y Contributions quedaba en 8.85px: aplastada y encimada
              (medido 2026-08-03). El mínimo garantiza que la rejilla del año
              siempre se vea, y el sobrante sigue yendo ahí en pantallas altas. */
-          gridTemplateRows: "auto auto minmax(100px, 1fr) auto",
+          gridTemplateRows: "auto auto minmax(132px, 1fr) auto",
         }}
       >
 
@@ -268,7 +268,7 @@ export default function DashboardDesktop({
       <div className="dd-rise flex min-h-0 flex-col" style={{ animationDelay: ".21s" }}>
         <Tile label="Today on Fennec" className="h-full">
           <div className="flex flex-col divide-y divide-white/[0.05]">
-            <button type="button" onClick={() => onNavigate?.("ideas")} className="group flex items-center justify-between gap-3 py-[9px] text-left transition first:pt-0">
+            <button type="button" onClick={() => onNavigate?.("ideas")} className="group flex items-center justify-between gap-3 py-[6px] text-left transition first:pt-0">
               <span className="min-w-0 truncate text-[12px] text-zinc-400">
                 {latestNote ? "New note on your track" : "No track feedback yet"}
               </span>
@@ -276,7 +276,7 @@ export default function DashboardDesktop({
                 {latestNote ? "Open →" : "Upload →"}
               </span>
             </button>
-            <button type="button" onClick={() => onNavigate?.("pricing")} className="group flex items-center justify-between gap-3 py-[9px] text-left">
+            <button type="button" onClick={() => onNavigate?.("pricing")} className="group flex items-center justify-between gap-3 py-[6px] text-left">
               <span className="min-w-0 truncate text-[12px] text-zinc-400">
                 {sentQuotes.length > 0 ? `${sentQuotes.length} quote${sentQuotes.length > 1 ? "s" : ""} awaiting reply` : "No open quotes"}
               </span>
@@ -284,7 +284,7 @@ export default function DashboardDesktop({
                 {sentQuotes.length > 0 ? "View →" : "Send →"}
               </span>
             </button>
-            <button type="button" onClick={() => onNavigate?.("contenido")} className="group flex items-center justify-between gap-3 py-[9px] text-left">
+            <button type="button" onClick={() => onNavigate?.("contenido")} className="group flex items-center justify-between gap-3 py-[6px] text-left">
               <span className="min-w-0 truncate text-[12px] text-zinc-400">
                 {nextPost ? `Next post · ${fmtDate(nextPost.date)}` : "Nothing scheduled"}
               </span>

@@ -57,11 +57,14 @@ function Card({ item }: { item: NewsItem }) {
       rel="noopener noreferrer"
       className="group relative flex min-w-0 flex-col justify-end overflow-hidden rounded-2xl"
       style={{
-        /* Alto elástico en vez de aspect-square. Cuadradas fijas pedían 216px
-           y en una ventana baja se comían la fila de Contributions. Con clamp
-           se ven cuadradas en pantalla grande y se encogen en una laptop
-           chica, en vez de romper la rejilla (Paco 2026-08-03). */
-        height: "clamp(84px, 14vh, 172px)",
+        /* Alto elástico, no aspect-square. Cuadradas fijas pedían 216px y se
+           comían la fila de Contributions; a 720px de ventana dejaban a "Today
+           on Fennec" sin su tercera fila.
+           La proporción la marca la ventana: 10vh, con tope de 150. En una
+           laptop chica quedan compactas y en un monitor grande se acercan al
+           cuadrado, que es la forma que se pidió, sin que ninguna de las dos
+           reviente la rejilla (Paco 2026-08-03). */
+        height: "clamp(58px, 10vh, 150px)",
         background: "var(--fx-tile-bg, linear-gradient(180deg, rgba(255,255,255,0.048), rgba(255,255,255,0.012)))",
         boxShadow: "var(--fx-tile-shadow, inset 0 1px 0 rgba(255,255,255,0.075), 0 18px 40px -24px rgba(0,0,0,0.75))",
         backdropFilter: "var(--fx-tile-blur, none)",
@@ -114,7 +117,7 @@ function Skeleton() {
   return (
     <div
       className="animate-pulse rounded-2xl"
-      style={{ height: "clamp(84px, 14vh, 172px)", background: "var(--fx-tile-bg, rgba(255,255,255,0.04))" }}
+      style={{ height: "clamp(58px, 10vh, 150px)", background: "var(--fx-tile-bg, rgba(255,255,255,0.04))" }}
     />
   );
 }
