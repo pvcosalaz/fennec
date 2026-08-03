@@ -282,7 +282,12 @@ export default function DashboardDesktop({
              se estiraba a 227px de puro aire (visto 2026-08-03). Dejar las
              filas en automatico tampoco sirve — sin restriccion su alto natural
              suma mas de lo que cabe en 720px y Audience quedaba en 27px. */
-          gridTemplateRows: "auto auto minmax(144px, 210px) minmax(80px, 128px)",
+          /* 232 y no 210 en la fila del año: con 210 la ultima fila de dias se
+             quedaba 11px fuera del recorte, y con ella el anillo del dia
+             elegido — que es como se noto (Paco 2026-08-03). Las celdas son
+             cuadradas y siguen al ancho, asi que el alto que pide la rejilla
+             sube con la ventana; 232 cubre hasta ~1960px de ancho. */
+          gridTemplateRows: "auto auto minmax(144px, 232px) minmax(80px, 128px)",
           /* El sobrante que ya no cabe en ningun tope se junta ABAJO, fuera de
              los paneles. Sin esto se lo comia Contributions y quedaba un hueco
              de 400px dentro del recuadro: las celdas del año son cuadradas, no

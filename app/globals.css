@@ -160,3 +160,15 @@ button:where(:not([data-no-press])):active {
 @media (prefers-reduced-motion: reduce) {
   @keyframes tapePop { from { opacity: 0; } to { opacity: 1; } }
 }
+
+/* Popover del dia en Contributions. Sale desde el borde que toca la celda
+   (transform-origin lo pone el componente segun si abre arriba o abajo), asi
+   que ademas de escalar se acerca 3px: parece que sale del cuadrito y no que
+   aterriza encima. Nunca desde scale(0). */
+@keyframes ccPop {
+  from { opacity: 0; transform: scale(0.96) translateY(3px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  @keyframes ccPop { from { opacity: 0; } to { opacity: 1; } }
+}

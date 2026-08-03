@@ -5,11 +5,18 @@
 // strip on the home (last ~4 months); "View year" opens a full 52-week sheet.
 // Amber ramp only — same accent language as the rest of the panel.
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { X, Flame } from "lucide-react";
 import { buildHeatmapGrid, buildYearGrid, type ContributionDays, type DayDetail } from "@/lib/contributions";
 
 const MESES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+/** Medidas del popover del dia. Se necesitan ANTES de dibujarlo para decidir si
+ *  cabe arriba de la celda y para no dejarlo salirse por los lados. */
+const POP_W = 176;
+const POP_H = 96;
+
+type Ancla = { x: number; y: number; alto: number; debajo: boolean; ancho: number };
 
 /** Como se llama cada tipo cuando se lee, en singular y plural. La UI de
  *  Fennec va en ingles siempre. */
@@ -61,7 +68,8 @@ function Heatmap({ byDay, weeks, cellRadius = 2, cellSize, selected, onSelect }:
    *  the card eat half the dashboard. */
   cellSize?: number;
   selected: string | null;
-  onSelect: (key: string | null) => void;
+  /** Devuelve tambien el boton para poder anclarle el popover a SU celda. */
+  onSelect: (key: string | null, el: HTMLButtonElement | null) => void;
 }) {
   /* A 52 semanas o mas se muestra el AÑO CALENDARIO (enero a diciembre). Por
      debajo sigue siendo la tira movil de las ultimas N semanas, que es lo
@@ -122,7 +130,7 @@ function Heatmap({ byDay, weeks, cellRadius = 2, cellSize, selected, onSelect }:
                   key={cell.key}
                   type="button"
                   disabled={fuera || futuro}
-                  onClick={() => onSelect(activo ? null : cell.key)}
+                  onClick={(e) => onSelect(activo ? null : cell.key, e.currentTarget)}
                   aria-label={`${cell.key}, ${cell.count}`}
                   aria-hidden={fuera || undefined}
                   className={`${fixed ? "" : "w-full aspect-square"} transition ${fuera || futuro ? "" : "hover:brightness-150"}`}
@@ -152,18 +160,54 @@ export default function ContributionsCard({ data, accent, weeks = 17, cellSize }
 }) {
   const [showYear, setShowYear] = useState(false);
   const [day, setDay] = useState<string | null>(null);
+  const [ancla, setAncla] = useState<Ancla | null>(null);
+  const raizRef = useRef<HTMLDivElement | null>(null);
   const byDay = data?.byDay ?? new Map<string, number>();
   const detalle = data?.detail?.get(day ?? "") ;
   const cuenta = day ? (byDay.get(day) ?? 0) : 0;
 
+  /* La posicion se guarda EN COORDENADAS DE LA TARJETA, no de la ventana: el
+     popover se dibuja como hijo de la tarjeta (fuera del recorte del heatmap,
+     que si no se lo comeria igual que al anillo) y asi no hay que seguir el
+     scroll de nadie. */
+  const seleccionar = useCallback((key: string | null, el: HTMLButtonElement | null) => {
+    if (!key || !el || !raizRef.current) { setDay(null); setAncla(null); return; }
+    const c = raizRef.current.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    const y = r.top - c.top;
+    setDay(key);
+    setAncla({
+      x: r.left - c.left + r.width / 2,
+      y,
+      alto: r.height,
+      /* Arriba de la celda salvo que no quepa; entonces baja. Un popover que se
+         sale de su tarjeta se lee como un error, no como un panel. */
+      debajo: y < POP_H + 10,
+      ancho: c.width,
+    });
+  }, []);
+
+  const cerrar = useCallback(() => { setDay(null); setAncla(null); }, []);
+
+  /* Escape cierra; y al cambiar el tamaño de la ventana la posicion guardada
+     deja de valer, asi que se cierra en vez de quedarse mal puesto. */
+  useEffect(() => {
+    if (!ancla) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") cerrar(); };
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("resize", cerrar);
+    return () => { window.removeEventListener("keydown", onKey); window.removeEventListener("resize", cerrar); };
+  }, [ancla, cerrar]);
+
   return (
     <>
       <div
+        ref={raizRef}
         /* h-full: la tarjeta llena su celda de la rejilla en vez de quedarse
            con su alto natural. Sin esto su borde inferior no coincidia con el
            de "Today on Fennec" —que si se estiraba— y la fila de noticias de
            abajo arrancaba en una linea torcida (Paco 2026-08-03). */
-        className="flex h-full flex-col rounded-2xl border px-4 pt-3 pb-2.5"
+        className="relative flex h-full flex-col rounded-2xl border px-4 pt-3 pb-2.5"
         /* Mismo material que el resto de paneles cuando hay foto: sin esto era
            la única tarjeta sin vidrio, un ámbar al 4% por el que se veía la
            habitación nítida. */
@@ -196,26 +240,90 @@ export default function ContributionsCard({ data, accent, weeks = 17, cellSize }
             sobrante se derrama hacia ARRIBA y los rotulos de mes se encimaban
             con el titulo de la tarjeta (Paco 2026-08-03). Anclado arriba, lo
             que sobre cae hacia abajo, que es donde hay recorte y no texto. */}
-        <div className="flex min-h-0 flex-1 items-start overflow-hidden">
-          <Heatmap byDay={byDay} weeks={weeks} cellSize={cellSize} selected={day} onSelect={setDay} />
+        {/* p-[3px]: el anillo del dia elegido vive FUERA de la celda (outline de
+            1.5px con 1px de separacion, o sea 2.5px de alcance) y en las celdas
+            del borde el overflow-hidden se lo comia — se veia medio anillo
+            (Paco 2026-08-03). El recorte sigue haciendo falta contra el derrame
+            vertical, asi que en vez de quitarlo se le dan al recorte los 3px que
+            el anillo necesita. Margenes negativos para que la rejilla siga
+            midiendo lo mismo y no se recorra nada. */}
+        <div className="-mx-[3px] flex min-h-0 flex-1 items-start overflow-hidden p-[3px]">
+          <Heatmap byDay={byDay} weeks={weeks} cellSize={cellSize} selected={day} onSelect={seleccionar} />
         </div>
 
+        {/* ── El dia elegido, anclado a SU cuadrito ──
+            Antes el detalle salia en el renglon de abajo, lejos del cuadrito
+            que acababas de tocar: habia que buscar la respuesta a una pregunta
+            que hiciste en otro lado de la tarjeta. Aqui sale donde miraste.
+
+            Crece DESDE la celda (transform-origin en el borde que la toca), no
+            desde su centro: un panel que se abre desde otro sitio se lee como
+            si viniera de otro lado. Entra desde scale(.96), nunca desde 0 —
+            nada en el mundo real aparece de la nada. 150ms con ease-out fuerte:
+            lo suficiente para verse, no tanto como para estorbar en algo que
+            vas a abrir y cerrar varias veces seguidas. */}
+        {day && ancla && (
+          <>
+            {/* Capa para cerrar tocando fuera. Sin fondo: no es un modal, no
+                debe oscurecer la tarjeta. */}
+            <button
+              type="button"
+              aria-label="Close"
+              onClick={cerrar}
+              className="absolute inset-0 z-10 cursor-default"
+            />
+            <div
+              className="pointer-events-none absolute z-20"
+              style={{
+                left: Math.min(Math.max(ancla.x, POP_W / 2 + 6), Math.max(POP_W / 2 + 6, ancla.ancho - POP_W / 2 - 6)),
+                top: ancla.debajo ? ancla.y + ancla.alto + 7 : ancla.y - 7,
+                transform: ancla.debajo ? "translateX(-50%)" : "translate(-50%, -100%)",
+              }}
+            >
+              <div
+                className="pointer-events-auto overflow-hidden rounded-xl px-3 py-2.5"
+                style={{
+                  width: POP_W,
+                  transformOrigin: ancla.debajo ? "top center" : "bottom center",
+                  background: "rgba(18,16,13,0.97)",
+                  border: `1px solid ${accent}33`,
+                  boxShadow: "0 16px 34px -16px rgba(0,0,0,0.9)",
+                  animation: "ccPop 150ms cubic-bezier(.23,1,.32,1) both",
+                }}
+              >
+                <p className="text-[11px] font-bold leading-none text-white">{fechaLegible(day)}</p>
+                {cuenta > 0 ? (
+                  <>
+                    <p className="mt-1 text-[9px] uppercase tracking-[0.14em]" style={{ color: `${accent}b3` }}>
+                      {cuenta} contribution{cuenta === 1 ? "" : "s"}
+                    </p>
+                    <ul className="mt-2 space-y-1 border-t pt-2" style={{ borderColor: "rgba(255,255,255,0.07)" }}>
+                      {Object.entries(detalle ?? {}).map(([tipo, n]) => (
+                        <li key={tipo} className="flex items-baseline justify-between gap-2">
+                          <span className="min-w-0 truncate text-[10.5px] text-zinc-300">
+                            {(NOMBRE[tipo] ?? [tipo, tipo])[n === 1 ? 0 : 1]}
+                          </span>
+                          <b className="text-[10.5px] tabular-nums text-zinc-500">{n}</b>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                ) : (
+                  <p className="mt-1.5 text-[10.5px] text-zinc-500">Nothing logged this day.</p>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+
         <div className="flex min-h-[18px] items-center justify-between mt-2.5">
-          {/* Al elegir un dia, esta linea deja de ser el total y pasa a contar
-              QUE se hizo ese dia. Es la respuesta a "no se que representan los
-              cuadritos": ahora un cuadrito encendido se puede leer. */}
-          {day ? (
-            <p className="min-w-0 truncate text-[10px] text-zinc-400">
-              <span className="font-semibold text-zinc-200">{fechaLegible(day)}</span>
-              {cuenta > 0 ? <span className="text-zinc-500"> · {resumen(detalle) || `${cuenta}`}</span>
-                          : <span className="text-zinc-600"> · nothing logged</span>}
-            </p>
-          ) : (
-            <p className="text-[10px] text-zinc-500">
-              <span className="font-extrabold text-zinc-200 tabular-nums">{data?.totalYear ?? 0}</span> this year
-              <span className="ml-1.5 text-zinc-600">· pick a day</span>
-            </p>
-          )}
+          {/* El total del año se queda fijo aqui abajo. El detalle del dia ya
+              vive en el popover, y repetirlo en dos sitios solo obliga a mirar
+              dos veces para leer lo mismo. */}
+          <p className="text-[10px] text-zinc-500">
+            <span className="font-extrabold text-zinc-200 tabular-nums">{data?.totalYear ?? 0}</span> this year
+            <span className="ml-1.5 text-zinc-600">· {day ? "tap a day to compare" : "pick a day"}</span>
+          </p>
           {weeks >= 52 ? (
             // Full year already on screen (desktop): nothing more to open, so
             // the space goes to the scale legend instead of a dead link.
@@ -270,9 +378,21 @@ export default function ContributionsCard({ data, accent, weeks = 17, cellSize }
             {/* 52 weeks — scrolls horizontally, newest at the right */}
             <div className="overflow-x-auto pb-1" style={{ direction: "rtl" }}>
               <div style={{ direction: "ltr", minWidth: 640 }}>
-                <Heatmap byDay={byDay} weeks={52} cellRadius={2} selected={day} onSelect={setDay} />
+                {/* Aqui NO va el popover: la rejilla del año se desplaza en
+                    horizontal y una posicion guardada al tocar quedaria a la
+                    deriva en cuanto se mueva. El detalle va en una linea fija
+                    debajo, que no se despega de nada. */}
+                <Heatmap byDay={byDay} weeks={52} cellRadius={2} selected={day} onSelect={(k) => { setDay(k); setAncla(null); }} />
               </div>
             </div>
+
+            {day && (
+              <p className="mt-2 min-w-0 truncate text-[10.5px] text-zinc-400">
+                <span className="font-semibold text-zinc-200">{fechaLegible(day)}</span>
+                {cuenta > 0 ? <span className="text-zinc-500"> · {resumen(detalle) || `${cuenta}`}</span>
+                            : <span className="text-zinc-600"> · nothing logged</span>}
+              </p>
+            )}
 
             <div className="flex items-center justify-end gap-1.5 mt-3">
               <span className="text-[9px] text-zinc-600">Less</span>
