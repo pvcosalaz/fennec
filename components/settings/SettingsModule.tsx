@@ -13,6 +13,7 @@ import Select from "@/components/ui/Select";
 import { GENRE_OPTIONS } from "@/lib/genres";
 import { fetchProfile, updateProfile } from "@/lib/communityDb";
 import { supabase } from "@/lib/supabase";
+import { useIsDesktop } from "@/lib/useIsDesktop";
 import {
   CURRENCY_KEY, CURRENCIES, CURRENCY_REGIONS, currencyMeta,
   notifyCurrencyChange, type Currency,
@@ -109,6 +110,7 @@ type Props = {
 };
 
 export default function SettingsModule({ onBack, language, onLanguageChange, avatarUrl, onAvatarChange, onSignOut, userId, initialSection }: Props) {
+  const isDesktop = useIsDesktop();
   const [section,       setSection]       = useState<Section>(initialSection ?? "main");
   const [profile,       setProfile]       = useState<UserProfile>(DEFAULT_PROFILE);
   const [currency,      setCurrency]      = useState<Currency>("USD");
@@ -356,17 +358,45 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
   }
 
   // ── Profile section ──
+  /* GUARDAR, definido una vez y montado en dos sitios: arriba en escritorio,
+     al final en telefono. En telefono el pulgar ya esta abajo y el formulario
+     es una sola columna, asi que el pie es el sitio natural; en escritorio ese
+     mismo pie te obliga a scrollear hasta el fondo para guardar, que es
+     justo lo que molestaba (Paco 2026-08-03). */
+  const botonGuardar = (
+    <button
+      onClick={saveProfile}
+      className={isDesktop
+        ? "flex flex-shrink-0 items-center gap-2 rounded-xl bg-accent px-5 py-2.5 text-[13px] font-bold text-black transition hover:brightness-105 active:scale-[0.98]"
+        : "w-full rounded-2xl bg-accent py-3 text-sm font-bold text-black flex items-center justify-center gap-2"}
+    >
+      {saved ? <><Check className="h-4 w-4" /> Saved!</> : "Save profile"}
+    </button>
+  );
+
   if (section === "profile") return (
-    <div className="mx-auto w-full max-w-lg space-y-5 px-4">
-      <div className="flex items-center gap-3">
-        <button onClick={() => setSection("main")} className="text-zinc-400 hover:text-accent transition">
-          <ArrowLeft className="h-5 w-5" />
-        </button>
-        <div>
-          <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">Settings</p>
-          <h1 className="text-2xl font-bold text-white">Profile</h1>
+    <div className={isDesktop ? "w-full" : "mx-auto w-full max-w-lg space-y-5 px-4"}>
+      <div className={isDesktop ? "mb-6 flex items-center justify-between gap-6" : "flex items-center gap-3"}>
+        <div className="flex min-w-0 items-center gap-3">
+          <button onClick={() => setSection("main")} className="text-zinc-400 hover:text-accent transition">
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <div>
+            <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">Settings</p>
+            <h1 className="text-2xl font-bold text-white">Profile</h1>
+          </div>
         </div>
+        {isDesktop && botonGuardar}
       </div>
+
+      {/* DOS COLUMNAS en escritorio. Era la tira vertical del telefono estirada
+          a lo ancho: campos angostos, mucho scroll y el guardado fuera de vista.
+          Identidad de un lado, enlaces del otro, y todo cabe sin scrollear. */}
+      <div
+        className={isDesktop ? "grid items-start gap-5" : "space-y-5"}
+        style={isDesktop ? { gridTemplateColumns: "1fr 1fr" } : undefined}
+      >
+      <div className="space-y-5">
 
       {/* Avatar upload */}
       <div className="flex flex-col items-center gap-2">
@@ -400,7 +430,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
           </div>
         </button>
         <p className="text-[11px] text-zinc-600">
-          {uploadingAvatar ? "Uploading…" : "Tap to change photo"}
+          {uploadingAvatar ? "Uploading…" : isDesktop ? "Click to change photo" : "Tap to change photo"}
         </p>
       </div>
 
@@ -467,6 +497,9 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
         </div>
       </div>
 
+      </div>{/* /columna izquierda */}
+
+      <div className="space-y-5">
       {/* Social links */}
       <div className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
         <h2 className="text-sm font-semibold text-white">Social profiles</h2>
@@ -490,12 +523,9 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
         ))}
       </div>
 
-      <button
-        onClick={saveProfile}
-        className="w-full rounded-2xl bg-accent py-3 text-sm font-bold text-black flex items-center justify-center gap-2"
-      >
-        {saved ? <><Check className="h-4 w-4" /> Saved!</> : "Save profile"}
-      </button>
+      {!isDesktop && botonGuardar}
+      </div>{/* /columna derecha */}
+      </div>{/* /dos columnas */}
     </div>
   );
 

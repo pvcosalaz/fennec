@@ -15,6 +15,7 @@ import DesktopShell, { type DesktopTab } from "@/components/desktop/DesktopShell
 import DashboardDesktop from "@/components/desktop/DashboardDesktop";
 import ScriptWriterOverlay from "@/components/content/ScriptWriterOverlay";
 import ContentModule from "@/components/content/ContentModule";
+import SettingsModule from "@/components/settings/SettingsModule";
 import type { Profile, Post } from "@/lib/communityTypes";
 import { dayKey, type ContributionDays } from "@/lib/contributions";
 import { getColorScheme } from "@/lib/fennecIdPalette";
@@ -97,7 +98,18 @@ export default function ShellDevPage() {
       onOpenNetwork={() => {}}
       onOpenSettings={() => {}}
     >
-      {tool === "content" ? (
+      {tool === "settings" ? (
+        <SettingsModule
+          onBack={() => {}}
+          language="en"
+          onLanguageChange={() => {}}
+          avatarUrl={null}
+          onAvatarChange={() => {}}
+          onSignOut={() => {}}
+          userId={mockProfile.id}
+          initialSection="profile"
+        />
+      ) : tool === "content" ? (
         <ContentModule isPro genres={[]} userId={mockProfile.id} onUpgrade={() => {}} />
       ) : tool === "script" ? (
         <ScriptWriterOverlay isDesktop videoRef={mockRef} onSave={() => {}} onClose={() => {}} />
