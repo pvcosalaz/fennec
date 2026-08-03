@@ -19,6 +19,36 @@ import { ImagePlus, Loader2, X } from "lucide-react";
 import { prepareStudioPhoto, scrimOpacity } from "@/lib/studioPhoto";
 import { uploadStudioPhoto, updateProfile } from "@/lib/communityDb";
 
+/**
+ * Pull a readable message out of whatever was thrown.
+ *
+ * The first version only handled `Error`, so every Supabase failure — which
+ * arrives as a plain object with `message`/`hint`, not an Error instance —
+ * collapsed into a bare "Upload failed" and told Paco nothing (2026-08-02).
+ * An error message that doesn't say what went wrong is barely better than
+ * silence.
+ */
+function readError(e: unknown): string {
+  if (e instanceof Error) return e.message;
+  if (e && typeof e === "object") {
+    const o = e as { message?: unknown; error?: unknown; hint?: unknown };
+    const msg = typeof o.message === "string" ? o.message
+      : typeof o.error === "string" ? o.error
+      : null;
+    if (msg) {
+      // The two failures that actually happen, translated into the fix.
+      if (/column .*studio_photo|schema cache/i.test(msg)) {
+        return "The database is missing the studio photo columns — run the migration.";
+      }
+      if (/row-level security|not authorized|permission/i.test(msg)) {
+        return "Storage rejected the upload (permissions).";
+      }
+      return msg;
+    }
+  }
+  return "Upload failed";
+}
+
 /** The image + its veil. Sits behind the dashboard's own content. */
 export function StudioBackdrop({ url, luma }: { url: string; luma: number | null }) {
   const scrim = scrimOpacity(luma);
@@ -69,7 +99,8 @@ export function StudioPhotoControl({
       await updateProfile(userId, { studio_photo_url: url, studio_photo_luma: luma });
       onChange(url, luma);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Upload failed");
+      setError(readError(e));
+      console.error("studio photo upload:", e);
     } finally {
       setBusy(false);
       if (input.current) input.current.value = "";
@@ -81,8 +112,8 @@ export function StudioPhotoControl({
     try {
       await updateProfile(userId, { studio_photo_url: null, studio_photo_luma: null });
       onChange(null, null);
-    } catch {
-      setError("Could not remove it");
+    } catch (e) {
+      setError(readError(e));
     } finally {
       setBusy(false);
     }

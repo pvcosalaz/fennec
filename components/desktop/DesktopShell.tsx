@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { Home, Briefcase, Camera, Users, Settings, AudioWaveform, UserPlus, ChevronRight } from "lucide-react";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import { getColorScheme } from "@/lib/fennecIdPalette";
-import { useSidebarCompact, useSidebarCollapsed } from "@/lib/useIsDesktop";
 import {
   CANVAS_BG, RAIL_BG, RAIL_SHADOW, Grain, Atmosphere,
 } from "@/components/desktop/surfaces";
@@ -72,14 +71,19 @@ export default function DesktopShell({
 
   // Narrow window → icon-only sidebar. Keeps the desktop shell usable when the
   // window is dragged small, instead of falling back to the phone UI.
-  /* Two different reasons to be narrow, and they don't rank the same.
-     `tooNarrow` is physics: below 900px there's no room for labels, so the
-     toggle can't override it. `collapsed` is the producer's choice, which is
-     why the chevron only shows when there IS room to expand into. */
-  const tooNarrow = useSidebarCompact();
-  const [collapsed, setCollapsed] = useSidebarCollapsed();
-  const compact = tooNarrow || collapsed;
-  const SIDEBAR_W = compact ? SIDEBAR_MINI : SIDEBAR_FULL;
+  /* Icons at rest, labels on hover — the Supabase behaviour Paco asked for
+     (2026-08-02), which beats the click toggle because reading a label costs
+     nothing and demands no decision.
+
+     The critical part: the expanded rail OVERLAYS the canvas, it doesn't push
+     it. Content margin stays pinned to the mini width, so sweeping the mouse
+     past the edge never reflows the page underneath. A rail that shoves the
+     layout on hover is worse than one that never expands.
+
+     focus-within too, or the labels would be unreachable by keyboard. */
+  const [railHover, setRailHover] = useState(false);
+  const compact = !railHover;
+  const SIDEBAR_W = SIDEBAR_MINI;
 
 
   const slide = "transform .32s cubic-bezier(.22,1,.36,1)";
@@ -98,8 +102,18 @@ export default function DesktopShell({
       {/* ── Sidebar ────────────────────────────────────────────── */}
       <aside
         className="fixed left-0 top-0 bottom-0 z-40 flex flex-col"
+        onMouseEnter={() => setRailHover(true)}
+        onMouseLeave={() => setRailHover(false)}
+        onFocusCapture={() => setRailHover(true)}
+        onBlurCapture={(e) => {
+          // Only collapse once focus has genuinely left the rail, not while
+          // it's moving between two nav buttons inside it.
+          if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setRailHover(false);
+        }}
         style={{
-          width: SIDEBAR_W,
+          // Overlays the canvas when expanded; the content margin below is
+          // pinned to the mini width, so hovering never reflows the page.
+          width: compact ? SIDEBAR_MINI : SIDEBAR_FULL,
           /* The old gradient faded INTO the canvas value, so the rail
              dissolved at the bottom. It's a panel now: lighter and cooler at
              every height, with edge lighting instead of a border. */
@@ -107,11 +121,7 @@ export default function DesktopShell({
           boxShadow: RAIL_SHADOW,
           padding: compact ? "22px 8px 18px" : "22px 14px 18px",
           transform: immersive ? "translateX(-100%)" : "translateX(0)",
-          // Width joins the transition so expanding travels with the content
-          // margin instead of snapping ahead of it. It's the one layout
-          // property worth animating here: the rail is `fixed`, so widening
-          // it doesn't reflow anything downstream.
-          transition: `${slide}, width .32s cubic-bezier(.22,1,.36,1), padding .32s cubic-bezier(.22,1,.36,1)`,
+          transition: `${slide}, width .28s cubic-bezier(.22,1,.36,1), padding .28s cubic-bezier(.22,1,.36,1)`,
         }}
       >
         <div className={`flex items-baseline gap-0.5 pb-6 ${compact ? "justify-center px-0" : "px-2.5"}`}>
@@ -209,28 +219,6 @@ export default function DesktopShell({
             )}
           </div>
 
-          {/* Expand / collapse. Only when the window can actually hold labels:
-              offering it below 900px would be a button that does nothing.
-              Same chevron language as the right rail's toggle, so both edges
-              of the shell behave the same way. */}
-          {!tooNarrow && (
-            <button
-              type="button"
-              onClick={() => setCollapsed(!collapsed)}
-              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-              aria-expanded={!collapsed}
-              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-              className={`mt-1 flex items-center rounded-[10px] py-2 text-[12px] font-medium text-zinc-600 transition hover:bg-white/[0.04] hover:text-zinc-300 ${
-                compact ? "justify-center px-0" : "gap-2 px-2.5"
-              }`}
-            >
-              <ChevronRight
-                className="h-[15px] w-[15px] shrink-0"
-                style={{ transform: collapsed ? "none" : "rotate(180deg)", transition: slide }}
-              />
-              {!compact && "Collapse"}
-            </button>
-          )}
         </div>
       </aside>
 
@@ -255,61 +243,60 @@ export default function DesktopShell({
         {immersive ? (
           <div className="relative z-10 w-full flex-1">{children}</div>
         ) : (
-          /* One canonical content frame for every module: 1100px column,
-             40px gutters, generous bottom padding so scroll always lands
-             with breathing room. Modules must NOT add their own mx-auto/
-             max-w/px — this is the single source of page margins.
-             flex-col + min-h-0 so a module can claim h-full and distribute
-             its own vertical space (Business fills the screen instead of
-             leaving a 340px dead zone) while still scrolling when it
-             outgrows one viewport. */
-          <div className="relative z-10 mx-auto flex w-full min-h-0 max-w-[1100px] flex-1 flex-col px-10 pb-8 pt-5">
-            {/* ── Account cluster ──
-                What used to be a 292px rail is three buttons. The rail spent a
-                fifth of the screen on chrome that gets read once a session, and
-                its one piece of real content — Your Network — was a shortcut to
-                a destination already sitting in the left nav (Paco 2026-08-02).
+          <>
+          {/* ── Account cluster ──
+              What used to be a 292px rail is two buttons. The rail spent a
+              fifth of the screen on chrome that gets read once a session, and
+              its one piece of real content — Your Network — was a shortcut to
+              a destination already sitting in the left nav (Paco 2026-08-02).
 
-                Its own row above the module rather than floating over it: every
-                module puts its actions in its own header ("+ New quote",
-                "Share my ID"), and a fixed cluster would collide with them. */}
-            <div className="mb-4 flex flex-shrink-0 items-center justify-end gap-2">
-              <NotificationBell userId={userId} align="right" />
-              <button
-                type="button"
-                onClick={onOpenSettings}
-                aria-label="Settings"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-zinc-400 transition hover:border-accent/30 hover:text-accent"
-              >
-                <Settings className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={onOpenNetwork}
-                aria-label={`${name} — your Fennec ID and network`}
-                title={name}
-                className="rounded-full transition hover:brightness-110"
-              >
-                {profile.avatar_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={profile.avatar_url}
-                    alt=""
-                    className="h-9 w-9 rounded-full object-cover"
-                    style={{ border: "1px solid rgba(255,255,255,.16)" }}
-                  />
-                ) : (
-                  <div
-                    className="grid h-9 w-9 place-items-center rounded-full text-[12px] font-extrabold"
-                    style={{ background: scheme.accent, color: scheme.textOnAvatar, border: "1px solid rgba(255,255,255,.16)" }}
-                  >
-                    {initials}
-                  </div>
-                )}
-              </button>
-            </div>
+              Pinned to the window's right edge, NOT to the 1100px content
+              column: inside the column it landed directly above each module's
+              own actions ("+ New quote", "Share my ID") and the two rows read
+              as a pile. Out here there's empty gutter to spare.
+
+              The gear folded into the avatar — clicking your face opens
+              Fennec's settings, which is where everyone looks for them. */}
+          <div className="relative z-20 flex flex-shrink-0 items-center justify-end gap-2 px-8 pt-5">
+            <NotificationBell userId={userId} align="right" />
+            <button
+              type="button"
+              onClick={onOpenSettings}
+              aria-label={`${name} — account and settings`}
+              title="Settings"
+              className="rounded-full transition hover:brightness-110"
+            >
+              {profile.avatar_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={profile.avatar_url}
+                  alt=""
+                  className="h-9 w-9 rounded-full object-cover"
+                  style={{ border: "1px solid rgba(255,255,255,.16)" }}
+                />
+              ) : (
+                <div
+                  className="grid h-9 w-9 place-items-center rounded-full text-[12px] font-extrabold"
+                  style={{ background: scheme.accent, color: scheme.textOnAvatar, border: "1px solid rgba(255,255,255,.16)" }}
+                >
+                  {initials}
+                </div>
+              )}
+            </button>
+          </div>
+
+          {/* One canonical content frame for every module: 1100px column,
+              40px gutters, generous bottom padding so scroll always lands
+              with breathing room. Modules must NOT add their own mx-auto/
+              max-w/px — this is the single source of page margins.
+              flex-col + min-h-0 so a module can claim h-full and distribute
+              its own vertical space (Business fills the screen instead of
+              leaving a 340px dead zone) while still scrolling when it
+              outgrows one viewport. */}
+          <div className="relative z-10 mx-auto flex w-full min-h-0 max-w-[1100px] flex-1 flex-col px-10 pb-8 pt-2">
             {children}
           </div>
+          </>
         )}
       </div>
 

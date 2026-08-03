@@ -33,7 +33,11 @@
 export const CANVAS_BG = [
   "radial-gradient(120% 92% at 10% -12%, rgba(245,166,35,0.09), transparent 55%)",
   "radial-gradient(110% 85% at 102% 110%, rgba(96,116,168,0.10), transparent 62%)",
-  "linear-gradient(168deg, #131219 0%, #0f0e14 52%, #0c0b10 100%)",
+  /* Lifted 2026-08-02: the first pass still read as black on Paco's display.
+     Dark grey, not black — the blooms only register once the base is light
+     enough to have somewhere to go. The rail sits ~11 steps above this, which
+     keeps the two surfaces clearly separate after the lift. */
+  "linear-gradient(168deg, #1a1922 0%, #16151d 52%, #121118 100%)",
 ].join(",");
 
 /** The rail. Lighter and cooler than the canvas at EVERY height, so the
@@ -43,7 +47,7 @@ export const CANVAS_BG = [
  *  Fennec's identity, but the same read comes from pushing the panel well up
  *  the value scale and cooling it: slate bolted onto a warm room. */
 export const RAIL_BG =
-  "linear-gradient(180deg, #26252f 0%, #201f29 46%, #1b1a23 100%)";
+  "linear-gradient(180deg, #302f3c 0%, #2a2935 46%, #24232e 100%)";
 
 /** Edge lighting is what sells metal: lit top, dark underside. */
 export const RAIL_SHADOW = [
