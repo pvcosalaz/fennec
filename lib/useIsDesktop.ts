@@ -28,9 +28,42 @@ export function useIsDesktop(): boolean {
   return useMediaQuery(DESKTOP_QUERY);
 }
 
-/** True when the desktop sidebar should collapse to icons only. */
+/** True when the WINDOW is too narrow for labels. Not a preference: below
+ *  this width there simply isn't room, so the toggle can't override it. */
 export function useSidebarCompact(): boolean {
   return useMediaQuery(SIDEBAR_COMPACT_QUERY);
+}
+
+const SIDEBAR_COLLAPSED_KEY = "fennec-sidebar-collapsed-v1";
+
+/**
+ * The producer's own choice: icons only, or icons with labels.
+ *
+ * Collapsed by DEFAULT, the way Supabase and Linear open (Paco 2026-08-02).
+ * A rail that starts wide spends screen on words you already know by their
+ * icon after the second session; a rail that starts narrow gives the canvas
+ * the room and costs one click on the rare occasion you need to read.
+ *
+ * Persisted, because a preference you have to re-set every launch isn't one.
+ * Starting from `true` also means the first paint matches the stored value
+ * for anyone who never toggled, so there's no expand-then-collapse flash.
+ */
+export function useSidebarCollapsed(): [boolean, (v: boolean) => void] {
+  const [collapsed, setCollapsed] = useState(true);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
+      if (stored !== null) setCollapsed(stored === "1");
+    } catch { /* private mode: keep the default */ }
+  }, []);
+
+  const update = (v: boolean) => {
+    setCollapsed(v);
+    try { localStorage.setItem(SIDEBAR_COLLAPSED_KEY, v ? "1" : "0"); } catch { /* ignore */ }
+  };
+
+  return [collapsed, update];
 }
 
 function useMediaQuery(query: string): boolean {

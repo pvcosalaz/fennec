@@ -5,7 +5,7 @@ import NotificationBell from "@/components/notifications/NotificationBell";
 import { getColorScheme } from "@/lib/fennecIdPalette";
 import { getNetworkContacts } from "@/lib/networkDb";
 import { fetchNotifications, type Notification } from "@/lib/notificationDb";
-import { useSidebarCompact } from "@/lib/useIsDesktop";
+import { useSidebarCompact, useSidebarCollapsed } from "@/lib/useIsDesktop";
 import {
   CANVAS_BG, RAIL_BG, RAIL_SHADOW, Grain, Atmosphere,
 } from "@/components/desktop/surfaces";
@@ -82,7 +82,13 @@ export default function DesktopShell({
 
   // Narrow window → icon-only sidebar. Keeps the desktop shell usable when the
   // window is dragged small, instead of falling back to the phone UI.
-  const compact = useSidebarCompact();
+  /* Two different reasons to be narrow, and they don't rank the same.
+     `tooNarrow` is physics: below 900px there's no room for labels, so the
+     toggle can't override it. `collapsed` is the producer's choice, which is
+     why the chevron only shows when there IS room to expand into. */
+  const tooNarrow = useSidebarCompact();
+  const [collapsed, setCollapsed] = useSidebarCollapsed();
+  const compact = tooNarrow || collapsed;
   const SIDEBAR_W = compact ? SIDEBAR_MINI : SIDEBAR_FULL;
 
   // ── collapsible rail (persisted) ──
@@ -131,7 +137,11 @@ export default function DesktopShell({
           boxShadow: RAIL_SHADOW,
           padding: compact ? "22px 8px 18px" : "22px 14px 18px",
           transform: immersive ? "translateX(-100%)" : "translateX(0)",
-          transition: slide,
+          // Width joins the transition so expanding travels with the content
+          // margin instead of snapping ahead of it. It's the one layout
+          // property worth animating here: the rail is `fixed`, so widening
+          // it doesn't reflow anything downstream.
+          transition: `${slide}, width .32s cubic-bezier(.22,1,.36,1), padding .32s cubic-bezier(.22,1,.36,1)`,
         }}
       >
         <div className={`flex items-baseline gap-0.5 pb-6 ${compact ? "justify-center px-0" : "px-2.5"}`}>
@@ -228,6 +238,29 @@ export default function DesktopShell({
               </div>
             )}
           </div>
+
+          {/* Expand / collapse. Only when the window can actually hold labels:
+              offering it below 900px would be a button that does nothing.
+              Same chevron language as the right rail's toggle, so both edges
+              of the shell behave the same way. */}
+          {!tooNarrow && (
+            <button
+              type="button"
+              onClick={() => setCollapsed(!collapsed)}
+              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              aria-expanded={!collapsed}
+              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              className={`mt-1 flex items-center rounded-[10px] py-2 text-[12px] font-medium text-zinc-600 transition hover:bg-white/[0.04] hover:text-zinc-300 ${
+                compact ? "justify-center px-0" : "gap-2 px-2.5"
+              }`}
+            >
+              <ChevronRight
+                className="h-[15px] w-[15px] shrink-0"
+                style={{ transform: collapsed ? "none" : "rotate(180deg)", transition: slide }}
+              />
+              {!compact && "Collapse"}
+            </button>
+          )}
         </div>
       </aside>
 
