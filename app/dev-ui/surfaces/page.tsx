@@ -53,7 +53,7 @@ function ShellMock({
                   right: "-14%", bottom: "-30%",
                   width: 620, aspectRatio: "1",
                   background:
-                    "radial-gradient(circle at 50% 55%, rgba(245,166,35,0.13), rgba(245,166,35,0.04) 42%, transparent 68%)",
+                    "radial-gradient(circle at 50% 55%, rgba(245,166,35,0.075), rgba(245,166,35,0.022) 42%, transparent 68%)",
                 }}
               />
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -62,7 +62,7 @@ function ShellMock({
                 alt=""
                 className="absolute"
                 style={{
-                  width: 580, height: "auto", right: "-8%", bottom: "-16%", opacity: 0.075,
+                  width: 580, height: "auto", right: "-8%", bottom: "-16%", opacity: 0.042,
                   filter: "brightness(0) saturate(100%) invert(72%) sepia(58%) saturate(1180%) hue-rotate(343deg) brightness(101%) contrast(96%)",
                 }}
               />
@@ -206,9 +206,8 @@ export default function SurfacesPreview() {
             Same layout, same content, same accent. Only the material changes.
           </p>
         </div>
-        <ShellMock variant="current" label="A · current, one flat value" />
-        <ShellMock variant="proposed" label="B · studio at night" />
-        <ShellMock variant="bolder" label="C · same, with a bolder rail" />
+        <ShellMock variant="current" label="Before · one flat value" />
+        <ShellMock variant="proposed" label="Shipped · studio at night, bolder rail" />
       </div>
     </div>
   );

@@ -6,6 +6,9 @@ import { getColorScheme } from "@/lib/fennecIdPalette";
 import { getNetworkContacts } from "@/lib/networkDb";
 import { fetchNotifications, type Notification } from "@/lib/notificationDb";
 import { useSidebarCompact } from "@/lib/useIsDesktop";
+import {
+  CANVAS_BG, RAIL_BG, RAIL_SHADOW, Grain, Atmosphere,
+} from "@/components/desktop/surfaces";
 import type { Profile } from "@/lib/communityTypes";
 
 /** "5m ago" / "2h ago" / "3d ago" — compact, mono-friendly */
@@ -110,15 +113,22 @@ export default function DesktopShell({
   const railHidden = railOff || immersive;
 
   return (
-    <div className="min-h-screen" style={{ background: "#0b0a08" }}>
+    <div className="min-h-screen" style={{ background: CANVAS_BG }}>
+      {/* Film grain over the whole shell: large gradients band on wide
+          displays, and the noise also makes rail and canvas read as one
+          material instead of two flat fills. */}
+      <Grain />
 
       {/* ── Sidebar ────────────────────────────────────────────── */}
       <aside
         className="fixed left-0 top-0 bottom-0 z-40 flex flex-col"
         style={{
           width: SIDEBAR_W,
-          borderRight: `1px solid ${HAIR}`,
-          background: "linear-gradient(180deg,#131116 0%,#0d0c0f 55%,#0b0a08 100%)",
+          /* The old gradient faded INTO the canvas value, so the rail
+             dissolved at the bottom. It's a panel now: lighter and cooler at
+             every height, with edge lighting instead of a border. */
+          background: RAIL_BG,
+          boxShadow: RAIL_SHADOW,
           padding: compact ? "22px 8px 18px" : "22px 14px 18px",
           transform: immersive ? "translateX(-100%)" : "translateX(0)",
           transition: slide,
@@ -237,19 +247,7 @@ export default function DesktopShell({
             like the landing's first screen. Barely-there so content wins.
             Hidden in immersive: the reel owns the whole surface. */}
         {!immersive && (
-          <div aria-hidden className="pointer-events-none fixed inset-0 z-0 overflow-hidden" style={{ left: SIDEBAR_W, right: railHidden ? 0 : RAIL_W, transition: "right .32s cubic-bezier(.22,1,.36,1)" }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/fennec-icon-transparent.png"
-              alt=""
-              className="absolute"
-              style={{
-                width: "min(120vh, 1100px)", height: "auto",
-                right: "-8%", bottom: "-14%",
-                opacity: 0.035, filter: "brightness(0) invert(1)",
-              }}
-            />
-          </div>
+          <Atmosphere inset={{ left: SIDEBAR_W, right: railHidden ? 0 : RAIL_W }} />
         )}
         {immersive ? (
           <div className="relative z-10 w-full flex-1">{children}</div>
@@ -310,8 +308,11 @@ export default function DesktopShell({
         className="fixed right-0 top-0 z-[60] h-screen overflow-y-auto"
         style={{
           width: RAIL_W,
-          background: "linear-gradient(180deg,#12101a 0%,#0d0c11 60%,#0b0a08 100%)",
-          borderLeft: `1px solid ${HAIR}`,
+          // Same panel material as the left rail: they're a matched pair
+          // framing the canvas, so one fading out while the other doesn't
+          // would read as a mistake.
+          background: RAIL_BG,
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.07), inset 1px 0 0 rgba(255,255,255,0.05), -18px 0 48px -32px rgba(0,0,0,0.9)",
           padding: "22px 18px",
           transform: railHidden ? "translateX(100%)" : "translateX(0)",
           transition: slide,

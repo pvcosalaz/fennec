@@ -37,9 +37,13 @@ export const CANVAS_BG = [
 ].join(",");
 
 /** The rail. Lighter and cooler than the canvas at EVERY height, so the
- *  boundary never dissolves the way the old fade-to-black one did. */
+ *  boundary never dissolves the way the old fade-to-black one did.
+ *
+ *  Paco's reference had a WHITE rail against dark content. White would fight
+ *  Fennec's identity, but the same read comes from pushing the panel well up
+ *  the value scale and cooling it: slate bolted onto a warm room. */
 export const RAIL_BG =
-  "linear-gradient(180deg, #1b1a23 0%, #16151d 46%, #131219 100%)";
+  "linear-gradient(180deg, #26252f 0%, #201f29 46%, #1b1a23 100%)";
 
 /** Edge lighting is what sells metal: lit top, dark underside. */
 export const RAIL_SHADOW = [
@@ -89,6 +93,10 @@ export function Grain({ opacity = 0.05 }: { opacity?: number }) {
  *
  * So: keep the silhouette, put a warm bloom behind it, and let it be amber
  * instead of grey. `inset` is the shell's content frame (sidebar/rail).
+ *
+ * Dialled down from the first pass: at 7.5% it started competing with the
+ * numbers sitting on top of it (Paco 2026-08-02). Atmosphere has to be felt
+ * before it's noticed — the moment you read it as a picture, it's too loud.
  */
 export function Atmosphere({
   inset,
@@ -112,7 +120,7 @@ export function Atmosphere({
           width: "min(120vh, 1180px)",
           aspectRatio: "1",
           background:
-            "radial-gradient(circle at 50% 55%, rgba(245,166,35,0.13), rgba(245,166,35,0.04) 42%, transparent 68%)",
+            "radial-gradient(circle at 50% 55%, rgba(245,166,35,0.075), rgba(245,166,35,0.022) 42%, transparent 68%)",
           opacity: intensity,
         }}
       />
@@ -126,7 +134,7 @@ export function Atmosphere({
           height: "auto",
           right: "-8%",
           bottom: "-14%",
-          opacity: 0.075 * intensity,
+          opacity: 0.042 * intensity,
           // Amber, not the old brightness(0) invert(1) grey.
           filter: "brightness(0) saturate(100%) invert(72%) sepia(58%) saturate(1180%) hue-rotate(343deg) brightness(101%) contrast(96%)",
         }}

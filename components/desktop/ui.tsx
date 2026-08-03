@@ -1,5 +1,7 @@
 "use client";
 
+import { TILE_BG, TILE_SHADOW } from "@/components/desktop/surfaces";
+
 /* ═══════════════════════════════════════════════════════════════
    DESKTOP UI PRIMITIVES — one visual language for every module.
    Extracted from the dashboard's design pass (2026-07-31) so
@@ -20,9 +22,13 @@ export const ACCENT = "#f5a623";
 /** The shared surface: a top highlight + tinted floor shadow. Spread it onto
  *  any panel that used a flat `border-white/[0.07] bg-white/[0.02]` box so
  *  every module reads as the same material. */
+/* Brushed, not glassy: a lit top edge and a dark underside are what make a
+   panel read as a physical object rather than a lighter rectangle. Matches
+   the rails' edge lighting so the whole shell is one material
+   (Paco 2026-08-02). */
 export const SURFACE: React.CSSProperties = {
-  background: "linear-gradient(180deg,rgba(255,255,255,0.025),rgba(255,255,255,0.008))",
-  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05), 0 14px 30px -20px rgba(0,0,0,0.6)",
+  background: TILE_BG,
+  boxShadow: TILE_SHADOW,
 };
 
 /** Staggered entrance. Drop <RiseStyle/> once per module, then put
@@ -62,10 +68,9 @@ export function Tile({ label, children, action, className, padded = true }: {
   return (
     <div
       className={`relative overflow-hidden rounded-2xl ${padded ? "px-4 pb-3 pt-3.5" : ""} ${className ?? ""}`}
-      style={{
-        background: "linear-gradient(180deg,rgba(255,255,255,0.025),rgba(255,255,255,0.008))",
-        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05), 0 14px 30px -20px rgba(0,0,0,0.6)",
-      }}
+      // Tile had its own copy of the old values, so it drifted the moment
+      // SURFACE changed. One token, one material.
+      style={SURFACE}
     >
       {label && (
         <div className={`mb-1.5 flex items-center justify-between ${padded ? "" : "px-4 pt-3.5"}`}>
