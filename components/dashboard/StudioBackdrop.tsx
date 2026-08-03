@@ -36,11 +36,20 @@ function readError(e: unknown): string {
       : typeof o.error === "string" ? o.error
       : null;
     if (msg) {
-      // The two failures that actually happen, translated into the fix.
-      if (/column .*studio_photo|schema cache/i.test(msg)) {
-        return "The database is missing the studio photo columns — run the migration.";
+      /* Translated into the actual fix, because these three are the ones that
+         really happen and their raw wording points nowhere useful.
+
+         The schema-cache one is its own case on purpose: PostgREST keeps a
+         cached column list, so a migration that HAS run still fails until it
+         reloads. Telling Paco to "run the migration" there sent him to redo
+         something already done (2026-08-02). */
+      if (/schema cache/i.test(msg)) {
+        return "Supabase hasn't picked up the new columns yet. Reload its schema and retry.";
       }
-      if (/row-level security|not authorized|permission/i.test(msg)) {
+      if (/column .*studio_photo|does not exist/i.test(msg)) {
+        return "The studio photo columns are missing — run the migration.";
+      }
+      if (/row-level security|not authorized|permission|denied/i.test(msg)) {
         return "Storage rejected the upload (permissions).";
       }
       return msg;
