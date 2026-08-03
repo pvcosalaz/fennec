@@ -79,10 +79,17 @@ export default function UserProfilePage({ userId, currentProfile, onBack, onOpen
           Back
         </button>
 
-        {/* Banner — full bleed, no side rounding */}
+        {/* Banner — full bleed, no side rounding.
+
+            Cae de vuelta a la foto del estudio. Quien ya subio su cuarto en el
+            dashboard no deberia tener que subir OTRA imagen aqui para que su
+            perfil deje de verse vacio: es la misma foto y el mismo cuarto
+            (Paco 2026-08-03). Va como respaldo y no como copia a la columna
+            banner_url a proposito — asi cambiar la foto del estudio actualiza
+            el perfil solo, y quien si eligio un banner distinto lo conserva. */}
         <div className="w-full h-44 overflow-hidden bg-zinc-900 rounded-xl">
-          {profile.banner_url
-            ? <img src={profile.banner_url} className="w-full h-full object-cover" alt="" />
+          {(profile.banner_url ?? profile.studio_photo_url)
+            ? <img src={profile.banner_url ?? profile.studio_photo_url ?? ""} className="w-full h-full object-cover" alt="" />
             : <div className="w-full h-full bg-gradient-to-br from-zinc-900 to-zinc-800" />}
         </div>
 

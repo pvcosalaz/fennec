@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Rss,
   ArrowUpRight,
@@ -238,10 +238,15 @@ function NewsPanel({ onSelect }: { onSelect: (item: NewsItem) => void }) {
 
 // ─── Community panel (feed — auth already handled at app level) ───────────────
 
-function CommunityPanel({ profile, openComposerWith, onComposerConsumed }: { profile: Profile; openComposerWith?: { url: string; name: string } | null; onComposerConsumed?: () => void }) {
-  const [view, setView]                   = useState<CommunityView>("feed");
+function CommunityPanel({ profile, openComposerWith, onComposerConsumed, initialProfileUserId, onViewChange }: { profile: Profile; openComposerWith?: { url: string; name: string } | null; onComposerConsumed?: () => void; initialProfileUserId?: string | null; onViewChange?: (view: CommunityView) => void }) {
+  const [view, setView]                   = useState<CommunityView>(initialProfileUserId ? "profile" : "feed");
   const [activePost, setActivePost]       = useState<Post | null>(null);
-  const [profileUserId, setProfileUserId] = useState<string | null>(null);
+  const [profileUserId, setProfileUserId] = useState<string | null>(initialProfileUserId ?? null);
+
+  /* El padre necesita saber en que vista estamos para poder retirar el panel de
+     noticias cuando alguien esta viendo un perfil (Paco 2026-08-03). Va por
+     callback y no subiendo TODO el estado para no reescribir el modulo entero. */
+  useEffect(() => { onViewChange?.(view); }, [view, onViewChange]);
 
   function openProfile(userId: string) {
     setProfileUserId(userId);
@@ -284,10 +289,13 @@ function CommunityPanel({ profile, openComposerWith, onComposerConsumed }: { pro
 
 // ─── Root component ───────────────────────────────────────────────────────────
 
-export default function Community({ profile, openComposerWith, onComposerConsumed }: { profile: Profile; openComposerWith?: { url: string; name: string } | null; onComposerConsumed?: () => void }) {
+export default function Community({ profile, openComposerWith, onComposerConsumed, initialProfileUserId }: { profile: Profile; openComposerWith?: { url: string; name: string } | null; onComposerConsumed?: () => void; initialProfileUserId?: string | null }) {
   const isDesktop = useIsDesktop();
   const [fennecTab, setFennecTab] = useState<FennecTab>("community");
   const [selected, setSelected] = useState<NewsItem | null>(null);
+  const [panelView, setPanelView] = useState<CommunityView>(initialProfileUserId ? "profile" : "feed");
+  const onPanelView = useCallback((v: CommunityView) => setPanelView(v), []);
+  const enPerfil = panelView === "profile";
 
   // Article reader — full screen within the module
   if (selected) {
@@ -303,14 +311,28 @@ export default function Community({ profile, openComposerWith, onComposerConsume
   // X-style header/tabs stay untouched below 1024px. ──
   if (isDesktop) {
     return (
-      <div className="grid items-start gap-10" style={{ gridTemplateColumns: "minmax(0,1.5fr) minmax(300px,1fr)" }}>
+      <div
+        className="grid items-start gap-10"
+        /* Un perfil se lee solo. Con las noticias al lado, entrar a tu propio
+           perfil te dejaba la mitad de la pantalla hablando de otra cosa y la
+           columna del perfil estrujada (Paco 2026-08-03). Al abrir un perfil la
+           rejilla pasa a una sola columna y el perfil se queda con todo el
+           ancho; al volver al feed las noticias regresan. */
+        style={{ gridTemplateColumns: enPerfil ? "minmax(0,1fr)" : "minmax(0,1.5fr) minmax(300px,1fr)" }}
+      >
         {/* feed — the main column. Header matches the canonical desktop
             page-title row (21px bold) used by Dashboard/Business/Marketing. */}
         <div>
           <div className="mb-6 flex items-center justify-between">
             <h1 className="text-[21px] font-bold tracking-tight text-white">Community</h1>
           </div>
-          <CommunityPanel profile={profile} openComposerWith={openComposerWith} onComposerConsumed={onComposerConsumed} />
+          <CommunityPanel
+            profile={profile}
+            openComposerWith={openComposerWith}
+            onComposerConsumed={onComposerConsumed}
+            initialProfileUserId={initialProfileUserId}
+            onViewChange={onPanelView}
+          />
         </div>
 
         {/* industry news — pinned to the viewport (sticky) with its own
@@ -318,12 +340,14 @@ export default function Community({ profile, openComposerWith, onComposerConsume
             scrolling over the feed never moves news and vice versa. The
             top offset matches DesktopShell's py-6 so it sits exactly
             where it already rests before any scrolling happens. */}
-        <aside
-          className="overflow-y-auto border-l border-white/[0.05] pl-8"
-          style={{ position: "sticky", top: 32, maxHeight: "calc(100vh - 64px)" }}
-        >
-          <NewsPanel onSelect={setSelected} />
-        </aside>
+        {!enPerfil && (
+          <aside
+            className="overflow-y-auto border-l border-white/[0.05] pl-8"
+            style={{ position: "sticky", top: 32, maxHeight: "calc(100vh - 64px)" }}
+          >
+            <NewsPanel onSelect={setSelected} />
+          </aside>
+        )}
       </div>
     );
   }
@@ -384,7 +408,7 @@ export default function Community({ profile, openComposerWith, onComposerConsume
       {/* ── Panels ───────────────────────────────────────── */}
       <div className="px-4 pt-4">
         {fennecTab === "news"      && <NewsPanel onSelect={setSelected} />}
-        {fennecTab === "community" && <CommunityPanel profile={profile} openComposerWith={openComposerWith} onComposerConsumed={onComposerConsumed} />}
+        {fennecTab === "community" && <CommunityPanel profile={profile} openComposerWith={openComposerWith} onComposerConsumed={onComposerConsumed} initialProfileUserId={initialProfileUserId} onViewChange={onPanelView} />}
       </div>
 
     </div>

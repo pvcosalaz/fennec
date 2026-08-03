@@ -509,6 +509,10 @@ export default function PricingCalculator() {
   };
 
   const [pendingAudio, setPendingAudio] = useState<{ url: string; name: string } | null>(null);
+  /* Perfil de comunidad con el que abrir el modulo. Solo lo pone la foto del
+     dock; se limpia al navegar a otro lado para que volver a Community por la
+     barra caiga en el feed y no en tu propio perfil. */
+  const [communityProfileId, setCommunityProfileId] = useState<string | null>(null);
   const [settingsSection, setSettingsSection] = useState<SettingsSection>("main");
   const [showSetup, setShowSetup] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
@@ -1260,11 +1264,16 @@ export default function PricingCalculator() {
         ) : activeTab === "ideas" ? (
           <AudioModule userId={authUser.id} isPro={profile?.is_pro ?? false} onSheetChange={setNavHidden} />
         ) : activeTab === "noticias" ? (
-          <div key="noticias">
+          /* La key lleva el id del perfil a proposito: initialProfileUserId
+             solo se lee al montar, y si ya estabas en Community hacer click en
+             tu foto del dock no habria hecho nada. Cambiar la key remonta el
+             modulo y aterriza en el perfil. */
+          <div key={`noticias-${communityProfileId ?? ""}`}>
             <Community
               profile={profile}
               openComposerWith={pendingAudio}
               onComposerConsumed={() => setPendingAudio(null)}
+              initialProfileUserId={communityProfileId}
             />
           </div>
         ) : null;
@@ -1363,9 +1372,14 @@ export default function PricingCalculator() {
           activeTab={activeTab}
           networkActive={activeTab === "pricing" && businessView === "network"}
           settingsOpen={showSettings}
-          onNavigate={(tab) => { setActiveTab(tab); setBusinessView("hub"); setShowSettings(false); setSettingsSection("main"); }}
+          onNavigate={(tab) => { setActiveTab(tab); setBusinessView("hub"); setShowSettings(false); setSettingsSection("main"); setCommunityProfileId(null); }}
           onOpenNetwork={() => { setActiveTab("pricing"); setBusinessView("network"); setShowSettings(false); }}
           onOpenSettings={() => { void track("settings_open"); setShowSettings(true); }}
+          onOpenMyProfile={() => {
+            setActiveTab("noticias");
+            setShowSettings(false);
+            setCommunityProfileId(authUser.id);
+          }}
         >
           {moduleContent}
         </DesktopShell>

@@ -59,6 +59,7 @@ export default function DesktopShell({
   onNavigate,
   onOpenNetwork,
   onOpenSettings,
+  onOpenMyProfile,
   children,
 }: {
   profile: Profile;
@@ -69,6 +70,7 @@ export default function DesktopShell({
   onNavigate: (tab: DesktopTab) => void;
   onOpenNetwork: () => void;
   onOpenSettings: () => void;
+  onOpenMyProfile: () => void;
   children: React.ReactNode;
 }) {
   const scheme = getColorScheme(profile.color_id ?? null);
@@ -338,10 +340,18 @@ export default function DesktopShell({
 
           {/* mini profile — on-brand chrome; the producer's color belongs to
               the FennecIdCard only (avatar initials keep it: it's their photo) */}
-          <div
-            className={compact ? "grid place-items-center py-1" : "rounded-[14px] p-3"}
+          {/* Tu cara abre TU perfil de comunidad, no los ajustes: es la unica
+              foto de la app que ya es tu retrato, y hasta hoy no llevaba a
+              ningun lado — el perfil solo se alcanzaba tocando tu nombre en un
+              post propio. Los ajustes siguen en el avatar de arriba a la
+              derecha (Paco 2026-08-03). */}
+          <button
+            type="button"
+            onClick={onOpenMyProfile}
+            aria-label={`${name} — view my community profile`}
+            title={compact ? `${name} — my profile` : "My community profile"}
+            className={`w-full text-left transition hover:brightness-110 active:scale-[0.98] ${compact ? "grid place-items-center py-1" : "rounded-[14px] p-3"}`}
             style={compact ? undefined : { border: `1px solid ${HAIR}`, background: "linear-gradient(150deg,#17151c,#100f13)" }}
-            title={compact ? name : undefined}
           >
             <div className="flex items-center gap-2.5">
               {profile.avatar_url ? (
@@ -365,7 +375,7 @@ export default function DesktopShell({
                 <b className="text-[16px] text-accent">{profile.fennec_db_score}</b>
               </div>
             )}
-          </div>
+          </button>
 
         </div>
       </aside>

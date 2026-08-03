@@ -97,6 +97,7 @@ export default function ShellDevPage() {
       onNavigate={setTab}
       onOpenNetwork={() => {}}
       onOpenSettings={() => {}}
+      onOpenMyProfile={() => {}}
     >
       {tool === "settings" ? (
         <SettingsModule
