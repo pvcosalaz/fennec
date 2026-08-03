@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatMoney } from "@/lib/currency";
 import FennecIdCard from "@/components/network/FennecIdCard";
 import type { FennecIdColor } from "@/lib/fennecIdPalette";
@@ -29,6 +29,18 @@ function fmtCount(n: number): string {
 // Same soundwave as the mobile Fennec ID card (fennec-eq-bar keyframe in
 // globals.css), just a taller set of bars for the bigger desktop hero.
 const EQ_HEIGHTS = [10, 18, 8, 22, 12, 26, 9, 16, 22, 11, 19, 8];
+
+/** Alto de la tarjeta en la rejilla. El ancho lo saca del aspecto 1.586. */
+const ID_CARD_H = 216;
+
+/* El mismo resorte que usa la app movil al abrir el Fennec ID: amortiguado a
+   ζ=0.74, o sea que sube, se pasa apenas 3% y se acomoda. Se porta tal cual
+   para que abrir la tarjeta se sienta igual en los dos lados (Paco 2026-08-03).
+   Ojo: NO es un FLIP que interpola el rectangulo. En movil probaron eso y lo
+   descartaron porque la tarjeta colapsada es ancha-y-baja y la expandida es
+   mas alta: morfear entre esas dos proporciones escala x e y por separado y
+   deforma visiblemente. Escala uniforme + fundido nunca distorsiona. */
+const OPEN_SPRING = "linear(0, 0.0371, 0.1278, 0.2469, 0.3762, 0.5032, 0.6199, 0.7218, 0.8071, 0.8757, 0.9288, 0.9681, 0.9958, 1.014, 1.0249, 1.0302, 1.0315, 1.0302, 1.0273, 1.0235, 1.0194, 1.0154, 1.0118, 1.0086, 1.0059, 1.0038, 1.0022, 1.0009, 1.0001, 1)";
 
 type ContentTask = { title: string; date: string; status: "pending" | "done" };
 
@@ -103,6 +115,42 @@ export default function DashboardDesktop({
   // identity, not the app's. All other accents stay on-brand amber.
   const accent = "#f5a623";
   const nextPost = useNextPost();
+
+  /* Abrir la tarjeta. `cardOpen` monta la copia grande, `cardIn` dispara la
+     transicion en el frame SIGUIENTE (doble rAF) para que el navegador alcance
+     a pintar el estado inicial: sin eso la transicion no corre y aparece de
+     golpe. `cardClosing` deja que la tarjeta chica reaparezca cruzandose con la
+     grande que se encoge, en vez de parpadear. */
+  const cardRef = useRef<HTMLButtonElement | null>(null);
+  const [cardOpen, setCardOpen] = useState(false);
+  const [cardIn, setCardIn] = useState(false);
+  const [cardClosing, setCardClosing] = useState(false);
+
+  function openCard() {
+    setCardClosing(false);
+    setCardOpen(true);
+    setCardIn(false);
+    /* Doble rAF para que el navegador alcance a pintar el estado inicial, MAS
+       un temporizador de respaldo: el rAF se estrangula cuando la pestaña no
+       esta al frente, y sin el respaldo la tarjeta se queda invisible en su
+       estado de entrada (visto midiendo: opacity 0 y scale .92 congelados). */
+    let disparado = false;
+    const encender = () => { if (!disparado) { disparado = true; setCardIn(true); } };
+    requestAnimationFrame(() => requestAnimationFrame(encender));
+    setTimeout(encender, 60);
+  }
+  function closeCard() {
+    setCardClosing(true);
+    setCardIn(false);
+    setTimeout(() => { setCardOpen(false); setCardClosing(false); }, 280);
+  }
+  // Escape cierra: es un overlay, y cerrar con teclado es lo que se espera.
+  useEffect(() => {
+    if (!cardOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") closeCard(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [cardOpen]);
 
   /* ── Spacing ──
      The vertical scale used to run 24 → 0 → 16 → 20 between blocks. Arbitrary,
@@ -221,31 +269,61 @@ export default function DashboardDesktop({
       >
 
       {/* ── Fila 1: quién eres, y la lectura que produce ── */}
-      <div className="dd-rise min-w-0" style={{ animationDelay: ".06s" }}>
-        <FennecIdCard
-          firstName={card.firstName} lastName={card.lastName}
-          role={card.role || "Producer"} country={card.country}
-          genres={card.genres} fennecDb={fennecDb} colorScheme={cardColorScheme}
-          initials={card.initials} avatarUrl={card.avatarUrl}
-          instagram={card.instagram} spotify={card.spotify} youtube={card.youtube}
-          collectionNumber={card.collectionNumber} smallDb
-        />
+      <div className="dd-rise flex min-w-0 items-stretch gap-4" style={{ animationDelay: ".06s" }}>
+        {/* PROPORCION DE IDENTIFICACION.
+            La tarjeta ocupaba el ancho completo de la columna: 684x195, o sea
+            3.5:1. Una identificacion real (ID-1, la de una tarjeta bancaria) es
+            1.586:1, y por eso no se leia como tarjeta sino como banner estirado
+            (Paco 2026-08-03). Con el aspecto correcto vuelve a ser un objeto que
+            reconoces, y el hueco que deja se lo lleva el dB, que estaba en la
+            otra columna. */}
+        <button
+          type="button"
+          onClick={openCard}
+          ref={cardRef}
+          aria-label="Open my Fennec ID"
+          className="group relative flex-shrink-0 text-left transition active:scale-[0.99]"
+          style={{
+            aspectRatio: "1.586 / 1",
+            height: ID_CARD_H,
+            opacity: cardOpen && !cardClosing ? 0 : 1,
+            transition: cardClosing ? "opacity .32s ease" : "opacity .1s ease, transform .15s cubic-bezier(.16,1,.3,1)",
+            pointerEvents: cardOpen ? "none" : "auto",
+          }}
+        >
+          <FennecIdCard
+            firstName={card.firstName} lastName={card.lastName}
+            role={card.role || "Producer"} country={card.country}
+            genres={card.genres} fennecDb={fennecDb} colorScheme={cardColorScheme}
+            initials={card.initials} avatarUrl={card.avatarUrl}
+            instagram={card.instagram} spotify={card.spotify} youtube={card.youtube}
+            collectionNumber={card.collectionNumber} smallDb
+          />
+        </button>
+
+        <div className="min-w-0 flex-1">
+          <Instrument
+            label="Fennec dB"
+            value={String(fennecDb)}
+            size={88}
+            footer={
+              <div className="relative flex items-end gap-[3px]" style={{ height: 16, marginTop: 6 }}>
+                {EQ_HEIGHTS.map((h, i) => (
+                  <span key={i} className="fennec-eq-bar" style={{ height: h, width: 3, background: accent, animationDelay: `${i * 0.15}s` }} />
+                ))}
+              </div>
+            }
+          />
+        </div>
       </div>
 
+      {/* Audience sube a esta fila: el dB dejo libre la celda derecha. */}
       <div className="dd-rise" style={{ animationDelay: ".09s" }}>
-        <Instrument
-          label="Fennec dB"
-          value={String(fennecDb)}
-          /* 88: emparejado a la altura de la tarjeta de identidad, el panel da
-             para un número mucho más grande, y es EL número de la pantalla. */
-          size={88}
-          footer={
-            <div className="relative flex items-end gap-[3px]" style={{ height: 16, marginTop: 6 }}>
-              {EQ_HEIGHTS.map((h, i) => (
-                <span key={i} className="fennec-eq-bar" style={{ height: h, width: 3, background: accent, animationDelay: `${i * 0.15}s` }} />
-              ))}
-            </div>
-          }
+        <SocialMini
+          igFollowers={igFollowers}
+          ttFollowers={ttFollowers}
+          ytSubs={ytSubs}
+          onConnect={onOpenProfileSettings}
         />
       </div>
 
@@ -263,28 +341,10 @@ export default function DashboardDesktop({
         </Tile>
       </div>
 
-      <div className="dd-rise" style={{ animationDelay: ".15s" }}>
-        <SocialMini
-          igFollowers={igFollowers}
-          ttFollowers={ttFollowers}
-          ytSubs={ytSubs}
-          onConnect={onOpenProfileSettings}
-        />
-      </div>
 
-      {/* ── Fila 3: la evidencia, y lo que toca hoy ── */}
-      <div className="dd-rise flex min-h-0 min-w-0 flex-col" style={{ animationDelay: ".18s" }}>
-        {/* SIN cellSize: la tarjeta tiene dos modos y el flexible es el
-            correcto aquí. Con celdas fijas de 10px el año medía 673px de ancho
-            (52 columnas × 10 + 51 huecos × 3) dentro de un contenedor de 650, y
-            se salía por la derecha (Paco 2026-08-03, medido: desborde 23px).
-            Cualquier número fijo vuelve a romperse en cuanto cambia el ancho de
-            la ventana. En modo flexible las celdas son flex-1 con
-            aspect-square, así que caben SIEMPRE, sea cual sea el ancho. */}
-        <ContributionsCard data={contributions ?? null} accent="#f5a623" weeks={52} />
-      </div>
-
-      <div className="dd-rise flex min-h-0 flex-col" style={{ animationDelay: ".21s" }}>
+      {/* Today comparte fila con Music & Business: las dos son "lo que está
+          pasando ahora", y asi Contributions queda libre para ocupar el ancho. */}
+      <div className="dd-rise flex min-h-0 flex-col" style={{ animationDelay: ".15s" }}>
         <Tile label="Today on Fennec" className="h-full">
           <div className="flex flex-col divide-y divide-white/[0.05]">
             <button type="button" onClick={() => onNavigate?.("ideas")} className="group flex items-center justify-between gap-3 py-[5px] text-left transition first:pt-0">
@@ -315,6 +375,20 @@ export default function DashboardDesktop({
         </Tile>
       </div>
 
+      {/* ── Fila 3: la evidencia, a lo ancho ──
+          52 semanas necesitan ancho. En la columna de 320px los meses no se
+          alcanzaban a leer, asi que ocupa las dos columnas. */}
+      <div className="dd-rise col-span-2 flex min-h-0 min-w-0 flex-col" style={{ animationDelay: ".18s" }}>
+        {/* SIN cellSize: la tarjeta tiene dos modos y el flexible es el
+            correcto aquí. Con celdas fijas de 10px el año medía 673px de ancho
+            (52 columnas × 10 + 51 huecos × 3) dentro de un contenedor de 650, y
+            se salía por la derecha (Paco 2026-08-03, medido: desborde 23px).
+            Cualquier número fijo vuelve a romperse en cuanto cambia el ancho de
+            la ventana. En modo flexible las celdas son flex-1 con
+            aspect-square, así que caben SIEMPRE, sea cual sea el ancho. */}
+        <ContributionsCard data={contributions ?? null} accent="#f5a623" weeks={52} />
+      </div>
+
       {/* ── Fila 4: la industria, a lo ancho ── */}
       <div className="dd-rise col-span-2 flex min-h-0 min-w-0 flex-col" style={{ animationDelay: ".24s" }}>
         {/* Cuatro, no cinco: cinco tarjetas se leian como tira de contactos y
@@ -323,6 +397,47 @@ export default function DashboardDesktop({
         <IndustryNews count={4} onOpen={() => onNavigate?.("noticias")} />
       </div>
       </div>{/* /bento */}
+
+      {/* ── La tarjeta, abierta ── */}
+      {cardOpen && (
+        <>
+          <div
+            onClick={closeCard}
+            className="fixed inset-0 z-[99]"
+            style={{
+              background: "rgba(0,0,0,0.72)",
+              backdropFilter: "blur(14px)",
+              WebkitBackdropFilter: "blur(14px)",
+              opacity: cardIn ? 1 : 0,
+              transition: "opacity .3s ease",
+            }}
+          />
+          <div
+            className="fixed left-1/2 top-1/2 z-[100]"
+            style={{
+              width: 420,
+              marginLeft: -210,
+              marginTop: -170,
+              opacity: cardIn ? 1 : 0,
+              transform: cardIn ? "translateY(0) scale(1)" : "translateY(14px) scale(0.92)",
+              transformOrigin: "center center",
+              transition: cardIn
+                ? `transform .5s ${OPEN_SPRING}, opacity .28s ease-out`
+                : "transform .26s cubic-bezier(.3,0,.66,1), opacity .2s ease-in",
+              willChange: "transform, opacity",
+            }}
+          >
+            <FennecIdCard
+              firstName={card.firstName} lastName={card.lastName}
+              role={card.role || "Producer"} country={card.country}
+              genres={card.genres} fennecDb={fennecDb} colorScheme={cardColorScheme}
+              initials={card.initials} avatarUrl={card.avatarUrl}
+              instagram={card.instagram} spotify={card.spotify} youtube={card.youtube}
+              collectionNumber={card.collectionNumber}
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 }
