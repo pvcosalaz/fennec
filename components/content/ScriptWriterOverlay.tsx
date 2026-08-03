@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, Check } from "lucide-react";
+import { Check } from "lucide-react";
+import ToolPage from "./ToolPage";
 
 type VideoRef = {
   title: string;
@@ -16,9 +17,10 @@ type Props = {
   videoRef: VideoRef;
   onSave: (title: string, script: string) => void;
   onClose: () => void;
+  isDesktop?: boolean;
 };
 
-export default function ScriptWriterOverlay({ videoRef, onSave, onClose }: Props) {
+export default function ScriptWriterOverlay({ videoRef, onSave, onClose, isDesktop = false }: Props) {
   const [title,  setTitle]  = useState("");
   const [script, setScript] = useState("");
   const [saved,  setSaved]  = useState(false);
@@ -32,39 +34,25 @@ export default function ScriptWriterOverlay({ videoRef, onSave, onClose }: Props
   }
 
   return (
-    // z-[130]: full-screen takeover must sit above the bottom nav (whose
-    // backdrop-blur paints over plain z-50), or the Save button and header
-    // get clipped behind it. Same fix as ScriptDetailOverlay.
-    <div className="fixed inset-0 z-[130] bg-zinc-950 flex flex-col overflow-hidden">
-
-      {/* ── Header ── */}
-      <div className="flex items-center gap-3 px-4 pt-12 pb-4 border-b border-white/5 shrink-0">
-        <button
-          onClick={onClose}
-          className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 hover:text-white transition"
-        >
-          <ArrowLeft size={18} />
-        </button>
-        <div className="flex-1">
-          <p className="text-xs text-zinc-500 uppercase tracking-widest">Write Script</p>
+    <ToolPage
+      isDesktop={isDesktop}
+      eyebrow="Write script"
+      onBack={onClose}
+      actions={saved ? (
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent/20">
+          <Check size={16} className="text-accent" />
         </div>
-        {saved ? (
-          <div className="h-9 w-9 rounded-xl bg-accent/20 flex items-center justify-center">
-            <Check size={16} className="text-accent" />
-          </div>
-        ) : (
-          <button
-            onClick={handleSave}
-            disabled={!title.trim()}
-            className="px-4 py-2 rounded-xl bg-accent text-black text-sm font-bold disabled:opacity-30 transition"
-          >
-            Save
-          </button>
-        )}
-      </div>
-
-      <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
-
+      ) : (
+        <button
+          onClick={handleSave}
+          disabled={!title.trim()}
+          className="rounded-xl bg-accent px-4 py-2 text-sm font-bold text-black transition disabled:opacity-30"
+        >
+          Save
+        </button>
+      )}
+    >
+      <>
         {/* ── Reference card ── */}
         <div className="rounded-2xl overflow-hidden border border-white/10">
           {/* Thumbnail strip — video reference */}
@@ -87,14 +75,17 @@ export default function ScriptWriterOverlay({ videoRef, onSave, onClose }: Props
             </div>
           )}
 
-          {/* Angle */}
-          <div className="bg-amber-400/8 px-4 py-3 space-y-2 border-t border-amber-400/15">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-amber-400">
-              Your angle
-            </p>
-            <p className="text-sm text-white leading-relaxed">{videoRef.angle}</p>
-          </div>
-
+          {/* El ángulo solo existe cuando el guion viene del Lab o de Inspire.
+              Desde una Quick Idea no hay, y el bloque ámbar salía vacío con su
+              rótulo colgando (Paco 2026-08-02). */}
+          {videoRef.angle?.trim() && (
+            <div className="bg-amber-400/8 px-4 py-3 space-y-2 border-t border-amber-400/15">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-amber-400">
+                Your angle
+              </p>
+              <p className="text-sm text-white leading-relaxed">{videoRef.angle}</p>
+            </div>
+          )}
         </div>
 
         {/* ── Divider ── */}
@@ -112,7 +103,7 @@ export default function ScriptWriterOverlay({ videoRef, onSave, onClose }: Props
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="What's your content idea?"
-            className="w-full h-12 rounded-2xl border border-white/10 bg-zinc-900 px-4 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-purple-400/50 transition"
+            className="w-full h-12 rounded-2xl border border-white/10 bg-black/25 px-4 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-accent/50 transition"
             autoFocus
           />
         </div>
@@ -125,7 +116,7 @@ export default function ScriptWriterOverlay({ videoRef, onSave, onClose }: Props
             onChange={(e) => setScript(e.target.value)}
             placeholder={`Use the angle above as your starting point.\n\nWrite your hook, structure, and key points here...`}
             rows={10}
-            className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-purple-400/50 transition resize-none leading-relaxed"
+            className="w-full rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-accent/50 transition resize-none leading-relaxed"
           />
         </div>
 
@@ -142,8 +133,7 @@ export default function ScriptWriterOverlay({ videoRef, onSave, onClose }: Props
             Open reference →
           </a>
         )}
-
-      </div>
-    </div>
+      </>
+    </ToolPage>
   );
 }

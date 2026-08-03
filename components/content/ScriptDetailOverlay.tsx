@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, Calendar, Trash2, Pencil, Check, MonitorPlay } from "lucide-react";
+import { Calendar, Trash2, Pencil, Check, MonitorPlay } from "lucide-react";
 import type { Brief } from "@/lib/contentData";
 import Teleprompter from "./Teleprompter";
+import ToolPage from "./ToolPage";
 
 type ContentTask = { id: string; title: string; date: string; source: string };
 
@@ -14,9 +15,10 @@ type Props = {
   onSchedule: (title: string, notes?: string) => void;
   onUpdate: (id: string, title: string, script: string, newDate?: string) => void;
   scheduledTask: ContentTask | null;
+  isDesktop?: boolean;
 };
 
-export default function ScriptDetailOverlay({ brief, onClose, onDelete, onSchedule, onUpdate, scheduledTask }: Props) {
+export default function ScriptDetailOverlay({ brief, onClose, onDelete, onSchedule, onUpdate, scheduledTask, isDesktop = false }: Props) {
   const [editing, setEditing] = useState(false);
   const [title,   setTitle]   = useState(brief.title);
   const [script,  setScript]  = useState(brief.script ?? "");
@@ -32,60 +34,61 @@ export default function ScriptDetailOverlay({ brief, onClose, onDelete, onSchedu
   }
 
   return (
-    // z-[130]: this is a full-screen takeover, so it must sit ABOVE the
-    // bottom nav (its backdrop-blur paints over plain z-50). The nested
-    // Teleprompter inherits this stacking context, so lifting the overlay
-    // also lifts its controls above the nav — otherwise Play sits behind
-    // the nav and the teleprompter reads as "broken". Matches the
-    // teleprompter/upgrade-sheet convention (z-150/200).
-    <div className="fixed inset-0 z-[130] bg-zinc-950 flex flex-col overflow-hidden">
-
-      {/* Header */}
-      <div className="flex items-center gap-3 px-4 pt-12 pb-4 border-b border-white/5 shrink-0">
+    <ToolPage
+      isDesktop={isDesktop}
+      eyebrow={editing ? "Editing script" : "Script"}
+      onBack={editing
+        ? () => { setEditing(false); setTitle(brief.title); setScript(brief.script ?? ""); }
+        : onClose}
+      actions={editing ? (
         <button
-          onClick={editing ? () => { setEditing(false); setTitle(brief.title); setScript(brief.script ?? ""); } : onClose}
-          className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 hover:text-white transition"
+          onClick={handleSave}
+          disabled={!title.trim()}
+          className="flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2 text-sm font-bold text-black transition disabled:opacity-30"
         >
-          <ArrowLeft size={18} />
+          {saved ? <Check size={14} /> : null}
+          {saved ? "Saved" : "Save"}
         </button>
-        <div className="flex-1">
-          <p className="text-xs text-zinc-500 uppercase tracking-widest">
-            {editing ? "Editing Script" : "Script"}
-          </p>
-        </div>
-
-        {editing ? (
+      ) : (
+        <>
           <button
-            onClick={handleSave}
-            disabled={!title.trim()}
-            className="px-4 py-2 rounded-xl bg-accent text-black text-sm font-bold disabled:opacity-30 transition flex items-center gap-1.5"
+            onClick={() => setEditing(true)}
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 text-zinc-400 transition hover:text-white"
+            aria-label="Edit script"
           >
-            {saved ? <Check size={14} /> : null}
-            {saved ? "Saved" : "Save"}
+            <Pencil size={15} />
           </button>
-        ) : (
-          <div className="flex items-center gap-2">
+          <button
+            onClick={() => { onDelete(brief.id); onClose(); }}
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 text-zinc-600 transition hover:text-red-400"
+            aria-label="Delete script"
+          >
+            <Trash2 size={16} />
+          </button>
+        </>
+      )}
+      footer={!editing ? (
+        <>
+          {script.trim() && (
             <button
-              onClick={() => setEditing(true)}
-              className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 hover:text-white transition"
-              aria-label="Edit script"
+              onClick={() => setTeleprompter(true)}
+              className="flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl border border-white/12 bg-white/5 font-bold text-white transition hover:bg-white/10 active:scale-[0.98]"
             >
-              <Pencil size={15} />
+              <MonitorPlay size={16} />
+              Read in Teleprompter
             </button>
-            <button
-              onClick={() => { onDelete(brief.id); onClose(); }}
-              className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-zinc-600 hover:text-red-400 transition"
-              aria-label="Delete script"
-            >
-              <Trash2 size={16} />
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
-
+          )}
+          <button
+            onClick={() => onSchedule(title, script || undefined)}
+            className="flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-accent font-bold text-black transition hover:brightness-105 active:scale-[0.98]"
+          >
+            <Calendar size={16} />
+            Schedule this content
+          </button>
+        </>
+      ) : undefined}
+    >
+      <>
         {/* Format + Line tags */}
         <div className="flex flex-wrap items-center gap-2">
           {brief.formatName && (
@@ -172,36 +175,11 @@ export default function ScriptDetailOverlay({ brief, onClose, onDelete, onSchedu
             )}
           </>
         )}
-      </div>
 
-      {/* Bottom action — clears the home indicator now that it owns the
-          bottom edge (the nav no longer sits under it) */}
-      {!editing && (
-        <div className="px-4 pt-3 border-t border-white/5 shrink-0 space-y-2"
-          style={{ paddingBottom: "max(calc(env(safe-area-inset-bottom) + 12px), 2rem)" }}>
-          {script.trim() && (
-            <button
-              onClick={() => setTeleprompter(true)}
-              className="w-full h-12 rounded-2xl border border-white/12 bg-white/5 text-white font-bold flex items-center justify-center gap-2 transition hover:bg-white/10 active:scale-[0.98]"
-            >
-              <MonitorPlay size={16} />
-              Read in Teleprompter
-            </button>
-          )}
-          <button
-            onClick={() => onSchedule(title, script || undefined)}
-            className="w-full h-12 rounded-2xl bg-amber-400 text-black font-bold flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98]"
-          >
-            <Calendar size={16} />
-            Schedule this content
-          </button>
-        </div>
-      )}
-
-      {teleprompter && (
-        <Teleprompter text={script} title={title} onClose={() => setTeleprompter(false)} />
-      )}
-
-    </div>
+        {teleprompter && (
+          <Teleprompter text={script} title={title} onClose={() => setTeleprompter(false)} />
+        )}
+      </>
+    </ToolPage>
   );
 }

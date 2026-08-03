@@ -924,6 +924,7 @@ export default function ContentModule({ isPro = false, onUpgrade, genres = [], o
       )}
       {sheet === "lab" && (
         <MusicContentLab
+          isDesktop={isDesktop}
           onClose={() => setSheet("none")}
           onGenerateScript={(ref) => {
             setSheet("none");
@@ -935,6 +936,65 @@ export default function ContentModule({ isPro = false, onUpgrade, genres = [], o
     </>
   );
 
+  /* Escribir y ver un guion son pantallas completas, no cajas dentro de otra
+     pantalla. Se declaran aquí para poder montarlas en dos sitios distintos sin
+     duplicar los handlers: en desktop reemplazan al hub; en móvil son overlays
+     `fixed` al final del árbol. */
+  const scriptDetailPage = detailBrief ? (
+    <ScriptDetailOverlay
+      isDesktop={isDesktop}
+      brief={detailBrief}
+      onClose={() => setDetailBrief(null)}
+      onDelete={(id) => { setBriefs((prev) => prev.filter((b) => b.id !== id)); setDetailBrief(null); }}
+      onSchedule={(title, notes) => { setDetailBrief(null); requestSchedule(title, "scripts", notes); }}
+      scheduledTask={tasks.find((t) => t.source === "scripts" && t.title === detailBrief.title) ?? null}
+      onUpdate={(id, title, script, newDate) => {
+        setBriefs((prev) => prev.map((b) => b.id === id ? { ...b, title, script } : b));
+        setDetailBrief((prev) => prev ? { ...prev, title, script } : prev);
+        if (newDate) {
+          // Update existing task date, or create a new one
+          const existing = tasks.find((t) => t.source === "scripts" && t.title === detailBrief.title);
+          if (existing) {
+            setTasks((prev) => prev.map((t) => t.id === existing.id ? { ...t, title, date: newDate } : t));
+          } else {
+            addTask(title, newDate, "scripts", script || undefined);
+          }
+        }
+      }}
+    />
+  ) : null;
+
+  /* Desde una referencia de Inspire, una generación del Lab o una Quick Idea
+     (scriptSource lleva la cuenta de cuál). */
+  const scriptWriterPage = scriptWriter ? (
+    <ScriptWriterOverlay
+      isDesktop={isDesktop}
+      videoRef={scriptWriter}
+      onClose={() => setScriptWriter(null)}
+      onSave={(title, script) => {
+        const isLabGenerated = !!scriptWriter?.channel && scriptWriter.channel !== "";
+        const sourceLabel = scriptSource === "ideas" ? "Quick Idea" : "Inspire";
+        const brief = {
+          id: uid(),
+          title,
+          script,
+          formatId: "",
+          formatName: isLabGenerated ? scriptWriter!.channel : sourceLabel,
+          formatColor: "#f5a623",
+          lineId: "",
+          lineName: isLabGenerated
+            ? scriptWriter!.title.split(" — ").slice(1).join(" — ")
+            : scriptWriter?.title ?? "",
+          refUrl: scriptWriter?.url || undefined,
+          createdAt: Date.now(),
+        };
+        setBriefs((prev) => [brief, ...prev]);
+        setScriptWriter(null);
+        requestSchedule(title, scriptSource, script || undefined);
+      }}
+    />
+  ) : null;
+
   return (
     <div className={isDesktop ? "relative" : "relative flex-1 flex flex-col overflow-hidden"}>
       {isDesktop ? (
@@ -942,6 +1002,12 @@ export default function ContentModule({ isPro = false, onUpgrade, genres = [], o
         // full page (with a Back link), not a floating bordered box. A modal
         // that leaves dead margins on a wide screen reads as a phone popup
         // (Paco, 2026-07-16) — Business-style in-module navigation instead.
+        //
+        // Escribir/ver guion va PRIMERO en la cadena: es la pantalla más
+        // profunda, y montarla al final del árbol la dejaba dibujada debajo del
+        // calendario en vez de reemplazarlo (Paco 2026-08-02).
+        scriptWriterPage ? scriptWriterPage :
+        scriptDetailPage ? scriptDetailPage :
         sheet !== "none" ? (
           <div className="fennec-dialog-in w-full">
             <button
@@ -1012,59 +1078,13 @@ export default function ContentModule({ isPro = false, onUpgrade, genres = [], o
         </>
       )}
 
-      {/* Full-screen script detail view */}
-      {detailBrief && (
-        <ScriptDetailOverlay
-          brief={detailBrief}
-          onClose={() => setDetailBrief(null)}
-          onDelete={(id) => { setBriefs((prev) => prev.filter((b) => b.id !== id)); setDetailBrief(null); }}
-          onSchedule={(title, notes) => { setDetailBrief(null); requestSchedule(title, "scripts", notes); }}
-          scheduledTask={tasks.find((t) => t.source === "scripts" && t.title === detailBrief.title) ?? null}
-          onUpdate={(id, title, script, newDate) => {
-            setBriefs((prev) => prev.map((b) => b.id === id ? { ...b, title, script } : b));
-            setDetailBrief((prev) => prev ? { ...prev, title, script } : prev);
-            if (newDate) {
-              // Update existing task date, or create a new one
-              const existing = tasks.find((t) => t.source === "scripts" && t.title === detailBrief.title);
-              if (existing) {
-                setTasks((prev) => prev.map((t) => t.id === existing.id ? { ...t, title, date: newDate } : t));
-              } else {
-                addTask(title, newDate, "scripts", script || undefined);
-              }
-            }
-          }}
-        />
-      )}
-
-      {/* Full-screen script writer — from an Inspire reference, a Lab
-          generation, or a Quick Idea (scriptSource tracks which). */}
-      {scriptWriter && (
-        <ScriptWriterOverlay
-          videoRef={scriptWriter}
-          onClose={() => setScriptWriter(null)}
-          onSave={(title, script) => {
-            const isLabGenerated = !!scriptWriter?.channel && scriptWriter.channel !== "";
-            const sourceLabel = scriptSource === "ideas" ? "Quick Idea" : "Inspire";
-            const brief = {
-              id: uid(),
-              title,
-              script,
-              formatId: "",
-              formatName: isLabGenerated ? scriptWriter!.channel : sourceLabel,
-              formatColor: "#f5a623",
-              lineId: "",
-              lineName: isLabGenerated
-                ? scriptWriter!.title.split(" — ").slice(1).join(" — ")
-                : scriptWriter?.title ?? "",
-              refUrl: scriptWriter?.url || undefined,
-              createdAt: Date.now(),
-            };
-            setBriefs((prev) => [brief, ...prev]);
-            setScriptWriter(null);
-            requestSchedule(title, scriptSource, script || undefined);
-          }}
-        />
-      )}
+      {/* En móvil son overlays `fixed` que tapan lo de atrás, así que da igual
+          dónde vayan en el árbol. En desktop son páginas en flujo normal, y
+          montadas aquí abajo se dibujaban DEBAJO del calendario en vez de
+          reemplazarlo (Paco 2026-08-02); ahí arriba la rama de desktop las
+          monta en lugar del hub. */}
+      {!isDesktop && scriptDetailPage}
+      {!isDesktop && scriptWriterPage}
 
       {/* Schedule prompt */}
       {pendingTask && (

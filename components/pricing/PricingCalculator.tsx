@@ -1249,7 +1249,12 @@ export default function PricingCalculator() {
             onOpenCalculator={() => { setActiveTab("pricing"); setBusinessView("calculator"); }}
           />
         ) : activeTab === "contenido" ? (
-          <div className="flex-1 flex flex-col overflow-hidden">
+          // En móvil el módulo maneja su propio scroll interno, así que el
+          // wrapper lo recorta a propósito. En desktop ese mismo recorte dejaba
+          // las Daily Ideas de Inspire sin poder scrollear (Paco 2026-08-02):
+          // quien scrollea ahí es el frame del shell. ContentModule ya hace
+          // esta misma distinción en su raíz.
+          <div className={isDesktop ? "" : "flex-1 flex flex-col overflow-hidden"}>
             <ContentModule isPro={profile?.is_pro ?? false} onUpgrade={() => openUpgrade("content")} genres={profile?.genres ?? []} onToolOpenChange={setContentToolOpen} userId={authUser.id} />
           </div>
         ) : activeTab === "ideas" ? (
