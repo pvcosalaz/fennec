@@ -240,16 +240,27 @@ export default function DashboardDesktop({
           huecos enormes entre ellos mientras la derecha iba apretada
           (Paco 2026-08-03). La rejilla que pidió empareja las filas:
 
-            Fennec ID          |  Fennec dB
-            Music & Business   |  Audience
-            Contributions      |  Today on Fennec
-            Noticias (ancho completo)
+            Fennec ID + dB     |  Noticias (2x2)
+            Music & Business   |  Today on Fennec
+            Contributions (ancho completo)
+            Audience (ancho completo)
+
+          La columna derecha quedo como la parte informativa: arriba lo que pasa
+          en la industria, abajo lo que pasa en tu casa. Audience bajo a su
+          propia fila horizontal, que es donde estaba antes y donde el numero
+          respira (Paco 2026-08-03).
 
           Al ser UNA sola rejilla, cada fila mide lo mismo en ambos lados y
           desaparecen los huecos. La tercera fila se lleva la holgura porque
           Contributions es lo que de verdad mejora con alto. */}
       <div
-        className="grid min-h-0 flex-1 gap-4 overflow-hidden"
+        /* gap-3, no gap-4. Con Audience abajo son cuatro filas cuyos minimos
+           (216 de la tarjeta de ID + 93.5 de metricas + 144 del año + 80 de
+           Audience) suman 533.5, y en una ventana de 720px la rejilla solo mide
+           572. Con 16px de hueco entre filas el total daba 581.5 y los ultimos
+           10px de Audience se cortaban; con 12 cabe justo (medido 2026-08-03).
+           En pantallas mas altas el sobrante se sigue yendo a la ultima fila. */
+        className="grid min-h-0 flex-1 gap-3 overflow-hidden"
         style={{
           gridTemplateColumns: "minmax(0, 1fr) 320px",
           /* La tercera fila lleva un MÍNIMO, no minmax(0,...). Sin él, en una
@@ -264,7 +275,20 @@ export default function DashboardDesktop({
              torcida (Paco 2026-08-03). En auto los dos miden lo mismo (la
              rejilla estira por defecto) y el sobrante se va a las noticias, que
              era donde hacia falta: tarjetas mas grandes y mas cuadradas. */
-          gridTemplateRows: "auto auto minmax(144px, auto) minmax(80px, 1fr)",
+          /* El sobrante lo toma Contributions, y Audience lleva TOPE.
+             Mientras las noticias vivian abajo tenia sentido darles todo el
+             sobrante: mas alto = tarjetas mas grandes. Ahora abajo esta
+             Audience, que es un numero y tres iconos: en una ventana de 1250px
+             se estiraba a 227px de puro aire (visto 2026-08-03). Dejar las
+             filas en automatico tampoco sirve — sin restriccion su alto natural
+             suma mas de lo que cabe en 720px y Audience quedaba en 27px. */
+          gridTemplateRows: "auto auto minmax(144px, 210px) minmax(80px, 128px)",
+          /* El sobrante que ya no cabe en ningun tope se junta ABAJO, fuera de
+             los paneles. Sin esto se lo comia Contributions y quedaba un hueco
+             de 400px dentro del recuadro: las celdas del año son cuadradas, no
+             crecen con el alto, asi que estirar el panel solo estira el vacio.
+             Fuera del panel ese espacio es la foto del estudio. */
+          alignContent: "start",
         }}
       >
 
@@ -317,14 +341,12 @@ export default function DashboardDesktop({
         </div>
       </div>
 
-      {/* Audience sube a esta fila: el dB dejo libre la celda derecha. */}
-      <div className="dd-rise" style={{ animationDelay: ".09s" }}>
-        <SocialMini
-          igFollowers={igFollowers}
-          ttFollowers={ttFollowers}
-          ytSubs={ytSubs}
-          onConnect={onOpenProfileSettings}
-        />
+      {/* Las noticias suben aqui, junto a quien eres: la columna derecha pasa a
+          ser la parte informativa de la pantalla y Audience baja a su propia
+          fila (Paco 2026-08-03). En 320px de ancho van 2x2 en vez de la tira de
+          cuatro. */}
+      <div className="dd-rise flex min-h-0 min-w-0 flex-col" style={{ animationDelay: ".09s" }}>
+        <IndustryNews count={4} columnas={2} onOpen={() => onNavigate?.("noticias")} />
       </div>
 
       {/* ── Fila 2: el dinero, y a cuánta gente le llegas ── */}
@@ -389,12 +411,18 @@ export default function DashboardDesktop({
         <ContributionsCard data={contributions ?? null} accent="#f5a623" weeks={52} />
       </div>
 
-      {/* ── Fila 4: la industria, a lo ancho ── */}
+      {/* ── Fila 4: a cuánta gente le llegas, a lo ancho ──
+          Volvio abajo y en horizontal, como estaba antes de que el dB liberara
+          la celda de arriba (Paco 2026-08-03). Con el ancho completo el total
+          crece y cada plataforma lleva su nombre escrito. */}
       <div className="dd-rise col-span-2 flex min-h-0 min-w-0 flex-col" style={{ animationDelay: ".24s" }}>
-        {/* Cuatro, no cinco: cinco tarjetas se leian como tira de contactos y
-            era la fila mas ruidosa de la pantalla. Con cuatro hay aire y cada
-            titular se alcanza a leer. */}
-        <IndustryNews count={4} onOpen={() => onNavigate?.("noticias")} />
+        <SocialMini
+          ancho
+          igFollowers={igFollowers}
+          ttFollowers={ttFollowers}
+          ytSubs={ytSubs}
+          onConnect={onOpenProfileSettings}
+        />
       </div>
       </div>{/* /bento */}
 

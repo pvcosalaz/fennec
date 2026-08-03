@@ -46,7 +46,7 @@ function pickWindow<T>(items: T[], count: number, bucket: number): T[] {
   return Array.from({ length: count }, (_, i) => items[(start + i) % items.length]);
 }
 
-function Card({ item }: { item: NewsItem }) {
+function Card({ item, denso = false }: { item: NewsItem; denso?: boolean }) {
   const [broken, setBroken] = useState(false);
   const conFoto = !!item.image && !broken;
 
@@ -101,8 +101,8 @@ function Card({ item }: { item: NewsItem }) {
         />
       )}
 
-      <div className="relative p-2.5">
-        <p className="line-clamp-3 text-[11px] font-semibold leading-snug text-white">
+      <div className={`relative ${denso ? "p-2" : "p-2.5"}`}>
+        <p className={`${denso ? "line-clamp-2 text-[10.5px]" : "line-clamp-3 text-[11px]"} font-semibold leading-snug text-white`}>
           {item.headline}
         </p>
         <p className="mt-1 flex items-center gap-1 text-[8.5px] uppercase tracking-[0.08em] text-zinc-400">
@@ -130,11 +130,18 @@ function Skeleton() {
 
 export default function IndustryNews({
   count = 4,
+  columnas,
   onOpen,
 }: {
   count?: number;
+  /** Columnas de la rejilla. Por defecto una por nota (la tira horizontal de
+   *  ancho completo). Con 2 quedan 2x2, que es lo que cabe en la celda angosta
+   *  de la derecha cuando las noticias suben a la primera fila. */
+  columnas?: number;
   onOpen?: () => void;
 }) {
+  const cols = columnas ?? count;
+  const denso = cols < count;
   const [items, setItems] = useState<NewsItem[] | null>(null);
   const [failed, setFailed] = useState(false);
 
@@ -177,14 +184,24 @@ export default function IndustryNews({
         )}
       </div>
 
-      <div className="grid min-h-0 flex-1 gap-3" style={{ gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))`, maxHeight: 190 }}>
+      <div
+        className={`grid min-h-0 flex-1 ${denso ? "gap-2" : "gap-3"}`}
+        style={{
+          gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+          gridTemplateRows: `repeat(${Math.ceil(count / cols)}, minmax(0, 1fr))`,
+          /* El tope de alto es solo para la tira ancha, donde sin el las
+             tarjetas se estiraban a media pantalla. En la celda angosta el alto
+             lo manda la fila (la altura de la tarjeta de ID), asi que estorba. */
+          ...(denso ? null : { maxHeight: 190 }),
+        }}
+      >
         {items === null && Array.from({ length: count }).map((_, i) => <Skeleton key={i} />)}
         {items !== null && visible.length === 0 && (
           <p className="col-span-full py-4 text-[12px] text-zinc-500">
             {failed ? "Couldn't reach the newsroom right now." : "No headlines right now."}
           </p>
         )}
-        {visible.map((item) => <Card key={item.id} item={item} />)}
+        {visible.map((item) => <Card key={item.id} item={item} denso={denso} />)}
       </div>
     </div>
   );
