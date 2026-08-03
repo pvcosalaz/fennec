@@ -179,27 +179,35 @@ export default function DashboardDesktop({
         </div>
       </div>
 
-      {/* ══ BENTO, DOS COLUMNAS ══
-          Antes era una pila vertical: tarjeta+dB, contribuciones, métricas,
-          comunidad, alcance. En una ventana de 720px eso medía 1110px, o sea
-          390 de scroll, y quedamos en que el dashboard no scrollea
-          (Paco 2026-08-02, medido).
+      {/* ══ BENTO, CUATRO FILAS ══
+          Antes eran dos columnas independientes, cada una repartiendo su alto
+          por su cuenta. Eso dejaba a los bloques de la izquierda flotando con
+          huecos enormes entre ellos mientras la derecha iba apretada
+          (Paco 2026-08-03). La rejilla que pidió empareja las filas:
 
-          La columna derecha es fija y angosta: ahí van los instrumentos y las
-          acciones, que tienen ancho natural. La izquierda es elástica y lleva
-          lo que mejora con espacio: tu identidad, la evidencia y las noticias.
-          Cada columna reparte su alto con flex, así que el bloque flexible de
-          cada una absorbe la ventana en vez de empujar la página hacia abajo.
+            Fennec ID          |  Fennec dB
+            Music & Business   |  Audience
+            Contributions      |  Today on Fennec
+            Noticias (ancho completo)
 
-          `overflow-hidden` en el contenedor es deliberado: si algún día algo
-          crece de más, se recorta en vez de reintroducir la barra de scroll a
-          escondidas. */}
-      <div className="grid min-h-0 flex-1 gap-4 overflow-hidden" style={{ gridTemplateColumns: "minmax(0, 1fr) 320px" }}>
+          Al ser UNA sola rejilla, cada fila mide lo mismo en ambos lados y
+          desaparecen los huecos. La tercera fila se lleva la holgura porque
+          Contributions es lo que de verdad mejora con alto. */}
+      <div
+        className="grid min-h-0 flex-1 gap-4 overflow-hidden"
+        style={{
+          gridTemplateColumns: "minmax(0, 1fr) 320px",
+          /* La tercera fila lleva un MÍNIMO, no minmax(0,...). Sin él, en una
+             ventana de 720px las otras tres filas se comían los 565px
+             disponibles y Contributions quedaba en 8.85px: aplastada y encimada
+             (medido 2026-08-03). El mínimo garantiza que la rejilla del año
+             siempre se vea, y el sobrante sigue yendo ahí en pantallas altas. */
+          gridTemplateRows: "auto auto minmax(100px, 1fr) auto",
+        }}
+      >
 
-      {/* ── Columna izquierda: quién eres y qué está pasando ── */}
-      <div className="flex min-h-0 flex-col gap-4">
-
-      <div className="dd-rise flex-shrink-0" style={{ animationDelay: ".06s" }}>
+      {/* ── Fila 1: quién eres, y la lectura que produce ── */}
+      <div className="dd-rise min-w-0" style={{ animationDelay: ".06s" }}>
         <FennecIdCard
           firstName={card.firstName} lastName={card.lastName}
           role={card.role || "Producer"} country={card.country}
@@ -210,48 +218,15 @@ export default function DashboardDesktop({
         />
       </div>
 
-      {/* Contributions — la evidencia visual del dB. Sigue en la columna ancha
-          porque son 52 semanas en horizontal: en la angosta no cabe. */}
-      <div className="dd-rise flex min-h-0 flex-1 flex-col justify-center" style={{ animationDelay: ".12s" }}>
-        {/* cellSize 10, no 11: el año completo son 52 columnas y a 11px+gap la
-            rejilla pedía ~700px de ancho mínimo, lo que empujaba TODO el grid
-            y sacaba la columna derecha de la pantalla. A 10px cabe el año
-            entero en la columna ancha sin forzar nada. */}
-        <ContributionsCard data={contributions ?? null} accent="#f5a623" weeks={52} cellSize={10} />
-      </div>
-
-      {/* Las noticias son dos cuadrados de alto fijo. Quien se lleva ahora el
-          sobrante es Contributions (arriba), que es lo que de verdad mejora con
-          espacio: es una rejilla de un año y a más alto se lee mejor. */}
-      <div className="dd-rise flex-shrink-0" style={{ animationDelay: ".24s" }}>
-        <IndustryNews onOpen={() => onNavigate?.("noticias")} />
-      </div>
-
-      </div>{/* /columna izquierda */}
-
-      {/* ── Columna derecha: instrumentos y acciones ── */}
-      <div className="flex min-h-0 flex-col gap-4">
-
-      {/* dB reading — the shared Instrument, same piece Business uses for
-          revenue. No subtitle: the dB stands alone (Paco likes it solitary),
-          and a "total reach = followers" line pushed producers toward
-          creator/vanity metrics, which is exactly what Fennec avoids. */}
-      {/* El dB se lleva la holgura de la columna, como el dial grande de la
-          referencia. Antes la absorbía "Today on Fennec", que tiene tres filas
-          fijas: al encogerse recortaba la tercera dentro del overflow-hidden
-          del Tile y "Nothing scheduled" simplemente desaparecía. */}
-      <div className="dd-rise flex min-h-0 flex-1 flex-col" style={{ animationDelay: ".09s" }}>
+      <div className="dd-rise" style={{ animationDelay: ".09s" }}>
         <Instrument
           label="Fennec dB"
           value={String(fennecDb)}
-          /* 56, no 76: en la columna derecha al dB le tocan 132px de alto y a
-             76 el número desbordaba 38px, o sea que las barras del ecualizador
-             salían cortadas por el overflow-hidden del panel (medido
-             2026-08-03). Sigue siendo el número más grande de la pantalla. */
-          size={56}
+          /* 88: emparejado a la altura de la tarjeta de identidad, el panel da
+             para un número mucho más grande, y es EL número de la pantalla. */
+          size={88}
           footer={
-            /* the tape's soundwave — same EQ bars as the mobile Fennec ID card */
-            <div className="relative flex items-end gap-[3px]" style={{ height: 14, marginTop: 4 }}>
+            <div className="relative flex items-end gap-[3px]" style={{ height: 16, marginTop: 6 }}>
               {EQ_HEIGHTS.map((h, i) => (
                 <span key={i} className="fennec-eq-bar" style={{ height: h, width: 3, background: accent, animationDelay: `${i * 0.15}s` }} />
               ))}
@@ -260,11 +235,12 @@ export default function DashboardDesktop({
         />
       </div>
 
-      {/* Music & Business en 2x2, no en fila: en 320px de ancho cuatro columnas
-          dejarían 80px por métrica y "$139,432" no cabe. */}
-      <div className="dd-rise flex-shrink-0" style={{ animationDelay: ".15s" }}>
-        <Tile label="Music & Business">
-          <div className="grid grid-cols-2">
+      {/* ── Fila 2: el dinero, y a cuánta gente le llegas ── */}
+      <div className="dd-rise min-w-0" style={{ animationDelay: ".12s" }}>
+        <Tile label="Music & Business" className="h-full">
+          {/* En fila, no en 2x2: aquí ya hay ancho de sobra y cuatro métricas
+              alineadas se comparan de un vistazo. */}
+          <div className="grid grid-cols-4">
             <MiniMetric value={String(totalProjects)} label="Projects" sub={activeProjects > 0 ? `${activeProjects} active` : undefined} onClick={() => onNavigate?.("pricing")} />
             <MiniMetric value={String(quotesSentCount)} label="Quotes sent" onClick={() => onNavigate?.("pricing")} />
             <MiniMetric value={quotesOutTotal > 0 ? formatMoney(quotesOutTotal) : "—"} label="Quotes out" muted={quotesOutTotal === 0} onClick={() => onNavigate?.("pricing")} />
@@ -273,10 +249,25 @@ export default function DashboardDesktop({
         </Tile>
       </div>
 
-      <div className="dd-rise flex-shrink-0" style={{ animationDelay: ".21s" }}>
-        <Tile label="Today on Fennec">
+      <div className="dd-rise" style={{ animationDelay: ".15s" }}>
+        <SocialMini
+          igFollowers={igFollowers}
+          ttFollowers={ttFollowers}
+          ytSubs={ytSubs}
+          onConnect={onOpenProfileSettings}
+        />
+      </div>
+
+      {/* ── Fila 3: la evidencia, y lo que toca hoy ── */}
+      <div className="dd-rise flex min-h-0 min-w-0 flex-col justify-center" style={{ animationDelay: ".18s" }}>
+        {/* cellSize 10: a 11 la rejilla del año pedía ~700px de ancho mínimo y
+            empujaba toda la columna derecha fuera de la pantalla. */}
+        <ContributionsCard data={contributions ?? null} accent="#f5a623" weeks={52} cellSize={10} />
+      </div>
+
+      <div className="dd-rise flex min-h-0 flex-col" style={{ animationDelay: ".21s" }}>
+        <Tile label="Today on Fennec" className="h-full">
           <div className="flex flex-col divide-y divide-white/[0.05]">
-            {/* latest note on your tracks */}
             <button type="button" onClick={() => onNavigate?.("ideas")} className="group flex items-center justify-between gap-3 py-[9px] text-left transition first:pt-0">
               <span className="min-w-0 truncate text-[12px] text-zinc-400">
                 {latestNote ? "New note on your track" : "No track feedback yet"}
@@ -285,7 +276,6 @@ export default function DashboardDesktop({
                 {latestNote ? "Open →" : "Upload →"}
               </span>
             </button>
-            {/* quotes awaiting reply */}
             <button type="button" onClick={() => onNavigate?.("pricing")} className="group flex items-center justify-between gap-3 py-[9px] text-left">
               <span className="min-w-0 truncate text-[12px] text-zinc-400">
                 {sentQuotes.length > 0 ? `${sentQuotes.length} quote${sentQuotes.length > 1 ? "s" : ""} awaiting reply` : "No open quotes"}
@@ -294,7 +284,6 @@ export default function DashboardDesktop({
                 {sentQuotes.length > 0 ? "View →" : "Send →"}
               </span>
             </button>
-            {/* next scheduled post */}
             <button type="button" onClick={() => onNavigate?.("contenido")} className="group flex items-center justify-between gap-3 py-[9px] text-left">
               <span className="min-w-0 truncate text-[12px] text-zinc-400">
                 {nextPost ? `Next post · ${fmtDate(nextPost.date)}` : "Nothing scheduled"}
@@ -307,19 +296,10 @@ export default function DashboardDesktop({
         </Tile>
       </div>
 
-      {/* El alcance, ya resumido: un total y tres chips en vez de la banda de
-          ancho completo con números de 21px que tenía antes. */}
-      <div className="dd-rise flex-shrink-0" style={{ animationDelay: ".27s" }}>
-        <SocialMini
-          igFollowers={igFollowers}
-          ttFollowers={ttFollowers}
-          ytSubs={ytSubs}
-          onConnect={onOpenProfileSettings}
-        />
+      {/* ── Fila 4: la industria, a lo ancho ── */}
+      <div className="dd-rise col-span-2 min-w-0" style={{ animationDelay: ".24s" }}>
+        <IndustryNews count={5} onOpen={() => onNavigate?.("noticias")} />
       </div>
-
-      </div>{/* /columna derecha */}
-
       </div>{/* /bento */}
     </div>
   );
