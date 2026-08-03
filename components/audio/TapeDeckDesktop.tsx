@@ -487,7 +487,20 @@ export default function TapeDeckDesktop({
         <div
           ref={stripVpRef}
           onClick={(e) => { if (!marking) seekFromClient(e.clientX); }}
-          className="relative mt-7 h-[92px] cursor-pointer overflow-hidden"
+          className="relative mt-7 h-[92px] cursor-pointer"
+          /* Recorta SOLO a los lados, no por arriba y abajo.
+             Antes era overflow-hidden, que recorta en los dos ejes: la cinta
+             mide 40px y va centrada en 92, o sea que arriba de ella solo habia
+             26px de caja. Una cara de 18px con su tallo de 16 pide 34, y la que
+             esta hablando (22+24) pide 46 — asi que a las fotos les cortaba la
+             tapa y a la marca activa casi entera (Paco 2026-08-03). El popover
+             de la baraja, que se despliega hacia arriba, desaparecia completo.
+             clip-path con inset negativo arriba/abajo mantiene el recorte
+             lateral (que es el que hace falta: la cinta corre y el cabezal esta
+             fijo) y deja el eje vertical libre. overflow-y:visible no sirve
+             aqui: junto a un overflow-x:hidden el navegador lo convierte en
+             auto y aparece scroll. */
+          style={{ clipPath: "inset(-240px 0px)" }}
         >
           {/* the moving tape — flat body, hairline edges, no heavy banding */}
           <div ref={stripRef} className="absolute top-1/2 h-[40px] -translate-y-1/2 will-change-transform" style={{ width: stripWidth }}>
