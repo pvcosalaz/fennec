@@ -98,8 +98,13 @@ export default function DesktopShell({
 
      So: it only opens once the pointer has rested on the rail, and only closes
      after a beat, which forgives clipping the edge on the way back in. */
-  const OPEN_DELAY = 190;
-  const CLOSE_DELAY = 140;
+  /* Recalibrado 2026-08-03: se sentía lenta. Eran 190 + 420 = 610ms hasta
+     abrir del todo, que es mucho para algo que respondes con el mouse.
+     110ms sigue filtrando el barrido accidental —es el umbral donde un hover
+     deliberado ya se registra— sin que se note la espera. El cierre se queda
+     más largo a propósito: perdona rozar el borde de salida y volver. */
+  const OPEN_DELAY = 110;
+  const CLOSE_DELAY = 130;
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function armRail(open: boolean) {
@@ -162,17 +167,23 @@ export default function DesktopShell({
           backdropFilter: DOCK_BLUR,
           WebkitBackdropFilter: DOCK_BLUR,
           boxShadow: DOCK_SHADOW,
-          // Radio grande y proporcional al ancho: en 62px es casi una píldora,
-          // al abrirse a 232px se relaja para no verse como una cápsula.
-          borderRadius: compact ? 22 : 26,
-          padding: compact ? "16px 8px 14px" : "18px 14px 16px",
+          /* Radio y padding FIJOS, no animados.
+             Antes cambiaban con el estado, así que la transición movía cuatro
+             propiedades a la vez: transform, width, padding y border-radius.
+             Tres de ellas provocan re-layout, y sobre un elemento con
+             backdrop-filter eso obliga al navegador a re-muestrear y volver a
+             desenfocar el fondo en CADA frame, a un tamaño distinto. Era la
+             parte cara de la animación, y su aporte visual era casi nulo: 22
+             contra 26 de radio no lo nota nadie (Paco 2026-08-03).
+             Queda solo `width`, que es la que de verdad comunica que se abre. */
+          borderRadius: 22,
+          padding: "16px 10px 14px",
           transform: immersive
             ? `translate(calc(-100% - ${DOCK_INSET}px), -50%)`
             : "translate(0, -50%)",
-          /* 280ms read as a snap. 420ms with a long ease-out lets the panel
-             arrive instead of appearing — and paired with the open delay it
-             can afford to be slow, because it no longer fires by accident. */
-          transition: `${slide}, width .42s cubic-bezier(.22,1,.36,1), padding .42s cubic-bezier(.22,1,.36,1), border-radius .42s cubic-bezier(.22,1,.36,1)`,
+          /* 260ms: lo bastante para leerse como movimiento y no como salto,
+             sin que se sienta que estás esperando a que termine. */
+          transition: `${slide}, width .26s cubic-bezier(.22,1,.36,1)`,
         }}
       >
         {/* pb-4, no pb-6: el dock ya no tiene una columna entera que llenar, así
@@ -212,7 +223,12 @@ export default function DesktopShell({
                     // Zero width when collapsed, or the invisible text still
                     // claims space and shoves the icon off centre.
                     width: compact ? 0 : "auto",
-                    transition: `opacity ${compact ? ".12s" : ".28s"} ease ${compact ? "0s" : ".14s"}`,
+                    /* Ajustado al nuevo ancho de 260ms: con .14s de espera y
+                       .28s de duración la etiqueta terminaba en 420ms, o sea
+                       DESPUÉS de que el panel ya había acabado de abrir, y esa
+                       cola era buena parte de la sensación de lentitud. Ahora
+                       aterriza junto con el panel, no detrás de él. */
+                    transition: `opacity ${compact ? ".1s" : ".18s"} ease ${compact ? "0s" : ".07s"}`,
                   }}
                 >
                   {label}
