@@ -111,6 +111,19 @@ type Props = {
 
 export default function SettingsModule({ onBack, language, onLanguageChange, avatarUrl, onAvatarChange, onSignOut, userId, initialSection }: Props) {
   const isDesktop = useIsDesktop();
+
+  /* El contenedor de cada seccion.
+     En telefono es la columna centrada de siempre. En escritorio se alinea a la
+     IZQUIERDA y se ensancha con mesura: 768px, no el ancho completo.
+     Un formulario no mejora por estirarse. Un campo de contraseña de 900px es
+     peor de usar que uno de 400, porque el ojo tiene que viajar de la etiqueta
+     al campo. Lo que estaba mal no era el ancho de los campos, era que TODA la
+     seccion vivia centrada como en un telefono, desperdiciando la mitad del
+     area de contenido y obligando a scrollear (Paco 2026-08-03).
+     Las secciones que SI son listas usan dos columnas mas abajo. */
+  const shell = isDesktop
+    ? "w-full max-w-3xl space-y-5"
+    : "mx-auto w-full max-w-lg space-y-5 px-4";
   const [section,       setSection]       = useState<Section>(initialSection ?? "main");
   const [profile,       setProfile]       = useState<UserProfile>(DEFAULT_PROFILE);
   const [currency,      setCurrency]      = useState<Currency>("USD");
@@ -297,7 +310,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
       done: "Shipped", declined: "Not planned",
     };
     return (
-      <div className="mx-auto w-full max-w-lg space-y-5 px-4">
+      <div className={shell}>
         <div className="flex items-center gap-3">
           <button onClick={() => setSection("main")} className="text-zinc-400 hover:text-accent transition">
             <ArrowLeft className="h-5 w-5" />
@@ -308,6 +321,8 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
           </div>
         </div>
 
+        <div className={isDesktop ? "grid items-start gap-5 sm:grid-cols-2" : "space-y-5"}>
+        <div className="space-y-5">
         <p className="text-sm text-zinc-500">
           What would make Fennec better for you? We read every suggestion.
         </p>
@@ -334,6 +349,8 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
           </div>
         </div>
 
+        </div>{/* /columna del formulario */}
+
         {mySuggestions.length > 0 && (
           <div className="space-y-2">
             <p className="text-xs font-semibold tracking-[0.2em] text-zinc-500 uppercase">Your suggestions</p>
@@ -353,6 +370,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
             ))}
           </div>
         )}
+        </div>{/* /dos columnas */}
       </div>
     );
   }
@@ -532,7 +550,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
 
   // ── Language section ──
   if (section === "language") return (
-    <div className="mx-auto w-full max-w-lg space-y-5 px-4">
+    <div className={shell}>
       <div className="flex items-center gap-3">
         <button onClick={() => setSection("main")} className="text-zinc-400 hover:text-accent transition">
           <ArrowLeft className="h-5 w-5" />
@@ -572,7 +590,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
      unreachable and everyone silently stayed on the default. That's how a
      Mexican producer's quote got frozen in COP (Paco 2026-08-01). */
   if (section === "currency") return (
-    <div className="mx-auto w-full max-w-lg space-y-5 px-4">
+    <div className={shell}>
       <div className="flex items-center gap-3">
         <button onClick={() => setSection("main")} className="text-zinc-400 hover:text-accent transition">
           <ArrowLeft className="h-5 w-5" />
@@ -622,7 +640,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
 
   // ── Data section ──
   if (section === "password") return (
-    <div className="mx-auto w-full max-w-lg space-y-5 px-4">
+    <div className={shell}>
       <div className="flex items-center gap-3">
         <button onClick={() => setSection("main")} className="text-zinc-400 hover:text-accent transition">
           <ArrowLeft className="h-5 w-5" />
@@ -668,7 +686,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
   );
 
   if (section === "data") return (
-    <div className="mx-auto w-full max-w-lg space-y-5 px-4">
+    <div className={shell}>
       <div className="flex items-center gap-3">
         <button onClick={() => setSection("main")} className="text-zinc-400 hover:text-accent transition">
           <ArrowLeft className="h-5 w-5" />
@@ -807,7 +825,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
   ];
 
   return (
-    <div className="mx-auto w-full max-w-lg space-y-5 px-4">
+    <div className={shell}>
       <div className="flex items-center gap-3">
         <button onClick={onBack} className="text-zinc-400 hover:text-accent transition">
           <ArrowLeft className="h-5 w-5" />
@@ -838,8 +856,15 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
         </div>
       </div>
 
-      {/* Menu */}
-      <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
+      {/* Menu.
+          Esta seccion SI es una lista, y una lista de ocho renglones en una sola
+          columna obliga a recorrer media pantalla vacia. En escritorio va en dos
+          columnas: se ve todo de un vistazo y no hay que scrollear. */}
+      <div
+        className={isDesktop
+          ? "grid gap-x-4 gap-y-0 rounded-2xl border border-white/10 bg-white/5 p-1 sm:grid-cols-2"
+          : "rounded-2xl border border-white/10 bg-white/5 overflow-hidden"}
+      >
         {menuItems.map((item, i) => {
           const Icon = item.icon;
           return (
