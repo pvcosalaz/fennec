@@ -522,6 +522,8 @@ export default function PricingCalculator() {
   }
   const [upgrading, setUpgrading] = useState(false);
   const [businessView, setBusinessView] = useState<BusinessView>("hub");
+  /** Set when the producer arrived via a button that promised a new quote. */
+  const [quoteCreateIntent, setQuoteCreateIntent] = useState(false);
   const prevBusinessView = useRef<BusinessView>("hub");
   const [hubRefreshKey, setHubRefreshKey] = useState(0);
 
@@ -764,7 +766,12 @@ export default function PricingCalculator() {
           <div className="flex-1 flex flex-col overflow-hidden">
             <BusinessHub
               key={hubRefreshKey}
-              onOpenView={setBusinessView}
+              onOpenView={(view, opts) => {
+                // "New quote" carries the intent through, so the destination
+                // opens its form instead of asking for a second click.
+                setQuoteCreateIntent(!!opts?.create);
+                setBusinessView(view);
+              }}
               userId={authUser.id}
             />
           </div>
@@ -774,10 +781,11 @@ export default function PricingCalculator() {
           <ClientsLeads onBack={() => { setHubRefreshKey((k) => k + 1); setBusinessView(prevBusinessView.current); }} userId={authUser.id} />
         ) : activeTab === "pricing" && businessView === "quotes" ? (
           <QuoteGenerator
-            onBack={() => { setHubRefreshKey((k) => k + 1); setBusinessView("hub"); }}
+            onBack={() => { setQuoteCreateIntent(false); setHubRefreshKey((k) => k + 1); setBusinessView("hub"); }}
             onGoToClients={() => { prevBusinessView.current = "quotes"; setBusinessView("clients"); }}
             onGoToCalculator={() => setBusinessView("calculator")}
             onGoToProjects={() => setBusinessView("projects")}
+            autoOpenForm={quoteCreateIntent}
             userId={authUser.id}
           />
         ) : activeTab === "pricing" && businessView === "network" ? (
@@ -1203,6 +1211,8 @@ export default function PricingCalculator() {
                     {!locked && (
                       <button
                         onClick={() => {
+                          // Promises a quote, so it opens the form, not the list.
+                          setQuoteCreateIntent(true);
                           setBusinessView("quotes");
                           setActiveTab("pricing");
                         }}

@@ -118,7 +118,7 @@ function revenueThisMonth(projects: Project[], currency: Currency) {
 }
 
 type Props = {
-  onOpenView: (view: BusinessView) => void;
+  onOpenView: (view: BusinessView, opts?: { create?: boolean }) => void;
   userId: string;
 };
 

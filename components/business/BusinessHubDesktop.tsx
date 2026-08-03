@@ -77,7 +77,7 @@ export default function BusinessHubDesktop({
   /** The chart plots one currency; these say which, and what else came in. */
   revenueCurrency: Currency;
   revenueExtra: string | null;
-  onOpenView: (view: BusinessView) => void;
+  onOpenView: (view: BusinessView, opts?: { create?: boolean }) => void;
 }) {
   const activeProjects = projects.filter((p) => p.status !== "paid");
   const sentQuotes     = quotes.filter((q) => q.status === "sent");
@@ -131,7 +131,10 @@ export default function BusinessHubDesktop({
           <button type="button" onClick={() => onOpenView("clients")} className="rounded-full border border-white/10 px-3.5 py-1.5 text-[11.5px] text-zinc-400 transition hover:text-white">
             Clients &amp; leads
           </button>
-          <button type="button" onClick={() => onOpenView("quotes")} className="rounded-full border border-accent/40 px-3.5 py-1.5 text-[11.5px] font-semibold text-accent transition hover:brightness-110">
+          {/* Says "New quote", so it opens the form. Landing on the list and
+              making you press Add again is a second click for nothing
+              (Paco 2026-08-02). */}
+          <button type="button" onClick={() => onOpenView("quotes", { create: true })} className="rounded-full border border-accent/40 px-3.5 py-1.5 text-[11.5px] font-semibold text-accent transition hover:brightness-110">
             + New quote
           </button>
         </div>
@@ -264,7 +267,7 @@ export default function BusinessHubDesktop({
           {recentQuotes.length > 0 && (
             <button
               type="button"
-              onClick={() => onOpenView("quotes")}
+              onClick={() => onOpenView("quotes", { create: true })}
               className="group flex flex-col items-center justify-center gap-1 px-5 py-8 text-center transition hover:bg-white/[0.015]"
             >
               <span className="text-[12px] text-zinc-600">

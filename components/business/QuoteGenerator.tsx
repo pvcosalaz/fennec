@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useCloudValue } from "@/lib/useCloudValue";
 import { getCurrency, formatMoney, useCurrency, currencyMeta } from "@/lib/currency";
 import {
@@ -51,6 +51,8 @@ type Props = {
   onGoToClients: () => void;
   onGoToCalculator: () => void;
   onGoToProjects: () => void;
+  /** Arrive with the form already open, for entry points that say "New quote". */
+  autoOpenForm?: boolean;
   userId: string;
 };
 
@@ -79,6 +81,7 @@ export default function QuoteGenerator({
   onGoToClients,
   onGoToCalculator,
   onGoToProjects,
+  autoOpenForm = false,
   userId,
 }: Props) {
   const [clients, setClients] = useState<Client[]>([]);
@@ -228,6 +231,19 @@ export default function QuoteGenerator({
     });
     setShowForm(true);
   };
+
+  /* Arriving from a "New quote" button opens the form itself. Deliberately
+     waits for the pricing setup to resolve: openForm seeds the price from the
+     recommended rate, and firing on mount would open a form priced at zero.
+     If the setup is incomplete the gate shows instead, which is correct. */
+  const autoOpened = useRef(false);
+  useEffect(() => {
+    if (!autoOpenForm || autoOpened.current) return;
+    if (!pricing.isSetupComplete) return;
+    autoOpened.current = true;
+    openForm();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoOpenForm, pricing.isSetupComplete]);
 
   const cancelForm = () => {
     setShowForm(false);
