@@ -21,7 +21,7 @@ const mockProfile: Profile = {
   id: "00000000-0000-0000-0000-000000000000",
   username: "pacosalaz", avatar_url: null, is_pro: true, is_bot: false,
   fennec_db_score: 65, created_at: new Date().toISOString(), bio: null, genres: [],
-  worked_with: null, worked_in: null, banner_url: null, display_name: "Paco Salaz",
+  worked_with: null, worked_in: null, banner_url: null, studio_photo_url: null, studio_photo_luma: null, display_name: "Paco Salaz",
   role: "Composer", country: "Mexico", instagram: null, spotify: null,
   youtube_url: null, tiktok: null, color_id: null,
 };

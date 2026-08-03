@@ -19,7 +19,7 @@ const mockProfile: Profile = {
   genres: ["Cinematic"],
   worked_with: null,
   worked_in: null,
-  banner_url: null,
+  banner_url: null, studio_photo_url: null, studio_photo_luma: null,
   display_name: "Paco Salaz",
   role: "Composer",
   country: "Mexico",

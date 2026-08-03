@@ -9,6 +9,7 @@ import type { Profile, Post } from "@/lib/communityTypes";
 import type { ContributionDays } from "@/lib/contributions";
 import ContributionsCard from "@/components/dashboard/ContributionsCard";
 import CommunityPulse from "@/components/dashboard/CommunityPulse";
+import { StudioBackdrop, StudioPhotoControl } from "@/components/dashboard/StudioBackdrop";
 import { RiseStyle, Band, Tile, Cols, Col, Instrument } from "@/components/desktop/ui";
 
 /* ═══════════════════════════════════════════════════════════════
@@ -63,6 +64,7 @@ export default function DashboardDesktop({
   activeProjects, totalProjects, quotesSentCount, quotesOutTotal, karma,
   sentQuotes, latestNote, contributions,
   communityPosts, communityLoading = false,
+  studioPhotoUrl, studioPhotoLuma, userId, onStudioPhotoChange,
   onNavigate, onOpenProfileSettings,
 }: {
   card: {
@@ -88,6 +90,11 @@ export default function DashboardDesktop({
   /** Latest community posts. `null` while unknown, `[]` when genuinely empty. */
   communityPosts?: Post[] | null;
   communityLoading?: boolean;
+  /** The producer's studio photo and its measured brightness (drives the veil). */
+  studioPhotoUrl?: string | null;
+  studioPhotoLuma?: number | null;
+  userId?: string;
+  onStudioPhotoChange?: (url: string | null, luma: number | null) => void;
   onNavigate?: (tab: "pricing" | "contenido" | "dashboard" | "ideas" | "noticias") => void;
   onOpenProfileSettings?: () => void;
 }) {
@@ -114,7 +121,10 @@ export default function DashboardDesktop({
      inventing content to fill it: the strip simply sits on the floor, the way
      a status bar does, and on a short window it just stacks normally. */
   return (
-    <div className="flex h-full flex-col">
+    <div className="relative flex h-full flex-col">
+      {/* The producer's room, when they've set one. Absent by default, so the
+          dashboard is unchanged for anyone who never uploads. */}
+      {studioPhotoUrl && <StudioBackdrop url={studioPhotoUrl} luma={studioPhotoLuma ?? null} />}
       <RiseStyle />
       {/* header — greeting follows the actual clock, not a hardcoded evening */}
       <div className="dd-rise mb-7 flex flex-shrink-0 items-center justify-between">
@@ -125,6 +135,17 @@ export default function DashboardDesktop({
             return `${g}, ${card.firstName || "there"}.`;
           })()}
         </h1>
+        <div className="flex items-center gap-4">
+        {/* Personalisation sits next to sharing: both are about how this
+            screen represents you, and neither belongs in Settings where
+            you'd never think to look for a wallpaper. */}
+        {userId && onStudioPhotoChange && (
+          <StudioPhotoControl
+            userId={userId}
+            hasPhoto={!!studioPhotoUrl}
+            onChange={onStudioPhotoChange}
+          />
+        )}
         <button
           type="button"
           onClick={() => {
@@ -142,6 +163,7 @@ export default function DashboardDesktop({
         >
           Share my ID
         </button>
+        </div>
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col gap-7">

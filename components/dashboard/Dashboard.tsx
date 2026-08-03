@@ -190,6 +190,18 @@ export default function Dashboard({
      `null` means "not known yet" so the card can show skeletons; `[]` means
      the community really is empty and the empty state is correct. */
   const [communityPosts, setCommunityPosts] = useState<Post[] | null>(null);
+  /* The studio photo lives on the profile, but it's mirrored here so
+     uploading repaints the dashboard immediately instead of after a refetch. */
+  const [studioPhoto, setStudioPhoto] = useState<{ url: string | null; luma: number | null }>({
+    url: networkProfile?.studio_photo_url ?? null,
+    luma: networkProfile?.studio_photo_luma ?? null,
+  });
+  useEffect(() => {
+    setStudioPhoto({
+      url: networkProfile?.studio_photo_url ?? null,
+      luma: networkProfile?.studio_photo_luma ?? null,
+    });
+  }, [networkProfile?.studio_photo_url, networkProfile?.studio_photo_luma]);
   const [mounted,    setMounted]    = useState(false);
   const [showDbInfo, setShowDbInfo] = useState(false);
   const [showSocialInfo, setShowSocialInfo] = useState(false);
@@ -496,6 +508,10 @@ export default function Dashboard({
         latestNote={latestNote}
         communityPosts={communityPosts}
         communityLoading={communityPosts === null}
+        studioPhotoUrl={studioPhoto.url}
+        studioPhotoLuma={studioPhoto.luma}
+        userId={userId ?? undefined}
+        onStudioPhotoChange={(url, luma) => setStudioPhoto({ url, luma })}
         onNavigate={onNavigate}
         onOpenProfileSettings={onOpenProfileSettings}
       />

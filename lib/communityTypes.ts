@@ -17,6 +17,8 @@ export type Profile = {
   worked_with: string | null;
   worked_in: string | null;
   banner_url: string | null;
+  studio_photo_url: string | null;
+  studio_photo_luma: number | null;
   // Settings fields
   display_name: string | null;
   role: string | null;

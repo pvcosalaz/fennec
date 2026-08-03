@@ -43,7 +43,7 @@ const mockContributions: ContributionDays = (() => {
 const mockProfile: Profile = {
   id: "mock-1", username: "aria.wav", avatar_url: null, is_pro: true, is_bot: false,
   fennec_db_score: 1284, created_at: new Date().toISOString(), bio: null, genres: [],
-  worked_with: null, worked_in: null, banner_url: null, display_name: "Aria Montes",
+  worked_with: null, worked_in: null, banner_url: null, studio_photo_url: null, studio_photo_luma: null, display_name: "Aria Montes",
   role: "Composer", country: "Argentina", instagram: null, spotify: null,
   youtube_url: null, tiktok: null, color_id: null,
 };

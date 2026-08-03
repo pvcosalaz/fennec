@@ -61,6 +61,8 @@ export async function updateProfile(userId: string, updates: {
   youtube_url?: string | null;
   tiktok?: string | null;
   color_id?: string | null;
+  studio_photo_url?: string | null;
+  studio_photo_luma?: number | null;
 }): Promise<Profile> {
   const { data, error } = await supabase
     .from("profiles")
@@ -252,6 +254,20 @@ export async function uploadAudio(blob: Blob, filename: string): Promise<string>
   });
   if (error) throw error;
   const { data } = supabase.storage.from("community-audio").getPublicUrl(path);
+  return data.publicUrl;
+}
+
+/** The producer's studio photo. Already downscaled and re-encoded to JPEG by
+ *  prepareStudioPhoto, so this just stores it. Namespaced by user so a second
+ *  upload doesn't collide and old ones stay traceable. */
+export async function uploadStudioPhoto(userId: string, blob: Blob): Promise<string> {
+  const path = `studio/${userId}-${Date.now()}.jpg`;
+  const { error } = await supabase.storage.from("community-images").upload(path, blob, {
+    contentType: "image/jpeg",
+    upsert: false,
+  });
+  if (error) throw error;
+  const { data } = supabase.storage.from("community-images").getPublicUrl(path);
   return data.publicUrl;
 }
 
