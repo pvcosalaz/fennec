@@ -140,8 +140,15 @@ export default function DashboardDesktop({
       {studioPhotoUrl && <StudioBackdrop url={studioPhotoUrl} luma={studioPhotoLuma ?? null} />}
       <RiseStyle />
       {/* header — greeting follows the actual clock, not a hardcoded evening */}
-      <div className="dd-rise mb-7 flex flex-shrink-0 items-center justify-between">
-        <h1 className="text-[21px] font-bold tracking-tight text-white">
+      {/* mb-5, no mb-7: el saludo crece de 21 a 28px y eso se come alto de la
+          rejilla, que a 720px va justa. Quitarle 8px al margen devuelve mas de
+          lo que cuesta la tipografia, asi que el titulo gana peso sin que nada
+          de abajo se apriete. */}
+      <div className="dd-rise mb-5 flex flex-shrink-0 items-center justify-between">
+        {/* 28px: es el titulo de la pagina y estaba al mismo peso que los
+            rotulos de los paneles. A 32px la jerarquia se lee sola y
+            el saludo deja de competir (Paco 2026-08-03). */}
+        <h1 className="text-[32px] font-bold leading-none tracking-[-0.02em] text-white">
           {(() => {
             const h = new Date().getHours();
             const g = h < 5 || h >= 19 ? "Good evening" : h < 12 ? "Good morning" : "Good afternoon";
