@@ -260,9 +260,14 @@ export default function DashboardDesktop({
 
       {/* ── Fila 3: la evidencia, y lo que toca hoy ── */}
       <div className="dd-rise flex min-h-0 min-w-0 flex-col justify-center" style={{ animationDelay: ".18s" }}>
-        {/* cellSize 10: a 11 la rejilla del año pedía ~700px de ancho mínimo y
-            empujaba toda la columna derecha fuera de la pantalla. */}
-        <ContributionsCard data={contributions ?? null} accent="#f5a623" weeks={52} cellSize={10} />
+        {/* SIN cellSize: la tarjeta tiene dos modos y el flexible es el
+            correcto aquí. Con celdas fijas de 10px el año medía 673px de ancho
+            (52 columnas × 10 + 51 huecos × 3) dentro de un contenedor de 650, y
+            se salía por la derecha (Paco 2026-08-03, medido: desborde 23px).
+            Cualquier número fijo vuelve a romperse en cuanto cambia el ancho de
+            la ventana. En modo flexible las celdas son flex-1 con
+            aspect-square, así que caben SIEMPRE, sea cual sea el ancho. */}
+        <ContributionsCard data={contributions ?? null} accent="#f5a623" weeks={52} />
       </div>
 
       <div className="dd-rise flex min-h-0 flex-col" style={{ animationDelay: ".21s" }}>

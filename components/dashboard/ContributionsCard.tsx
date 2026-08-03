@@ -82,8 +82,14 @@ export default function ContributionsCard({ data, accent, weeks = 17, cellSize }
         }}
       >
         <div className="flex items-center justify-between mb-2.5">
-          <p className="text-[9px] font-bold tracking-[0.2em] uppercase" style={{ color: `${accent}80` }}>
+          {/* El rótulo solo decía "Contributions" y nadie tiene por qué adivinar
+              qué cuenta (Paco 2026-08-03). Dice de qué está hecho, en una línea.
+              Es tuyo y solo tuyo: no aparece en tu perfil público. */}
+          <p className="flex items-baseline gap-2 text-[9px] font-bold tracking-[0.2em] uppercase" style={{ color: `${accent}80` }}>
             Contributions
+            <span className="hidden text-[9px] font-medium normal-case tracking-normal text-zinc-500 sm:inline">
+              work you logged · quotes, projects, tracks, feedback
+            </span>
           </p>
           {(data?.streak ?? 0) > 1 && (
             <p className="flex items-center gap-1 text-[11px] font-extrabold" style={{ color: accent }}>
