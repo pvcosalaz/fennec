@@ -5,9 +5,10 @@ import { SiInstagram, SiTiktok, SiYoutube } from "react-icons/si";
 import FennecIdCard from "@/components/network/FennecIdCard";
 import type { FennecIdColor } from "@/lib/fennecIdPalette";
 import type { Quote } from "@/lib/pricingData";
-import type { Profile } from "@/lib/communityTypes";
+import type { Profile, Post } from "@/lib/communityTypes";
 import type { ContributionDays } from "@/lib/contributions";
 import ContributionsCard from "@/components/dashboard/ContributionsCard";
+import CommunityPulse from "@/components/dashboard/CommunityPulse";
 import { RiseStyle, Band, Tile, Cols, Col, Instrument } from "@/components/desktop/ui";
 
 /* ═══════════════════════════════════════════════════════════════
@@ -61,6 +62,7 @@ export default function DashboardDesktop({
   igFollowers, ttFollowers, ytSubs,
   activeProjects, totalProjects, quotesSentCount, quotesOutTotal, karma,
   sentQuotes, latestNote, contributions,
+  communityPosts, communityLoading = false,
   onNavigate, onOpenProfileSettings,
 }: {
   card: {
@@ -83,6 +85,9 @@ export default function DashboardDesktop({
   sentQuotes: Quote[];
   latestNote: string | null;
   contributions?: ContributionDays | null;
+  /** Latest community posts. `null` while unknown, `[]` when genuinely empty. */
+  communityPosts?: Post[] | null;
+  communityLoading?: boolean;
   onNavigate?: (tab: "pricing" | "contenido" | "dashboard" | "ideas" | "noticias") => void;
   onOpenProfileSettings?: () => void;
 }) {
@@ -231,10 +236,20 @@ export default function DashboardDesktop({
         </Tile>
       </div>
 
-      {/* Social Reach — slim full-width strip, flat brand icons (no neon glow).
-          mt-auto puts the leftover height ABOVE it, so the strip lands on the
-          floor of the viewport instead of leaving a void underneath. */}
-      <Band label="Social Reach" className="dd-rise mt-auto">
+      {/* ── What everyone else is doing ──
+          Takes the leftover height (flex-1), because a list is the one thing
+          on this page that genuinely improves with more room — stretching four
+          stat numbers to fill a gap just makes tall empty tiles. */}
+      <div className="dd-rise flex min-h-0 flex-1 flex-col" style={{ animationDelay: ".24s" }}>
+        <CommunityPulse
+          posts={communityPosts ?? null}
+          loading={communityLoading}
+          onOpen={() => onNavigate?.("noticias")}
+        />
+      </div>
+
+      {/* Social Reach — slim full-width strip, flat brand icons (no neon glow) */}
+      <Band label="Social Reach" className="dd-rise">
         <Cols>
           <Col
             icon={<SiInstagram size={14} style={{ color: "#E1306C", opacity: 0.9 }} />}

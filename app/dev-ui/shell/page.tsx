@@ -13,7 +13,7 @@ import { useState } from "react";
 import { notFound } from "next/navigation";
 import DesktopShell, { type DesktopTab } from "@/components/desktop/DesktopShell";
 import DashboardDesktop from "@/components/desktop/DashboardDesktop";
-import type { Profile } from "@/lib/communityTypes";
+import type { Profile, Post } from "@/lib/communityTypes";
 import { dayKey, type ContributionDays } from "@/lib/contributions";
 import { getColorScheme } from "@/lib/fennecIdPalette";
 
@@ -37,6 +37,28 @@ const mockContributions: ContributionDays = (() => {
   });
   return { byDay, total: 8, totalYear: 8, streak: 2 };
 })();
+
+const post = (
+  id: string, name: string, username: string, mins: number,
+  content: string, vibes: number, replies: number,
+): Post => ({
+  id, user_id: id, content, category: "sync", media_url: null, media_type: null,
+  media_name: null, link_url: null, link_title: null, repost_of: null,
+  created_at: new Date(Date.now() - mins * 60_000).toISOString(),
+  profile: { ...mockProfile, id, username, display_name: name, avatar_url: null },
+  vibe_count: vibes, comment_count: replies, user_vibed: false, user_bookmarked: false,
+});
+
+const mockPosts: Post[] = [
+  post("m1", "Ileana Vergara", "ileana.strings", 18,
+    "Client asked for 'tension without percussion' on a doc series. Ended up bowing a bass guitar through a granular delay. Sometimes the brief IS the idea.", 14, 6),
+  post("m2", "Tobias Ferrand", "tferrand", 96,
+    "Reminder that a 3-second silence before the drop does more than any riser you can buy.", 31, 4),
+  post("m3", "Renata Alcaraz", "renata.mixes", 340,
+    "Anyone here quoting agencies in EUR from LATAM? Trying to figure out whether to eat the conversion or build it into the rate.", 9, 12),
+  post("m4", "Kwabena Osei", "kwabena.o", 1180,
+    "Finished a 40-cue package in six weeks. The thing that saved me wasn't a plugin, it was writing the deliverables list before touching the DAW.", 22, 3),
+];
 
 export default function ShellDevPage() {
   if (process.env.NODE_ENV === "production") notFound();
@@ -71,6 +93,7 @@ export default function ShellDevPage() {
         sentQuotes={[]}
         latestNote={null}
         contributions={mockContributions}
+        communityPosts={mockPosts}
       />
     </DesktopShell>
   );

@@ -5,7 +5,7 @@ import { SiInstagram, SiTiktok, SiYoutube } from "react-icons/si";
 import { type Project, type Quote, type Client, syncPricingFromCloud } from "@/lib/pricingData";
 import { getProjects, getQuotes, getClients } from "@/lib/businessDb";
 import { PROFILE_KEY, type UserProfile } from "@/components/settings/SettingsModule";
-import { fetchProfile, updateDbScore } from "@/lib/communityDb";
+import { fetchProfile, updateDbScore, fetchPosts } from "@/lib/communityDb";
 import { seedCurrencyFromCountry } from "@/lib/currency";
 import { supabase } from "@/lib/supabase";
 import FennecIdCard from "@/components/network/FennecIdCard";
@@ -19,7 +19,7 @@ import { fetchKarma } from "@/lib/audioDb";
 import { fetchNotifications } from "@/lib/notificationDb";
 import { useIsDesktop } from "@/lib/useIsDesktop";
 import DashboardDesktop from "@/components/desktop/DashboardDesktop";
-import type { Profile } from "@/lib/communityTypes";
+import type { Profile, Post } from "@/lib/communityTypes";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -186,6 +186,10 @@ export default function Dashboard({
   const [profile,    setProfile]    = useState<UserProfile | null>(null);
   const [karma,      setKarma]      = useState<number | null>(null);
   const [latestNote, setLatestNote] = useState<string | null>(null); // latest feedback on my tracks (desktop band)
+  /* Latest community posts for the desktop dashboard's pulse card.
+     `null` means "not known yet" so the card can show skeletons; `[]` means
+     the community really is empty and the empty state is correct. */
+  const [communityPosts, setCommunityPosts] = useState<Post[] | null>(null);
   const [mounted,    setMounted]    = useState(false);
   const [showDbInfo, setShowDbInfo] = useState(false);
   const [showSocialInfo, setShowSocialInfo] = useState(false);
@@ -333,6 +337,14 @@ export default function Dashboard({
         setLatestNote(note ? (note.body || note.title) : null);
       })
       .catch(() => {});
+    /* What the rest of the community is posting. Deliberately not filtered to
+       things involving Paco: the bell already covers those, and a home screen
+       made only of your own numbers gives no reason to come back mid-day.
+       On failure it settles to [] so the card shows its empty state instead
+       of skeletons forever. */
+    fetchPosts(null, 0, userId)
+      .then(setCommunityPosts)
+      .catch(() => setCommunityPosts([]));
   }, [userId, isDesktop]);
 
   // Color for FennecIdCard
@@ -482,6 +494,8 @@ export default function Dashboard({
         karma={karma}
         sentQuotes={quotes.filter((q) => q.status === "sent")}
         latestNote={latestNote}
+        communityPosts={communityPosts}
+        communityLoading={communityPosts === null}
         onNavigate={onNavigate}
         onOpenProfileSettings={onOpenProfileSettings}
       />
