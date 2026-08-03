@@ -37,7 +37,7 @@ const mockContributions: ContributionDays = (() => {
       total += count;
     }
   }
-  return { byDay, totalYear: total, streak: 6 };
+  return { byDay, detail: new Map(), totalYear: total, streak: 6 };
 })();
 
 const mockProfile: Profile = {

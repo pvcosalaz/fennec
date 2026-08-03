@@ -7,7 +7,40 @@
 
 import { useState } from "react";
 import { X, Flame } from "lucide-react";
-import { buildHeatmapGrid, type ContributionDays } from "@/lib/contributions";
+import { buildHeatmapGrid, type ContributionDays, type DayDetail } from "@/lib/contributions";
+
+const MESES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+/** Como se llama cada tipo cuando se lee, en singular y plural. La UI de
+ *  Fennec va en ingles siempre. */
+const NOMBRE: Record<string, [string, string]> = {
+  quote:    ["quote", "quotes"],
+  project:  ["project", "projects"],
+  client:   ["client", "clients"],
+  post:     ["post", "posts"],
+  feedback: ["note given", "notes given"],
+  track:    ["track uploaded", "tracks uploaded"],
+};
+
+/** "Tue, 12 Mar" — corto, con el dia de la semana, que es lo que ubica en una
+ *  rejilla donde cada columna es una semana. */
+function fechaLegible(key: string): string {
+  const [y, m, d] = key.split("-").map(Number);
+  const dt = new Date(y, m - 1, d);
+  return dt.toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short" });
+}
+
+function resumen(det: DayDetail | undefined): string {
+  if (!det) return "";
+  const partes = Object.entries(det)
+    .filter(([, n]) => (n ?? 0) > 0)
+    .sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0))
+    .map(([k, n]) => {
+      const par = NOMBRE[k] ?? [k, k];
+      return `${n} ${n === 1 ? par[0] : par[1]}`;
+    });
+  return partes.join(" · ");
+}
 
 /* La celda vacía va detrás de una variable: sobre el canvas plano un blanco al
    6% se lee, pero sobre una fotografía desaparece por completo y la rejilla se
@@ -21,37 +54,72 @@ const LEVEL_BG = [
   "#f5a623",
 ];
 
-function Heatmap({ byDay, weeks, cellRadius = 2, cellSize }: {
+function Heatmap({ byDay, weeks, cellRadius = 2, cellSize, selected, onSelect }: {
   byDay: ContributionDays["byDay"]; weeks: number; cellRadius?: number;
   /** Fixed px per cell. Without it cells stretch to fill the width, which on a
    *  wide desktop blew them up to ~40px squares (GitHub's are ~12px) and made
    *  the card eat half the dashboard. */
   cellSize?: number;
+  selected: string | null;
+  onSelect: (key: string | null) => void;
 }) {
   const grid = buildHeatmapGrid(byDay, weeks);
   const fixed = cellSize != null;
+
+  /* Rotulos de mes: sin ellos la rejilla no tiene linea de tiempo y un
+     cuadrito encendido no se sabe de cuando es (Paco 2026-08-03). Se marca la
+     PRIMERA columna de cada mes, que es como se lee un calendario. */
+  const marcasMes = grid.map((col, i) => {
+    const m = col[0]?.month;
+    if (m == null) return null;
+    const anterior = grid[i - 1]?.[0]?.month;
+    return i === 0 || m !== anterior ? MESES[m] : null;
+  });
+
   return (
-    <div className={`flex gap-[3px] ${fixed ? "" : "w-full"}`}>
-      {grid.map((col, i) => (
-        <div
-          key={i}
-          className={`flex flex-col gap-[3px] ${fixed ? "" : "flex-1 min-w-0"}`}
-          style={fixed ? { width: cellSize } : undefined}
-        >
-          {col.map((cell) => (
-            <div
-              key={cell.key}
-              title={`${cell.key} · ${cell.count}`}
-              className={fixed ? "" : "w-full aspect-square"}
-              style={{
-                background: LEVEL_BG[cell.level],
-                borderRadius: cellRadius,
-                ...(fixed ? { width: cellSize, height: cellSize } : null),
-              }}
-            />
-          ))}
-        </div>
-      ))}
+    <div className="w-full">
+      <div className={`mb-1 flex gap-[3px] ${fixed ? "" : "w-full"}`}>
+        {grid.map((col, i) => (
+          <div
+            key={i}
+            className={`min-w-0 text-[8px] leading-none text-zinc-600 ${fixed ? "" : "flex-1"}`}
+            style={fixed ? { width: cellSize } : undefined}
+          >
+            {/* overflow visible: el nombre del mes es mas ancho que una columna
+                de una semana, asi que se deja desbordar sobre las siguientes. */}
+            {marcasMes[i] && <span className="relative whitespace-nowrap">{marcasMes[i]}</span>}
+          </div>
+        ))}
+      </div>
+
+      <div className={`flex gap-[3px] ${fixed ? "" : "w-full"}`}>
+        {grid.map((col, i) => (
+          <div
+            key={i}
+            className={`flex flex-col gap-[3px] ${fixed ? "" : "flex-1 min-w-0"}`}
+            style={fixed ? { width: cellSize } : undefined}
+          >
+            {col.map((cell) => {
+              const activo = cell.key === selected;
+              return (
+                <button
+                  key={cell.key}
+                  type="button"
+                  onClick={() => onSelect(activo ? null : cell.key)}
+                  aria-label={`${cell.key}, ${cell.count}`}
+                  className={`${fixed ? "" : "w-full aspect-square"} transition hover:brightness-150`}
+                  style={{
+                    background: LEVEL_BG[cell.level],
+                    borderRadius: cellRadius,
+                    ...(fixed ? { width: cellSize, height: cellSize } : null),
+                    ...(activo ? { outline: "1.5px solid #f5a623", outlineOffset: 1 } : null),
+                  }}
+                />
+              );
+            })}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -65,7 +133,10 @@ export default function ContributionsCard({ data, accent, weeks = 17, cellSize }
   cellSize?: number;
 }) {
   const [showYear, setShowYear] = useState(false);
+  const [day, setDay] = useState<string | null>(null);
   const byDay = data?.byDay ?? new Map<string, number>();
+  const detalle = data?.detail?.get(day ?? "") ;
+  const cuenta = day ? (byDay.get(day) ?? 0) : 0;
 
   return (
     <>
@@ -104,13 +175,25 @@ export default function ContributionsCard({ data, accent, weeks = 17, cellSize }
         </div>
 
         <div className="flex min-h-0 flex-1 items-center">
-          <Heatmap byDay={byDay} weeks={weeks} cellSize={cellSize} />
+          <Heatmap byDay={byDay} weeks={weeks} cellSize={cellSize} selected={day} onSelect={setDay} />
         </div>
 
-        <div className="flex items-center justify-between mt-2.5">
-          <p className="text-[10px] text-zinc-500">
-            <span className="font-extrabold text-zinc-200 tabular-nums">{data?.totalYear ?? 0}</span> this year
-          </p>
+        <div className="flex min-h-[18px] items-center justify-between mt-2.5">
+          {/* Al elegir un dia, esta linea deja de ser el total y pasa a contar
+              QUE se hizo ese dia. Es la respuesta a "no se que representan los
+              cuadritos": ahora un cuadrito encendido se puede leer. */}
+          {day ? (
+            <p className="min-w-0 truncate text-[10px] text-zinc-400">
+              <span className="font-semibold text-zinc-200">{fechaLegible(day)}</span>
+              {cuenta > 0 ? <span className="text-zinc-500"> · {resumen(detalle) || `${cuenta}`}</span>
+                          : <span className="text-zinc-600"> · nothing logged</span>}
+            </p>
+          ) : (
+            <p className="text-[10px] text-zinc-500">
+              <span className="font-extrabold text-zinc-200 tabular-nums">{data?.totalYear ?? 0}</span> this year
+              <span className="ml-1.5 text-zinc-600">· pick a day</span>
+            </p>
+          )}
           {weeks >= 52 ? (
             // Full year already on screen (desktop): nothing more to open, so
             // the space goes to the scale legend instead of a dead link.
@@ -165,7 +248,7 @@ export default function ContributionsCard({ data, accent, weeks = 17, cellSize }
             {/* 52 weeks — scrolls horizontally, newest at the right */}
             <div className="overflow-x-auto pb-1" style={{ direction: "rtl" }}>
               <div style={{ direction: "ltr", minWidth: 640 }}>
-                <Heatmap byDay={byDay} weeks={52} cellRadius={2} />
+                <Heatmap byDay={byDay} weeks={52} cellRadius={2} selected={day} onSelect={setDay} />
               </div>
             </div>
 

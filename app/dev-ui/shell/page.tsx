@@ -32,12 +32,16 @@ const mockProfile: Profile = {
  *  and a full heatmap would hide the layout problem instead of showing it. */
 const mockContributions: ContributionDays = (() => {
   const byDay = new Map<string, number>();
+  const detail = new Map<string, Record<string, number>>();
+  const kinds = ["quote", "project", "track", "feedback", "post", "client"] as const;
   [3, 9, 14, 27, 41, 58, 96, 120].forEach((back, i) => {
     const d = new Date();
     d.setDate(d.getDate() - back);
-    byDay.set(dayKey(d), (i % 3) + 1);
+    const n = (i % 3) + 1;
+    byDay.set(dayKey(d), n);
+    detail.set(dayKey(d), { [kinds[i % kinds.length]]: n });
   });
-  return { byDay, total: 8, totalYear: 8, streak: 2 };
+  return { byDay, detail, total: 8, totalYear: 8, streak: 2 } as ContributionDays;
 })();
 
 const post = (

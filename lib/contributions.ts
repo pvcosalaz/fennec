@@ -9,9 +9,19 @@
 import { supabase } from "@/lib/supabase";
 import type { Project, Quote, Client } from "@/lib/pricingData";
 
+/** De qué está hecha una contribución. El heatmap solo contaba, así que un
+ *  cuadrito encendido no decía nada: "veo puros cuadritos que no sé qué
+ *  representan" (Paco 2026-08-03). Guardando el tipo, un día se puede leer. */
+export type ContributionKind = "quote" | "project" | "client" | "post" | "feedback" | "track";
+
+/** Cuántas de cada tipo hubo ese día. */
+export type DayDetail = Partial<Record<ContributionKind, number>>;
+
 export type ContributionDays = {
   /** ISO day (YYYY-MM-DD, local time) → contribution count */
   byDay: Map<string, number>;
+  /** ISO day → desglose por tipo. Es lo que se muestra al picarle a un día. */
+  detail: Map<string, DayDetail>;
   /** Total contributions in the last 365 days */
   totalYear: number;
   /** Current streak in days (counts today OR yesterday as alive) */
@@ -27,10 +37,19 @@ export function dayKey(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-function addTimestamp(byDay: Map<string, number>, ts: number, cutoff: number) {
+function addTimestamp(
+  byDay: Map<string, number>,
+  detail: Map<string, DayDetail>,
+  ts: number,
+  cutoff: number,
+  kind: ContributionKind,
+) {
   if (!Number.isFinite(ts) || ts < cutoff) return;
   const k = dayKey(new Date(ts));
   byDay.set(k, (byDay.get(k) ?? 0) + 1);
+  const d = detail.get(k) ?? {};
+  d[kind] = (d[kind] ?? 0) + 1;
+  detail.set(k, d);
 }
 
 /**
@@ -49,19 +68,20 @@ export async function fetchContributionDays(
   const cutoff = now - 365 * 24 * 60 * 60 * 1000;
   const cutoffIso = new Date(cutoff).toISOString();
   const byDay = new Map<string, number>();
+  const detail = new Map<string, DayDetail>();
 
   // Business — already in memory
-  for (const p of projects) addTimestamp(byDay, p.createdAt, cutoff);
-  for (const q of quotes)   addTimestamp(byDay, q.createdAt, cutoff);
-  for (const c of clients)  addTimestamp(byDay, c.createdAt, cutoff);
+  for (const p of projects) addTimestamp(byDay, detail, p.createdAt, cutoff, "project");
+  for (const q of quotes)   addTimestamp(byDay, detail, q.createdAt, cutoff, "quote");
+  for (const c of clients)  addTimestamp(byDay, detail, c.createdAt, cutoff, "client");
 
   // Community + audio — created_at only, capped, best-effort
-  const sources: { table: string; userCol: string }[] = [
-    { table: "posts",           userCol: "user_id" }, // community posts
-    { table: "review_comments", userCol: "user_id" }, // feedback given on tracks
-    { table: "project_reviews", userCol: "user_id" }, // tracks uploaded for review
+  const sources: { table: string; userCol: string; kind: ContributionKind }[] = [
+    { table: "posts",           userCol: "user_id", kind: "post" },     // community posts
+    { table: "review_comments", userCol: "user_id", kind: "feedback" }, // feedback given on tracks
+    { table: "project_reviews", userCol: "user_id", kind: "track" },    // tracks uploaded for review
   ];
-  await Promise.all(sources.map(async ({ table, userCol }) => {
+  await Promise.all(sources.map(async ({ table, userCol, kind }) => {
     try {
       const { data, error } = await supabase
         .from(table)
@@ -70,7 +90,7 @@ export async function fetchContributionDays(
         .gte("created_at", cutoffIso)
         .limit(1000);
       if (error || !data) return;
-      for (const row of data) addTimestamp(byDay, new Date(row.created_at as string).getTime(), cutoff);
+      for (const row of data) addTimestamp(byDay, detail, new Date(row.created_at as string).getTime(), cutoff, kind);
     } catch { /* best-effort */ }
   }));
 
@@ -87,7 +107,7 @@ export async function fetchContributionDays(
     cursor.setDate(cursor.getDate() - 1);
   }
 
-  return { byDay, totalYear, streak };
+  return { byDay, detail, totalYear, streak };
 }
 
 /**
@@ -99,11 +119,11 @@ export function buildHeatmapGrid(byDay: Map<string, number>, weeks: number) {
   const today = new Date();
   // End the grid on the current weekday; start weeks*7-1 days earlier.
   const days = weeks * 7;
-  const cells: { key: string; count: number; level: 0 | 1 | 2 | 3 | 4 }[][] = [];
+  const cells: { key: string; count: number; level: 0 | 1 | 2 | 3 | 4; month: number }[][] = [];
   const start = new Date(today);
   start.setDate(start.getDate() - (days - 1));
   for (let w = 0; w < weeks; w++) {
-    const col: { key: string; count: number; level: 0 | 1 | 2 | 3 | 4 }[] = [];
+    const col: { key: string; count: number; level: 0 | 1 | 2 | 3 | 4; month: number }[] = [];
     for (let d = 0; d < 7; d++) {
       const date = new Date(start);
       date.setDate(start.getDate() + w * 7 + d);
@@ -111,7 +131,7 @@ export function buildHeatmapGrid(byDay: Map<string, number>, weeks: number) {
       const key = dayKey(date);
       const count = byDay.get(key) ?? 0;
       const level = count === 0 ? 0 : count === 1 ? 1 : count === 2 ? 2 : count <= 4 ? 3 : 4;
-      col.push({ key, count, level });
+      col.push({ key, count, level, month: date.getMonth() });
     }
     cells.push(col);
   }
