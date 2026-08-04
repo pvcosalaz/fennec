@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
+import TapeDust from "@/components/audio/TapeDust";
 import { Play, Pause, SkipForward, Plus, Upload, ZoomIn, ZoomOut } from "lucide-react";
 import type { ProjectReview, ReviewComment } from "@/lib/audioTypes";
 import { fetchReviewComments, createReviewComment, fetchKarma } from "@/lib/audioDb";
@@ -411,6 +412,11 @@ export default function TapeDeckDesktop({
 
   return (
     <div className="relative flex h-screen min-h-0 flex-col overflow-hidden" style={{ background: DECK }}>
+      {/* El aire del cuarto. Va PRIMERO y sin z-index propio: todo lo demas se
+          pinta despues y queda encima solo por orden del DOM, sin tener que
+          subirle la capa a media interfaz. */}
+      <TapeDust />
+
       {/* crossOrigin lets the AnalyserNode read the samples */}
       <audio ref={audioRef} src={track.audio_url} preload="metadata" crossOrigin="anonymous" />
 
