@@ -14,6 +14,7 @@ import { notFound } from "next/navigation";
 import DesktopShell, { type DesktopTab } from "@/components/desktop/DesktopShell";
 import DashboardDesktop from "@/components/desktop/DashboardDesktop";
 import CoachMarks from "@/components/dashboard/CoachMarks";
+import TapeDust from "@/components/audio/TapeDust";
 import ScriptWriterOverlay from "@/components/content/ScriptWriterOverlay";
 import ContentModule from "@/components/content/ContentModule";
 import SettingsModule from "@/components/settings/SettingsModule";
@@ -89,8 +90,20 @@ export default function ShellDevPage() {
      mandar JPEGs de prueba a produccion. */
   // ?tour=1 monta el recorrido del usuario nuevo sin tener que crear cuenta.
   const tour = params?.get("tour") === "1";
+  /* ?dust=1 · el fondo de La Cinta sobre su mismo color de fondo. La Cinta real
+     necesita sesion y un track subido, asi que sin esto el polvo se calibraba a
+     ciegas — y en el primer intento quedo invisible (Paco 2026-08-03). */
+  const dust = params?.get("dust") === "1";
   const photo = params?.get("photo") ?? null;
   const photoLuma = Number(params?.get("luma") ?? "0.5");
+
+  if (dust) {
+    return (
+      <div className="relative h-screen w-screen overflow-hidden" style={{ background: "#131216" }}>
+        <TapeDust />
+      </div>
+    );
+  }
 
   return (
     <DesktopShell
