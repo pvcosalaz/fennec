@@ -121,8 +121,13 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
      seccion vivia centrada como en un telefono, desperdiciando la mitad del
      area de contenido y obligando a scrollear (Paco 2026-08-03).
      Las secciones que SI son listas usan dos columnas mas abajo. */
+  /* mx-auto tambien en escritorio. Con max-w-3xl y sin centrar, el modulo se
+     pegaba al borde izquierdo de la columna de 1100px y dejaba todo el hueco a
+     la derecha: se leia descuadrado respecto al resto de la app, que si va
+     centrada (Paco 2026-08-03). El ancho se queda en 3xl —es un formulario, no
+     un tablero— pero centrado. */
   const shell = isDesktop
-    ? "w-full max-w-3xl space-y-5"
+    ? "mx-auto w-full max-w-3xl space-y-5"
     : "mx-auto w-full max-w-lg space-y-5 px-4";
   const [section,       setSection]       = useState<Section>(initialSection ?? "main");
   const [profile,       setProfile]       = useState<UserProfile>(DEFAULT_PROFILE);
