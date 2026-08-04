@@ -410,12 +410,12 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
       {/* DOS COLUMNAS en escritorio. Era la tira vertical del telefono estirada
           a lo ancho: campos angostos, mucho scroll y el guardado fuera de vista.
           Identidad de un lado, enlaces del otro, y todo cabe sin scrollear. */}
-      <div
-        className={isDesktop ? "grid items-start gap-5" : "space-y-5"}
-        style={isDesktop ? { gridTemplateColumns: "1fr 1fr" } : undefined}
-      >
-      <div className="space-y-5">
-
+      {/* La foto va ARRIBA de las dos columnas, no dentro de la izquierda.
+          Metida en la columna empujaba los campos hacia abajo mientras "Social
+          profiles" arrancaba pegado al techo: los dos paneles no empezaban a la
+          misma altura y la foto quedaba centrada respecto a media pantalla en
+          vez de a la pagina (Paco 2026-08-03). Fuera de la rejilla, los dos
+          recuadros arrancan parejos y la foto queda centrada de verdad. */}
       {/* Avatar upload */}
       <div className="flex flex-col items-center gap-2">
         <input
@@ -451,6 +451,13 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
           {uploadingAvatar ? "Uploading…" : isDesktop ? "Click to change photo" : "Tap to change photo"}
         </p>
       </div>
+
+
+      <div
+        className={isDesktop ? "grid items-start gap-5" : "space-y-5"}
+        style={isDesktop ? { gridTemplateColumns: "1fr 1fr" } : undefined}
+      >
+      <div className="space-y-5">
 
       <div className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
         <div className="space-y-1">

@@ -35,7 +35,12 @@ type Props = {
 };
 
 function toYMD(d: Date): string {
-  return d.toISOString().split("T")[0];
+  /* NO toISOString(): eso convierte a UTC y desde Mexico (UTC-6) a partir de
+     las 18:00 ya devuelve la fecha de MAÑANA — el calendario marcaba el 4 de
+     agosto siendo dia 3 (Paco 2026-08-03). La fecha del calendario tiene que
+     ser la del reloj de quien lo mira, asi que se arma con los componentes
+     locales. */
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 function getWeekDays(anchor: Date): Date[] {

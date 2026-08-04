@@ -41,7 +41,9 @@ type Props = {
 };
 
 // Same YMD convention as CalendarHub so chips land on the same days.
-const toYMD = (d: Date): string => d.toISOString().split("T")[0];
+const toYMD = (d: Date): string =>
+  /* Local, no UTC — ver la nota en CalendarHub.toYMD. */
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
 const DAY_LABELS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
@@ -114,10 +116,15 @@ export default function ContentHubDesktop({
   // (icon chip + name + live state), not corner pills. Same card language
   // as the Business hub's tool row, so both modules read as one product.
   const TOOLS: { id: "inspire" | "ideas" | "lab" | "scripts"; label: string; sub: string; icon: React.ComponentType<{ className?: string }>; pro: boolean }[] = [
-    { id: "inspire", label: "Inspire",     sub: "Trending references for your genres", icon: Zap,          pro: true },
+    /* Las dos libres primero y las dos PRO juntas a la derecha. Alternadas
+       (libre, PRO, libre, PRO) la insignia amarilla rebotaba de un lado a otro
+       y no se leia un grupo, sino cuatro casos sueltos (Paco 2026-08-03).
+       Juntas, la fila dice de un vistazo donde termina lo tuyo y donde empieza
+       lo que se desbloquea. */
     { id: "ideas",   label: "Quick Ideas", sub: ideasCount > 0 ? `${ideasCount} saved idea${ideasCount !== 1 ? "s" : ""}` : "Capture ideas in seconds", icon: Sparkles, pro: false },
-    { id: "lab",     label: "Content Lab", sub: "Turn your music into scripts",        icon: FlaskConical, pro: true },
     { id: "scripts", label: "My Scripts",  sub: scriptsCount > 0 ? `${scriptsCount} script${scriptsCount !== 1 ? "s" : ""} written` : "Everything you write lands here", icon: FileText, pro: false },
+    { id: "inspire", label: "Inspire",     sub: "Trending references for your genres", icon: Zap,          pro: true },
+    { id: "lab",     label: "Content Lab", sub: "Turn your music into scripts",        icon: FlaskConical, pro: true },
   ];
 
   return (
