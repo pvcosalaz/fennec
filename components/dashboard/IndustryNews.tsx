@@ -84,7 +84,13 @@ function Card({ item, denso = false }: { item: NewsItem; denso?: boolean }) {
              aporta textura y el TITULAR manda; el color vuelve al pasar encima,
              que es cuando esa nota si te interesa. */
           className="absolute inset-0 h-full w-full object-cover transition-all duration-700 group-hover:scale-[1.04] group-hover:saturate-100 group-hover:opacity-100"
-          style={{ filter: "saturate(0.15) contrast(1.05)", opacity: 0.55 }}
+          /* Subido de 0.15/0.55 a 0.55/0.70 (Paco 2026-08-03). Al 15% de
+             saturacion las fotos eran practicamente grises y las noticias
+             perdian el gancho; a color pleno eran la fila mas ruidosa de la
+             pantalla, que es por lo que se bajaron. A la mitad se distingue de
+             que trata cada nota sin que la fila compita con el resto. El color
+             pleno se sigue reservando para el hover. */
+          style={{ filter: "saturate(0.55) contrast(1.04)", opacity: 0.70 }}
         />
       )}
 
