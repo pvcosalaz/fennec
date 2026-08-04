@@ -478,6 +478,12 @@ export default function Dashboard({
   // same data computed above — only the render forks, never the logic.
   if (isDesktop) {
     return (
+      /* La bienvenida y el checklist tambien en escritorio. Vivian SOLO en el
+         retorno de abajo (el movil), asi que una cuenta nueva que entrara desde
+         una computadora aterrizaba sin tutorial y sin forma de descubrirlo
+         (Paco 2026-08-03). El estado ya se calcula arriba de este return, asi
+         que no habia que moverlo: faltaba montarlo. */
+      <>
       <DashboardDesktop
         card={{
           firstName: cardFirst,
@@ -515,6 +521,24 @@ export default function Dashboard({
         onNavigate={onNavigate}
         onOpenProfileSettings={onOpenProfileSettings}
       />
+
+      {businessLoaded && !onboardingComplete && (
+        /* Fijo respecto a la ventana, no absoluto: en escritorio el dashboard
+           no es el contenedor posicionado, asi que un absolute se habria ido a
+           donde no. Debajo de la campana y el avatar del shell (z 20). */
+        <div className="dash-rise fixed right-6 top-[78px] z-30">
+          <ProgressChip items={checklistItems} onOpen={() => setShowWelcome(true)} />
+        </div>
+      )}
+
+      {showWelcome && (
+        <WelcomeModal
+          userName={(networkProfile?.display_name || username || "").split(" ")[0]}
+          items={checklistItems}
+          onClose={closeWelcome}
+        />
+      )}
+      </>
     );
   }
 
