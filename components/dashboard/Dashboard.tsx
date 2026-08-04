@@ -12,6 +12,7 @@ import FennecIdCard from "@/components/network/FennecIdCard";
 import { getColorScheme } from "@/lib/fennecIdPalette";
 import { ensureColorAssigned } from "@/lib/networkDb";
 import { WelcomeModal, ProgressChip, type ChecklistItem } from "@/components/dashboard/WelcomeChecklist";
+import CoachMarks from "@/components/dashboard/CoachMarks";
 import { computeFennecDb, reachDb as reachDbOf, totalReachAudience, FENNEC_DB_MODEL } from "@/lib/fennecDb";
 import { fetchContributionDays, type ContributionDays } from "@/lib/contributions";
 import ContributionsCard from "@/components/dashboard/ContributionsCard";
@@ -531,13 +532,11 @@ export default function Dashboard({
         </div>
       )}
 
-      {showWelcome && (
-        <WelcomeModal
-          userName={(networkProfile?.display_name || username || "").split(" ")[0]}
-          items={checklistItems}
-          onClose={closeWelcome}
-        />
-      )}
+      {/* El recorrido REEMPLAZA al modal de bienvenida en escritorio (Paco
+          2026-08-03). El modal explicaba el dB antes de que el usuario lo
+          hubiera visto; los globos lo explican encima del numero real. El
+          checklist no se toca: sigue viviendo en el chip de aqui arriba. */}
+      {showWelcome && <CoachMarks onDone={closeWelcome} />}
       </>
     );
   }

@@ -316,6 +316,7 @@ export default function DashboardDesktop({
           type="button"
           onClick={openCard}
           ref={cardRef}
+          data-coach="id"
           aria-label="Open my Fennec ID"
           className="group relative flex-shrink-0 text-left transition active:scale-[0.99]"
           style={{
@@ -336,7 +337,7 @@ export default function DashboardDesktop({
           />
         </button>
 
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1" data-coach="db">
           <Instrument
             label="Fennec dB"
             value={String(fennecDb)}
@@ -411,7 +412,7 @@ export default function DashboardDesktop({
       {/* ── Fila 3: la evidencia, a lo ancho ──
           52 semanas necesitan ancho. En la columna de 320px los meses no se
           alcanzaban a leer, asi que ocupa las dos columnas. */}
-      <div className="dd-rise col-span-2 flex min-h-0 min-w-0 flex-col" style={{ animationDelay: ".18s" }}>
+      <div data-coach="contributions" className="dd-rise col-span-2 flex min-h-0 min-w-0 flex-col" style={{ animationDelay: ".18s" }}>
         {/* SIN cellSize: la tarjeta tiene dos modos y el flexible es el
             correcto aquí. Con celdas fijas de 10px el año medía 673px de ancho
             (52 columnas × 10 + 51 huecos × 3) dentro de un contenedor de 650, y

@@ -317,6 +317,7 @@ export default function DesktopShell({
           {/* The Tape · live pulse — the reel's heartbeat, always present */}
           <button
             type="button"
+            data-coach="tape"
             onClick={() => onNavigate("ideas")}
             aria-label="Open The Tape"
             title={compact ? "The Tape · live" : undefined}

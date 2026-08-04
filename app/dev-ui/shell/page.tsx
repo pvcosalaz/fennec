@@ -13,6 +13,7 @@ import { useState } from "react";
 import { notFound } from "next/navigation";
 import DesktopShell, { type DesktopTab } from "@/components/desktop/DesktopShell";
 import DashboardDesktop from "@/components/desktop/DashboardDesktop";
+import CoachMarks from "@/components/dashboard/CoachMarks";
 import ScriptWriterOverlay from "@/components/content/ScriptWriterOverlay";
 import ContentModule from "@/components/content/ContentModule";
 import SettingsModule from "@/components/settings/SettingsModule";
@@ -86,6 +87,8 @@ export default function ShellDevPage() {
   /* ?photo=<url>&luma=<0..1> para ver el dashboard con foto de estudio sin
      tener que subir una. Va por parametro y no como asset del repo para no
      mandar JPEGs de prueba a produccion. */
+  // ?tour=1 monta el recorrido del usuario nuevo sin tener que crear cuenta.
+  const tour = params?.get("tour") === "1";
   const photo = params?.get("photo") ?? null;
   const photoLuma = Number(params?.get("luma") ?? "0.5");
 
@@ -141,6 +144,7 @@ export default function ShellDevPage() {
         communityPosts={mockPosts}
       />
       )}
+      {tour && <CoachMarks onDone={() => {}} />}
     </DesktopShell>
   );
 }
