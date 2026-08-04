@@ -422,7 +422,12 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
           vez de a la pagina (Paco 2026-08-03). Fuera de la rejilla, los dos
           recuadros arrancan parejos y la foto queda centrada de verdad. */}
       {/* Avatar upload */}
-      <div className="flex flex-col items-center gap-2">
+      {/* mb-7: al sacar la foto de la columna quedo pegada a los dos recuadros
+          y "Click to change photo" se leia amontonado entre la foto y el borde
+          de las tarjetas (Paco 2026-08-03). El aviso pertenece a la foto, no a
+          los paneles, y necesita mas hueco abajo que arriba para que se agrupe
+          con ella. */}
+      <div className="mb-7 flex flex-col items-center gap-2">
         <input
           ref={fileInputRef}
           type="file"
