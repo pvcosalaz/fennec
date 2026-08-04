@@ -207,6 +207,12 @@ export default function Dashboard({
   const [showDbInfo, setShowDbInfo] = useState(false);
   const [showSocialInfo, setShowSocialInfo] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  /* DOS cosas distintas, no una (Paco 2026-08-03). `showWelcome` son los pasos
+     que faltan, que es a donde debe llevar el chip de progreso. `showTour` es
+     el recorrido de globos, que sale en la primera visita y se puede repetir
+     desde ahi. Mezclarlos hacia que picarle al chip te mandara al recorrido en
+     vez de a tu lista de pendientes. */
+  const [showTour, setShowTour] = useState(false);
   const [marketingVisited, setMarketingVisited] = useState(false);
   const [cardExpanded, setCardExpanded] = useState(false);
   const [cardAnimating, setCardAnimating] = useState(false);
@@ -245,7 +251,7 @@ export default function Dashboard({
 
     try {
       syncMarketing();
-      if (localStorage.getItem("fennec_onboarding_seen_v1") !== "1") setShowWelcome(true);
+      if (localStorage.getItem("fennec_onboarding_seen_v1") !== "1") setShowTour(true);
     } catch { /* ignore */ }
 
     window.addEventListener("focus", syncMarketing);
@@ -257,6 +263,11 @@ export default function Dashboard({
       document.removeEventListener("visibilitychange", syncMarketing);
     };
   }, []);
+
+  function closeTour() {
+    setShowTour(false);
+    try { localStorage.setItem("fennec_onboarding_seen_v1", "1"); } catch { /* ignore */ }
+  }
 
   function closeWelcome() {
     setShowWelcome(false);
@@ -536,7 +547,16 @@ export default function Dashboard({
           2026-08-03). El modal explicaba el dB antes de que el usuario lo
           hubiera visto; los globos lo explican encima del numero real. El
           checklist no se toca: sigue viviendo en el chip de aqui arriba. */}
-      {showWelcome && <CoachMarks onDone={closeWelcome} />}
+      {showWelcome && (
+        <WelcomeModal
+          userName={(networkProfile?.display_name || username || "").split(" ")[0]}
+          items={checklistItems}
+          onClose={closeWelcome}
+          onReplayTour={() => { setShowWelcome(false); setShowTour(true); }}
+        />
+      )}
+
+      {showTour && <CoachMarks onDone={closeTour} />}
       </>
     );
   }

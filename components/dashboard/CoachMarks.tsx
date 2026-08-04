@@ -25,7 +25,7 @@
    ellos habria obligado a cablear props por media app.
    ═══════════════════════════════════════════════════════════════ */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 export type CoachStep = {
@@ -63,6 +63,13 @@ export default function CoachMarks({
   /* `listo` retrasa un frame la primera pintura para que el globo entre con su
      animacion en vez de aparecer ya colocado. */
   const [listo, setListo] = useState(false);
+  /* Alto REAL del globo, medido despues de pintarlo. Antes se estimaba en 150px
+     para decidir si cabia debajo del elemento, y un texto de cuatro renglones
+     (Contributions) mide mas: el globo se salia por abajo de la ventana
+     (Paco 2026-08-03). Estimar el alto de algo que ya esta en el DOM es
+     adivinar teniendo la respuesta enfrente. */
+  const globoRef = useRef<HTMLDivElement | null>(null);
+  const [altoGlobo, setAltoGlobo] = useState(150);
 
   const paso = steps[i];
 
@@ -72,6 +79,10 @@ export default function CoachMarks({
     const r = el.getBoundingClientRect();
     setCaja({ top: r.top, left: r.left, width: r.width, height: r.height });
   }, [paso?.anchor]);
+
+  useEffect(() => {
+    if (globoRef.current) setAltoGlobo(globoRef.current.offsetHeight);
+  });
 
   useEffect(() => {
     medir();
@@ -119,14 +130,18 @@ export default function CoachMarks({
      titulo: un globo que oculta lo que esta señalando no señala nada
      (medido 2026-08-03). */
   const alCostado = caja.left + caja.width / 2 < window.innerWidth * 0.2;
-  const debajo = caja.top + caja.height + GAP + 150 < window.innerHeight;
+  const debajo = caja.top + caja.height + GAP + altoGlobo + 12 < window.innerHeight;
   const cx = caja.left + caja.width / 2;
   const left = alCostado
     ? caja.left + caja.width + GAP
     : Math.min(Math.max(cx - W / 2, 12), window.innerWidth - W - 12);
+  /* Tope duro: pase lo que pase, el globo entero cabe en la ventana. La
+     posicion preferida (debajo / encima / al costado) es una preferencia, no
+     una licencia para salirse de la pantalla. */
+  const limite = (y: number) => Math.min(Math.max(y, 12), window.innerHeight - altoGlobo - 12);
   const top = alCostado
-    ? Math.min(Math.max(caja.top + caja.height / 2 - 60, 12), window.innerHeight - 160)
-    : debajo ? caja.top + caja.height + GAP : caja.top - GAP;
+    ? limite(caja.top + caja.height / 2 - altoGlobo / 2)
+    : debajo ? limite(caja.top + caja.height + GAP) : limite(caja.top - GAP - altoGlobo);
   const origen = alCostado ? "left center" : debajo ? "top center" : "bottom center";
 
   /* Portal al body: dentro del arbol del shell, el dock crea su propio contexto
@@ -168,9 +183,10 @@ export default function CoachMarks({
 
       <div
         className="absolute"
-        style={{ top, left, transform: !alCostado && !debajo ? "translateY(-100%)" : undefined }}
+        style={{ top, left }}
       >
         <div
+          ref={globoRef}
           key={paso.anchor}
           className="rounded-2xl px-4 py-3.5"
           style={{

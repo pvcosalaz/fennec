@@ -18,10 +18,13 @@ export function WelcomeModal({
   userName,
   items,
   onClose,
+  onReplayTour,
 }: {
   userName: string;
   items: ChecklistItem[];
   onClose: () => void;
+  /** Vuelve a lanzar el recorrido de globos. Solo en escritorio por ahora. */
+  onReplayTour?: () => void;
 }) {
   const doneCount = items.filter((i) => i.done).length;
   const allDone = doneCount === items.length;
@@ -115,6 +118,19 @@ export function WelcomeModal({
         >
           {allDone ? "Done! 🎉" : "Get started"}
         </button>
+
+        {/* Repetir el recorrido. Va aqui abajo y en secundario porque no es lo
+            que vienes a hacer a esta pantalla: vienes a ver que te falta. Pero
+            un recorrido que solo existe la primera vez no sirve el dia que si
+            necesitas acordarte de que era el dB (Paco 2026-08-03). */}
+        {onReplayTour && (
+          <button
+            onClick={onReplayTour}
+            className="mt-2.5 w-full py-2 text-[12px] font-semibold text-zinc-500 transition hover:text-accent"
+          >
+            Show me around again
+          </button>
+        )}
       </div>
     </>
   );
