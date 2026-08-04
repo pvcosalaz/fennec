@@ -79,7 +79,7 @@ export default function DashboardDesktop({
   sentQuotes, latestNote, contributions,
   communityPosts, communityLoading = false,
   studioPhotoUrl, studioPhotoLuma, userId, onStudioPhotoChange,
-  onNavigate, onOpenProfileSettings,
+  onNavigate, onOpenProfileSettings, onReplayTour,
 }: {
   card: {
     firstName: string; lastName: string; role: string; country: string;
@@ -111,6 +111,8 @@ export default function DashboardDesktop({
   onStudioPhotoChange?: (url: string | null, luma: number | null) => void;
   onNavigate?: (tab: "pricing" | "contenido" | "dashboard" | "ideas" | "noticias") => void;
   onOpenProfileSettings?: () => void;
+  /** Vuelve a lanzar el recorrido de globos. */
+  onReplayTour?: () => void;
 }) {
   // The producer's color lives ONLY on the FennecIdCard — it's the card's
   // identity, not the app's. All other accents stay on-brand amber.
@@ -218,6 +220,22 @@ export default function DashboardDesktop({
         {/* "Share my ID" vive detras de la bandera de Network: compartir para
             que te coleccionen no sirve de nada mientras coleccionar esta
             apagado (Paco 2026-08-03). */}
+        {/* Repetir el recorrido. Chiquito y permanente: el chip de progreso
+            desaparece al completar los cinco pasos, asi que sin esto el
+            recorrido dejaba de existir justo para quien ya lleva tiempo y es
+            quien mas puede haber olvidado que era el dB (Paco 2026-08-03). */}
+        {onReplayTour && (
+          <button
+            type="button"
+            onClick={onReplayTour}
+            aria-label="Show me around again"
+            title="Show me around again"
+            className="grid h-7 w-7 flex-shrink-0 place-items-center rounded-full border border-white/10 text-[11px] font-bold text-zinc-500 transition hover:border-accent/40 hover:text-accent active:scale-95"
+          >
+            ?
+          </button>
+        )}
+
         {NETWORK_ENABLED && (
         <button
           type="button"

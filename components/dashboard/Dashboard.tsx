@@ -532,6 +532,7 @@ export default function Dashboard({
         onStudioPhotoChange={(url, luma) => setStudioPhoto({ url, luma })}
         onNavigate={onNavigate}
         onOpenProfileSettings={onOpenProfileSettings}
+        onReplayTour={() => setShowTour(true)}
       />
 
       {businessLoaded && !onboardingComplete && (
