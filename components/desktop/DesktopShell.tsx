@@ -24,14 +24,22 @@ import type { Profile } from "@/lib/communityTypes";
 
 export type DesktopTab = "dashboard" | "pricing" | "ideas" | "contenido" | "noticias";
 
-const NAV: { id: DesktopTab | "network"; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+import { NETWORK_ENABLED } from "@/lib/featureFlags";
+
+type NavItem = { id: DesktopTab | "network"; label: string; icon: React.ComponentType<{ className?: string }> };
+
+const NAV_ALL: NavItem[] = [
   { id: "dashboard", label: "Dashboard", icon: Home },
   { id: "pricing",   label: "Business",  icon: Briefcase },
   { id: "ideas",     label: "The Tape",  icon: AudioWaveform },
   { id: "contenido", label: "Marketing", icon: Camera },
   { id: "noticias",  label: "Community", icon: Users },
+  /* Network apagado para el lanzamiento web — ver lib/featureFlags. Se filtra
+     en vez de borrarse para que volver a prenderlo sea una linea. */
   { id: "network",   label: "Network",   icon: UserPlus },
 ];
+
+const NAV: NavItem[] = NAV_ALL.filter((n) => NETWORK_ENABLED || n.id !== "network");
 
 /** Sidebar: full with labels, or icon-only once the window gets narrow so a
  *  squeezed desktop window keeps the desktop shell instead of flipping to the

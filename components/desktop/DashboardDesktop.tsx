@@ -6,6 +6,7 @@ import type { FennecIdColor } from "@/lib/fennecIdPalette";
 import type { Quote } from "@/lib/pricingData";
 import type { Profile, Post } from "@/lib/communityTypes";
 import type { ContributionDays } from "@/lib/contributions";
+import { NETWORK_ENABLED } from "@/lib/featureFlags";
 import ContributionsCard from "@/components/dashboard/ContributionsCard";
 import IndustryNews from "@/components/dashboard/IndustryNews";
 import SocialMini from "@/components/dashboard/SocialMini";
@@ -214,6 +215,10 @@ export default function DashboardDesktop({
             onChange={onStudioPhotoChange}
           />
         )}
+        {/* "Share my ID" vive detras de la bandera de Network: compartir para
+            que te coleccionen no sirve de nada mientras coleccionar esta
+            apagado (Paco 2026-08-03). */}
+        {NETWORK_ENABLED && (
         <button
           type="button"
           onClick={() => {
@@ -231,6 +236,7 @@ export default function DashboardDesktop({
         >
           Share my ID
         </button>
+        )}
         </div>
       </div>
 

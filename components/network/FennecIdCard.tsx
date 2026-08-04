@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { NETWORK_ENABLED } from "@/lib/featureFlags";
 
 function useCountUp(target: number, duration = 1200) {
   const [display, setDisplay] = useState(0);
@@ -259,7 +260,11 @@ export default function FennecIdCard({
                 ID
               </span>
             </div>
-            <QrPlaceholder size={38} />
+            {/* El QR solo sirve para que te escaneen, y escanear esta apagado en
+                el lanzamiento web (lib/featureFlags). Sin la mecanica es un
+                adorno que promete algo que no pasa. El nombre "fennec ID" se
+                queda: eso si es identidad (Paco 2026-08-03). */}
+            {NETWORK_ENABLED && <QrPlaceholder size={38} />}
           </div>
 
           {/* Role label + staggered name */}
