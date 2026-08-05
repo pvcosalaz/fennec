@@ -447,8 +447,25 @@ export default function TapeDeckDesktop({
       {/* crossOrigin lets the AnalyserNode read the samples */}
       <audio ref={audioRef} src={track.audio_url} preload="metadata" crossOrigin="anonymous" />
 
-      {/* header — left margin clears the "‹ fennec" immersive-exit pill */}
-      <div className="flex items-start justify-between py-6 pl-[168px] pr-8">
+      {/* ── header ──
+          TRES COLUMNAS, con la identidad de la pista al centro (Paco
+          2026-08-03). Era una fila con todo empujado a la izquierda tras un
+          margen de 168px que libraba la pastilla de salida, asi que el titulo
+          quedaba descolgado del centro del carrete y se leia como algo pegado
+          encima en vez de la cabecera de la maquina.
+
+          Las columnas laterales miden 1fr cada una: eso centra el bloque de en
+          medio respecto a la PANTALLA, no respecto al espacio que sobra, que es
+          la unica forma de que coincida con el eje de los carretes y de la
+          cinta. El pl-[168px] vive ahora solo en la columna izquierda, que es
+          la unica que necesitaba librar la pastilla. */}
+      <div className="grid items-start py-6 pr-8" style={{ gridTemplateColumns: "1fr auto 1fr" }}>
+        <div className="flex items-center gap-3 pl-[168px]">
+          <button onClick={onOpenIntro} className="rounded-md border px-2.5 py-1 font-mono text-[9px] font-bold uppercase tracking-[0.18em] transition hover:brightness-125" style={{ borderColor: `${AMBER}4d`, color: AMBER }}>
+            How it works
+          </button>
+        </div>
+
         <div className="flex items-center gap-3.5">
           {track.artwork_url ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -464,7 +481,7 @@ export default function TapeDeckDesktop({
               le da la misma nota a una idea cruda que a un master
               (Paco 2026-08-03). */}
           <div className="min-w-0">
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center justify-center gap-2.5">
               <h1 className="truncate text-[26px] font-bold leading-none tracking-[-0.02em] text-white">{track.title}</h1>
               {track.category && (
                 <span
@@ -488,11 +505,9 @@ export default function TapeDeckDesktop({
               <span className="underline decoration-dotted underline-offset-2">view profile</span>
             </a>
           </div>
-          <button onClick={onOpenIntro} className="ml-3 rounded-md border px-2.5 py-1 font-mono text-[9px] font-bold uppercase tracking-[0.18em] transition hover:brightness-125" style={{ borderColor: `${AMBER}4d`, color: AMBER }}>
-            How it works
-          </button>
         </div>
-        <div className="flex items-center gap-3">
+
+        <div className="flex items-center justify-end gap-3">
           <div className="rounded-full border border-white/10 px-3.5 py-1.5 font-mono text-[12px] text-zinc-400">{fmt(t)} / {fmt(duration)}</div>
           <div className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-bold" style={{ borderColor: `${AMBER}4d`, color: AMBER }}>◈ {karma ?? "—"} karma</div>
         </div>
