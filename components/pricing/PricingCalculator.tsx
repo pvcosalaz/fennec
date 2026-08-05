@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { EVENTO_ABRIR_TRACK } from "@/lib/tapeNav";
 import { useCloudValue } from "@/lib/useCloudValue";
 
 function SplashScreen({ exiting }: { exiting: boolean }) {
@@ -513,6 +514,16 @@ export default function PricingCalculator() {
      dock; se limpia al navegar a otro lado para que volver a Community por la
      barra caiga en el feed y no en tu propio perfil. */
   const [communityProfileId, setCommunityProfileId] = useState<string | null>(null);
+
+  /* "Abreme este track" puede venir de la campana o del perfil de un productor.
+     Quien lo pide no sabe —ni tiene por que saber— como se cambia de modulo,
+     asi que el shell escucha y navega. El track lo carga AudioModule por su
+     cuenta (lib/tapeNav). */
+  useEffect(() => {
+    const irALaCinta = () => { setActiveTab("ideas"); setShowSettings(false); };
+    window.addEventListener(EVENTO_ABRIR_TRACK, irALaCinta);
+    return () => window.removeEventListener(EVENTO_ABRIR_TRACK, irALaCinta);
+  }, []);
   const [settingsSection, setSettingsSection] = useState<SettingsSection>("main");
   const [showSetup, setShowSetup] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);

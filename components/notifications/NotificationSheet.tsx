@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { openTrackInTape } from "@/lib/tapeNav";
 import { createPortal } from "react-dom";
 import { Bell, Mic, Calendar, Clock, Newspaper, X, CheckCheck } from "lucide-react";
 import type { Notification, NotificationType } from "@/lib/notificationDb";
@@ -70,6 +71,13 @@ export default function NotificationSheet({ userId, onClose, onRead, align = "le
   }
 
   async function handleTap(notification: Notification) {
+    /* Llevar a donde apunta. Hasta hoy el aviso te informaba y te dejaba
+       buscando a mano: picarle no hacia nada porque la tabla no guardaba
+       destino (Paco 2026-08-04). Ya lo guarda; esto lo usa. */
+    if (notification.entity_type === "track" && notification.entity_id) {
+      openTrackInTape(notification.entity_id);
+      onClose?.();
+    }
     if (!notification.read) {
       await markOneRead(notification.id);
       setItems((prev) =>

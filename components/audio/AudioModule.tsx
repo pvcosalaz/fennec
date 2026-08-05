@@ -2,7 +2,8 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import type { ProjectReview } from "@/lib/audioTypes";
-import { fetchRandomReviews } from "@/lib/audioDb";
+import { fetchRandomReviews, fetchReviewById } from "@/lib/audioDb";
+import { takePendingTrack, EVENTO_ABRIR_TRACK } from "@/lib/tapeNav";
 import ProjectReviewPlayer from "./ProjectReviewPlayer";
 import MyTracksView from "./MyTracksView";
 import IdeasModule from "@/components/ideas/IdeasModule";
@@ -32,8 +33,23 @@ export default function AudioModule({ userId, isPro, onSheetChange }: Props) {
   const [skipStreak, setSkipStreak] = useState(0);
 
   useEffect(() => {
+    /* Si alguien pidio un track concreto (perfil de un productor, o una
+       notificacion de feedback), ese va PRIMERO y la cola normal detras: al
+       terminarlo sigues escuchando en vez de quedarte en un callejon
+       (Paco 2026-08-04). */
+    const pedido = takePendingTrack();
     fetchRandomReviews(userId, 10)
-      .then((tracks) => { setQueue(tracks); setQueueIndex(0); })
+      .then(async (tracks) => {
+        if (pedido) {
+          const t = await fetchReviewById(pedido).catch(() => null);
+          if (t) {
+            setQueue([t, ...tracks.filter((x) => x.id !== t.id)]);
+            setQueueIndex(0);
+            return;
+          }
+        }
+        setQueue(tracks); setQueueIndex(0);
+      })
       .catch(console.error)
       .finally(() => setLoadingQueue(false));
   }, [userId]);
@@ -65,6 +81,23 @@ export default function AudioModule({ userId, isPro, onSheetChange }: Props) {
     try { localStorage.setItem(INTRO_SEEN_KEY, "1"); } catch { /* ignore */ }
     setOverlay(next);
   }
+
+  /* El modulo ya abierto tambien tiene que obedecer: si estas en La Cinta y
+     llega una notificacion, o vienes de un perfil sin cambiar de pestaña, el
+     valor guardado no se lee otra vez porque no hay montaje nuevo. */
+  useEffect(() => {
+    const onAbrir = async (e: Event) => {
+      const id = (e as CustomEvent<string>).detail;
+      if (!id) return;
+      takePendingTrack();
+      const t = await fetchReviewById(id).catch(() => null);
+      if (!t) return;
+      setQueue((q) => [t, ...q.filter((x) => x.id !== t.id)]);
+      setQueueIndex(0);
+    };
+    window.addEventListener(EVENTO_ABRIR_TRACK, onAbrir);
+    return () => window.removeEventListener(EVENTO_ABRIR_TRACK, onAbrir);
+  }, []);
 
   function handlePass() {
     if (queueIndex + 1 >= queue.length) {

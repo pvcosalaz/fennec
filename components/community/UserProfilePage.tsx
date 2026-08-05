@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { openTrackInTape } from "@/lib/tapeNav";
 import { fetchUserReviews } from "@/lib/audioDb";
 import type { ProjectReview } from "@/lib/audioTypes";
 import { ChevronLeft, Pencil, MapPin } from "lucide-react";
@@ -233,9 +234,14 @@ export default function UserProfilePage({ userId, currentProfile, onBack, onOpen
             </p>
             <div className="space-y-1.5">
               {tracks.map((t) => (
-                <div
+                <button
                   key={t.id}
-                  className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.02] px-3 py-2.5"
+                  type="button"
+                  onClick={() => openTrackInTape(t.id)}
+                  /* Catalogo → navegacion. Ver que subio alguien sin poder
+                     escucharlo cortaba el descubrimiento justo antes del final
+                     (Paco 2026-08-04). */
+                  className="flex w-full items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.02] px-3 py-2.5 text-left transition hover:border-accent/30 hover:bg-white/[0.05]"
                 >
                   {t.artwork_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -250,7 +256,7 @@ export default function UserProfilePage({ userId, currentProfile, onBack, onOpen
                       {t.comment_count > 0 && ` · ${t.comment_count} note${t.comment_count === 1 ? "" : "s"}`}
                     </span>
                   </span>
-                </div>
+                </button>
               ))}
             </div>
           </div>

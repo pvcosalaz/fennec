@@ -48,6 +48,18 @@ export async function fetchRandomReviews(
   return attachProfiles(sliced);
 }
 
+/** Un track por id. Lo necesitan "abreme este track" desde el perfil y desde la
+ *  notificacion: en los dos casos se conoce el id y no el dueño. */
+export async function fetchReviewById(trackId: string): Promise<ProjectReview | null> {
+  const { data, error } = await supabase
+    .from("project_reviews")
+    .select(`*, profile:profiles!project_reviews_user_id_fkey(id, username, avatar_url)`)
+    .eq("id", trackId)
+    .maybeSingle();
+  if (error) { console.error("[fetchReviewById]", error.message); return null; }
+  return (data as ProjectReview) ?? null;
+}
+
 export async function fetchUserReviews(userId: string): Promise<ProjectReview[]> {
   const { data, error } = await supabase
     .from("project_reviews")
