@@ -210,6 +210,11 @@ export default function TapeDeckDesktop({
   const angleL = useRef(0);
   const angleR = useRef(0);
   const vuLevel = useRef(0);
+  /* El resplandor del fondo. Nivel PROPIO, mas lento que el de las agujas: los
+     VU dicen el detalle, el fondo dice la energia — si respiraran igual serian
+     el mismo instrumento dos veces (decidido con Paco 2026-08-03). */
+  const glowRef  = useRef<HTMLDivElement | null>(null);
+  const bgLevel  = useRef(0);
 
   const [playing, setPlaying]   = useState(false);
   const [t, setT]               = useState(0);
@@ -307,6 +312,19 @@ export default function TapeDeckDesktop({
         const deg = -46 + vuLevel.current * 92;
         if (vuLRef.current) vuLRef.current.style.transform = `rotate(${deg.toFixed(1)}deg)`;
         if (vuRRef.current) vuRRef.current.style.transform = `rotate(${(deg * 0.93).toFixed(1)}deg)`;
+      }
+
+      /* Resplandor: escribe el estilo DIRECTO en el nodo desde este mismo loop
+         — cero estado de React por cuadro, que aqui ya hay un rAF corriendo y
+         montarle renders encima tiraria el arrastre de la cinta.
+         Suavizado 0.05: unas 4-5 veces mas lento que las agujas, para que el
+         fondo RESPIRE con la seccion del track y no parpadee con cada golpe.
+         Sin reproducir cae a 0 y el fondo vuelve a ser el cuarto quieto.
+         Con reduced-motion no se toca: opacidad fija muy baja, sin latido. */
+      bgLevel.current += ((isPlaying ? vuLevel.current : 0) - bgLevel.current) * 0.05;
+      if (glowRef.current && !reduce) {
+        glowRef.current.style.opacity = (bgLevel.current * 0.5).toFixed(3);
+        glowRef.current.style.transform = `scale(${(1 + bgLevel.current * 0.06).toFixed(4)})`;
       }
 
       raf = requestAnimationFrame(tick);
@@ -449,6 +467,25 @@ export default function TapeDeckDesktop({
           pinta despues y queda encima solo por orden del DOM, sin tener que
           subirle la capa a media interfaz. */}
       <TapeDust />
+
+      {/* ── Resplandor reactivo ──
+          Una sola luz ambar, ancha y centrada donde vive la maquina, que
+          respira con el nivel general del track. NO particulas reaccionando:
+          eso duplicaria a los VU, que ya cuentan el detalle. El fondo solo dice
+          "esta sonando y con cuanta energia" — visible de reojo, ignorable de
+          frente (Paco 2026-08-04). El loop de las agujas le escribe opacity y
+          scale directo al nodo; aqui solo se pinta apagado. */}
+      <div
+        ref={glowRef}
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          opacity: 0,
+          willChange: "opacity, transform",
+          background:
+            "radial-gradient(58% 46% at 50% 42%, rgba(245,166,35,0.13) 0%, rgba(245,166,35,0.05) 45%, transparent 72%)",
+        }}
+      />
 
       {/* crossOrigin lets the AnalyserNode read the samples */}
       <audio ref={audioRef} src={track.audio_url} preload="metadata" crossOrigin="anonymous" />
