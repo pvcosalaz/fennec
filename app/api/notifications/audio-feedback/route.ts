@@ -43,11 +43,14 @@ export async function POST(req: NextRequest) {
       console.error("[notifications/audio-feedback] copy failed, using plain title", err);
     }
 
+    /* Cliente ADMIN: estamos en el servidor creando un aviso para OTRO usuario.
+       Con el cliente anonimo, RLS rechazaba el insert y no llegaba nada. */
     const notification = await createNotification({
       userId: trackOwnerId,
       type: "audio_feedback",
       title,
       body: trackTitle,
+      db: getSupabaseAdmin(),
     });
 
     /* El push va DESPUES y en su propio try: para este punto la notificacion ya
@@ -55,7 +58,7 @@ export async function POST(req: NextRequest) {
        como si el aviso se hubiera perdido. */
     if (notification) {
       try {
-        const subs = await fetchPushSubscriptionsForUser(trackOwnerId);
+        const subs = await fetchPushSubscriptionsForUser(trackOwnerId, getSupabaseAdmin());
         await sendPushToMany(subs, { title, type: "audio_feedback" }, (endpoint) =>
           deletePushSubscription(endpoint)
         );

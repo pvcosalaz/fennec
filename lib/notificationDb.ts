@@ -72,14 +72,26 @@ export async function markOneRead(notificationId: string): Promise<void> {
 }
 
 /** Creates a notification. Checks preferences first — silently skips if type is disabled. */
+/* ⚠️ `db` NO es opcional por gusto.
+   Esta funcion se llama desde una ruta de API, o sea desde el SERVIDOR, y hasta
+   hoy usaba el cliente anonimo del navegador. Ahi no hay sesion, y el insert
+   mete un renglon con el user_id de OTRA persona (el dueño del track), que es
+   justo lo que RLS existe para impedir. Resultado: el insert lanzaba, la ruta
+   respondia 500 y NUNCA llegaba ninguna notificacion de feedback. No tenia nada
+   que ver con las preferencias del usuario, que era la sospecha obvia
+   (Paco lo reporto dos veces, 2026-08-03).
+   Desde el servidor hay que pasarle el cliente admin. */
 export async function createNotification(params: {
   userId: string;
   type: NotificationType;
   title: string;
   body?: string;
+  /** Cliente con service role. Obligatorio desde el servidor. */
+  db?: typeof supabase;
 }): Promise<Notification | null> {
+  const cli = params.db ?? supabase;
   // Check preference
-  const { data: prefs } = await supabase
+  const { data: prefs } = await cli
     .from("notification_preferences")
     .select(params.type)
     .eq("user_id", params.userId)
@@ -88,7 +100,7 @@ export async function createNotification(params: {
   // If row doesn't exist yet (first time), treat as enabled
   if (prefs && (prefs as Record<string, boolean>)[params.type] === false) return null;
 
-  const { data, error } = await supabase
+  const { data, error } = await cli
     .from("notifications")
     .insert({
       user_id: params.userId,
@@ -149,8 +161,8 @@ export async function deletePushSubscription(endpoint: string): Promise<void> {
   if (error) throw error;
 }
 
-export async function fetchPushSubscriptionsForUser(userId: string): Promise<PushSubscriptionRow[]> {
-  const { data, error } = await supabase
+export async function fetchPushSubscriptionsForUser(userId: string, db?: typeof supabase): Promise<PushSubscriptionRow[]> {
+  const { data, error } = await (db ?? supabase)
     .from("push_subscriptions")
     .select("*")
     .eq("user_id", userId);
