@@ -751,47 +751,19 @@ export default function TapeDeckDesktop({
       <div className="grid items-center gap-4 border-t border-white/10 px-8 py-4" style={{ gridTemplateColumns: "1fr auto 1fr" }}>
         <span className="min-w-0 truncate font-mono text-[10.5px] tracking-[0.06em] text-zinc-700">SPACE play · CLICK scrub · ⌘scroll / pinch zoom · ＋ note</span>
 
-        <div className="flex items-center justify-center gap-3">
+        {/* Rejilla, no flex: con flex el play queda centrado solo si los dos
+            grupos miden lo mismo, y no lo miden — medido a 13px del eje. Con
+            [1fr auto 1fr] el play ES la columna de en medio, asi que cae en el
+            centro exacto pase lo que pase con los vecinos. */}
+        <div className="grid items-center gap-3" style={{ gridTemplateColumns: "1fr auto 1fr" }}>
         {/* "Pass" vivia aqui y "Next" mas adelante, los dos llamando a onPass: el
-            mismo boton dos veces, a lados opuestos del play. Se queda uno solo. */}
-        {/* EL PLAY.
-            Era el unico circulo solido con halo en una fila de pastillas con
-            borde: distinto en forma, en relleno y en elevacion a la vez, por eso
-            se sentia pegado encima (Paco 2026-08-03).
-            Ahora comparte la geometria de la fila —misma altura, misma pastilla—
-            y su jerarquia la da el RELLENO, que es lo unico que necesita para
-            leerse como la accion principal. Fuera el halo: el propio sistema de
-            diseño de Fennec prohibe los glows, y esta era la unica pieza de la
-            app que lo hacia. Queda una sombra tintada, que es lo que da cuerpo
-            sin gritar. */}
-          <button
-            onClick={toggle}
-            aria-label={playing ? "Pause" : "Play"}
-            className="flex items-center gap-2 rounded-full px-6 text-[13px] font-bold text-black transition hover:brightness-105 active:scale-[0.97]"
-            style={{
-              height: 44,
-              background: `linear-gradient(180deg,${AMBER_HOT},${AMBER})`,
-              boxShadow: "0 6px 18px -8px rgba(0,0,0,0.8)",
-            }}
-          >
-            {/* Sin icono, solo la palabra, en la tipografia del logotipo: misma
-                familia, mismo peso negro y el mismo tracking de -0.06em, en
-                minusculas (Paco 2026-08-04). El play es la accion principal del
-                modulo, y escribirlo con la letra de la marca lo vuelve parte de
-                la identidad en vez de un boton de reproductor generico. */}
-            <span
-              className="text-[15px] font-black lowercase leading-none"
-              style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", letterSpacing: "-0.06em" }}
-            >
-              {playing ? "pause" : "play"}
-            </span>
-        </button>
-        <button onClick={() => { setMarkAt(t); setMarking(true); }} className="flex items-center gap-2 rounded-full border px-4 py-2.5 text-[13px] font-semibold transition hover:brightness-110" style={{ borderColor: `${AMBER}40`, color: AMBER }}>
-          <Plus className="h-4 w-4" /> Leave a note
-        </button>
-        <button onClick={onPass} className="flex items-center gap-1.5 rounded-full border border-white/10 px-4 py-2.5 text-[13px] text-zinc-400 transition hover:text-white">
-          Next <SkipForward className="h-4 w-4" />
-        </button>
+        {/* PLAY AL CENTRO EXACTO (Paco 2026-08-04).
+            Antes el grupo entero iba centrado y el play era su PRIMER elemento,
+            asi que quedaba a la izquierda del eje. El orden nuevo lo pone en
+            medio: los AJUSTES de escucha (volumen, zoom) a su izquierda y las
+            ACCIONES (dejar nota, siguiente) a su derecha. Ademas de centrarlo,
+            agrupa por tipo en vez de por costumbre. */}
+        <div className="flex items-center justify-end gap-3">
         {/* ── Fader ──
             Horizontal y con el icono como interruptor de mudo, que es el gesto
             que ya trae aprendido cualquiera de un reproductor. Va junto al
@@ -831,6 +803,52 @@ export default function TapeDeckDesktop({
             className="grid h-6 w-6 place-items-center rounded-full text-zinc-500 transition hover:text-white">
             <ZoomIn className="h-3.5 w-3.5" />
           </button>
+        </div>
+        </div>
+
+        {/* EL PLAY.
+            Era el unico circulo solido con halo en una fila de pastillas con
+            borde: distinto en forma, en relleno y en elevacion a la vez, por eso
+            se sentia pegado encima (Paco 2026-08-03).
+            Ahora comparte la geometria de la fila —misma altura, misma pastilla—
+            y su jerarquia la da el RELLENO, que es lo unico que necesita para
+            leerse como la accion principal. Fuera el halo: el propio sistema de
+            diseño de Fennec prohibe los glows, y esta era la unica pieza de la
+            app que lo hacia. Queda una sombra tintada, que es lo que da cuerpo
+            sin gritar. */}
+          <button
+            onClick={toggle}
+            aria-label={playing ? "Pause" : "Play"}
+            className="flex items-center justify-center rounded-full px-11 text-[13px] font-bold text-black transition hover:brightness-105 active:scale-[0.97]"
+            style={{
+              height: 44,
+              background: `linear-gradient(180deg,${AMBER_HOT},${AMBER})`,
+              boxShadow: "0 6px 18px -8px rgba(0,0,0,0.8)",
+            }}
+          >
+            {/* Sin icono, solo la palabra, en la tipografia del logotipo: misma
+                familia, mismo peso negro y el mismo tracking de -0.06em, en
+                minusculas (Paco 2026-08-04). El play es la accion principal del
+                modulo, y escribirlo con la letra de la marca lo vuelve parte de
+                la identidad en vez de un boton de reproductor generico. */}
+            <span
+              /* 17px y tracking -0.035em: mas cuerpo y mas ancha. A -0.06em la
+                 palabra se cerraba sobre si misma y se leia chica aunque el peso
+                 ya fuera el maximo — apretar las letras ADELGAZA la palabra
+                 aunque no adelgace el trazo (Paco 2026-08-04). */
+              className="text-[17px] font-black lowercase leading-none"
+              style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", letterSpacing: "-0.035em" }}
+            >
+              {playing ? "pause" : "play"}
+            </span>
+        </button>
+        <div className="flex items-center justify-start gap-3">
+        <button onClick={() => { setMarkAt(t); setMarking(true); }} className="flex items-center gap-2 rounded-full border px-4 py-2.5 text-[13px] font-semibold transition hover:brightness-110" style={{ borderColor: `${AMBER}40`, color: AMBER }}>
+          <Plus className="h-4 w-4" /> Leave a note
+        </button>
+        <button onClick={onPass} className="flex items-center gap-1.5 rounded-full border border-white/10 px-4 py-2.5 text-[13px] text-zinc-400 transition hover:text-white">
+          Next <SkipForward className="h-4 w-4" />
+        </button>
         </div>
         </div>
 
