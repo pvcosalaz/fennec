@@ -30,6 +30,11 @@ type Props = {
   tasks: ContentTask[];
   onOpenSheet: (sheet: "inspire" | "ideas" | "scripts" | "lab") => void;
   onToggleDone: (id: string) => void;
+  /** Abre el CONTENIDO de la tarea: el guion con su referencia y teleprompter
+   *  si existe, o la herramienta de origen si no. El desglose ya existia
+   *  (ScriptDetailOverlay) pero solo se llegaba por el lapiz, y solo en
+   *  guiones: la idea programada era un titulo muerto (Paco 2026-08-04). */
+  onOpenTask?: (title: string, source: ContentTask["source"]) => void;
   onDeleteTask: (id: string) => void;
   onEditScript?: (taskTitle: string) => void;
   onAddTask?: (title: string, date: string) => void;
@@ -72,7 +77,7 @@ function fmtLong(ymd: string): string {
 }
 
 export default function ContentHubDesktop({
-  tasks, onOpenSheet, onToggleDone, onDeleteTask, onEditScript, onAddTask,
+  tasks, onOpenSheet, onToggleDone, onDeleteTask, onEditScript, onAddTask, onOpenTask,
   ideasCount = 0, scriptsCount = 0,
   isPro = false, onUpgrade,
 }: Props) {
@@ -281,8 +286,13 @@ export default function ContentHubDesktop({
                     >
                       {isDone && <Check size={11} className="text-black" strokeWidth={3} />}
                     </button>
-                    <div className="min-w-0 flex-1">
-                      <p className={`text-[12.5px] font-medium leading-snug ${isDone ? "text-zinc-600 line-through" : "text-white"}`}>
+                    <button
+                      type="button"
+                      disabled={task.source === "manual" || !onOpenTask}
+                      onClick={() => onOpenTask?.(task.title, task.source)}
+                      className="min-w-0 flex-1 text-left disabled:cursor-default"
+                    >
+                      <p className={`text-[12.5px] font-medium leading-snug transition ${isDone ? "text-zinc-600 line-through" : "text-white"} ${task.source !== "manual" && onOpenTask ? "hover:text-accent" : ""}`}>
                         {task.title}
                       </p>
                       {task.notes && <p className="mt-0.5 line-clamp-2 text-[11px] text-zinc-600">{task.notes}</p>}
@@ -290,7 +300,7 @@ export default function ContentHubDesktop({
                         <i className="h-1.5 w-1.5 rounded-full" style={{ background: SOURCE_DOT[task.source] }} />
                         {SOURCE_LABELS[task.source]}
                       </span>
-                    </div>
+                    </button>
                     <div className="mt-0.5 flex flex-shrink-0 items-center gap-2">
                       {task.source === "scripts" && onEditScript && (
                         <button onClick={() => onEditScript(task.title)} aria-label="Edit script" className="text-zinc-600 transition hover:text-accent">

@@ -1033,6 +1033,17 @@ export default function ContentModule({ isPro = false, onUpgrade, genres = [], o
               const brief = briefs.find((b) => b.title === taskTitle);
               if (brief) setDetailBrief(brief);
             }}
+            /* El renglon del dia abre su contenido. Prioridad: el guion escrito
+               (detalle completo: script, referencia, teleprompter). Si no hay
+               guion, la herramienta de donde salio, que es donde vive la idea
+               con su URL (Paco 2026-08-04). */
+            onOpenTask={(taskTitle, source) => {
+              const brief = briefs.find((b) => b.title === taskTitle);
+              if (brief) { setDetailBrief(brief); return; }
+              if (source === "ideas") openSheet("ideas");
+              else if (source === "inspire") openSheet("inspire");
+              else if (source === "scripts") openSheet("scripts");
+            }}
           />
         )
       ) : (
