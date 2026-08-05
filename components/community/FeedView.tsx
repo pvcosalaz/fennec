@@ -39,6 +39,7 @@ export default function FeedView({ profile, onOpenThread, onOpenProfile, openCom
   const [loading, setLoading]           = useState(true);
   const [hasMore, setHasMore]           = useState(true);
   const [composerOpen, setComposerOpen] = useState(!!openComposerWith);
+  const [anchor, setAnchor] = useState<DOMRect | null>(null);
   const [pullY, setPullY]               = useState(0);
   const [refreshing, setRefreshing]     = useState(false);
   const [newCount, setNewCount]         = useState(0);
@@ -186,7 +187,10 @@ export default function FeedView({ profile, onOpenThread, onOpenProfile, openCom
           </button>
           {/* Compose */}
           <button
-            onClick={() => setComposerOpen(true)}
+            /* Se guarda el rectangulo del boton para que el compositor pueda
+               crecer DESDE aqui en escritorio, en vez de subir desde el borde
+               inferior de la pantalla (Paco 2026-08-04). */
+            onClick={(e) => { setAnchor(e.currentTarget.getBoundingClientRect()); setComposerOpen(true); }}
             className="w-10 h-10 rounded-2xl bg-accent flex items-center justify-center hover:bg-amber-400 active:scale-90 transition shadow-[0_0_16px_rgba(245,166,35,0.35)]"
             aria-label="New post"
           >
@@ -285,6 +289,7 @@ export default function FeedView({ profile, onOpenThread, onOpenProfile, openCom
       {/* Composer */}
       {composerOpen && (
         <ComposerSheet
+          anchor={anchor}
           profile={profile}
           onClose={() => setComposerOpen(false)}
           onPostCreated={handlePostCreated}

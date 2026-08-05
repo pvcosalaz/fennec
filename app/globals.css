@@ -265,3 +265,14 @@ button:where(:not([data-no-press])):active {
 @media (prefers-reduced-motion: reduce) {
   .tape-beat { animation: none; opacity: 0.7; }
 }
+
+/* Compositor de Community como popover del boton "+". Crece desde la esquina
+   que toca el disparador (transform-origin lo pone el componente) y sube 6px:
+   parece que sale del boton, no que aterriza encima. Nunca desde scale(0). */
+@keyframes composerPop {
+  from { opacity: 0; transform: scale(0.96) translateY(-6px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  @keyframes composerPop { from { opacity: 0; } to { opacity: 1; } }
+}

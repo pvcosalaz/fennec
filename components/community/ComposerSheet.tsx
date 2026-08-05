@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
+import { useIsDesktop } from "@/lib/useIsDesktop";
 import { createPortal } from "react-dom";
 import { X, Music2, ImageIcon, SmilePlus } from "lucide-react";
 import { createPost, uploadImage } from "@/lib/communityDb";
@@ -29,7 +30,9 @@ function detectVideo(text: string): string | null {
   return null;
 }
 
-export default function ComposerSheet({ profile, onClose, onPostCreated, initialMediaUrl, initialMediaType, initialMediaName }: Props) {
+export default function ComposerSheet({ profile, onClose, onPostCreated, initialMediaUrl, initialMediaType, initialMediaName, anchor }: Props & { anchor?: DOMRect | null }) {
+  const isDesktop = useIsDesktop();
+  const flotante = isDesktop && !!anchor;
   const { sheetRef, dismiss } = useSheetDismiss(onClose);
   const [content, setContent]       = useState("");
   const [category, setCategory]     = useState<PostCategory>("music");
@@ -110,11 +113,36 @@ export default function ComposerSheet({ profile, onClose, onPostCreated, initial
 
   return createPortal(
     <>
-      <div className="fixed inset-0 z-[100] bg-black/60" style={{ animation: "sheetFadeIn .25s ease both" }} onClick={dismiss} />
+      {/* El velo NO oscurece en escritorio: un popover no es un modal, y
+          apagar la pantalla entera para escribir un post de tres renglones
+          exagera el peso de la accion. Sigue capturando el clic para cerrar. */}
+      <div
+        className="fixed inset-0 z-[100]"
+        style={{ background: flotante ? "transparent" : "rgba(0,0,0,0.6)", animation: "sheetFadeIn .25s ease both" }}
+        onClick={dismiss}
+      />
       <div
         ref={sheetRef}
-        className="fixed left-0 right-0 z-[101] rounded-t-3xl bg-zinc-950 border-t border-white/10 p-4 space-y-4 max-h-[90vh] overflow-y-auto"
-        style={{ bottom: SHEET_BOTTOM, paddingBottom: "calc(env(safe-area-inset-bottom) + 16px)", animation: SHEET_ENTER }}
+        className={flotante
+          ? "fixed z-[101] rounded-2xl border border-white/10 bg-zinc-950 p-4 space-y-4 overflow-y-auto"
+          : "fixed left-0 right-0 z-[101] rounded-t-3xl bg-zinc-950 border-t border-white/10 p-4 space-y-4 max-h-[90vh] overflow-y-auto"}
+        style={flotante
+          ? {
+              /* Colgado de la esquina del boton, no centrado en pantalla: el
+                 panel crece DESDE el "+" — transform-origin en la esquina que lo
+                 toca. Un panel que se abre desde otro sitio se lee como si
+                 viniera de otro lado. Escala desde 0.96, nunca desde 0: nada en
+                 el mundo real aparece de la nada. 190ms con ease-out fuerte, que
+                 es lo que pide un popover de este tamaño. */
+              top: Math.min(anchor!.bottom + 10, window.innerHeight - 380),
+              left: Math.min(Math.max(anchor!.right - 460, 16), window.innerWidth - 476),
+              width: 460,
+              maxHeight: "min(560px, calc(100vh - 120px))",
+              transformOrigin: "top right",
+              boxShadow: "0 26px 60px -20px rgba(0,0,0,0.9)",
+              animation: "composerPop 190ms cubic-bezier(.23,1,.32,1) both",
+            }
+          : { bottom: SHEET_BOTTOM, paddingBottom: "calc(env(safe-area-inset-bottom) + 16px)", animation: SHEET_ENTER }}
       >
 
         {/* Header */}
