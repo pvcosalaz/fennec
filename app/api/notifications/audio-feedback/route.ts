@@ -20,12 +20,28 @@ export async function POST(req: NextRequest) {
       firstTimestamp?: string;
     };
 
-    const title = await generateNotificationCopy({
-      type: "audio_feedback",
-      commenterUsername,
-      trackTitle,
-      firstTimestamp,
-    });
+    /* El texto bonito NO puede tumbar el aviso.
+       Antes la generacion de copy vivia dentro del mismo try que el insert, asi
+       que si la llamada a la IA fallaba o tardaba, el catch se llevaba todo y la
+       notificacion NUNCA se creaba: un paso cosmetico matando el mensaje
+       (Paco 2026-08-03, comento de una cuenta a otra y no llego nada).
+
+       Ahora falla sola y cae a un texto llano. Un aviso feo llega; uno bonito
+       que no existe, no. */
+    let title = firstTimestamp
+      ? `@${commenterUsername} left a note at ${firstTimestamp}`
+      : `@${commenterUsername} left a note on your track`;
+    try {
+      const generado = await generateNotificationCopy({
+        type: "audio_feedback",
+        commenterUsername,
+        trackTitle,
+        firstTimestamp,
+      });
+      if (generado) title = generado;
+    } catch (err) {
+      console.error("[notifications/audio-feedback] copy failed, using plain title", err);
+    }
 
     const notification = await createNotification({
       userId: trackOwnerId,
@@ -34,14 +50,23 @@ export async function POST(req: NextRequest) {
       body: trackTitle,
     });
 
+    /* El push va DESPUES y en su propio try: para este punto la notificacion ya
+       esta guardada, y que el envio a un dispositivo falle no debe reportarse
+       como si el aviso se hubiera perdido. */
     if (notification) {
-      const subs = await fetchPushSubscriptionsForUser(trackOwnerId);
-      await sendPushToMany(subs, { title, type: "audio_feedback" }, (endpoint) =>
-        deletePushSubscription(endpoint)
-      );
+      try {
+        const subs = await fetchPushSubscriptionsForUser(trackOwnerId);
+        await sendPushToMany(subs, { title, type: "audio_feedback" }, (endpoint) =>
+          deletePushSubscription(endpoint)
+        );
+      } catch (err) {
+        console.error("[notifications/audio-feedback] push failed (la notificacion SI quedo guardada)", err);
+      }
+    } else {
+      console.error("[notifications/audio-feedback] createNotification devolvio null", { trackOwnerId });
     }
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, notified: !!notification });
   } catch (err) {
     console.error("[notifications/audio-feedback]", err);
     return NextResponse.json({ error: "Failed" }, { status: 500 });

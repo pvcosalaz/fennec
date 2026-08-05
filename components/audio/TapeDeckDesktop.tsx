@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import TapeDust from "@/components/audio/TapeDust";
-import { Play, Pause, SkipForward, Plus, Upload, ZoomIn, ZoomOut, Volume2, VolumeX } from "lucide-react";
+import { Play, Pause, SkipForward, Plus, Upload, ZoomIn, ZoomOut, Volume2, VolumeX, AudioLines } from "lucide-react";
 import type { ProjectReview, ReviewComment } from "@/lib/audioTypes";
 import { fetchReviewComments, createReviewComment, fetchKarma } from "@/lib/audioDb";
 
@@ -801,13 +801,34 @@ export default function TapeDeckDesktop({
           </button>
         </div>
         <span className="ml-1 font-mono text-[10.5px] tracking-[0.06em] text-zinc-700">SPACE play · CLICK scrub · ⌘scroll / pinch zoom · ＋ note</span>
-        <button onClick={onOpenMyTracks} /* Pastilla con borde, no solida. Habia DOS elementos ambar solidos peleando
-             por ser la accion principal, y en un modulo que se llama La Cinta esa
-             es el play. Subir tracks es un destino, no el verbo. */
-          className="ml-auto flex items-center gap-2 rounded-full border px-4 py-2.5 text-[13px] font-semibold transition hover:brightness-110"
-          style={{ borderColor: `${AMBER}40`, color: AMBER }}>
-          <Upload className="h-4 w-4" /> Upload Tracks
-        </button>
+        {/* DOS botones, no uno.
+            Este boton decia "Upload Tracks" pero abria MyTracksView, que es tu
+            sala de lectura: tus canciones, las notas que te dejaron y el sello
+            de karma. Nadie va a picarle a "subir" buscando su feedback, asi que
+            Paco concluyo —con razon— que no habia forma de ver sus canciones
+            cuando llevaba meses construida (2026-08-03).
+
+            Ahora la etiqueta dice lo que hace. "Upload" queda como accion
+            secundaria y lleva al mismo sitio, que es donde se sube: lo que
+            cambia es que ya no es el UNICO nombre de esa puerta.
+
+            Pastilla con borde y no solida: habia DOS elementos ambar solidos
+            peleando por ser la accion principal, y en un modulo que se llama La
+            Cinta esa es el play. */}
+        <div className="ml-auto flex items-center gap-2">
+          <button onClick={onOpenMyTracks}
+            title="Upload a track"
+            aria-label="Upload a track"
+            className="grid h-[42px] w-[42px] flex-shrink-0 place-items-center rounded-full border text-zinc-400 transition hover:text-white"
+            style={{ borderColor: "rgba(255,255,255,.12)" }}>
+            <Upload className="h-4 w-4" />
+          </button>
+          <button onClick={onOpenMyTracks}
+            className="flex items-center gap-2 rounded-full border px-4 py-2.5 text-[13px] font-semibold transition hover:brightness-110"
+            style={{ borderColor: `${AMBER}40`, color: AMBER }}>
+            <AudioLines className="h-4 w-4" /> My tracks &amp; notes
+          </button>
+        </div>
       </div>
     </div>
   );

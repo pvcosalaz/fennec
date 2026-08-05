@@ -184,7 +184,12 @@ export async function createReviewComment(params: {
         : undefined;
 
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) return; // no token, endpoint requires auth — skip silently
+      if (!session?.access_token) {
+        /* Ya no "skip silently": si esto pasa, el dueño del track se queda sin
+           aviso y nadie se entera. Que quede en consola para poder verlo. */
+        console.error("[audio_feedback notification] sin sesion, no se pudo avisar al dueño del track");
+        return;
+      }
 
       // Delegate all server-side work (copy generation, notification, push) to API route
       const baseUrl = typeof window !== "undefined"
@@ -203,7 +208,7 @@ export async function createReviewComment(params: {
           firstTimestamp,
         }),
       });
-      if (!res.ok) console.error("[audio_feedback notification] request failed", res.status);
+      if (!res.ok) console.error("[audio_feedback notification] la ruta fallo", res.status, await res.text().catch(() => ""));
     } catch (err) {
       console.error("[audio_feedback notification]", err);
     }
