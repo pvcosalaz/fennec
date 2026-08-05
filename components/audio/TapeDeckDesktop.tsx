@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { openCommunityProfile } from "@/lib/tapeNav";
 import TapeDust from "@/components/audio/TapeDust";
+import { NOISE_URI } from "@/components/desktop/surfaces";
 import { Play, Pause, SkipForward, Plus, Upload, ZoomIn, ZoomOut, Volume2, VolumeX, AudioLines } from "lucide-react";
 import type { ProjectReview, ReviewComment } from "@/lib/audioTypes";
 import { fetchReviewComments, createReviewComment, fetchKarma } from "@/lib/audioDb";
@@ -490,10 +491,24 @@ export default function TapeDeckDesktop({
         style={{
           opacity: 0,
           willChange: "opacity, transform",
+          /* SIETE paradas, no tres. Con 0.13 → 0.05 → transparente el salto
+             entre paradas superaba lo que 8 bits pueden degradar sobre fondo
+             casi negro y se veian los ANILLOS — el "pixeleado por capas" que
+             reporto Paco (2026-08-04). La caida ahora es una curva suave: cada
+             salto queda por debajo del escalon visible. */
           background:
-            "radial-gradient(58% 46% at 50% 42%, rgba(245,166,35,0.13) 0%, rgba(245,166,35,0.05) 45%, transparent 72%)",
+            "radial-gradient(58% 46% at 50% 42%, rgba(245,166,35,0.13) 0%, rgba(245,166,35,0.115) 18%, rgba(245,166,35,0.09) 34%, rgba(245,166,35,0.062) 48%, rgba(245,166,35,0.036) 60%, rgba(245,166,35,0.015) 72%, transparent 86%)",
         }}
-      />
+      >
+        {/* Grano DENTRO del resplandor: ditherea el gradiente rompiendo los
+            escalones de color que quedan. Mismo ruido del shell (NOISE_URI);
+            hereda la opacidad animada del padre, asi que respira con el. */}
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{ backgroundImage: NOISE_URI, opacity: 0.5, mixBlendMode: "overlay" }}
+        />
+      </div>
 
       {/* crossOrigin lets the AnalyserNode read the samples */}
       <audio ref={audioRef} src={track.audio_url} preload="metadata" crossOrigin="anonymous" />
