@@ -6,6 +6,8 @@
 // Amber ramp only — same accent language as the rest of the panel.
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import "@/lib/i18n";
 import { X, Flame } from "lucide-react";
 import { buildHeatmapGrid, buildYearGrid, type ContributionDays, type DayDetail } from "@/lib/contributions";
 
@@ -158,6 +160,7 @@ export default function ContributionsCard({ data, accent, weeks = 17, cellSize }
   /** Fixed px per cell (desktop). Omit on mobile so cells stretch to width. */
   cellSize?: number;
 }) {
+  const { t } = useTranslation();
   const [showYear, setShowYear] = useState(false);
   const [day, setDay] = useState<string | null>(null);
   const [ancla, setAncla] = useState<Ancla | null>(null);
@@ -223,9 +226,9 @@ export default function ContributionsCard({ data, accent, weeks = 17, cellSize }
               qué cuenta (Paco 2026-08-03). Dice de qué está hecho, en una línea.
               Es tuyo y solo tuyo: no aparece en tu perfil público. */}
           <p className="flex items-baseline gap-2 text-[9px] font-bold tracking-[0.2em] uppercase" style={{ color: `${accent}80` }}>
-            Contributions
+            {t("contributions")}
             <span className="hidden text-[9px] font-medium normal-case tracking-normal text-zinc-500 sm:inline">
-              work you logged · quotes, projects, tracks, feedback
+              {t("contributionsSub")}
             </span>
           </p>
           {(data?.streak ?? 0) > 1 && (
@@ -309,7 +312,7 @@ export default function ContributionsCard({ data, accent, weeks = 17, cellSize }
                     </ul>
                   </>
                 ) : (
-                  <p className="mt-1.5 text-[10.5px] text-zinc-500">Nothing logged this day.</p>
+                  <p className="mt-1.5 text-[10.5px] text-zinc-500">{t("nothingLogged")}</p>
                 )}
               </div>
             </div>
@@ -321,18 +324,18 @@ export default function ContributionsCard({ data, accent, weeks = 17, cellSize }
               vive en el popover, y repetirlo en dos sitios solo obliga a mirar
               dos veces para leer lo mismo. */}
           <p className="text-[10px] text-zinc-500">
-            <span className="font-extrabold text-zinc-200 tabular-nums">{data?.totalYear ?? 0}</span> this year
-            <span className="ml-1.5 text-zinc-600">· {day ? "tap a day to compare" : "pick a day"}</span>
+            <span className="font-extrabold text-zinc-200 tabular-nums">{data?.totalYear ?? 0}</span> {t("thisYear")}
+            <span className="ml-1.5 text-zinc-600">· {day ? t("tapToCompare") : t("pickADay")}</span>
           </p>
           {weeks >= 52 ? (
             // Full year already on screen (desktop): nothing more to open, so
             // the space goes to the scale legend instead of a dead link.
             <div className="flex items-center gap-1.5">
-              <span className="text-[9px] text-zinc-600">Less</span>
+              <span className="text-[9px] text-zinc-600">{t("less")}</span>
               {LEVEL_BG.map((bg, i) => (
                 <span key={i} className="inline-block h-[9px] w-[9px] rounded-[2px]" style={{ background: bg }} />
               ))}
-              <span className="text-[9px] text-zinc-600">More</span>
+              <span className="text-[9px] text-zinc-600">{t("more")}</span>
             </div>
           ) : (
             <button
@@ -395,11 +398,11 @@ export default function ContributionsCard({ data, accent, weeks = 17, cellSize }
             )}
 
             <div className="flex items-center justify-end gap-1.5 mt-3">
-              <span className="text-[9px] text-zinc-600">Less</span>
+              <span className="text-[9px] text-zinc-600">{t("less")}</span>
               {LEVEL_BG.map((bg, i) => (
                 <span key={i} className="inline-block h-[9px] w-[9px] rounded-[2px]" style={{ background: bg }} />
               ))}
-              <span className="text-[9px] text-zinc-600">More</span>
+              <span className="text-[9px] text-zinc-600">{t("more")}</span>
             </div>
           </div>
         </div>

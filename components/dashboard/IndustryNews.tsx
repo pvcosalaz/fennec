@@ -18,6 +18,8 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import "@/lib/i18n";
 import type { NewsItem } from "@/app/api/news/route";
 
 /* Recopilatorios, no noticias.
@@ -148,6 +150,7 @@ export default function IndustryNews({
 }) {
   const cols = columnas ?? count;
   const denso = cols < count;
+  const { t } = useTranslation();
   const [items, setItems] = useState<NewsItem[] | null>(null);
   const [failed, setFailed] = useState(false);
 
@@ -177,7 +180,7 @@ export default function IndustryNews({
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="mb-1.5 flex flex-shrink-0 items-center justify-between">
         <span className="text-[8.5px] font-bold uppercase tracking-[0.22em] text-zinc-500">
-          Industry today
+          {t("industryToday")}
         </span>
         {onOpen && (
           <button
@@ -185,7 +188,7 @@ export default function IndustryNews({
             onClick={onOpen}
             className="text-[10.5px] font-semibold text-zinc-500 transition hover:text-accent"
           >
-            All news →
+            {t("allNews")}
           </button>
         )}
       </div>
@@ -204,7 +207,7 @@ export default function IndustryNews({
         {items === null && Array.from({ length: count }).map((_, i) => <Skeleton key={i} />)}
         {items !== null && visible.length === 0 && (
           <p className="col-span-full py-4 text-[12px] text-zinc-500">
-            {failed ? "Couldn't reach the newsroom right now." : "No headlines right now."}
+            {failed ? t("newsUnreachable") : t("noHeadlines")}
           </p>
         )}
         {visible.map((item) => <Card key={item.id} item={item} denso={denso} />)}

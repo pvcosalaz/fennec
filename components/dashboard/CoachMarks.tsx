@@ -26,6 +26,8 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import "@/lib/i18n";
 import { createPortal } from "react-dom";
 
 export type CoachStep = {
@@ -35,16 +37,17 @@ export type CoachStep = {
   body: string;
 };
 
+/* Claves del diccionario, no texto: el recorrido es la PRIMERA pantalla del
+   usuario nuevo, y es justo donde elige idioma — tiene que responder al cambio
+   al instante (Paco 2026-08-04). */
 export const DASHBOARD_TOUR: CoachStep[] = [
-  { anchor: "db",    title: "Your Fennec dB",
-    body: "Your signal strength as a producer, measured like decibels. It grows with your real reach." },
-  { anchor: "id",    title: "Your Fennec ID",
-    body: "Your identity here. The number is yours for good, and the lower it is the earlier you were." },
-  { anchor: "contributions", title: "Contributions",
-    body: "The work you log through the year. Every square is a day, and you can click one to see what you did." },
-  { anchor: "tape",  title: "The Tape",
-    body: "Upload a track and get timestamped notes from other producers. Leave notes on theirs too." },
+  { anchor: "db",    title: "tourDbTitle",      body: "tourDbBody" },
+  { anchor: "id",    title: "tourIdTitle",      body: "tourIdBody" },
+  { anchor: "contributions", title: "tourContribTitle", body: "tourContribBody" },
+  { anchor: "tape",  title: "tourTapeTitle",    body: "tourTapeBody" },
 ];
+
+const LANGUAGE_KEY = "fennec-language";
 
 const W = 268;
 const GAP = 12;
@@ -59,6 +62,19 @@ export default function CoachMarks({
   onDone: () => void;
 }) {
   const [i, setI] = useState(0);
+  const { t, i18n } = useTranslation();
+  /* Paso 0: elegir idioma, SOLO la primera vez (si ya hay eleccion guardada no
+     se vuelve a preguntar, ni al repetir el recorrido con el "?"). El default
+     de la app es ingles — regla de la casa — y aqui es donde el usuario nuevo
+     decide, que es el unico momento en que la pregunta no estorba. */
+  const [pidiendoIdioma, setPidiendoIdioma] = useState<boolean>(() => {
+    try { return !localStorage.getItem(LANGUAGE_KEY); } catch { return false; }
+  });
+  function elegirIdioma(lang: "en" | "es") {
+    try { localStorage.setItem(LANGUAGE_KEY, lang); } catch { /* ignore */ }
+    void i18n.changeLanguage(lang);
+    setPidiendoIdioma(false);
+  }
   const [caja, setCaja] = useState<Caja | null>(null);
   /* `listo` retrasa un frame la primera pintura para que el globo entre con su
      animacion en vez de aparecer ya colocado. */
@@ -119,6 +135,44 @@ export default function CoachMarks({
       return () => clearTimeout(t);
     }
   }, [caja, paso, siguiente]);
+
+  if (pidiendoIdioma) {
+    return createPortal(
+      <div className="fixed inset-0 z-[120] grid place-items-center" style={{ background: "rgba(6,5,9,0.62)" }}>
+        <div
+          className="rounded-2xl px-6 py-6 text-center"
+          style={{
+            width: 300, background: "#211f26",
+            border: "1px solid rgba(245,166,35,0.22)",
+            boxShadow: "0 20px 44px -18px rgba(0,0,0,0.95)",
+            animation: "ccPop 190ms cubic-bezier(.23,1,.32,1) both",
+          }}
+        >
+          <p className="text-[17px] font-bold leading-none text-white">Welcome to Fennec</p>
+          <p className="mt-2 text-[12.5px] text-zinc-400">Pick your language · Elige tu idioma</p>
+          <div className="mt-5 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => elegirIdioma("en")}
+              className="rounded-xl py-2.5 text-[13.5px] font-bold text-black transition hover:brightness-110 active:scale-[0.97]"
+              style={{ background: "#f5a623" }}
+            >
+              English
+            </button>
+            <button
+              type="button"
+              onClick={() => elegirIdioma("es")}
+              className="rounded-xl border py-2.5 text-[13.5px] font-bold transition hover:brightness-125 active:scale-[0.97]"
+              style={{ borderColor: "rgba(245,166,35,0.45)", color: "#f5a623" }}
+            >
+              Español
+            </button>
+          </div>
+        </div>
+      </div>,
+      document.body,
+    );
+  }
 
   if (!paso || !caja) return null;
 
@@ -201,10 +255,10 @@ export default function CoachMarks({
           }}
         >
           <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-accent">
-            {i + 1} of {steps.length}
+            {t("tourStep", { n: i + 1, total: steps.length })}
           </p>
-          <p className="mt-1.5 text-[15px] font-bold leading-none text-white">{paso.title}</p>
-          <p className="mt-2 text-[12.5px] leading-snug text-zinc-400">{paso.body}</p>
+          <p className="mt-1.5 text-[15px] font-bold leading-none text-white">{t(paso.title)}</p>
+          <p className="mt-2 text-[12.5px] leading-snug text-zinc-400">{t(paso.body)}</p>
 
           <div className="mt-3.5 flex items-center justify-between">
             {/* "Skip" siempre visible. Un recorrido del que no se puede salir
@@ -214,7 +268,7 @@ export default function CoachMarks({
               onClick={onDone}
               className="text-[11.5px] font-semibold text-zinc-500 transition hover:text-zinc-300"
             >
-              Skip
+              {t("tourSkip")}
             </button>
             <button
               type="button"
@@ -222,7 +276,7 @@ export default function CoachMarks({
               className="rounded-full px-3.5 py-1.5 text-[11.5px] font-bold text-black transition hover:brightness-110 active:scale-[0.97]"
               style={{ background: "#f5a623" }}
             >
-              {i + 1 === steps.length ? "Got it" : "Next"}
+              {i + 1 === steps.length ? t("tourGotIt") : t("tourNext")}
             </button>
           </div>
         </div>

@@ -7,6 +7,8 @@ import {
   CANVAS_BG, DOCK_BG, DOCK_BLUR, DOCK_SHADOW, Grain, Atmosphere,
 } from "@/components/desktop/surfaces";
 import type { Profile } from "@/lib/communityTypes";
+import { useTranslation } from "react-i18next";
+import "@/lib/i18n";
 
 /* ═══════════════════════════════════════════════════════════════
    DESKTOP SHELL — the approved prototype language, on real data.
@@ -29,14 +31,14 @@ import { NETWORK_ENABLED } from "@/lib/featureFlags";
 type NavItem = { id: DesktopTab | "network"; label: string; icon: React.ComponentType<{ className?: string }> };
 
 const NAV_ALL: NavItem[] = [
-  { id: "dashboard", label: "Dashboard", icon: Home },
-  { id: "pricing",   label: "Business",  icon: Briefcase },
-  { id: "ideas",     label: "The Tape",  icon: AudioWaveform },
-  { id: "contenido", label: "Marketing", icon: Camera },
-  { id: "noticias",  label: "Community", icon: Users },
+  { id: "dashboard", label: "navDashboard", icon: Home },
+  { id: "pricing",   label: "navBusiness",  icon: Briefcase },
+  { id: "ideas",     label: "navTape",      icon: AudioWaveform },
+  { id: "contenido", label: "navMarketing", icon: Camera },
+  { id: "noticias",  label: "navCommunity", icon: Users },
   /* Network apagado para el lanzamiento web — ver lib/featureFlags. Se filtra
      en vez de borrarse para que volver a prenderlo sea una linea. */
-  { id: "network",   label: "Network",   icon: UserPlus },
+  { id: "network",   label: "navNetwork",   icon: UserPlus },
 ];
 
 const NAV: NavItem[] = NAV_ALL.filter((n) => NETWORK_ENABLED || n.id !== "network");
@@ -81,6 +83,9 @@ export default function DesktopShell({
   onOpenMyProfile: () => void;
   children: React.ReactNode;
 }) {
+  /* labels del NAV = claves del diccionario, resueltas al pintar: asi el dock
+     cambia de idioma al instante cuando el usuario elige en el recorrido. */
+  const { t } = useTranslation();
   const scheme = getColorScheme(profile.color_id ?? null);
   const name = profile.display_name || profile.username || "";
   const initials = name.trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase() || "F";
@@ -366,7 +371,7 @@ export default function DesktopShell({
                       : `opacity .22s cubic-bezier(.23,1,.32,1) ${40 + i * 22}ms, transform .26s cubic-bezier(.23,1,.32,1) ${40 + i * 22}ms`,
                   }}
                 >
-                  {label}
+                  {t(label)}
                 </span>
               </button>
             );

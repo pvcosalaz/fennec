@@ -24,6 +24,8 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { SiInstagram, SiTiktok, SiYoutube } from "react-icons/si";
+import { useTranslation } from "react-i18next";
+import "@/lib/i18n";
 import { Tile } from "@/components/desktop/ui";
 
 type Platform = {
@@ -50,6 +52,7 @@ export default function SocialMini({
    *  en vez de apilarse. */
   ancho?: boolean;
 }) {
+  const { t } = useTranslation();
   const tam = ancho ? 15 : 11;
   const platforms: Platform[] = [
     { key: "ig", icon: <SiInstagram size={tam} style={{ color: "#E1306C" }} />, value: igFollowers ?? null },
@@ -75,14 +78,14 @@ export default function SocialMini({
       /* Sin h-full: la fila mide por contenido (auto), y un alto en porcentaje
          contra un alto indefinido colapsa — con h-full el panel se quedaba en
          27.5px y el numero se salia (medido 2026-08-03). */
-      <Tile label="Audience">
+      <Tile label={t("audience")}>
         <div className="flex items-center gap-7 py-1">
           <button type="button" onClick={onConnect} className="flex flex-shrink-0 items-baseline gap-2 text-left">
             <b className="text-[26px] font-extrabold tabular-nums leading-none text-white">
               {connected.length ? fmt(total) : "—"}
             </b>
             <span className="text-[9.5px] uppercase tracking-[0.16em] text-zinc-500">
-              {connected.length ? "following you" : "not connected"}
+              {connected.length ? t("followingYou") : t("notConnected")}
             </span>
           </button>
 
@@ -99,7 +102,7 @@ export default function SocialMini({
               >
                 <span className="flex-shrink-0">{p.icon}</span>
                 <b className="text-[15px] font-bold tabular-nums leading-none text-zinc-200">
-                  {p.value == null ? "Connect" : fmt(p.value)}
+                  {p.value == null ? t("connect") : fmt(p.value)}
                 </b>
                 <span className="min-w-0 truncate text-[9px] uppercase tracking-[0.14em] text-zinc-600">
                   {NOMBRE[p.key]}
@@ -117,7 +120,7 @@ export default function SocialMini({
        chips en línea desbordaba y YouTube quedaba fuera del recuadro
        (Paco 2026-08-02, visto en el harness). Apilado cabe con holgura y
        además el total gana el peso que le toca. */
-    <Tile label="Audience">
+    <Tile label={t("audience")}>
       <button
         type="button"
         onClick={onConnect}
@@ -127,7 +130,7 @@ export default function SocialMini({
           {connected.length ? fmt(total) : "—"}
         </b>
         <span className="text-[9px] uppercase tracking-[0.16em] text-zinc-500">
-          {connected.length ? "following you" : "not connected"}
+          {connected.length ? t("followingYou") : t("notConnected")}
         </span>
       </button>
 

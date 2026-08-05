@@ -238,4 +238,73 @@ if (!i18n.isInitialized) {
   });
 }
 
+
+
+/* ── Escritorio: dock + dashboard + recorrido ──
+   Cobertura por capas (2026-08-04, trabajo nocturno): el ingles sigue siendo
+   el default de la app —regla de la casa— y el español entra SOLO si el
+   usuario lo elige en Settings. addResourceBundle fusiona sobre lo que ya
+   habia sin tocar el bloque original del init. */
+i18n.addResourceBundle("en", "translation", {
+  navDashboard: "Dashboard", navBusiness: "Business", navTape: "The Tape",
+  navMarketing: "Marketing", navCommunity: "Community", navNetwork: "Network",
+  myProfile: "My community profile",
+  goodMorning: "Good morning", goodAfternoon: "Good afternoon", goodEvening: "Good evening",
+  addStudioPhoto: "Add your studio photo", shareMyId: "Share my ID", replayTour: "Show me around again",
+  musicBusiness: "Music & Business", projects: "Projects", quotesSent: "Quotes sent",
+  quotesOut: "Quotes out", karma: "Karma",
+  audience: "Audience", followingYou: "following you", notConnected: "not connected", connect: "Connect",
+  todayOnFennec: "Today on Fennec",
+  noTrackFeedback: "No track feedback yet", newNote: "New note on your track",
+  myTracksArrow: "My tracks →", uploadArrow: "Upload →",
+  noOpenQuotes: "No open quotes", quotesAwaiting: "{{count}} quote awaiting reply", quotesAwaiting_other: "{{count}} quotes awaiting reply",
+  viewArrow: "View →", sendArrow: "Send →",
+  nothingScheduled: "Nothing scheduled", nextPost: "Next post", calendarArrow: "Calendar →", planArrow: "Plan →",
+  contributions: "Contributions", contributionsSub: "work you logged · quotes, projects, tracks, feedback",
+  thisYear: "this year", pickADay: "pick a day", tapToCompare: "tap a day to compare",
+  less: "Less", more: "More", nothingLogged: "Nothing logged this day.", contribution: "contribution", contribution_other: "contributions",
+  industryToday: "Industry today", allNews: "All news →",
+  newsUnreachable: "Couldn't reach the newsroom right now.", noHeadlines: "No headlines right now.",
+  tourDbTitle: "Your Fennec dB",
+  tourDbBody: "Your signal strength as a producer, measured like decibels. It grows with your real reach.",
+  tourIdTitle: "Your Fennec ID",
+  tourIdBody: "Your identity here. The number is yours for good, and the lower it is the earlier you were.",
+  tourContribTitle: "Contributions",
+  tourContribBody: "The work you log through the year. Every square is a day, and you can click one to see what you did.",
+  tourTapeTitle: "The Tape",
+  tourTapeBody: "Upload a track and get timestamped notes from other producers. Leave notes on theirs too.",
+  tourSkip: "Skip", tourNext: "Next", tourGotIt: "Got it", tourStep: "{{n}} of {{total}}",
+}, true, true);
+
+i18n.addResourceBundle("es", "translation", {
+  navDashboard: "Inicio", navBusiness: "Negocio", navTape: "La Cinta",
+  navMarketing: "Marketing", navCommunity: "Comunidad", navNetwork: "Red",
+  myProfile: "Mi perfil de comunidad",
+  goodMorning: "Buenos días", goodAfternoon: "Buenas tardes", goodEvening: "Buenas noches",
+  addStudioPhoto: "Sube la foto de tu estudio", shareMyId: "Compartir mi ID", replayTour: "Vuelve a mostrarme la app",
+  musicBusiness: "Música y negocio", projects: "Proyectos", quotesSent: "Cotizaciones enviadas",
+  quotesOut: "Por cobrar", karma: "Karma",
+  audience: "Audiencia", followingYou: "te siguen", notConnected: "sin conectar", connect: "Conectar",
+  todayOnFennec: "Hoy en Fennec",
+  noTrackFeedback: "Aún no hay notas en tus tracks", newNote: "Nota nueva en tu track",
+  myTracksArrow: "Mis tracks →", uploadArrow: "Subir →",
+  noOpenQuotes: "Sin cotizaciones abiertas", quotesAwaiting: "{{count}} cotización sin respuesta", quotesAwaiting_other: "{{count}} cotizaciones sin respuesta",
+  viewArrow: "Ver →", sendArrow: "Enviar →",
+  nothingScheduled: "Nada agendado", nextPost: "Próximo post", calendarArrow: "Calendario →", planArrow: "Planear →",
+  contributions: "Contribuciones", contributionsSub: "tu trabajo registrado · cotizaciones, proyectos, tracks, notas",
+  thisYear: "este año", pickADay: "elige un día", tapToCompare: "toca un día para comparar",
+  less: "Menos", more: "Más", nothingLogged: "Nada registrado este día.", contribution: "contribución", contribution_other: "contribuciones",
+  industryToday: "La industria hoy", allNews: "Todas las noticias →",
+  newsUnreachable: "No pudimos alcanzar la redacción ahora.", noHeadlines: "Sin titulares por ahora.",
+  tourDbTitle: "Tu Fennec dB",
+  tourDbBody: "Tu fuerza de señal como productor, medida como decibeles. Crece con tu alcance real.",
+  tourIdTitle: "Tu Fennec ID",
+  tourIdBody: "Tu identidad aquí. El número es tuyo para siempre, y entre más bajo, más temprano llegaste.",
+  tourContribTitle: "Contribuciones",
+  tourContribBody: "El trabajo que registras en el año. Cada cuadro es un día, y puedes picarle para ver qué hiciste.",
+  tourTapeTitle: "La Cinta",
+  tourTapeBody: "Sube un track y recibe notas con marca de tiempo de otros productores. Deja notas en los suyos.",
+  tourSkip: "Saltar", tourNext: "Siguiente", tourGotIt: "Listo", tourStep: "{{n}} de {{total}}",
+}, true, true);
+
 export default i18n;

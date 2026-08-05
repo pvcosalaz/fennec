@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { formatMoney } from "@/lib/currency";
+import { useTranslation } from "react-i18next";
+import "@/lib/i18n";
 import FennecIdCard from "@/components/network/FennecIdCard";
 import type { FennecIdColor } from "@/lib/fennecIdPalette";
 import type { Quote } from "@/lib/pricingData";
@@ -116,6 +118,7 @@ export default function DashboardDesktop({
 }) {
   // The producer's color lives ONLY on the FennecIdCard — it's the card's
   // identity, not the app's. All other accents stay on-brand amber.
+  const { t } = useTranslation();
   const accent = "#f5a623";
   const nextPost = useNextPost();
 
@@ -202,7 +205,7 @@ export default function DashboardDesktop({
         <h1 className="text-[32px] font-bold leading-none tracking-[-0.02em] text-white">
           {(() => {
             const h = new Date().getHours();
-            const g = h < 5 || h >= 19 ? "Good evening" : h < 12 ? "Good morning" : "Good afternoon";
+            const g = h < 5 || h >= 19 ? t("goodEvening") : h < 12 ? t("goodMorning") : t("goodAfternoon");
             return `${g}, ${card.firstName || "there"}.`;
           })()}
         </h1>
@@ -252,7 +255,7 @@ export default function DashboardDesktop({
           className="rounded-full border px-3.5 py-1.5 text-[11.5px] font-semibold transition hover:brightness-110"
           style={{ borderColor: `${accent}59`, color: accent }}
         >
-          Share my ID
+          {t("shareMyId")}
         </button>
         )}
         </div>
@@ -387,14 +390,14 @@ export default function DashboardDesktop({
 
       {/* ── Fila 2: el dinero, y a cuánta gente le llegas ── */}
       <div className="dd-rise min-w-0" style={{ animationDelay: ".12s" }}>
-        <Tile label="Music & Business" className="h-full">
+        <Tile label={t("musicBusiness")} className="h-full">
           {/* En fila, no en 2x2: aquí ya hay ancho de sobra y cuatro métricas
               alineadas se comparan de un vistazo. */}
           <div className="grid grid-cols-4">
-            <MiniMetric value={String(totalProjects)} label="Projects" sub={activeProjects > 0 ? `${activeProjects} active` : undefined} onClick={() => onNavigate?.("pricing")} />
-            <MiniMetric value={String(quotesSentCount)} label="Quotes sent" onClick={() => onNavigate?.("pricing")} />
-            <MiniMetric value={quotesOutTotal > 0 ? formatMoney(quotesOutTotal) : "—"} label="Quotes out" muted={quotesOutTotal === 0} onClick={() => onNavigate?.("pricing")} />
-            <MiniMetric value={karma != null ? String(karma) : "—"} label="Karma" muted={karma == null} onClick={() => onNavigate?.("ideas")} />
+            <MiniMetric value={String(totalProjects)} label={t("projects")} sub={activeProjects > 0 ? `${activeProjects} active` : undefined} onClick={() => onNavigate?.("pricing")} />
+            <MiniMetric value={String(quotesSentCount)} label={t("quotesSent")} onClick={() => onNavigate?.("pricing")} />
+            <MiniMetric value={quotesOutTotal > 0 ? formatMoney(quotesOutTotal) : "—"} label={t("quotesOut")} muted={quotesOutTotal === 0} onClick={() => onNavigate?.("pricing")} />
+            <MiniMetric value={karma != null ? String(karma) : "—"} label={t("karma")} muted={karma == null} onClick={() => onNavigate?.("ideas")} />
           </div>
         </Tile>
       </div>
@@ -403,7 +406,7 @@ export default function DashboardDesktop({
       {/* Today comparte fila con Music & Business: las dos son "lo que está
           pasando ahora", y asi Contributions queda libre para ocupar el ancho. */}
       <div className="dd-rise flex min-h-0 flex-col" style={{ animationDelay: ".15s" }}>
-        <Tile label="Today on Fennec" className="h-full">
+        <Tile label={t("todayOnFennec")} className="h-full">
           <div className="flex flex-col divide-y divide-white/[0.05]">
             {/* "My tracks →" y no "Open →": cuando SI hay una nota, este renglon
                 es la puerta a tu sala de lectura, y decirle "Open" no dice a
@@ -411,26 +414,26 @@ export default function DashboardDesktop({
                 nombraba (2026-08-04). */}
             <button type="button" onClick={() => onNavigate?.("ideas")} className="group flex items-center justify-between gap-3 py-[5px] text-left transition first:pt-0">
               <span className="min-w-0 truncate text-[12px] text-zinc-400">
-                {latestNote ? "New note on your track" : "No track feedback yet"}
+                {latestNote ? t("newNote") : t("noTrackFeedback")}
               </span>
               <span className="flex-shrink-0 text-[11px] font-semibold text-zinc-500 transition group-hover:text-accent">
-                {latestNote ? "My tracks →" : "Upload →"}
+                {latestNote ? t("myTracksArrow") : t("uploadArrow")}
               </span>
             </button>
             <button type="button" onClick={() => onNavigate?.("pricing")} className="group flex items-center justify-between gap-3 py-[5px] text-left">
               <span className="min-w-0 truncate text-[12px] text-zinc-400">
-                {sentQuotes.length > 0 ? `${sentQuotes.length} quote${sentQuotes.length > 1 ? "s" : ""} awaiting reply` : "No open quotes"}
+                {sentQuotes.length > 0 ? t("quotesAwaiting", { count: sentQuotes.length }) : t("noOpenQuotes")}
               </span>
               <span className="flex-shrink-0 text-[11px] font-semibold text-zinc-500 transition group-hover:text-accent">
-                {sentQuotes.length > 0 ? "View →" : "Send →"}
+                {sentQuotes.length > 0 ? t("viewArrow") : t("sendArrow")}
               </span>
             </button>
             <button type="button" onClick={() => onNavigate?.("contenido")} className="group flex items-center justify-between gap-3 py-[5px] text-left">
               <span className="min-w-0 truncate text-[12px] text-zinc-400">
-                {nextPost ? `Next post · ${fmtDate(nextPost.date)}` : "Nothing scheduled"}
+                {nextPost ? `${t("nextPost")} · ${fmtDate(nextPost.date)}` : t("nothingScheduled")}
               </span>
               <span className="flex-shrink-0 text-[11px] font-semibold text-zinc-500 transition group-hover:text-accent">
-                {nextPost ? "Calendar →" : "Plan →"}
+                {nextPost ? t("calendarArrow") : t("planArrow")}
               </span>
             </button>
           </div>
