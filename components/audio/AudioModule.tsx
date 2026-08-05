@@ -83,7 +83,7 @@ export default function AudioModule({ userId, isPro, onSheetChange }: Props) {
   return (
     // Desktop gets the horizontal reel-to-reel (TapeDeckDesktop, self-framed);
     // mobile keeps the full-bleed vertical player. Overlays are shared.
-    <div className={isDesktop ? "relative h-screen" : "absolute inset-0"}>
+    <div className={isDesktop ? "relative h-full" : "absolute inset-0"}>
 
       {/* ── Main player — the tape is the screen ──────────────── */}
       {loadingQueue && (

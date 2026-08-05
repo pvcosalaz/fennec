@@ -438,7 +438,12 @@ export default function TapeDeckDesktop({
   const stripWidth = duration * pxPerSec;
 
   return (
-    <div className="relative flex h-screen min-h-0 flex-col overflow-hidden" style={{ background: DECK }}>
+    /* h-full, NO h-screen. Pedir una pantalla completa DENTRO de una columna
+       que ya gasto ~60px en la fila de la campana y el avatar da pantalla+60:
+       el sobrante se sale por abajo y se come la fila de mandos (Paco
+       2026-08-04, dos intentos). Con h-full el deck toma exactamente el alto
+       que le da su contenedor, que es flex-1 y ya descuenta esa fila. */
+    <div className="relative flex h-full min-h-0 flex-col overflow-hidden" style={{ background: DECK }}>
       {/* El aire del cuarto. Va PRIMERO y sin z-index propio: todo lo demas se
           pinta despues y queda encima solo por orden del DOM, sin tener que
           subirle la capa a media interfaz. */}
