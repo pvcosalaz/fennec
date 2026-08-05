@@ -193,17 +193,25 @@ export default function DesktopShell({
           logotipo seria justo lo que ese diseño esta evitando. */}
       {!immersive && (
         <div
-          className="pointer-events-none fixed left-1/2 top-3.5 z-10 flex -translate-x-1/2 select-none items-center gap-1.5"
-          style={{ opacity: 0.38 }}
+          /* z-30, no z-10: el dashboard monta su fondo y sus paneles con capas
+             propias y el logotipo quedaba por debajo en esa pantalla — se veia
+             en otros modulos y ahi no (Paco 2026-08-03). Va por encima de todo
+             el contenido pero por debajo del recorrido de globos (z-120) y de
+             los dialogos. */
+          className="pointer-events-none fixed left-1/2 top-3.5 z-30 flex -translate-x-1/2 select-none items-center gap-1.5"
+          /* 0.72 y no 0.38. Al 38% sobre este fondo casi no existia, y lo que
+             se pidio fue presencia de marca: una firma que no se lee no firma
+             nada. Sigue sin competir porque es chica y no es interactiva. */
+          style={{ opacity: 0.72 }}
           aria-hidden
         >
           <span
-            className="text-[13px] font-black tracking-[-0.06em] text-white"
+            className="text-[14.5px] font-black tracking-[-0.06em] text-white"
             style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}
           >
             fennec
           </span>
-          <span className="block h-[5px] w-[5px] rounded-full" style={{ background: "#f5a623" }} />
+          <span className="block h-[5.5px] w-[5.5px] rounded-full" style={{ background: "#f5a623" }} />
         </div>
       )}
 
