@@ -161,7 +161,16 @@ export default function DesktopShell({
 
   // Immersive: The Tape is the flagship, so entering it clears the chrome —
   // both side rails slide away and the reel takes the whole viewport.
-  const immersive = activeTab === "ideas" && !networkActive && !settingsOpen;
+  /* MODO INMERSIVO APAGADO (Paco 2026-08-03).
+     La Cinta retiraba las dos barras y ofrecia una pastilla "‹ fennec" para
+     volver. Se probo y rompia la simetria del sistema: era el unico modulo con
+     su propia forma de navegar, y en una app de escritorio quitar la barra no
+     se siente cinematografico, se siente perderse. Ahora La Cinta vive dentro
+     del mismo dock que los demas.
+     La constante se queda en vez de arrancar el codigo: si algun dia se quiere
+     un modo presentacion, es una linea. */
+  const immersive = false;
+  void networkActive; void settingsOpen;
 
   return (
     <div className="min-h-screen" style={{ background: CANVAS_BG }}>
@@ -359,39 +368,13 @@ export default function DesktopShell({
           className="mt-4 flex flex-col gap-2.5 pt-4"
           style={{ borderTop: `1px solid ${HAIR}` }}
         >
-          {/* The Tape · live pulse — the reel's heartbeat, always present */}
-          <button
-            type="button"
-            data-coach="tape"
-            onClick={() => onNavigate("ideas")}
-            aria-label="Open The Tape"
-            title={compact ? "The Tape · live" : undefined}
-            className={`rounded-[14px] transition hover:border-accent/40 ${compact ? "grid place-items-center py-2.5" : "px-3 pb-2.5 pt-3 text-left"}`}
-            style={{
-              background: "linear-gradient(150deg,rgba(245,166,35,.07),rgba(245,166,35,.02))",
-              border: "1px solid rgba(245,166,35,.14)",
-            }}
-          >
-            <div className="flex h-[26px] items-center gap-[2px]">
-              {(compact ? PULSE_BARS.slice(0, 6) : PULSE_BARS).map((h, i) => (
-                <i
-                  key={i}
-                  className="fennec-pulse-bar w-[3px] rounded-[2px]"
-                  style={{
-                    height: h,
-                    background: "linear-gradient(180deg,#ffc861,rgba(245,166,35,.35))",
-                    animationDelay: `${(i * 97) % 900}ms`,
-                  }}
-                />
-              ))}
-            </div>
-            {!compact && (
-              <div className="mt-[7px] flex items-baseline justify-between">
-                <b className="text-[9px] font-bold uppercase tracking-[0.2em] text-accent">The Tape · live</b>
-              </div>
-            )}
-          </button>
-
+          {/* El pulso de La Cinta se quito de aqui (Paco 2026-08-03): era la
+              SEGUNDA entrada al mismo destino, porque La Cinta ya vive en la
+              lista de arriba con los otros cuatro modulos. Dos puertas al mismo
+              cuarto no dan mas acceso, dan mas que leer.
+              Se conservo la entrada de la lista y no esta, para que los cinco
+              modulos se vean y se comporten igual — que es justo la simetria
+              que se estaba buscando al devolver el dock a La Cinta. */}
           {/* mini profile — on-brand chrome; the producer's color belongs to
               the FennecIdCard only (avatar initials keep it: it's their photo) */}
           {/* Tu cara abre TU perfil de comunidad, no los ajustes: es la unica
