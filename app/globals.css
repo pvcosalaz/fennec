@@ -173,14 +173,33 @@ button:where(:not([data-no-press])):active {
   @keyframes ccPop { from { opacity: 0; } to { opacity: 1; } }
 }
 
-/* Polvo de La Cinta. La deriva es lenta y corta a proposito: 34px en ~50s es
-   casi imperceptible, que es justo lo pedido (Paco 2026-08-03). Solo transform
-   y opacity, para que corra en GPU y no toque layout. */
+/* Polvo de La Cinta.
+
+   La primera version recorria 34px en ~50s, o sea medio pixel por segundo: eso
+   NO se lee como movimiento, se lee como estatico (Paco 2026-08-03). Ahora son
+   ~150px verticales en el mismo tiempo, unos 3px/s: sigue siendo calmado, pero
+   si te quedas viendo una mota la ves avanzar.
+
+   El vaiven lateral a media animacion existe para que la trayectoria no sea una
+   linea recta. Polvo real lo mueven corrientes de aire, y 42 motas deslizandose
+   en paralelo se leen como una capa que se desplaza, no como aire.
+
+   Solo transform y opacity: corre en GPU y no toca layout. */
 @keyframes tapeDust {
-  0%   { opacity: 0;               transform: translate3d(0, 0, 0); }
-  18%  { opacity: var(--dust-op);  }
-  78%  { opacity: var(--dust-op);  }
-  100% { opacity: 0;               transform: translate3d(14px, -34px, 0); }
+  0%   { opacity: 0;              transform: translate3d(0, 0, 0); }
+  15%  { opacity: var(--dust-op); }
+  40%  {                          transform: translate3d(18px, -58px, 0); }
+  70%  { opacity: var(--dust-op); transform: translate3d(-8px, -104px, 0); }
+  100% { opacity: 0;              transform: translate3d(26px, -152px, 0); }
+}
+/* La mitad de las motas baja en vez de subir. Todas viajando al mismo sitio
+   delatan que son un efecto; encontradas, parecen aire. */
+@keyframes tapeDustDown {
+  0%   { opacity: 0;              transform: translate3d(0, 0, 0); }
+  15%  { opacity: var(--dust-op); }
+  40%  {                          transform: translate3d(-14px, 52px, 0); }
+  70%  { opacity: var(--dust-op); transform: translate3d(10px, 96px, 0); }
+  100% { opacity: 0;              transform: translate3d(-20px, 146px, 0); }
 }
 .tape-dust {
   animation-name: tapeDust;
@@ -188,6 +207,7 @@ button:where(:not([data-no-press])):active {
   animation-iteration-count: infinite;
   will-change: transform, opacity;
 }
+.tape-dust:nth-child(even) { animation-name: tapeDustDown; }
 /* El movimiento lento y a la deriva es el que peor le cae a quien se marea.
    Se queda el polvo, quieto y tenue: la textura sin el desplazamiento. */
 @media (prefers-reduced-motion: reduce) {
