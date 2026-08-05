@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { NETWORK_ENABLED } from "@/lib/featureFlags";
 import { useParams } from "next/navigation";
 import { UserPlus, Check, Loader2 } from "lucide-react";
 import FennecIdCard from "@/components/network/FennecIdCard";
@@ -76,6 +77,12 @@ export default function PublicProfilePage() {
         />
       </div>
 
+      {/* Conectar vive detras de la bandera de Network, apagada para el
+          lanzamiento web. Al esconder Network hoy quedo este boton huerfano:
+          llevaba a pedir conexion en un sistema que ya no existe en la interfaz,
+          asi que picarle al productor desde La Cinta terminaba en un callejon
+          sin salida (Paco 2026-08-03). */}
+      {NETWORK_ENABLED && (
       <button
         onClick={handleRequest}
         disabled={requestState === "sending" || requestState === "sent"}
@@ -90,6 +97,7 @@ export default function PublicProfilePage() {
         )}
         {requestState === "sent" ? "Request sent" : "Request to connect"}
       </button>
+      )}
 
       {requestState === "signed_out" && (
         <p className="text-xs text-zinc-500 text-center">
