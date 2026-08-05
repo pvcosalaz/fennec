@@ -806,41 +806,52 @@ export default function TapeDeckDesktop({
         </div>
         </div>
 
-        {/* EL PLAY.
-            Era el unico circulo solido con halo en una fila de pastillas con
-            borde: distinto en forma, en relleno y en elevacion a la vez, por eso
-            se sentia pegado encima (Paco 2026-08-03).
-            Ahora comparte la geometria de la fila —misma altura, misma pastilla—
-            y su jerarquia la da el RELLENO, que es lo unico que necesita para
-            leerse como la accion principal. Fuera el halo: el propio sistema de
-            diseño de Fennec prohibe los glows, y esta era la unica pieza de la
-            app que lo hacia. Queda una sombra tintada, que es lo que da cuerpo
-            sin gritar. */}
-          <button
-            onClick={toggle}
-            aria-label={playing ? "Pause" : "Play"}
-            className="flex items-center justify-center rounded-full px-11 text-[13px] font-bold text-black transition hover:brightness-105 active:scale-[0.97]"
-            style={{
-              height: 44,
-              background: `linear-gradient(180deg,${AMBER_HOT},${AMBER})`,
-              boxShadow: "0 6px 18px -8px rgba(0,0,0,0.8)",
-            }}
-          >
-            {/* Sin icono, solo la palabra, en la tipografia del logotipo: misma
-                familia, mismo peso negro y el mismo tracking de -0.06em, en
-                minusculas (Paco 2026-08-04). El play es la accion principal del
-                modulo, y escribirlo con la letra de la marca lo vuelve parte de
-                la identidad en vez de un boton de reproductor generico. */}
-            <span
-              /* 17px y tracking -0.035em: mas cuerpo y mas ancha. A -0.06em la
-                 palabra se cerraba sobre si misma y se leia chica aunque el peso
-                 ya fuera el maximo — apretar las letras ADELGAZA la palabra
-                 aunque no adelgace el trazo (Paco 2026-08-04). */
-              className="text-[17px] font-black lowercase leading-none"
-              style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", letterSpacing: "-0.035em" }}
-            >
-              {playing ? "pause" : "play"}
-            </span>
+        {/* EL PLAY — el boton insignia.
+            Vuelve al icono, no a la palabra: "play" escrito se leia como texto
+            de interfaz y lo que se busca es un simbolo reconocible, parte de la
+            identidad del modulo (Paco 2026-08-04).
+
+            Circulo que SOBRESALE de la fila, como el boton central del dock de
+            la app movil: el mismo lenguaje en los dos lados. La elevacion la da
+            una sombra proyectada mas un aro oscuro, no un halo de color — el
+            sistema de diseño de Fennec prohibe los glows.
+
+            Los iconos van dibujados a mano y no de lucide: los de la libreria
+            son de TRAZO, o sea que el triangulo queda hueco por dentro y las
+            barras del pause salen delgadas. Aqui el triangulo es relleno solido
+            y las barras miden 5px de ancho con las esquinas apenas redondeadas.
+            Es exactamente lo que se pidio, y ademas a este tamaño un icono de
+            trazo se ve fragil. */}
+        <button
+          onClick={toggle}
+          aria-label={playing ? "Pause" : "Play"}
+          className="grid place-items-center rounded-full text-black transition hover:brightness-105 active:scale-[0.96]"
+          style={{
+            height: 74, width: 74,
+            /* -18px: el circulo se monta sobre la fila en vez de vivir dentro.
+               Ese desnivel es lo que lo convierte en el boton principal sin
+               tener que hacerlo mas grande todavia. */
+            marginTop: -18,
+            background: `linear-gradient(180deg, ${AMBER_HOT}, ${AMBER})`,
+            boxShadow: [
+              "0 10px 24px -6px rgba(0,0,0,0.75)",
+              "0 2px 6px rgba(0,0,0,0.5)",
+              "inset 0 1px 0 rgba(255,255,255,0.45)",
+              `0 0 0 6px ${DECK}`,
+            ].join(", "),
+            transition: "transform 160ms var(--ease-out), filter 160ms var(--ease-out)",
+          }}
+        >
+          {playing ? (
+            <svg width="24" height="26" viewBox="0 0 24 26" aria-hidden>
+              <rect x="2"  y="1" width="7" height="24" rx="1.5" fill="currentColor" />
+              <rect x="15" y="1" width="7" height="24" rx="1.5" fill="currentColor" />
+            </svg>
+          ) : (
+            <svg width="26" height="28" viewBox="0 0 26 28" aria-hidden style={{ marginLeft: 3 }}>
+              <path d="M3 2.2 L24 14 L3 25.8 Z" fill="currentColor" strokeLinejoin="round" strokeWidth="2.5" stroke="currentColor" />
+            </svg>
+          )}
         </button>
         <div className="flex items-center justify-start gap-3">
         <button onClick={() => { setMarkAt(t); setMarking(true); }} className="flex items-center gap-2 rounded-full border px-4 py-2.5 text-[13px] font-semibold transition hover:brightness-110" style={{ borderColor: `${AMBER}40`, color: AMBER }}>
