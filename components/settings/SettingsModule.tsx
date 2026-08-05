@@ -725,7 +725,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
             <p className="text-xs leading-relaxed text-zinc-400">{t("pwCodeSent")}</p>
             <input
               type="text"
-              inputMode="numeric"
+              inputMode="text"
               autoComplete="one-time-code"
               /* 8, no 6: Supabase manda codigos de reautenticacion de 8
                  caracteres (verificado con el correo real, Paco 2026-08-05).
@@ -734,7 +734,10 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
               maxLength={10}
               placeholder={t("pwCode")}
               value={passwordCode}
-              onChange={(e) => setPasswordCode(e.target.value.replace(/\D/g, ""))}
+              /* Sin filtrar a digitos: el codigo real de Supabase puede traer letras
+                 (el de Paco llego de 8 caracteres). Solo se quitan espacios,
+                 que es lo que se pega de mas desde el correo. */
+              onChange={(e) => setPasswordCode(e.target.value.replace(/\s/g, ""))}
               className="w-full h-11 rounded-xl border border-accent/40 bg-black/30 px-3 text-center font-mono text-[16px] tracking-[0.28em] text-white outline-none placeholder:text-zinc-600 placeholder:tracking-normal focus:border-accent"
             />
           </>
