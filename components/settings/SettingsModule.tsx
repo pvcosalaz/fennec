@@ -727,11 +727,15 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
               type="text"
               inputMode="numeric"
               autoComplete="one-time-code"
-              maxLength={6}
+              /* 8, no 6: Supabase manda codigos de reautenticacion de 8
+                 caracteres (verificado con el correo real, Paco 2026-08-05).
+                 El tope de 6 hacia imposible escribir el codigo completo. Se
+                 acepta hasta 10 por si el largo cambia con la config. */
+              maxLength={10}
               placeholder={t("pwCode")}
               value={passwordCode}
               onChange={(e) => setPasswordCode(e.target.value.replace(/\D/g, ""))}
-              className="w-full h-11 rounded-xl border border-accent/40 bg-black/30 px-3 text-center font-mono text-[16px] tracking-[0.4em] text-white outline-none placeholder:text-zinc-600 placeholder:tracking-normal focus:border-accent"
+              className="w-full h-11 rounded-xl border border-accent/40 bg-black/30 px-3 text-center font-mono text-[16px] tracking-[0.28em] text-white outline-none placeholder:text-zinc-600 placeholder:tracking-normal focus:border-accent"
             />
           </>
         )}
@@ -742,7 +746,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
         {passwordCodeSent ? (
           <button
             onClick={handleChangePassword}
-            disabled={passwordSaving || passwordCode.length !== 6}
+            disabled={passwordSaving || passwordCode.length < 6}
             className="w-full rounded-xl bg-accent py-3 text-sm font-semibold text-black transition disabled:opacity-40"
           >
             {passwordSaving ? t("pwSaving") : t("pwUpdate")}
