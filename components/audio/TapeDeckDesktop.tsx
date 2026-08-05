@@ -321,10 +321,18 @@ export default function TapeDeckDesktop({
          fondo RESPIRE con la seccion del track y no parpadee con cada golpe.
          Sin reproducir cae a 0 y el fondo vuelve a ser el cuarto quieto.
          Con reduced-motion no se toca: opacidad fija muy baja, sin latido. */
-      bgLevel.current += ((isPlaying ? vuLevel.current : 0) - bgLevel.current) * 0.05;
+      /* ATAQUE RAPIDO, CAIDA LENTA — recalibrado porque "flotaba" (Paco
+         2026-08-04). El suavizado simetrico de 0.05 filtraba los transitorios:
+         el golpe llegaba tarde y el fondo parecia ir por su cuenta. La asimetria
+         es el mismo truco de las agujas de los VU (0.4/0.07): el pico se siente
+         AL golpe, y la caida pausada evita el estrobo.
+         La curva ^1.4 calma los pasajes quietos y remarca los picos: agresivo
+         donde la musica lo es, no en todo. */
+      const objetivo = isPlaying ? Math.pow(vuLevel.current, 1.4) : 0;
+      bgLevel.current += (objetivo - bgLevel.current) * (objetivo > bgLevel.current ? 0.28 : 0.045);
       if (glowRef.current && !reduce) {
-        glowRef.current.style.opacity = (bgLevel.current * 0.5).toFixed(3);
-        glowRef.current.style.transform = `scale(${(1 + bgLevel.current * 0.06).toFixed(4)})`;
+        glowRef.current.style.opacity = (bgLevel.current * 0.8).toFixed(3);
+        glowRef.current.style.transform = `scale(${(1 + bgLevel.current * 0.09).toFixed(4)})`;
       }
 
       raf = requestAnimationFrame(tick);
