@@ -49,3 +49,16 @@ export function takePendingTrack(): string | null {
     return v;
   } catch { return null; }
 }
+
+/* ── El hermano: "abreme el perfil de este productor" ──
+   Mismo patron y mismo porque. Desde La Cinta, "view profile" mandaba a
+   /u/username, que es la pagina PUBLICA del Fennec ID — pensada para
+   compartirse fuera de la app. Dentro de la app, el perfil es el de
+   community (Paco 2026-08-04). Solo evento, sin sessionStorage: el shell
+   siempre esta montado, asi que no hay carrera de montaje que cubrir. */
+export const EVENTO_ABRIR_PERFIL = "fennec:open-profile";
+
+export function openCommunityProfile(userId: string) {
+  window.dispatchEvent(new CustomEvent(EVENTO_ABRIR_PERFIL, { detail: userId }));
+}
+

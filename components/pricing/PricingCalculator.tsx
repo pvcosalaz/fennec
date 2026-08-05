@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { EVENTO_ABRIR_TRACK } from "@/lib/tapeNav";
+import { EVENTO_ABRIR_TRACK, EVENTO_ABRIR_PERFIL } from "@/lib/tapeNav";
 import { useCloudValue } from "@/lib/useCloudValue";
 
 function SplashScreen({ exiting }: { exiting: boolean }) {
@@ -521,8 +521,19 @@ export default function PricingCalculator() {
      cuenta (lib/tapeNav). */
   useEffect(() => {
     const irALaCinta = () => { setActiveTab("ideas"); setShowSettings(false); };
+    const irAlPerfil = (e: Event) => {
+      const id = (e as CustomEvent<string>).detail;
+      if (!id) return;
+      setActiveTab("noticias");
+      setShowSettings(false);
+      setCommunityProfileId(id);
+    };
     window.addEventListener(EVENTO_ABRIR_TRACK, irALaCinta);
-    return () => window.removeEventListener(EVENTO_ABRIR_TRACK, irALaCinta);
+    window.addEventListener(EVENTO_ABRIR_PERFIL, irAlPerfil);
+    return () => {
+      window.removeEventListener(EVENTO_ABRIR_TRACK, irALaCinta);
+      window.removeEventListener(EVENTO_ABRIR_PERFIL, irAlPerfil);
+    };
   }, []);
   const [settingsSection, setSettingsSection] = useState<SettingsSection>("main");
   const [showSetup, setShowSetup] = useState(false);

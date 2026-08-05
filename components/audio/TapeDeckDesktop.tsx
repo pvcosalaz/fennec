@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { openCommunityProfile } from "@/lib/tapeNav";
 import TapeDust from "@/components/audio/TapeDust";
 import { Play, Pause, SkipForward, Plus, Upload, ZoomIn, ZoomOut, Volume2, VolumeX, AudioLines } from "lucide-react";
 import type { ProjectReview, ReviewComment } from "@/lib/audioTypes";
@@ -502,8 +503,12 @@ export default function TapeDeckDesktop({
             </div>
             {/* El @ lleva a su perfil de comunidad: si te gusto lo que oiste,
                 el siguiente paso natural es ver de quien es. */}
-            <a
-              href={track.profile?.username ? `/u/${track.profile.username}` : undefined}
+            {/* Al perfil de COMMUNITY, no a /u/username: aquella es la pagina
+                publica del Fennec ID, para compartirse fuera. Dentro de la app
+                el perfil principal es el de community (Paco 2026-08-04). */}
+            <button
+              type="button"
+              onClick={() => track.profile?.id && openCommunityProfile(track.profile.id)}
               className="mt-1 inline-flex items-center gap-1.5 font-mono text-[11px] text-zinc-500 transition hover:text-accent"
             >
               @{track.profile?.username ?? "producer"}
@@ -511,7 +516,7 @@ export default function TapeDeckDesktop({
               {fmt(duration)}
               <span className="text-zinc-700">·</span>
               <span className="underline decoration-dotted underline-offset-2">view profile</span>
-            </a>
+            </button>
           </div>
         </div>
 
@@ -703,6 +708,8 @@ export default function TapeDeckDesktop({
             {/* Quien la dejo, con su cara. Antes solo iba el @ en ambar: para
                 saber quien era tenias que acordarte del usuario. */}
             <a
+              role="button"
+              onClick={(e) => { e.preventDefault(); const pid=(speaking.profile as {id?:string})?.id; if (pid) openCommunityProfile(pid); }}
               href={speaking.profile?.username ? `/u/${speaking.profile.username}` : undefined}
               className="mx-auto flex w-fit items-center gap-2 transition hover:brightness-125"
             >
