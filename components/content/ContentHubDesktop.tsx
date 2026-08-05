@@ -123,7 +123,10 @@ export default function ContentHubDesktop({
        lo que se desbloquea. */
     { id: "ideas",   label: "Quick Ideas", sub: ideasCount > 0 ? `${ideasCount} saved idea${ideasCount !== 1 ? "s" : ""}` : "Capture ideas in seconds", icon: Sparkles, pro: false },
     { id: "scripts", label: "My Scripts",  sub: scriptsCount > 0 ? `${scriptsCount} script${scriptsCount !== 1 ? "s" : ""} written` : "Everything you write lands here", icon: FileText, pro: false },
-    { id: "inspire", label: "Inspire",     sub: "Trending references for your genres", icon: Zap,          pro: true },
+    { id: "inspire", label: "Inspire",     /* Cuatro palabras que venden, no una descripcion que se corta: "Trending
+       references for your ge…" truncado no invita a nada, y esta tarjeta es el
+       gancho de PRO (Paco 2026-08-04). */
+      sub: "Steal what's trending", icon: Zap,          pro: true },
     { id: "lab",     label: "Content Lab", sub: "Turn your music into scripts",        icon: FlaskConical, pro: true },
   ];
 

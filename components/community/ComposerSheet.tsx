@@ -1,6 +1,5 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import { useIsDesktop } from "@/lib/useIsDesktop";
 import { createPortal } from "react-dom";
 import { X, Music2, ImageIcon, SmilePlus } from "lucide-react";
 import { createPost, uploadImage } from "@/lib/communityDb";
@@ -31,8 +30,12 @@ function detectVideo(text: string): string | null {
 }
 
 export default function ComposerSheet({ profile, onClose, onPostCreated, initialMediaUrl, initialMediaType, initialMediaName, anchor }: Props & { anchor?: DOMRect | null }) {
-  const isDesktop = useIsDesktop();
-  const flotante = isDesktop && !!anchor;
+  /* flotante = hay ancla, y punto. Antes era `isDesktop && anchor`, y
+     useIsDesktop arranca en false hasta que mide: durante ese primer frame se
+     pintaba la hoja de telefono pegada al borde inferior — el parpadeo abajo
+     que Paco veia al abrir y al cancelar (2026-08-04). El ancla solo existe si
+     el "+" de escritorio la capturo, asi que ya trae la decision puesta. */
+  const flotante = !!anchor;
   const { sheetRef, dismiss } = useSheetDismiss(onClose);
   const [content, setContent]       = useState("");
   const [category, setCategory]     = useState<PostCategory>("music");
@@ -119,12 +122,12 @@ export default function ComposerSheet({ profile, onClose, onPostCreated, initial
       <div
         className="fixed inset-0 z-[100]"
         style={{ background: flotante ? "transparent" : "rgba(0,0,0,0.6)", animation: "sheetFadeIn .25s ease both" }}
-        onClick={dismiss}
+        onClick={flotante ? onClose : dismiss}
       />
       <div
         ref={sheetRef}
         className={flotante
-          ? "fixed z-[101] rounded-2xl border border-white/10 bg-zinc-950 p-4 space-y-4 overflow-y-auto"
+          ? "fixed z-[101] rounded-2xl border border-white/10 p-4 space-y-4 overflow-y-auto"
           : "fixed left-0 right-0 z-[101] rounded-t-3xl bg-zinc-950 border-t border-white/10 p-4 space-y-4 max-h-[90vh] overflow-y-auto"}
         style={flotante
           ? {
@@ -139,8 +142,12 @@ export default function ComposerSheet({ profile, onClose, onPostCreated, initial
               width: 460,
               maxHeight: "min(560px, calc(100vh - 120px))",
               transformOrigin: "top right",
-              boxShadow: "0 26px 60px -20px rgba(0,0,0,0.9)",
-              animation: "composerPop 190ms cubic-bezier(.23,1,.32,1) both",
+              /* Gris del material de la app (#211f26), no negro pleno: sobre el
+                 feed oscurecido el zinc-950 se fundia en un bloque sin cuerpo
+                 (Paco 2026-08-04). El mismo gris del panel de notificaciones. */
+              background: "#211f26",
+              boxShadow: "0 26px 60px -20px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.06)",
+              animation: "composerPop 300ms cubic-bezier(.23,1,.32,1) both",
             }
           : { bottom: SHEET_BOTTOM, paddingBottom: "calc(env(safe-area-inset-bottom) + 16px)", animation: SHEET_ENTER }}
       >
