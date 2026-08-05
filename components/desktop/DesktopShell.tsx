@@ -170,7 +170,8 @@ export default function DesktopShell({
      La constante se queda en vez de arrancar el codigo: si algun dia se quiere
      un modo presentacion, es una linea. */
   const immersive = false;
-  void networkActive; void settingsOpen;
+  /* A sangre: La Cinta es el unico modulo que administra su propio lienzo. */
+  const ancho = activeTab === "ideas" && !networkActive && !settingsOpen;
 
   return (
     <div className="min-h-screen" style={{ background: CANVAS_BG }}>
@@ -488,7 +489,23 @@ export default function DesktopShell({
               its own vertical space (Business fills the screen instead of
               leaving a 340px dead zone) while still scrolling when it
               outgrows one viewport. */}
-          <div className="relative z-10 mx-auto flex w-full min-h-0 max-w-[1100px] flex-1 flex-col px-10 pb-8 pt-2">
+          {/* La Cinta va A SANGRE; los demas modulos, en la columna de 1100px.
+              La Cinta se diseño para adueñarse de la ventana —carretes a los
+              extremos, cinta cruzando de lado a lado— y al apagar el modo
+              inmersivo quedo metida en la columna: un recuadro negro que ni
+              llenaba el ancho ni cabia a lo alto, con la fila de mandos cortada
+              abajo (Paco 2026-08-04, regresion del cambio anterior).
+
+              La solucion no es devolver el inmersivo —quitarle el dock rompia la
+              simetria del sistema, que es por lo que se quito— sino darle el
+              lienzo completo CONSERVANDO el dock. Sin ancho maximo, sin
+              margenes laterales y sin relleno inferior: el modulo administra su
+              propio alto, que es justo lo que `h-screen` esperaba encontrar. */}
+          <div
+            className={ancho
+              ? "relative z-10 flex w-full min-h-0 flex-1 flex-col"
+              : "relative z-10 mx-auto flex w-full min-h-0 max-w-[1100px] flex-1 flex-col px-10 pb-8 pt-2"}
+          >
             {children}
           </div>
           </>
