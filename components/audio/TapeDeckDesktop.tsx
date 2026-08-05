@@ -728,7 +728,22 @@ export default function TapeDeckDesktop({
       )}
 
       {/* transport */}
-      <div className="flex items-center gap-4 border-t border-white/10 px-8 py-4">
+      {/* ── Fila de mandos ──
+          TRES COLUMNAS, con el transporte al centro (Paco 2026-08-03). Era una
+          fila que arrancaba pegada a la izquierda y empujaba "My tracks" al
+          extremo derecho con ml-auto, asi que el play —la accion principal del
+          modulo— no coincidia con el eje de los carretes ni con el cabezal de
+          la cinta, que estan al centro.
+
+          Las columnas laterales miden 1fr: eso centra el grupo respecto a la
+          PANTALLA y no respecto al hueco que sobra, que es la unica forma de
+          que el play quede en la misma vertical que el cabezal. La ayuda de
+          teclado se va a la izquierda y "My tracks" a la derecha, cada una en
+          su columna, sin margenes automaticos peleando entre si. */}
+      <div className="grid items-center gap-4 border-t border-white/10 px-8 py-4" style={{ gridTemplateColumns: "1fr auto 1fr" }}>
+        <span className="min-w-0 truncate font-mono text-[10.5px] tracking-[0.06em] text-zinc-700">SPACE play · CLICK scrub · ⌘scroll / pinch zoom · ＋ note</span>
+
+        <div className="flex items-center justify-center gap-3">
         {/* "Pass" vivia aqui y "Next" mas adelante, los dos llamando a onPass: el
             mismo boton dos veces, a lados opuestos del play. Se queda uno solo. */}
         {/* EL PLAY.
@@ -800,7 +815,8 @@ export default function TapeDeckDesktop({
             <ZoomIn className="h-3.5 w-3.5" />
           </button>
         </div>
-        <span className="ml-1 font-mono text-[10.5px] tracking-[0.06em] text-zinc-700">SPACE play · CLICK scrub · ⌘scroll / pinch zoom · ＋ note</span>
+        </div>
+
         {/* DOS botones, no uno.
             Este boton decia "Upload Tracks" pero abria MyTracksView, que es tu
             sala de lectura: tus canciones, las notas que te dejaron y el sello
@@ -815,7 +831,7 @@ export default function TapeDeckDesktop({
             Pastilla con borde y no solida: habia DOS elementos ambar solidos
             peleando por ser la accion principal, y en un modulo que se llama La
             Cinta esa es el play. */}
-        <div className="ml-auto flex items-center gap-2">
+        <div className="flex items-center justify-end gap-2">
           <button onClick={onOpenMyTracks}
             title="Upload a track"
             aria-label="Upload a track"
