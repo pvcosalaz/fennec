@@ -1,4 +1,6 @@
 "use client";
+import { useTranslation } from "react-i18next";
+import "@/lib/i18n";
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X, Music2, ImageIcon, SmilePlus } from "lucide-react";
@@ -37,6 +39,7 @@ export default function ComposerSheet({ profile, onClose, onPostCreated, initial
      el "+" de escritorio la capturo, asi que ya trae la decision puesta. */
   const flotante = !!anchor;
   const { sheetRef, dismiss } = useSheetDismiss(onClose);
+  const { t } = useTranslation();
   const [content, setContent]       = useState("");
   const [category, setCategory]     = useState<PostCategory>("music");
   const [mediaUrl, setMediaUrl]     = useState<string | null>(initialMediaUrl ?? null);
@@ -154,7 +157,7 @@ export default function ComposerSheet({ profile, onClose, onPostCreated, initial
 
         {/* Header */}
         <div className="flex items-center justify-between">
-          <span className="text-sm font-semibold text-white">New post</span>
+          <span className="text-sm font-semibold text-white">{t("cmNewPost")}</span>
           <button onClick={onClose}><X className="h-5 w-5 text-zinc-500" /></button>
         </div>
 
@@ -178,7 +181,7 @@ export default function ComposerSheet({ profile, onClose, onPostCreated, initial
         <textarea
           value={content}
           onChange={(e) => handleContentChange(e.target.value)}
-          placeholder="What's happening in your studio?"
+          placeholder={t("cmPlaceholder")}
           maxLength={500}
           rows={3}
           autoFocus

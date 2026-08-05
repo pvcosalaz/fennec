@@ -1,4 +1,6 @@
 "use client";
+import { useTranslation } from "react-i18next";
+import "@/lib/i18n";
 
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -152,6 +154,7 @@ function SponsorsRow() {
 // ─── News panel ───────────────────────────────────────────────────────────────
 
 function NewsPanel({ onSelect }: { onSelect: (item: NewsItem) => void }) {
+  const { t } = useTranslation();
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -177,7 +180,7 @@ function NewsPanel({ onSelect }: { onSelect: (item: NewsItem) => void }) {
           </h2>
         </div>
         {!loading && !error && (
-          <span className="text-xs text-zinc-600">Updated hourly</span>
+          <span className="text-xs text-zinc-600">{t("cmUpdatedHourly")}</span>
         )}
       </div>
 
@@ -290,6 +293,7 @@ function CommunityPanel({ profile, openComposerWith, onComposerConsumed, initial
 // ─── Root component ───────────────────────────────────────────────────────────
 
 export default function Community({ profile, openComposerWith, onComposerConsumed, initialProfileUserId }: { profile: Profile; openComposerWith?: { url: string; name: string } | null; onComposerConsumed?: () => void; initialProfileUserId?: string | null }) {
+  const { t } = useTranslation();
   const isDesktop = useIsDesktop();
   const [fennecTab, setFennecTab] = useState<FennecTab>("community");
   const [selected, setSelected] = useState<NewsItem | null>(null);
@@ -324,7 +328,7 @@ export default function Community({ profile, openComposerWith, onComposerConsume
             page-title row (21px bold) used by Dashboard/Business/Marketing. */}
         <div>
           <div className="mb-6 flex items-center justify-between">
-            <h1 className="text-[21px] font-bold tracking-tight text-white">Community</h1>
+            <h1 className="text-[21px] font-bold tracking-tight text-white">{t("cmTitle")}</h1>
           </div>
           <CommunityPanel
             profile={profile}

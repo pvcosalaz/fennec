@@ -1,4 +1,6 @@
 "use client";
+import { useTranslation } from "react-i18next";
+import "@/lib/i18n";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Plus, Users } from "lucide-react";
 import { fetchPosts, createPost } from "@/lib/communityDb";
@@ -38,6 +40,7 @@ export default function FeedView({ profile, onOpenThread, onOpenProfile, openCom
   const [page, setPage]                 = useState(0);
   const [loading, setLoading]           = useState(true);
   const [hasMore, setHasMore]           = useState(true);
+  const { t } = useTranslation();
   const [composerOpen, setComposerOpen] = useState(!!openComposerWith);
   const [anchor, setAnchor] = useState<DOMRect | null>(null);
   const [pullY, setPullY]               = useState(0);
@@ -169,7 +172,7 @@ export default function FeedView({ profile, onOpenThread, onOpenProfile, openCom
         <div className="flex items-center gap-2">
           <Users className="h-4 w-4 text-accent" />
           <h2 className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
-            Fennec Community
+            {t("cmFennecCommunity")}
           </h2>
         </div>
         <div className="flex items-center gap-2">
@@ -250,7 +253,7 @@ export default function FeedView({ profile, onOpenThread, onOpenProfile, openCom
 
         {!loading && posts.length === 0 && (
           <div className="text-center py-16 text-zinc-600 text-sm">
-            No posts yet — be the first to drop something.
+            {t("cmNoPosts")}
           </div>
         )}
 

@@ -364,4 +364,20 @@ i18n.addResourceBundle("es", "translation", {
   tpKarma: "karma",
 }, true, true);
 
+/* Community (2026-08-05) */
+i18n.addResourceBundle("en", "translation", {
+  cmTitle: "Community", cmFennecCommunity: "Fennec Community",
+  cmIndustryNews: "Industry News", cmUpdatedHourly: "Updated hourly",
+  cmNewPost: "New post", cmPost: "Post", cmPlaceholder: "What's happening in your studio?",
+  cmNoPosts: "No posts yet - be the first to drop something.", cmNoPostsProfile: "No posts yet.",
+  cmPosts: "Posts", cmTracksOnTape: "Tracks on The Tape",
+}, true, true);
+i18n.addResourceBundle("es", "translation", {
+  cmTitle: "Comunidad", cmFennecCommunity: "Comunidad Fennec",
+  cmIndustryNews: "Noticias de la industria", cmUpdatedHourly: "Se actualiza cada hora",
+  cmNewPost: "Nuevo post", cmPost: "Publicar", cmPlaceholder: "Que esta pasando en tu estudio?",
+  cmNoPosts: "Aun no hay posts - se quien estrene esto.", cmNoPostsProfile: "Aun no hay posts.",
+  cmPosts: "Posts", cmTracksOnTape: "Tracks en La Cinta",
+}, true, true);
+
 export default i18n;

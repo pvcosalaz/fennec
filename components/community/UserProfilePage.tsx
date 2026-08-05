@@ -1,4 +1,6 @@
 "use client";
+import { useTranslation } from "react-i18next";
+import "@/lib/i18n";
 import { useEffect, useState } from "react";
 import { openTrackInTape } from "@/lib/tapeNav";
 import { fetchUserReviews } from "@/lib/audioDb";
@@ -27,6 +29,7 @@ type Props = {
 };
 
 export default function UserProfilePage({ userId, currentProfile, onBack, onOpenThread, onOpenProfile }: Props) {
+  const { t } = useTranslation();
   const [profile, setProfile]   = useState<Profile | null>(null);
   const [posts, setPosts]       = useState<Post[]>([]);
   const [tracks, setTracks]     = useState<ProjectReview[]>([]);
@@ -230,7 +233,7 @@ export default function UserProfilePage({ userId, currentProfile, onBack, onOpen
         <>
           <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">
-              Tracks on The Tape
+              {t("cmTracksOnTape")}
             </p>
             <div className="space-y-1.5">
               {tracks.map((t) => (
@@ -267,9 +270,9 @@ export default function UserProfilePage({ userId, currentProfile, onBack, onOpen
 
       {/* Posts */}
       <div className="space-y-3">
-        <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">Posts</p>
+        <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">{t("cmPosts")}</p>
         {posts.length === 0 && (
-          <p className="text-center text-sm text-zinc-600 py-8">No posts yet.</p>
+          <p className="text-center text-sm text-zinc-600 py-8">{t("cmNoPostsProfile")}</p>
         )}
         {posts.map((post) => (
           <PostCard
