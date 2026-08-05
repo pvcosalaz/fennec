@@ -152,6 +152,8 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordError,   setPasswordError]   = useState<string | null>(null);
   const [passwordSaving,  setPasswordSaving]  = useState(false);
+  const [passwordCodeSent, setPasswordCodeSent] = useState(false);
+  const [passwordCode,     setPasswordCode]     = useState("");
   const [passwordSaved,   setPasswordSaved]   = useState(false);
 
   // Permanent account deletion (App Store / Play Store requirement)
@@ -205,15 +207,38 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
     }
   }
 
-  async function handleChangePassword() {
+  /* ── Cambio de contraseña con RE-AUTENTICACION ──
+     Antes bastaba la sesion activa: updateUser({ password }) y ya. Eso
+     significa que cualquiera con acceso a una compu desbloqueada podia cambiar
+     la contraseña y quedarse con la cuenta (Paco lo señalo, 2026-08-05).
+
+     Flujo en dos pasos con el mecanismo nativo de Supabase:
+     1 · reauthenticate() manda un codigo de 6 digitos al CORREO del dueño.
+     2 · updateUser({ password, nonce }) exige ese codigo.
+     Funciona igual para cuentas de Google/Apple/Facebook, que no tienen
+     contraseña previa que pedir — el correo es el autenticador comun.
+
+     ⚠️ Para que el servidor lo EXIJA (y no solo lo pida esta pantalla), hay que
+     prender "Secure password change" en Supabase → Authentication → Settings.
+     Sin ese toggle, un cliente malicioso podria saltarse el codigo. */
+  async function handleSendPasswordCode() {
     setPasswordError(null);
-    if (newPassword.length < 6) { setPasswordError("Password must be at least 6 characters."); return; }
-    if (newPassword !== confirmPassword) { setPasswordError("Passwords don't match."); return; }
+    if (newPassword.length < 6) { setPasswordError(t("pwTooShort")); return; }
+    if (newPassword !== confirmPassword) { setPasswordError(t("pwNoMatch")); return; }
     setPasswordSaving(true);
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    const { error } = await supabase.auth.reauthenticate();
     setPasswordSaving(false);
     if (error) { setPasswordError(error.message); return; }
-    setNewPassword(""); setConfirmPassword("");
+    setPasswordCodeSent(true);
+  }
+
+  async function handleChangePassword() {
+    setPasswordError(null);
+    setPasswordSaving(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword, nonce: passwordCode.trim() });
+    setPasswordSaving(false);
+    if (error) { setPasswordError(error.message); return; }
+    setNewPassword(""); setConfirmPassword(""); setPasswordCode(""); setPasswordCodeSent(false);
     setPasswordSaved(true);
     setTimeout(() => setPasswordSaved(false), 2500);
   }
@@ -667,40 +692,72 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
         </button>
         <div>
           <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">{t("stKicker")}</p>
-          <h1 className="text-2xl font-bold text-white">Password</h1>
+          <h1 className="text-2xl font-bold text-white">{t("pwTitle")}</h1>
         </div>
       </div>
 
-      <p className="text-xs text-zinc-500 leading-relaxed">
-        Set a new password for your account. This works even if you originally signed in with Google, Apple, or Facebook.
-      </p>
+      <p className="text-xs text-zinc-500 leading-relaxed">{t("pwIntro")}</p>
 
       <div className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-5">
         <input
           type="password"
-          placeholder="New password"
+          placeholder={t("pwNew")}
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
           minLength={6}
-          className="w-full h-11 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
+          disabled={passwordCodeSent}
+          className="w-full h-11 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent disabled:opacity-50"
         />
         <input
           type="password"
-          placeholder="Confirm new password"
+          placeholder={t("pwConfirm")}
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           minLength={6}
-          className="w-full h-11 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
+          disabled={passwordCodeSent}
+          className="w-full h-11 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent disabled:opacity-50"
         />
+
+        {/* Paso 2: el codigo que llego al correo. Solo existe despues de
+            enviarlo — mostrar el campo antes confunde ("¿que codigo?"). */}
+        {passwordCodeSent && (
+          <>
+            <p className="text-xs leading-relaxed text-zinc-400">{t("pwCodeSent")}</p>
+            <input
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={6}
+              placeholder={t("pwCode")}
+              value={passwordCode}
+              onChange={(e) => setPasswordCode(e.target.value.replace(/\D/g, ""))}
+              className="w-full h-11 rounded-xl border border-accent/40 bg-black/30 px-3 text-center font-mono text-[16px] tracking-[0.4em] text-white outline-none placeholder:text-zinc-600 placeholder:tracking-normal focus:border-accent"
+            />
+          </>
+        )}
+
         {passwordError && <p className="text-xs text-red-400">{passwordError}</p>}
-        {passwordSaved && <p className="text-xs text-green-400">Password updated.</p>}
-        <button
-          onClick={handleChangePassword}
-          disabled={passwordSaving || !newPassword || !confirmPassword}
-          className="w-full rounded-xl bg-accent py-3 text-sm font-semibold text-black transition disabled:opacity-40"
-        >
-          {passwordSaving ? "Saving..." : "Update password"}
-        </button>
+        {passwordSaved && <p className="text-xs text-green-400">{t("pwUpdated")}</p>}
+
+        {passwordCodeSent ? (
+          <button
+            onClick={handleChangePassword}
+            disabled={passwordSaving || passwordCode.length !== 6}
+            className="w-full rounded-xl bg-accent py-3 text-sm font-semibold text-black transition disabled:opacity-40"
+          >
+            {passwordSaving ? t("pwSaving") : t("pwUpdate")}
+          </button>
+        ) : (
+          <button
+            onClick={handleSendPasswordCode}
+            disabled={passwordSaving || !newPassword || !confirmPassword}
+            className="w-full rounded-xl bg-accent py-3 text-sm font-semibold text-black transition disabled:opacity-40"
+          >
+            {passwordSaving ? t("pwSending") : t("pwSendCode")}
+          </button>
+        )}
+
+        <p className="text-[11px] leading-relaxed text-zinc-600">{t("pwWhy")}</p>
       </div>
     </div>
   );

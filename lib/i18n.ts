@@ -463,4 +463,30 @@ i18n.addResourceBundle("es", "translation", {
   bzQuotes: "Cotizaciones", bzProjects: "Proyectos activos",
 }, true, true);
 
+/* Cambio de contraseña con re-autenticacion (2026-08-05) */
+i18n.addResourceBundle("en", "translation", {
+  pwTitle: "Password",
+  pwIntro: "Set a new password for your account. This works even if you originally signed in with Google, Apple, or Facebook.",
+  pwNew: "New password", pwConfirm: "Confirm new password",
+  pwSendCode: "Send verification code", pwSending: "Sending…",
+  pwCodeSent: "We emailed you a 6-digit code. Enter it below to confirm it's you.",
+  pwCode: "6-digit code",
+  pwUpdate: "Update password", pwSaving: "Saving…", pwUpdated: "Password updated.",
+  pwTooShort: "Password must be at least 6 characters.",
+  pwNoMatch: "Passwords don't match.",
+  pwWhy: "We ask for a code so that someone with access to your open session can't take over your account.",
+}, true, true);
+i18n.addResourceBundle("es", "translation", {
+  pwTitle: "Contraseña",
+  pwIntro: "Define una contraseña nueva para tu cuenta. Funciona aunque hayas entrado con Google, Apple o Facebook.",
+  pwNew: "Contraseña nueva", pwConfirm: "Confirma la contraseña",
+  pwSendCode: "Enviar código de verificación", pwSending: "Enviando…",
+  pwCodeSent: "Te enviamos un código de 6 dígitos por correo. Escríbelo abajo para confirmar que eres tú.",
+  pwCode: "Código de 6 dígitos",
+  pwUpdate: "Actualizar contraseña", pwSaving: "Guardando…", pwUpdated: "Contraseña actualizada.",
+  pwTooShort: "La contraseña debe tener al menos 6 caracteres.",
+  pwNoMatch: "Las contraseñas no coinciden.",
+  pwWhy: "Pedimos un código para que alguien con acceso a tu sesión abierta no pueda quedarse con tu cuenta.",
+}, true, true);
+
 export default i18n;
