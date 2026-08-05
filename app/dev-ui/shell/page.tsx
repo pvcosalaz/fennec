@@ -9,7 +9,7 @@
    Network and notification calls run against the fake user id and come back
    empty, which is the point: the chrome is what's under test, not the data. */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { notFound } from "next/navigation";
 import DesktopShell, { type DesktopTab } from "@/components/desktop/DesktopShell";
 import DashboardDesktop from "@/components/desktop/DashboardDesktop";
@@ -23,6 +23,7 @@ import SettingsModule from "@/components/settings/SettingsModule";
 import type { Profile, Post } from "@/lib/communityTypes";
 import { dayKey, type ContributionDays } from "@/lib/contributions";
 import { getColorScheme } from "@/lib/fennecIdPalette";
+import i18n from "@/lib/i18n";
 
 const mockProfile: Profile = {
   id: "00000000-0000-0000-0000-000000000000",
@@ -79,6 +80,12 @@ const mockRef = {
 };
 
 export default function ShellDevPage() {
+  /* Restaurar idioma guardado, como hace el shell real: sin esto el harness
+     siempre pinta en ingles y el español no se puede verificar aqui. */
+  useEffect(() => {
+    const saved = localStorage.getItem("fennec-language");
+    if (saved === "es" || saved === "en") void i18n.changeLanguage(saved);
+  }, []);
   if (process.env.NODE_ENV === "production") notFound();
   const paramsIni = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
   /* Con ?tape=1 la pestaña activa DEBE ser "ideas": de eso depende que el shell
@@ -128,13 +135,16 @@ export default function ShellDevPage() {
       {tool === "settings" ? (
         <SettingsModule
           onBack={() => {}}
-          language="en"
-          onLanguageChange={() => {}}
+          language={i18n.resolvedLanguage ?? "en"}
+          onLanguageChange={(lang) => { void i18n.changeLanguage(lang); }}
           avatarUrl={null}
           onAvatarChange={() => {}}
           onSignOut={() => {}}
           userId={mockProfile.id}
-          initialSection="profile"
+          /* ?section=main|language|profile… para aterrizar en cualquier
+             seccion de Settings (el crash de idioma se reproduce desde el menu
+             principal, no desde Profile). */
+          initialSection={(params?.get("section") as never) ?? "profile"}
         />
       ) : tool === "content" ? (
         <ContentModule isPro genres={[]} userId={mockProfile.id} onUpgrade={() => {}} />

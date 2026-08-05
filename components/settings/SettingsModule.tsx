@@ -1,4 +1,6 @@
 "use client";
+import { useTranslation } from "react-i18next";
+import "@/lib/i18n";
 
 import { useState, useEffect, useRef } from "react";
 import {
@@ -126,6 +128,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
      la derecha: se leia descuadrado respecto al resto de la app, que si va
      centrada (Paco 2026-08-03). El ancho se queda en 3xl —es un formulario, no
      un tablero— pero centrado. */
+  const { t } = useTranslation();
   const shell = isDesktop
     ? "mx-auto w-full max-w-3xl space-y-5"
     : "mx-auto w-full max-w-lg space-y-5 px-4";
@@ -322,14 +325,14 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
           </button>
           <div>
             <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">Fennec</p>
-            <h1 className="text-2xl font-bold text-white">Suggest a feature</h1>
+            <h1 className="text-2xl font-bold text-white">{t("stSuggest")}</h1>
           </div>
         </div>
 
         <div className={isDesktop ? "grid items-start gap-5 sm:grid-cols-2" : "space-y-5"}>
         <div className="space-y-5">
         <p className="text-sm text-zinc-500">
-          What would make Fennec better for you? We read every suggestion.
+          {t("stSuggestBody")}
         </p>
 
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
@@ -393,7 +396,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
         ? "flex flex-shrink-0 items-center gap-2 rounded-xl bg-accent px-5 py-2.5 text-[13px] font-bold text-black transition hover:brightness-105 active:scale-[0.98]"
         : "w-full rounded-2xl bg-accent py-3 text-sm font-bold text-black flex items-center justify-center gap-2"}
     >
-      {saved ? <><Check className="h-4 w-4" /> Saved!</> : "Save profile"}
+      {saved ? <><Check className="h-4 w-4" /> {t("stSaved")}</> : t("stSave")}
     </button>
   );
 
@@ -405,7 +408,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div>
-            <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">Settings</p>
+            <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">{t("stKicker")}</p>
             <h1 className="text-2xl font-bold text-white">Profile</h1>
           </div>
         </div>
@@ -458,7 +461,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
           </div>
         </button>
         <p className="text-[11px] text-zinc-600">
-          {uploadingAvatar ? "Uploading…" : isDesktop ? "Click to change photo" : "Tap to change photo"}
+          {uploadingAvatar ? t("stUploading") : isDesktop ? t("stChangePhotoClick") : t("stChangePhotoTap")}
         </p>
       </div>
 
@@ -471,7 +474,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
 
       <div className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
         <div className="space-y-1">
-          <p className="text-xs text-zinc-500">Name</p>
+          <p className="text-xs text-zinc-500">{t("stName")}</p>
           <input
             type="text"
             value={profile.name}
@@ -482,7 +485,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
         </div>
 
         <div className="space-y-1">
-          <p className="text-xs text-zinc-500">Role</p>
+          <p className="text-xs text-zinc-500">{t("stRole")}</p>
           <Select
             value={profile.role}
             onChange={(val) => setProfile((p) => ({ ...p, role: val }))}
@@ -492,7 +495,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
         </div>
 
         <div className="space-y-1">
-          <p className="text-xs text-zinc-500">Country</p>
+          <p className="text-xs text-zinc-500">{t("stCountry")}</p>
           <Select
             value={profile.country}
             onChange={(val) => setProfile((p) => ({ ...p, country: val }))}
@@ -502,7 +505,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
         </div>
 
         <div className="space-y-2">
-          <p className="text-xs text-zinc-500">Genres <span className="text-zinc-700">(select up to 4)</span></p>
+          <p className="text-xs text-zinc-500">{t("stGenres")} <span className="text-zinc-700">{t("stGenresMax")}</span></p>
           <div className="flex flex-wrap gap-2">
             {GENRE_OPTIONS.map((g) => {
               const selected = profile.genres.includes(g);
@@ -537,7 +540,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
       <div className="space-y-5">
       {/* Social links */}
       <div className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
-        <h2 className="text-sm font-semibold text-white">Social profiles</h2>
+        <h2 className="text-sm font-semibold text-white">{t("stSocial")}</h2>
 
         {[
           { key: "instagram", icon: SiInstagram, placeholder: "@username",       color: "#E1306C" },
@@ -573,7 +576,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
           <ArrowLeft className="h-5 w-5" />
         </button>
         <div>
-          <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">Settings</p>
+          <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">{t("stKicker")}</p>
           <h1 className="text-2xl font-bold text-white">Language</h1>
         </div>
       </div>
@@ -613,7 +616,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
           <ArrowLeft className="h-5 w-5" />
         </button>
         <div>
-          <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">Settings</p>
+          <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">{t("stKicker")}</p>
           <h1 className="text-2xl font-bold text-white">Currency</h1>
         </div>
       </div>
@@ -663,7 +666,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
           <ArrowLeft className="h-5 w-5" />
         </button>
         <div>
-          <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">Settings</p>
+          <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">{t("stKicker")}</p>
           <h1 className="text-2xl font-bold text-white">Password</h1>
         </div>
       </div>
@@ -709,7 +712,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
           <ArrowLeft className="h-5 w-5" />
         </button>
         <div>
-          <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">Settings</p>
+          <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">{t("stKicker")}</p>
           <h1 className="text-2xl font-bold text-white">Data & Reset</h1>
         </div>
       </div>
@@ -800,43 +803,43 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
 
   // ── Main settings menu ──
   const displayLang = language.startsWith("es") ? "Español" : "English";
-  const displayName = profile.name || "Not set";
+  const displayName = profile.name || t("stNotSet");
 
   const menuItems = [
     {
       icon: User,
-      label: "Profile",
+      label: t("stProfile"),
       value: displayName,
       section: "profile" as Section,
     },
     {
       icon: Globe,
-      label: "Language",
+      label: t("stLanguage"),
       value: displayLang,
       section: "language" as Section,
     },
     {
       icon: Coins,
-      label: "Currency",
+      label: t("stCurrency"),
       value: `${currencyMeta(currency).flag}  ${currency} · ${currencyMeta(currency).label}`,
       section: "currency" as Section,
     },
     {
       icon: Lock,
-      label: "Password",
-      value: "Change your password",
+      label: t("stPassword"),
+      value: t("stPasswordSub"),
       section: "password" as Section,
     },
     {
       icon: Trash2,
-      label: "Data & Reset",
-      value: "Manage your data",
+      label: t("stData"),
+      value: t("stDataSub"),
       section: "data" as Section,
     },
     {
       icon: Bell,
-      label: "Notifications",
-      value: "Manage notification preferences",
+      label: t("stNotifications"),
+      value: t("stNotificationsSub"),
       section: "notifications" as Section,
     },
   ];
@@ -849,7 +852,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
         </button>
         <div>
           <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">Fennec</p>
-          <h1 className="text-2xl font-bold text-white">Settings</h1>
+          <h1 className="text-2xl font-bold text-white">{t("stKicker")}</h1>
         </div>
       </div>
 
@@ -867,8 +870,8 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
           )}
         </div>
         <div>
-          <p className="font-semibold text-white">{profile.name || "Add your name"}</p>
-          <p className="text-xs text-zinc-500">{profile.role || "Set your role"}</p>
+          <p className="font-semibold text-white">{profile.name || t("stAddName")}</p>
+          <p className="text-xs text-zinc-500">{profile.role || t("stSetRole")}</p>
           {profile.country && <p className="text-xs text-zinc-600">{profile.country}</p>}
         </div>
       </div>
@@ -912,8 +915,8 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
       >
         <Lightbulb className="h-4 w-4 text-accent flex-shrink-0" />
         <div className="flex-1">
-          <p className="text-sm font-medium text-white">Suggest a feature</p>
-          <p className="text-xs text-zinc-500">Tell us what would make Fennec better</p>
+          <p className="text-sm font-medium text-white">{t("stSuggest")}</p>
+          <p className="text-xs text-zinc-500">{t("stSuggestSub")}</p>
         </div>
         <ChevronRight className="h-4 w-4 text-zinc-600" />
       </button>
@@ -924,7 +927,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
           onClick={onSignOut}
           className="w-full py-3 rounded-2xl border border-white/8 text-sm text-zinc-500 hover:text-red-400 hover:border-red-400/20 transition-colors"
         >
-          Sign out
+          {t("stSignOut")}
         </button>
       )}
 

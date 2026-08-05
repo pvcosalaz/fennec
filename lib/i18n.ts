@@ -307,4 +307,61 @@ i18n.addResourceBundle("es", "translation", {
   tourSkip: "Saltar", tourNext: "Siguiente", tourGotIt: "Listo", tourStep: "{{n}} de {{total}}",
 }, true, true);
 
+/* Settings (2026-08-05) */
+i18n.addResourceBundle("en", "translation", {
+  settings: "Settings", settingsTitle: "Settings",
+  stProfile: "Profile", stLanguage: "Language", stCurrency: "Currency",
+  stPassword: "Password", stPasswordSub: "Change your password",
+  stData: "Data & Reset", stDataSub: "Manage your data",
+  stNotifications: "Notifications", stNotificationsSub: "Manage notification preferences",
+  stSuggest: "Suggest a feature", stSuggestSub: "Tell us what would make Fennec better",
+  stSuggestBody: "What would make Fennec better for you? We read every suggestion.",
+  stSignOut: "Sign out",
+  stSave: "Save profile", stSaved: "Saved!",
+  stChangePhotoClick: "Click to change photo", stChangePhotoTap: "Tap to change photo", stUploading: "Uploading…",
+  stName: "Name", stRole: "Role", stCountry: "Country",
+  stGenres: "Genres", stGenresMax: "(select up to 4)",
+  stSocial: "Social profiles",
+}, true, true);
+i18n.addResourceBundle("es", "translation", {
+  settings: "Ajustes", settingsTitle: "Ajustes",
+  stProfile: "Perfil", stLanguage: "Idioma", stCurrency: "Moneda",
+  stPassword: "Contraseña", stPasswordSub: "Cambia tu contraseña",
+  stData: "Datos y reinicio", stDataSub: "Administra tus datos",
+  stNotifications: "Notificaciones", stNotificationsSub: "Preferencias de notificaciones",
+  stSuggest: "Sugiere una función", stSuggestSub: "Dinos qué haría mejor a Fennec",
+  stSuggestBody: "¿Qué haría mejor a Fennec para ti? Leemos cada sugerencia.",
+  stSignOut: "Cerrar sesión",
+  stSave: "Guardar perfil", stSaved: "¡Guardado!",
+  stChangePhotoClick: "Haz clic para cambiar la foto", stChangePhotoTap: "Toca para cambiar la foto", stUploading: "Subiendo…",
+  stName: "Nombre", stRole: "Rol", stCountry: "País",
+  stGenres: "Géneros", stGenresMax: "(elige hasta 4)",
+  stSocial: "Redes sociales",
+}, true, true);
+
+i18n.addResourceBundle("en", "translation", {
+  stKicker: "Settings", stAddName: "Add your name", stSetRole: "Set your role", stNotSet: "Not set",
+}, true, true);
+i18n.addResourceBundle("es", "translation", {
+  stKicker: "Ajustes", stAddName: "Agrega tu nombre", stSetRole: "Define tu rol", stNotSet: "Sin definir",
+}, true, true);
+
+/* La Cinta (2026-08-05) */
+i18n.addResourceBundle("en", "translation", {
+  tpHowItWorks: "How it works", tpViewProfile: "view profile",
+  tpLeaveNote: "Leave a note", tpNext: "Next", tpMyTracks: "My tracks & notes", tpUpload: "Upload a track",
+  tpMarks: "{{count}} mark on this tape · click the tape to scrub, hit + to leave a note",
+  tpMarks_other: "{{count}} marks on this tape · click the tape to scrub, hit + to leave a note",
+  tpHelp: "SPACE play · CLICK scrub · ⌘scroll / pinch zoom · ＋ note",
+  tpKarma: "karma",
+}, true, true);
+i18n.addResourceBundle("es", "translation", {
+  tpHowItWorks: "Cómo funciona", tpViewProfile: "ver perfil",
+  tpLeaveNote: "Dejar una nota", tpNext: "Siguiente", tpMyTracks: "Mis tracks y notas", tpUpload: "Subir un track",
+  tpMarks: "{{count}} marca en esta cinta · clic en la cinta para navegar, + para dejar nota",
+  tpMarks_other: "{{count}} marcas en esta cinta · clic en la cinta para navegar, + para dejar nota",
+  tpHelp: "ESPACIO reproducir · CLIC navegar · ⌘scroll / pellizco zoom · ＋ nota",
+  tpKarma: "karma",
+}, true, true);
+
 export default i18n;

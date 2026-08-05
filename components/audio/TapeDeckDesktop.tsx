@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { openCommunityProfile } from "@/lib/tapeNav";
+import { useTranslation } from "react-i18next";
+import "@/lib/i18n";
 import TapeDust from "@/components/audio/TapeDust";
 import { NOISE_URI } from "@/components/desktop/surfaces";
 import { Play, Pause, SkipForward, Plus, Upload, ZoomIn, ZoomOut, Volume2, VolumeX, AudioLines } from "lucide-react";
@@ -162,6 +164,8 @@ export default function TapeDeckDesktop({
   onOpenMyTracks: () => void;
   onOpenIntro: () => void;
 }) {
+  /* `tr`, no `t`: en este componente `t` ya es el TIEMPO de reproduccion. */
+  const { t: tr } = useTranslation();
   const audioRef = useRef<HTMLAudioElement>(null);
 
   /* ── Volumen ──
@@ -531,7 +535,7 @@ export default function TapeDeckDesktop({
       <div className="grid items-start py-6 pl-8 pr-[124px]" style={{ gridTemplateColumns: "1fr auto 1fr" }}>
         <div className="flex items-center gap-3">
           <button onClick={onOpenIntro} className="rounded-md border px-2.5 py-1 font-mono text-[9px] font-bold uppercase tracking-[0.18em] transition hover:brightness-125" style={{ borderColor: `${AMBER}4d`, color: AMBER }}>
-            How it works
+            {tr("tpHowItWorks")}
           </button>
         </div>
 
@@ -575,14 +579,14 @@ export default function TapeDeckDesktop({
               <span className="text-zinc-700">·</span>
               {fmt(duration)}
               <span className="text-zinc-700">·</span>
-              <span className="underline decoration-dotted underline-offset-2">view profile</span>
+              <span className="underline decoration-dotted underline-offset-2">{tr("tpViewProfile")}</span>
             </button>
           </div>
         </div>
 
         <div className="flex items-center justify-end gap-3">
           <div className="rounded-full border border-white/10 px-3.5 py-1.5 font-mono text-[12px] text-zinc-400">{fmt(t)} / {fmt(duration)}</div>
-          <div className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-bold" style={{ borderColor: `${AMBER}4d`, color: AMBER }}>◈ {karma ?? "—"} karma</div>
+          <div className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-bold" style={{ borderColor: `${AMBER}4d`, color: AMBER }}>◈ {karma ?? "—"} {tr("tpKarma")}</div>
         </div>
       </div>
 
@@ -781,7 +785,7 @@ export default function TapeDeckDesktop({
             <p className="mt-1 text-[16px] leading-snug text-zinc-200" style={{ fontFamily: "var(--font-tape-serif, Georgia, serif)" }}>{speaking.body}</p>
           </div>
         ) : (
-          <p className="text-center font-mono text-[11px] text-zinc-700">{comments.length} mark{comments.length !== 1 ? "s" : ""} on this tape · click the tape to scrub, hit ＋ to leave a note</p>
+          <p className="text-center font-mono text-[11px] text-zinc-700">{tr("tpMarks", { count: comments.length })}</p>
         )}
       </div>
 
@@ -816,7 +820,7 @@ export default function TapeDeckDesktop({
           teclado se va a la izquierda y "My tracks" a la derecha, cada una en
           su columna, sin margenes automaticos peleando entre si. */}
       <div className="grid items-center gap-4 border-t border-white/10 px-8 py-4" style={{ gridTemplateColumns: "1fr auto 1fr" }}>
-        <span className="min-w-0 truncate font-mono text-[10.5px] tracking-[0.06em] text-zinc-700">SPACE play · CLICK scrub · ⌘scroll / pinch zoom · ＋ note</span>
+        <span className="min-w-0 truncate font-mono text-[10.5px] tracking-[0.06em] text-zinc-700">{tr("tpHelp")}</span>
 
         {/* Rejilla, no flex: con flex el play queda centrado solo si los dos
             grupos miden lo mismo, y no lo miden — medido a 13px del eje. Con
@@ -922,10 +926,10 @@ export default function TapeDeckDesktop({
         </button>
         <div className="flex items-center justify-start gap-3">
         <button onClick={() => { setMarkAt(t); setMarking(true); }} className="flex items-center gap-2 rounded-full border px-4 py-2.5 text-[13px] font-semibold transition hover:brightness-110" style={{ borderColor: `${AMBER}40`, color: AMBER }}>
-          <Plus className="h-4 w-4" /> Leave a note
+          <Plus className="h-4 w-4" /> {tr("tpLeaveNote")}
         </button>
         <button onClick={onPass} className="flex items-center gap-1.5 rounded-full border border-white/10 px-4 py-2.5 text-[13px] text-zinc-400 transition hover:text-white">
-          Next <SkipForward className="h-4 w-4" />
+          {tr("tpNext")} <SkipForward className="h-4 w-4" />
         </button>
         </div>
         </div>
@@ -946,8 +950,8 @@ export default function TapeDeckDesktop({
             Cinta esa es el play. */}
         <div className="flex items-center justify-end gap-2">
           <button onClick={onOpenMyTracks}
-            title="Upload a track"
-            aria-label="Upload a track"
+            title={tr("tpUpload")}
+            aria-label={tr("tpUpload")}
             className="grid h-[42px] w-[42px] flex-shrink-0 place-items-center rounded-full border text-zinc-400 transition hover:text-white"
             style={{ borderColor: "rgba(255,255,255,.12)" }}>
             <Upload className="h-4 w-4" />
@@ -955,7 +959,7 @@ export default function TapeDeckDesktop({
           <button onClick={onOpenMyTracks}
             className="flex items-center gap-2 rounded-full border px-4 py-2.5 text-[13px] font-semibold transition hover:brightness-110"
             style={{ borderColor: `${AMBER}40`, color: AMBER }}>
-            <AudioLines className="h-4 w-4" /> My tracks &amp; notes
+            <AudioLines className="h-4 w-4" /> {tr("tpMyTracks")}
           </button>
         </div>
       </div>
