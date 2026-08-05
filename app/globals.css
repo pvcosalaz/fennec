@@ -193,3 +193,44 @@ button:where(:not([data-no-press])):active {
 @media (prefers-reduced-motion: reduce) {
   .tape-dust { animation: none; opacity: var(--dust-op); }
 }
+
+/* Fader de La Cinta. El input nativo se ve distinto en cada navegador, asi que
+   se dibuja a mano: riel fino, relleno ambar hasta el nivel, y una perilla
+   chica. `--fill` la actualiza el componente. */
+.tape-fader {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 76px;
+  height: 14px;
+  background: transparent;
+  cursor: pointer;
+}
+.tape-fader::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #f5a623 var(--fill), rgba(255,255,255,.12) var(--fill));
+}
+.tape-fader::-moz-range-track {
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #f5a623 var(--fill), rgba(255,255,255,.12) var(--fill));
+}
+.tape-fader::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 10px; height: 10px;
+  margin-top: -3.5px;
+  border-radius: 999px;
+  background: #f5efe4;
+  box-shadow: 0 1px 3px rgba(0,0,0,.6);
+  transition: transform 140ms var(--ease-out);
+}
+.tape-fader::-moz-range-thumb {
+  width: 10px; height: 10px;
+  border: none;
+  border-radius: 999px;
+  background: #f5efe4;
+  box-shadow: 0 1px 3px rgba(0,0,0,.6);
+}
+.tape-fader:hover::-webkit-slider-thumb { transform: scale(1.15); }
+.tape-fader:focus-visible { outline: none; }
+.tape-fader:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px rgba(245,166,35,.35); }

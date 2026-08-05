@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import TapeDust from "@/components/audio/TapeDust";
-import { Play, Pause, SkipForward, Plus, Upload, ZoomIn, ZoomOut } from "lucide-react";
+import { Play, Pause, SkipForward, Plus, Upload, ZoomIn, ZoomOut, Volume2, VolumeX } from "lucide-react";
 import type { ProjectReview, ReviewComment } from "@/lib/audioTypes";
 import { fetchReviewComments, createReviewComment, fetchKarma } from "@/lib/audioDb";
 
@@ -161,6 +161,33 @@ export default function TapeDeckDesktop({
   onOpenIntro: () => void;
 }) {
   const audioRef = useRef<HTMLAudioElement>(null);
+
+  /* ── Volumen ──
+     Faltaba por completo: no habia forma de bajarle a un track sin tocar el
+     volumen de todo el sistema, y estas escuchando material ajeno para
+     opinarlo (Paco 2026-08-03).
+
+     Se guarda en localStorage porque es una preferencia del oyente, no del
+     track: si le bajaste, es porque asi quieres escuchar Fennec, y volver a
+     ajustarlo en cada cinta seria trabajo repetido.
+
+     `mudo` guarda el nivel anterior en vez de ponerlo en cero, para que el
+     icono devuelva EXACTAMENTE donde estabas. */
+  const [vol, setVol] = useState(0.85);
+  const [mudo, setMudo] = useState(false);
+  const volPrevio = useRef(0.85);
+
+  useEffect(() => {
+    try {
+      const g = localStorage.getItem("fennec_tape_volume_v1");
+      if (g !== null) { const n = Number(g); if (Number.isFinite(n)) { setVol(n); volPrevio.current = n || 0.85; } }
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.volume = mudo ? 0 : vol;
+    try { localStorage.setItem("fennec_tape_volume_v1", String(vol)); } catch { /* ignore */ }
+  }, [vol, mudo]);
 
   // Web Audio graph (built lazily on first play) — feeds the VU meters.
   const audioCtxRef  = useRef<AudioContext | null>(null);
@@ -718,6 +745,31 @@ export default function TapeDeckDesktop({
         <button onClick={onPass} className="flex items-center gap-1.5 rounded-full border border-white/10 px-4 py-2.5 text-[13px] text-zinc-400 transition hover:text-white">
           Next <SkipForward className="h-4 w-4" />
         </button>
+        {/* ── Fader ──
+            Horizontal y con el icono como interruptor de mudo, que es el gesto
+            que ya trae aprendido cualquiera de un reproductor. Va junto al
+            zoom y no con el play: los dos son ajustes de COMO escuchas, no
+            comandos de transporte. */}
+        <div className="ml-2 flex items-center gap-2 rounded-full border border-white/10 px-2.5 py-1">
+          <button
+            onClick={() => { if (mudo) { setMudo(false); } else { volPrevio.current = vol; setMudo(true); } }}
+            aria-label={mudo ? "Unmute" : "Mute"}
+            title={mudo ? "Unmute" : "Mute"}
+            className="grid h-6 w-6 place-items-center rounded-full text-zinc-500 transition hover:text-white"
+          >
+            {mudo || vol === 0 ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+          </button>
+          <input
+            type="range"
+            min={0} max={1} step={0.01}
+            value={mudo ? 0 : vol}
+            onChange={(e) => { const n = Number(e.target.value); setVol(n); if (n > 0) setMudo(false); }}
+            aria-label="Volume"
+            className="tape-fader"
+            style={{ ["--fill" as string]: `${(mudo ? 0 : vol) * 100}%` }}
+          />
+        </div>
+
         {/* zoom cluster — % resets to the resting scale */}
         <div className="ml-2 flex items-center gap-0.5 rounded-full border border-white/10 px-1.5 py-1">
           <button onClick={() => applyZoom(pxPerSecRef.current / 1.35)} aria-label="Zoom out"
