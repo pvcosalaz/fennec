@@ -14,6 +14,9 @@ export type Notification = {
   body: string | null;
   read: boolean;
   created_at: string;
+  /** A donde lleva el aviso. Nulo = no clickeable (avisos viejos). */
+  entity_type?: "track" | "quote" | "post" | null;
+  entity_id?: string | null;
 };
 
 export type NotificationPreferences = {
@@ -86,6 +89,9 @@ export async function createNotification(params: {
   type: NotificationType;
   title: string;
   body?: string;
+  /** Destino del aviso. Las dos van juntas o ninguna (lo exige la BD). */
+  entityType?: "track" | "quote" | "post";
+  entityId?: string;
   /** Cliente con service role. Obligatorio desde el servidor. */
   db?: typeof supabase;
 }): Promise<Notification | null> {
@@ -107,6 +113,8 @@ export async function createNotification(params: {
       type: params.type,
       title: params.title,
       body: params.body ?? null,
+      entity_type: params.entityType ?? null,
+      entity_id: params.entityId ?? null,
     })
     .select()
     .single();

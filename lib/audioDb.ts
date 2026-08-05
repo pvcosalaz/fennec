@@ -202,6 +202,7 @@ export async function createReviewComment(params: {
           Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
+          trackId: params.trackId,
           trackOwnerId: track.user_id,
           trackTitle: track.title,
           commenterUsername: commenterProfile?.username ?? "Someone",

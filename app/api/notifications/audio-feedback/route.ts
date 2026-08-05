@@ -13,7 +13,8 @@ export async function POST(req: NextRequest) {
   if (authErr || !user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const { trackOwnerId, trackTitle, commenterUsername, firstTimestamp } = await req.json() as {
+    const { trackId, trackOwnerId, trackTitle, commenterUsername, firstTimestamp } = await req.json() as {
+      trackId?: string;
       trackOwnerId: string;
       trackTitle: string;
       commenterUsername: string;
@@ -50,6 +51,9 @@ export async function POST(req: NextRequest) {
       type: "audio_feedback",
       title,
       body: trackTitle,
+      /* El destino: al picarle, abre TU track en My tracks. Sin esto el aviso
+         te informa pero te deja buscando a mano (Paco 2026-08-03). */
+      ...(trackId ? { entityType: "track" as const, entityId: trackId } : null),
       db: getSupabaseAdmin(),
     });
 
