@@ -774,8 +774,17 @@ export default function TapeDeckDesktop({
               boxShadow: "0 6px 18px -8px rgba(0,0,0,0.8)",
             }}
           >
-            {playing ? <Pause className="h-[18px] w-[18px]" /> : <Play className="h-[18px] w-[18px] translate-x-[1px]" />}
-            {playing ? "Pause" : "Play"}
+            {/* Sin icono, solo la palabra, en la tipografia del logotipo: misma
+                familia, mismo peso negro y el mismo tracking de -0.06em, en
+                minusculas (Paco 2026-08-04). El play es la accion principal del
+                modulo, y escribirlo con la letra de la marca lo vuelve parte de
+                la identidad en vez de un boton de reproductor generico. */}
+            <span
+              className="text-[15px] font-black lowercase leading-none"
+              style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", letterSpacing: "-0.06em" }}
+            >
+              {playing ? "pause" : "play"}
+            </span>
         </button>
         <button onClick={() => { setMarkAt(t); setMarking(true); }} className="flex items-center gap-2 rounded-full border px-4 py-2.5 text-[13px] font-semibold transition hover:brightness-110" style={{ borderColor: `${AMBER}40`, color: AMBER }}>
           <Plus className="h-4 w-4" /> Leave a note
