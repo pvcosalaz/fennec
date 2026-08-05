@@ -708,7 +708,12 @@ export default function PricingCalculator() {
     if (savedLanguage === "en" || savedLanguage === "es") {
       void i18n.changeLanguage(savedLanguage);
     }
-  }, [i18n]);
+    /* Solo al montar. Con [i18n] en las deps, si la identidad del objeto no es
+       estable el efecto corre en CADA render y restaura el idioma una y otra
+       vez — el candado de lib/i18n ya lo hace inofensivo, pero el efecto no
+       tiene por que correr mas de una vez. */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

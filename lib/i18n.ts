@@ -380,4 +380,38 @@ i18n.addResourceBundle("es", "translation", {
   cmPosts: "Posts", cmTracksOnTape: "Tracks en La Cinta",
 }, true, true);
 
+/* ── Candado contra bucles de idioma (2026-08-05) ──
+   En produccion, elegir español tumbaba la pestaña con "Maximum update depth
+   exceeded": changeLanguage en bucle. La raiz del amplificador es que i18next
+   VUELVE A EMITIR languageChanged aunque le pidas el idioma que ya esta
+   activo, asi que cualquier efecto que "restaure" el idioma en cada render se
+   convierte en un ciclo infinito (emit → render → efecto → changeLanguage →
+   emit...).
+
+   Dos defensas, las dos permanentes:
+   1 · Idempotencia: pedir el idioma ya activo no hace nada. Mata la clase
+       entera de bucles por restauracion, venga de donde venga.
+   2 · Cortacircuitos: mas de 12 cambios REALES en 2s no es un usuario, es un
+       bug — se deja de obedecer y se escribe el stack en consola con la marca
+       [i18n-guard], para cazar al culpable en vez de tumbar la pestaña. */
+{
+  const orig = i18n.changeLanguage.bind(i18n);
+  let cambios: number[] = [];
+  i18n.changeLanguage = ((lng?: string, cb?: Parameters<typeof orig>[1]) => {
+    if (lng && (i18n.resolvedLanguage === lng || i18n.language === lng)) {
+      cb?.(null, i18n.t.bind(i18n));
+      return Promise.resolve(i18n.t.bind(i18n));
+    }
+    const ahora = Date.now();
+    cambios = cambios.filter((x) => ahora - x < 2000);
+    cambios.push(ahora);
+    if (cambios.length > 12) {
+      console.error("[i18n-guard] bucle de changeLanguage detectado; ignorando", lng, new Error().stack);
+      cb?.(null, i18n.t.bind(i18n));
+      return Promise.resolve(i18n.t.bind(i18n));
+    }
+    return orig(lng, cb);
+  }) as typeof i18n.changeLanguage;
+}
+
 export default i18n;

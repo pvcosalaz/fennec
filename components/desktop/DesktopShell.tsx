@@ -339,7 +339,14 @@ export default function DesktopShell({
                 {/* 42px = el ancho interior del dock cerrado (62 - 10 de padding
                     a cada lado). Asi el icono queda centrado al estar cerrado y
                     NO se mueve ni un pixel al abrirse. */}
-                <span className="relative grid w-[42px] flex-shrink-0 place-items-center">
+                <span
+                  className="relative grid w-[42px] flex-shrink-0 place-items-center"
+                  /* El anclaje del recorrido viajo aqui cuando se quito el
+                     bloque duplicado de "The Tape · live": aquel llevaba el
+                     data-coach y al borrarlo el paso 4 se saltaba solo porque
+                     su objetivo ya no existia (Paco 2026-08-05). */
+                  data-coach={id === "ideas" ? "tape" : undefined}
+                >
                   <Icon className="h-4 w-4" />
                   {/* El latido de La Cinta.
                       Al quitar el bloque duplicado del dock se perdio el pulso
