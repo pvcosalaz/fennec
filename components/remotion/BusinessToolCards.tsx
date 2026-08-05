@@ -1,4 +1,6 @@
 "use client";
+import { useTranslation } from "react-i18next";
+import "@/lib/i18n";
 
 // ─── Business Hub tool cards ──────────────────────────────────────────────────
 // Hand-tuned static glyphs on a shared warm surface. No looping animations —
@@ -8,8 +10,9 @@ import ToolCardShell, { AMBER, STROKE, STROKE_SOFT } from "./ToolCardShell";
 
 // ─── Pricing Calculator — price tag with amber "$" ───────────────────────────
 export function PricingCalculatorCard() {
+  const { t } = useTranslation();
   return (
-    <ToolCardShell label="Pricing Calculator">
+    <ToolCardShell label={t("bzCalculator")}>
       <svg width="30" height="30" viewBox="0 0 24 24" fill="none" style={{ transform: "rotate(-6deg)" }}>
         <path
           d="M12.59 2.59A2 2 0 0 0 11.17 2H4a2 2 0 0 0-2 2v7.17a2 2 0 0 0 .59 1.42l8.7 8.7a2.43 2.43 0 0 0 3.42 0l6.58-6.58a2.43 2.43 0 0 0 0-3.42z"
@@ -29,8 +32,9 @@ export function PricingCalculatorCard() {
 
 // ─── Clients & Leads — two people, the lead in amber ─────────────────────────
 export function ClientsCard() {
+  const { t } = useTranslation();
   return (
-    <ToolCardShell label="Clients & Leads">
+    <ToolCardShell label={t("bzClients")}>
       <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
         {/* lead — behind, amber */}
         <circle cx="16.2" cy="8.6" r="2.6" stroke={AMBER} strokeWidth="1.5" opacity="0.9" />
@@ -47,8 +51,9 @@ export function ClientsCard() {
 
 // ─── Quotes — document with an amber signature flourish ──────────────────────
 export function QuotesCard() {
+  const { t } = useTranslation();
   return (
-    <ToolCardShell label="Quotes">
+    <ToolCardShell label={t("bzQuotes")}>
       <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
         <path d="M5 2.8h8.5l5.5 5.5V21H5z" stroke={STROKE} strokeWidth="1.5" strokeLinejoin="round" />
         <path d="M13.5 2.8v5.5H19" stroke={STROKE} strokeWidth="1.5" strokeLinejoin="round" />
@@ -64,13 +69,14 @@ export function QuotesCard() {
 
 // ─── Active Projects — stacked tracks with progress, the active one amber ────
 export function ProjectsCard() {
+  const { t } = useTranslation();
   const tracks = [
     { fill: 0.72, color: "rgba(255,255,255,0.55)" },
     { fill: 0.45, color: "rgba(255,255,255,0.32)" },
     { fill: 0.88, color: AMBER },
   ];
   return (
-    <ToolCardShell label="Active Projects">
+    <ToolCardShell label={t("bzProjects")}>
       <div style={{ display: "flex", flexDirection: "column", gap: 6, width: 30 }}>
         {tracks.map((t, i) => (
           <div key={i} style={{

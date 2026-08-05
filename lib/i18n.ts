@@ -449,4 +449,18 @@ i18n.addResourceBundle("es", "translation", {
   mkM6:"Julio",mkM7:"Agosto",mkM8:"Septiembre",mkM9:"Octubre",mkM10:"Noviembre",mkM11:"Diciembre",
 }, true, true);
 
+/* Business hub (2026-08-05) */
+i18n.addResourceBundle("en", "translation", {
+  bzKicker: "Business Hub", bzTitle: "Run your music business.",
+  bzRevenue: "Revenue · This month", bzLast6: "Last 6 months",
+  bzCalculator: "Pricing Calculator", bzClients: "Clients & Leads",
+  bzQuotes: "Quotes", bzProjects: "Active Projects",
+}, true, true);
+i18n.addResourceBundle("es", "translation", {
+  bzKicker: "Centro de negocio", bzTitle: "Lleva tu negocio musical.",
+  bzRevenue: "Ingresos · Este mes", bzLast6: "Últimos 6 meses",
+  bzCalculator: "Calculadora de precios", bzClients: "Clientes y prospectos",
+  bzQuotes: "Cotizaciones", bzProjects: "Proyectos activos",
+}, true, true);
+
 export default i18n;

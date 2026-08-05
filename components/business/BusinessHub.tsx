@@ -1,4 +1,6 @@
 "use client";
+import { useTranslation } from "react-i18next";
+import "@/lib/i18n";
 
 import { useEffect, useState, useMemo } from "react";
 import {
@@ -124,6 +126,7 @@ type Props = {
 
 export default function BusinessHub({ onOpenView, userId }: Props) {
   const isDesktop = useIsDesktop();
+  const { t } = useTranslation();
   const [projects, setProjects] = useState<Project[]>([]);
   const [quotes,   setQuotes]   = useState<Quote[]>([]);
   const [clients,  setClients]  = useState<Client[]>([]);
@@ -169,10 +172,10 @@ export default function BusinessHub({ onOpenView, userId }: Props) {
       {/* ── Header ── */}
       <div className="flex-shrink-0">
         <div className="flex items-center gap-2.5">
-          <p className="text-[10px] font-bold tracking-[0.18em] text-accent/70 uppercase flex-shrink-0">Business Hub</p>
+          <p className="text-[10px] font-bold tracking-[0.18em] text-accent/70 uppercase flex-shrink-0">{t("bzKicker")}</p>
           <div className="h-px flex-1 bg-gradient-to-r from-accent/20 to-transparent" />
         </div>
-        <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-white">Run your music business.</h1>
+        <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-white">{t("bzTitle")}</h1>
         <p className="mt-1.5 text-sm text-zinc-500 leading-relaxed">Projects, quotes, clients, and the revenue they bring in.</p>
       </div>
 
@@ -182,7 +185,7 @@ export default function BusinessHub({ onOpenView, userId }: Props) {
           style={{ background: "radial-gradient(ellipse 60% 100% at 50% 0%, rgba(245,166,35,0.06), transparent 70%)" }} />
         <div className="relative flex items-end justify-between">
           <div>
-            <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-[0.2em]">Revenue · This month</p>
+            <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-[0.2em]">{t("bzRevenue")}</p>
             <p className="text-[26px] leading-tight font-black tabular-nums tracking-tight mt-0.5"
                style={{
                  background: "linear-gradient(180deg, #ffffff 0%, #d4d4d8 100%)",
@@ -194,7 +197,7 @@ export default function BusinessHub({ onOpenView, userId }: Props) {
               <p className="mt-0.5 text-[10px] text-zinc-600">+ {revenueExtra}</p>
             )}
           </div>
-          <p className="text-[9px] font-bold text-zinc-700 uppercase tracking-[0.2em] pb-1">Last 6 months</p>
+          <p className="text-[9px] font-bold text-zinc-700 uppercase tracking-[0.2em] pb-1">{t("bzLast6")}</p>
         </div>
         <EqualizerBars months={months} revenues={revenues} />
       </div>
