@@ -1,5 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
+import { fetchUserReviews } from "@/lib/audioDb";
+import type { ProjectReview } from "@/lib/audioTypes";
 import { ChevronLeft, Pencil, MapPin } from "lucide-react";
 import { SiInstagram, SiSpotify, SiYoutube, SiTiktok } from "react-icons/si";
 import { getProfile, fetchUserPosts } from "@/lib/communityDb";
@@ -26,6 +28,7 @@ type Props = {
 export default function UserProfilePage({ userId, currentProfile, onBack, onOpenThread, onOpenProfile }: Props) {
   const [profile, setProfile]   = useState<Profile | null>(null);
   const [posts, setPosts]       = useState<Post[]>([]);
+  const [tracks, setTracks]     = useState<ProjectReview[]>([]);
   const [loading, setLoading]   = useState(true);
   const [editOpen, setEditOpen] = useState(false);
 
@@ -34,12 +37,16 @@ export default function UserProfilePage({ userId, currentProfile, onBack, onOpen
   useEffect(() => {
     async function load() {
       setLoading(true);
-      const [p, userPosts] = await Promise.all([
+      const [p, userPosts, userTracks] = await Promise.all([
         getProfile(userId),
         fetchUserPosts(userId, currentProfile.id),
+        /* Que sus tracks no tumben el perfil: si esta consulta falla, el perfil
+           se sigue viendo sin la seccion. */
+        fetchUserReviews(userId).catch(() => [] as ProjectReview[]),
       ]);
       setProfile(p);
       setPosts(userPosts);
+      setTracks(userTracks);
       setLoading(false);
     }
     load();
@@ -126,6 +133,15 @@ export default function UserProfilePage({ userId, currentProfile, onBack, onOpen
           <span className={`text-sm font-medium ${profile.is_pro ? "text-amber-400" : "text-zinc-400"}`}>@{profile.username}</span>
           {profile.is_pro && !isOwnProfile && <ProBadge />}
           <span className="text-sm font-bold text-amber-500">{profile.fennec_db_score} <span className="text-xs font-normal text-zinc-500">dB</span></span>
+          {/* El numero de coleccion, expuesto. Vivia SOLO en tu dashboard, o sea
+              que lo veias tu y nadie mas — y un numero bajo (#0003, #0007) solo
+              vale si los demas lo ven (Paco 2026-08-04). Aqui convierte "llegue
+              temprano" en algo publico. */}
+          {profile.fennec_number != null && (
+            <span className="font-mono text-xs text-zinc-600" title="Fennec ID">
+              #{String(profile.fennec_number).padStart(4, "0")}
+            </span>
+          )}
         </div>
         {/* Role + Country */}
         <div className="flex items-center gap-3 flex-wrap justify-center">
@@ -203,6 +219,45 @@ export default function UserProfilePage({ userId, currentProfile, onBack, onOpen
       )}
 
       <div className="h-px bg-white/10" />
+
+      {/* ── Sus tracks ──
+          La Cinta te da pistas de una en una, en fila, sin forma de decir "este
+          productor me gusto, quiero oir mas suyo". Su catalogo aqui cierra ese
+          circuito y convierte el feedback en descubrimiento (Paco 2026-08-04).
+          Reusa fetchUserReviews, que ya existia para My tracks. */}
+      {tracks.length > 0 && (
+        <>
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">
+              Tracks on The Tape
+            </p>
+            <div className="space-y-1.5">
+              {tracks.map((t) => (
+                <div
+                  key={t.id}
+                  className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.02] px-3 py-2.5"
+                >
+                  {t.artwork_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={t.artwork_url} alt="" className="h-9 w-9 flex-shrink-0 rounded-lg object-cover" />
+                  ) : (
+                    <div className="h-9 w-9 flex-shrink-0 rounded-lg" style={{ background: "linear-gradient(140deg,#2a2030,#191319)" }} />
+                  )}
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-semibold text-white">{t.title}</span>
+                    <span className="block text-[11px] text-zinc-500">
+                      {t.category}
+                      {t.comment_count > 0 && ` · ${t.comment_count} note${t.comment_count === 1 ? "" : "s"}`}
+                    </span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="h-px bg-white/10" />
+        </>
+      )}
 
       {/* Posts */}
       <div className="space-y-3">
