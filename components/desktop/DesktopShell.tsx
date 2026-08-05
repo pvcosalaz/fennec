@@ -170,6 +170,43 @@ export default function DesktopShell({
           material instead of two flat fills. */}
       <Grain />
 
+      {/* ── Firma de marca ──────────────────────────────────────
+          El logotipo fijo, chiquito, centrado arriba (Paco 2026-08-03).
+
+          ARRIBA y no abajo: el centro del borde superior esta libre en todos
+          los modulos (el saludo o el titulo viven a la izquierda, la campana y
+          el avatar a la derecha) y ahi se lee como cabecera. Abajo el centro NO
+          esta libre siempre: en una ventana de 720px el contenido llega hasta
+          el borde y el logotipo caeria encima de Audience.
+
+          NO es una barra superior: eso costaba 48-56px de alto en TODOS los
+          modulos, y hoy mismo peleamos por 11px en el dashboard. Aqui vive en
+          la esquina que ninguna pantalla usa, asi que su costo de espacio es
+          cero.
+
+          Se lee como firma, no como interfaz: al 38% de opacidad y sin eventos
+          de puntero, para que nunca compita con el contenido ni se confunda con
+          algo en lo que se puede picar.
+
+          FUERA de La Cinta: ese modulo es inmersivo a proposito —las dos barras
+          se retiran y el carrete se queda con la pantalla completa— y meterle un
+          logotipo seria justo lo que ese diseño esta evitando. */}
+      {!immersive && (
+        <div
+          className="pointer-events-none fixed left-1/2 top-3.5 z-10 flex -translate-x-1/2 select-none items-center gap-1.5"
+          style={{ opacity: 0.38 }}
+          aria-hidden
+        >
+          <span
+            className="text-[13px] font-black tracking-[-0.06em] text-white"
+            style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}
+          >
+            fennec
+          </span>
+          <span className="block h-[5px] w-[5px] rounded-full" style={{ background: "#f5a623" }} />
+        </div>
+      )}
+
       {/* ── Sidebar ────────────────────────────────────────────── */}
       <aside
         /* DOCK FLOTANTE, no columna a sangre (Paco 2026-08-03).
