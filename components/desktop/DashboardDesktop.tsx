@@ -311,6 +311,12 @@ export default function DashboardDesktop({
              elegido — que es como se noto (Paco 2026-08-03). Las celdas son
              cuadradas y siguen al ancho, asi que el alto que pide la rejilla
              sube con la ventana; 232 cubre hasta ~1960px de ancho. */
+          /* PROBADO Y REVERTIDO (2026-08-04): dar el sobrante a la fila 1 para
+             cerrar el hueco de abajo abre uno PEOR arriba — la tarjeta de ID
+             mide 216px fijos por su proporcion de identificacion, asi que la
+             fila crece y la tarjeta se queda nadando en su celda.
+             El hueco de abajo en pantallas altas necesita contenido que lo
+             ocupe, no un reparto distinto del que ya hay. Queda pendiente. */
           gridTemplateRows: "auto auto minmax(144px, 232px) minmax(80px, 128px)",
           /* El sobrante que ya no cabe en ningun tope se junta ABAJO, fuera de
              los paneles. Sin esto se lo comia Contributions y quedaba un hueco
@@ -399,12 +405,16 @@ export default function DashboardDesktop({
       <div className="dd-rise flex min-h-0 flex-col" style={{ animationDelay: ".15s" }}>
         <Tile label="Today on Fennec" className="h-full">
           <div className="flex flex-col divide-y divide-white/[0.05]">
+            {/* "My tracks →" y no "Open →": cuando SI hay una nota, este renglon
+                es la puerta a tu sala de lectura, y decirle "Open" no dice a
+                donde. Paco tardo meses en encontrar esa vista porque nada la
+                nombraba (2026-08-04). */}
             <button type="button" onClick={() => onNavigate?.("ideas")} className="group flex items-center justify-between gap-3 py-[5px] text-left transition first:pt-0">
               <span className="min-w-0 truncate text-[12px] text-zinc-400">
                 {latestNote ? "New note on your track" : "No track feedback yet"}
               </span>
               <span className="flex-shrink-0 text-[11px] font-semibold text-zinc-500 transition group-hover:text-accent">
-                {latestNote ? "Open →" : "Upload →"}
+                {latestNote ? "My tracks →" : "Upload →"}
               </span>
             </button>
             <button type="button" onClick={() => onNavigate?.("pricing")} className="group flex items-center justify-between gap-3 py-[5px] text-left">

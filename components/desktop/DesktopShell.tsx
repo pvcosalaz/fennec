@@ -334,8 +334,21 @@ export default function DesktopShell({
                 {/* 42px = el ancho interior del dock cerrado (62 - 10 de padding
                     a cada lado). Asi el icono queda centrado al estar cerrado y
                     NO se mueve ni un pixel al abrirse. */}
-                <span className="grid w-[42px] flex-shrink-0 place-items-center">
+                <span className="relative grid w-[42px] flex-shrink-0 place-items-center">
                   <Icon className="h-4 w-4" />
+                  {/* El latido de La Cinta.
+                      Al quitar el bloque duplicado del dock se perdio el pulso
+                      animado, que era lo unico vivo aqui (Paco 2026-08-04). En
+                      vez de resucitar la segunda entrada, el latido vive AHORA
+                      en la unica que hay: un punto ambar que respira junto al
+                      icono. No se muestra cuando ya estas dentro — ahi el
+                      recordatorio sobra. */}
+                  {id === "ideas" && !active && (
+                    <span
+                      className="tape-beat pointer-events-none absolute"
+                      style={{ top: 6, right: 5, width: 5, height: 5, borderRadius: 999, background: "#f5a623" }}
+                    />
+                  )}
                 </span>
 
                 {/* En absoluto: no ocupa espacio, asi que no hay nada de layout

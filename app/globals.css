@@ -254,3 +254,14 @@ button:where(:not([data-no-press])):active {
 .tape-fader:hover::-webkit-slider-thumb { transform: scale(1.15); }
 .tape-fader:focus-visible { outline: none; }
 .tape-fader:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px rgba(245,166,35,.35); }
+
+/* Latido de La Cinta en el dock. Lento y sin escala grande: es una señal de que
+   hay algo vivo, no una alerta que exija atencion. */
+@keyframes tapeBeat {
+  0%, 100% { opacity: 0.30; transform: scale(0.85); }
+  50%      { opacity: 0.95; transform: scale(1); }
+}
+.tape-beat { animation: tapeBeat 2.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .tape-beat { animation: none; opacity: 0.7; }
+}
