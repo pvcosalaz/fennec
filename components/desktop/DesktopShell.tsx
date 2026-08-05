@@ -201,7 +201,7 @@ export default function DesktopShell({
           FUERA de La Cinta: ese modulo es inmersivo a proposito —las dos barras
           se retiran y el carrete se queda con la pantalla completa— y meterle un
           logotipo seria justo lo que ese diseño esta evitando. */}
-      {!immersive && (
+      {!ancho && (
         <div
           /* z-30, no z-10: el dashboard monta su fondo y sus paneles con capas
              propias y el logotipo quedaba por debajo en esa pantalla — se veia
@@ -428,7 +428,12 @@ export default function DesktopShell({
           and rail are `fixed`, so they're unaffected by this scrolling. */}
       <div
         className="relative flex h-screen flex-col overflow-y-auto"
-        style={{ marginLeft: immersive ? 0 : SIDEBAR_W, transition: "margin .32s cubic-bezier(.22,1,.36,1)" }}
+        /* La Cinta arranca en 0: el dock flota ENCIMA de ella en vez de
+           empujarla. Con el gutter de 84px quedaba una franja de canvas a la
+           izquierda que, junto con la fila de la campana arriba, dibujaba el
+           recuadro que Paco veia (medido 2026-08-04: deck en x84→1280, y56→720
+           dentro de una ventana de 1280x720). */
+        style={{ marginLeft: ancho ? 0 : SIDEBAR_W, transition: "margin .32s cubic-bezier(.22,1,.36,1)" }}
       >
         {/* Giant fox, deep background layer — the brand present at all times,
             like the landing's first screen. Barely-there so content wins.
@@ -453,7 +458,12 @@ export default function DesktopShell({
 
               The gear folded into the avatar — clicking your face opens
               Fennec's settings, which is where everyone looks for them. */}
-          <div className="relative z-20 flex flex-shrink-0 items-center justify-end gap-2 px-8 pt-5">
+          {/* En La Cinta la fila flota (absolute) en vez de ocupar alto: si
+              consume 56px de la columna, el modulo empieza debajo y ahi nace el
+              borde superior del recuadro. */}
+          <div className={ancho
+            ? "absolute right-0 top-0 z-30 flex items-center justify-end gap-2 px-8 pt-5"
+            : "relative z-20 flex flex-shrink-0 items-center justify-end gap-2 px-8 pt-5"}>
             <NotificationBell userId={userId} align="right" />
             <button
               type="button"

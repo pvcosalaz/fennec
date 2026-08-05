@@ -464,8 +464,11 @@ export default function TapeDeckDesktop({
           la unica forma de que coincida con el eje de los carretes y de la
           cinta. El pl-[168px] vive ahora solo en la columna izquierda, que es
           la unica que necesitaba librar la pastilla. */}
-      <div className="grid items-start py-6 pr-8" style={{ gridTemplateColumns: "1fr auto 1fr" }}>
-        <div className="flex items-center gap-3 pl-[168px]">
+      {/* pr-[124px]: la campana y el avatar del shell flotan sobre esta esquina
+          ahora que La Cinta ocupa la ventana completa. Sin ese hueco, el karma
+          se metia debajo de ellos (medido 2026-08-04). */}
+      <div className="grid items-start py-6 pl-8 pr-[124px]" style={{ gridTemplateColumns: "1fr auto 1fr" }}>
+        <div className="flex items-center gap-3">
           <button onClick={onOpenIntro} className="rounded-md border px-2.5 py-1 font-mono text-[9px] font-bold uppercase tracking-[0.18em] transition hover:brightness-125" style={{ borderColor: `${AMBER}4d`, color: AMBER }}>
             How it works
           </button>

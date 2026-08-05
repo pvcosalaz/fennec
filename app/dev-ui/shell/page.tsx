@@ -15,6 +15,8 @@ import DesktopShell, { type DesktopTab } from "@/components/desktop/DesktopShell
 import DashboardDesktop from "@/components/desktop/DashboardDesktop";
 import CoachMarks from "@/components/dashboard/CoachMarks";
 import TapeDust from "@/components/audio/TapeDust";
+import TapeDeckDesktop from "@/components/audio/TapeDeckDesktop";
+import type { ProjectReview } from "@/lib/audioTypes";
 import ScriptWriterOverlay from "@/components/content/ScriptWriterOverlay";
 import ContentModule from "@/components/content/ContentModule";
 import SettingsModule from "@/components/settings/SettingsModule";
@@ -78,7 +80,11 @@ const mockRef = {
 
 export default function ShellDevPage() {
   if (process.env.NODE_ENV === "production") notFound();
-  const [tab, setTab] = useState<DesktopTab>("dashboard");
+  const paramsIni = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+  /* Con ?tape=1 la pestaña activa DEBE ser "ideas": de eso depende que el shell
+     le de el lienzo a sangre, y si el harness se queda en "dashboard" muestra
+     la version angosta y no sirve para lo que se hizo. */
+  const [tab, setTab] = useState<DesktopTab>(paramsIni?.get("tape") === "1" ? "ideas" : "dashboard");
   // ?tool=script monta el escritor de guiones DENTRO del shell, que es la única
   // forma de comprobar que ya no se mete debajo de la barra lateral ni choca
   // con el avatar pegado al borde derecho.
@@ -94,6 +100,10 @@ export default function ShellDevPage() {
      necesita sesion y un track subido, asi que sin esto el polvo se calibraba a
      ciegas — y en el primer intento quedo invisible (Paco 2026-08-03). */
   const dust = params?.get("dust") === "1";
+  /* ?tape=1 monta La Cinta con un track falso. Sin esto el modulo solo se ve
+     con sesion y una pista subida, y llevo DOS intentos arreglando su lienzo a
+     ciegas (Paco 2026-08-04). Medir vale mas que deducir. */
+  const tape = params?.get("tape") === "1";
   const photo = params?.get("photo") ?? null;
   const photoLuma = Number(params?.get("luma") ?? "0.5");
 
@@ -130,6 +140,19 @@ export default function ShellDevPage() {
         <ContentModule isPro genres={[]} userId={mockProfile.id} onUpgrade={() => {}} />
       ) : tool === "script" ? (
         <ScriptWriterOverlay isDesktop videoRef={mockRef} onSave={() => {}} onClose={() => {}} />
+      ) : tape ? (
+        <TapeDeckDesktop
+          track={{
+            id: "t1", user_id: "u1", title: "Violet", category: "Demo",
+            audio_url: "", artwork_url: null, duration_seconds: 48,
+            created_at: new Date().toISOString(), comment_count: 3,
+            profile: { id: "u1", username: "pvcosalaz", avatar_url: null },
+          } as ProjectReview}
+          userId={mockProfile.id}
+          onPass={() => {}}
+          onOpenMyTracks={() => {}}
+          onOpenIntro={() => {}}
+        />
       ) : (
       <DashboardDesktop
         card={{
