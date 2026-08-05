@@ -51,13 +51,23 @@ export async function fetchRandomReviews(
 /** Un track por id. Lo necesitan "abreme este track" desde el perfil y desde la
  *  notificacion: en los dos casos se conoce el id y no el dueño. */
 export async function fetchReviewById(trackId: string): Promise<ProjectReview | null> {
+  /* SIN join embebido de profiles. El primer intento usaba
+     `profiles!project_reviews_user_id_fkey(...)` y fallaba en silencio: esta
+     base trae los perfiles APARTE via attachProfiles en todas las consultas de
+     tracks (los GRANTs por columna de profiles no se llevan con los embeds).
+     El sintoma era exactamente el reportado: picabas una cancion del catalogo
+     y aterrizabas en La Cinta con la cola normal, porque el null caia al
+     respaldo (Paco 2026-08-04). Patron de la casa, como fetchRandomReviews. */
   const { data, error } = await supabase
     .from("project_reviews")
-    .select(`*, profile:profiles!project_reviews_user_id_fkey(id, username, avatar_url)`)
+    .select(`*, comment_count:review_comments(count)`)
     .eq("id", trackId)
     .maybeSingle();
   if (error) { console.error("[fetchReviewById]", error.message); return null; }
-  return (data as ProjectReview) ?? null;
+  if (!data) return null;
+  const row = { ...data, comment_count: data.comment_count?.[0]?.count ?? 0 };
+  const [conPerfil] = await attachProfiles([row]);
+  return (conPerfil as ProjectReview) ?? null;
 }
 
 export async function fetchUserReviews(userId: string): Promise<ProjectReview[]> {
