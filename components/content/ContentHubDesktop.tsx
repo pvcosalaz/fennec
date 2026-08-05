@@ -1,4 +1,6 @@
 "use client";
+import { useTranslation } from "react-i18next";
+import i18nInstance from "@/lib/i18n";
 
 import { useState } from "react";
 import {
@@ -50,12 +52,13 @@ const toYMD = (d: Date): string =>
   /* Local, no UTC — ver la nota en CalendarHub.toYMD. */
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
-const DAY_LABELS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
+/* Claves, no texto: se traducen al pintar. */
+const DAY_LABELS = ["mkMon", "mkTue", "mkWed", "mkThu", "mkFri", "mkSat", "mkSun"];
 
-const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
+/* Meses por diccionario. i18n.t directo (no el hook) porque fmtLong es una
+   funcion de modulo; el hook de los componentes re-renderiza al cambiar idioma
+   y con eso el texto se refresca igual. */
+const monthName = (m: number) => i18nInstance.t("mkM" + m);
 
 const SOURCE_DOT: Record<ContentTask["source"], string> = {
   inspire: "#c084fc",
@@ -65,15 +68,15 @@ const SOURCE_DOT: Record<ContentTask["source"], string> = {
 };
 
 const SOURCE_LABELS: Record<ContentTask["source"], string> = {
-  inspire: "Inspire",
-  ideas:   "Ideas",
-  scripts: "Script",
-  manual:  "Manual",
+  inspire: "mkSrcInspire",
+  ideas:   "mkSrcIdeas",
+  scripts: "mkSrcScript",
+  manual:  "mkSrcManual",
 };
 
 function fmtLong(ymd: string): string {
   const [y, m, d] = ymd.split("-").map(Number);
-  return `${MONTH_NAMES[m - 1]} ${d}, ${y}`;
+  return `${monthName(m - 1)} ${d}, ${y}`;
 }
 
 export default function ContentHubDesktop({
@@ -81,6 +84,7 @@ export default function ContentHubDesktop({
   ideasCount = 0, scriptsCount = 0,
   isPro = false, onUpgrade,
 }: Props) {
+  const { t } = useTranslation();
   const today = new Date();
   const todayYMD = toYMD(today);
 
@@ -126,13 +130,13 @@ export default function ContentHubDesktop({
        y no se leia un grupo, sino cuatro casos sueltos (Paco 2026-08-03).
        Juntas, la fila dice de un vistazo donde termina lo tuyo y donde empieza
        lo que se desbloquea. */
-    { id: "ideas",   label: "Quick Ideas", sub: ideasCount > 0 ? `${ideasCount} saved idea${ideasCount !== 1 ? "s" : ""}` : "Capture ideas in seconds", icon: Sparkles, pro: false },
-    { id: "scripts", label: "My Scripts",  sub: scriptsCount > 0 ? `${scriptsCount} script${scriptsCount !== 1 ? "s" : ""} written` : "Everything you write lands here", icon: FileText, pro: false },
+    { id: "ideas",   label: t("mkQuickIdeas"), sub: ideasCount > 0 ? t("mkSavedIdeas", { count: ideasCount }) : t("mkCaptureIdeas"), icon: Sparkles, pro: false },
+    { id: "scripts", label: t("mkMyScripts"),  sub: scriptsCount > 0 ? t("mkScriptsWritten", { count: scriptsCount }) : t("mkEverythingLands"), icon: FileText, pro: false },
     { id: "inspire", label: "Inspire",     /* Cuatro palabras que venden, no una descripcion que se corta: "Trending
        references for your ge…" truncado no invita a nada, y esta tarjeta es el
        gancho de PRO (Paco 2026-08-04). */
-      sub: "Steal what's trending", icon: Zap,          pro: true },
-    { id: "lab",     label: "Content Lab", sub: "Turn your music into scripts",        icon: FlaskConical, pro: true },
+      sub: t("mkStealTrending"), icon: Zap,          pro: true },
+    { id: "lab",     label: t("mkContentLab"), sub: t("mkTurnMusic"),        icon: FlaskConical, pro: true },
   ];
 
   return (
@@ -141,7 +145,7 @@ export default function ContentHubDesktop({
       {/* ── header: month + navigation only ── */}
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-[21px] font-bold tracking-tight">
-          {MONTH_NAMES[viewMonth]} <span className="text-zinc-600">{viewYear}</span>
+          {monthName(viewMonth)} <span className="text-zinc-600">{viewYear}</span>
         </h1>
         <div className="flex items-center gap-0.5">
           <button onClick={() => shiftMonth(-1)} aria-label="Previous month" className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-white/5 hover:text-white">
@@ -151,7 +155,7 @@ export default function ContentHubDesktop({
             onClick={() => { setViewYear(today.getFullYear()); setViewMonth(today.getMonth()); setSelectedDay(todayYMD); }}
             className="rounded-lg px-2 py-1 text-[11px] font-semibold text-zinc-500 transition hover:bg-white/5 hover:text-white"
           >
-            Today
+            {t("mkToday")}
           </button>
           <button onClick={() => shiftMonth(1)} aria-label="Next month" className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-white/5 hover:text-white">
             <ChevronRight className="h-4 w-4" />
@@ -196,7 +200,7 @@ export default function ContentHubDesktop({
         <div className="overflow-hidden rounded-2xl border border-white/[0.07]" style={{ background: "rgba(255,255,255,.015)" }}>
           <div className="grid grid-cols-7 border-b border-white/[0.06]">
             {DAY_LABELS.map((l) => (
-              <div key={l} className="px-3 py-2 text-[9px] font-bold uppercase tracking-[0.18em] text-zinc-600">{l}</div>
+              <div key={l} className="px-3 py-2 text-[9px] font-bold uppercase tracking-[0.18em] text-zinc-600">{t(l)}</div>
             ))}
           </div>
           <div className="grid grid-cols-7">
@@ -248,10 +252,10 @@ export default function ContentHubDesktop({
         <aside className="rounded-2xl border border-white/[0.07] p-4" style={{ background: "rgba(255,255,255,.015)" }}>
           <div className="flex items-baseline justify-between">
             <h2 className="text-[14px] font-bold text-white">
-              {selectedDay === todayYMD ? "Today" : fmtLong(selectedDay)}
+              {selectedDay === todayYMD ? t("mkToday") : fmtLong(selectedDay)}
             </h2>
             <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-600">
-              {selectedTasks.length} post{selectedTasks.length !== 1 ? "s" : ""}
+              {t("mkPosts", { count: selectedTasks.length })}
             </span>
           </div>
 
@@ -263,7 +267,7 @@ export default function ContentHubDesktop({
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") submitDraft(); }}
-                placeholder="Schedule a post for this day…"
+                placeholder={t("mkSchedulePost")}
                 className="w-full bg-transparent text-[12.5px] text-white placeholder:text-zinc-600 outline-none"
               />
             </div>
@@ -271,7 +275,7 @@ export default function ContentHubDesktop({
 
           <div className="mt-3 flex flex-col gap-2">
             {selectedTasks.length === 0 ? (
-              <p className="py-8 text-center text-[12px] text-zinc-600">Nothing scheduled for this day.</p>
+              <p className="py-8 text-center text-[12px] text-zinc-600">{t("mkNothingThisDay")}</p>
             ) : (
               selectedTasks.map((task) => {
                 const isDone = task.status === "done";
@@ -298,7 +302,7 @@ export default function ContentHubDesktop({
                       {task.notes && <p className="mt-0.5 line-clamp-2 text-[11px] text-zinc-600">{task.notes}</p>}
                       <span className="mt-1 inline-flex items-center gap-1 text-[9.5px] font-semibold uppercase tracking-[0.08em] text-zinc-500">
                         <i className="h-1.5 w-1.5 rounded-full" style={{ background: SOURCE_DOT[task.source] }} />
-                        {SOURCE_LABELS[task.source]}
+                        {t(SOURCE_LABELS[task.source])}
                       </span>
                     </button>
                     <div className="mt-0.5 flex flex-shrink-0 items-center gap-2">

@@ -414,4 +414,39 @@ i18n.addResourceBundle("es", "translation", {
   }) as typeof i18n.changeLanguage;
 }
 
+/* Marketing (2026-08-05) */
+i18n.addResourceBundle("en", "translation", {
+  mkQuickIdeas: "Quick Ideas", mkMyScripts: "My Scripts", mkInspire: "Inspire", mkContentLab: "Content Lab",
+  mkSavedIdeas: "{{count}} saved idea", mkSavedIdeas_other: "{{count}} saved ideas",
+  mkScriptsWritten: "{{count}} script written", mkScriptsWritten_other: "{{count}} scripts written",
+  mkCaptureIdeas: "Capture ideas in seconds", mkEverythingLands: "Everything you write lands here",
+  mkStealTrending: "Steal what's trending", mkTurnMusic: "Turn your music into scripts",
+  mkToday: "Today", mkSchedulePost: "Schedule a post for this day…",
+  mkNothingThisDay: "Nothing scheduled for this day.",
+  mkSrcInspire: "Inspire", mkSrcIdeas: "Ideas", mkSrcScript: "Script", mkSrcManual: "Manual",
+  mkMon: "MON", mkTue: "TUE", mkWed: "WED", mkThu: "THU", mkFri: "FRI", mkSat: "SAT", mkSun: "SUN",
+  mkPosts: "{{count}} post", mkPosts_other: "{{count}} posts",
+}, true, true);
+i18n.addResourceBundle("es", "translation", {
+  mkQuickIdeas: "Ideas rápidas", mkMyScripts: "Mis guiones", mkInspire: "Inspire", mkContentLab: "Content Lab",
+  mkSavedIdeas: "{{count}} idea guardada", mkSavedIdeas_other: "{{count}} ideas guardadas",
+  mkScriptsWritten: "{{count}} guion escrito", mkScriptsWritten_other: "{{count}} guiones escritos",
+  mkCaptureIdeas: "Captura ideas en segundos", mkEverythingLands: "Todo lo que escribes cae aquí",
+  mkStealTrending: "Róbate lo que es tendencia", mkTurnMusic: "Convierte tu música en guiones",
+  mkToday: "Hoy", mkSchedulePost: "Agenda un post para este día…",
+  mkNothingThisDay: "Nada agendado para este día.",
+  mkSrcInspire: "Inspire", mkSrcIdeas: "Ideas", mkSrcScript: "Guion", mkSrcManual: "Manual",
+  mkMon: "LUN", mkTue: "MAR", mkWed: "MIÉ", mkThu: "JUE", mkFri: "VIE", mkSat: "SÁB", mkSun: "DOM",
+  mkPosts: "{{count}} post", mkPosts_other: "{{count}} posts",
+}, true, true);
+
+i18n.addResourceBundle("en", "translation", {
+  mkM0:"January",mkM1:"February",mkM2:"March",mkM3:"April",mkM4:"May",mkM5:"June",
+  mkM6:"July",mkM7:"August",mkM8:"September",mkM9:"October",mkM10:"November",mkM11:"December",
+}, true, true);
+i18n.addResourceBundle("es", "translation", {
+  mkM0:"Enero",mkM1:"Febrero",mkM2:"Marzo",mkM3:"Abril",mkM4:"Mayo",mkM5:"Junio",
+  mkM6:"Julio",mkM7:"Agosto",mkM8:"Septiembre",mkM9:"Octubre",mkM10:"Noviembre",mkM11:"Diciembre",
+}, true, true);
+
 export default i18n;
