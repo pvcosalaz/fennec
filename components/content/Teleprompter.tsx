@@ -78,9 +78,15 @@ export default function Teleprompter({
       const dt = ts - lastTsRef.current;
       lastTsRef.current = ts;
 
-      // ~48 px/sec at 1× — a natural reading pace, scaled by speed. Accumulate
-      // in posRef (sub-pixel safe) and write an absolute scrollTop.
-      posRef.current += (dt / 1000) * 48 * speed;
+      /* ~24 px/sec at 1×, scaled by speed. Accumulate in posRef (sub-pixel
+         safe) and write an absolute scrollTop.
+         [UI 2026-08-06] Era 48 y 1× iba muy rapido para leer a camara (Paco).
+         Se bajo la BASE en vez del indice por defecto: asi 1× vuelve a
+         significar "ritmo normal" —que es lo que espera quien abre esto— y
+         toda la escala se recorre pareja, en vez de dejar el default en un
+         0.5x que se lee como si fuera lento a proposito. Efecto lateral bueno:
+         0.5x y 0.75x ahora son mas lentos que cualquier cosa que hubiera. */
+      posRef.current += (dt / 1000) * 24 * speed;
       el.scrollTop = posRef.current;
 
       if (el.scrollTop + el.clientHeight >= el.scrollHeight - 1) {
