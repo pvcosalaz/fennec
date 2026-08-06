@@ -184,10 +184,19 @@ export default function WebThreads({
     const container = containerRef.current;
     if (!container) return;
 
-    const renderer = new Renderer({
-      webgl: 2, alpha: true, premultipliedAlpha: true, antialias: false,
-      dpr: Math.min(window.devicePixelRatio || 1, 2),
-    });
+    // A throw inside an effect propagates and takes the whole tree down with
+    // it. This is a BACKGROUND: on a machine without WebGL2, or with hardware
+    // acceleration off, it has to fail into nothing and leave the module
+    // standing. Everything below the guard is setup that can touch the GPU.
+    let renderer: Renderer;
+    try {
+      renderer = new Renderer({
+        webgl: 2, alpha: true, premultipliedAlpha: true, antialias: false,
+        dpr: Math.min(window.devicePixelRatio || 1, 2),
+      });
+    } catch {
+      return; // no context, no background, no crash
+    }
     const gl = renderer.gl;
     gl.clearColor(0, 0, 0, 0);
     const canvas = gl.canvas as HTMLCanvasElement;

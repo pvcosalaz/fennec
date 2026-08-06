@@ -23,3 +23,18 @@
  * nadie mas va a poder tener.
  */
 export const NETWORK_ENABLED = false;
+
+/**
+ * Fondo WebGL de La Cinta: hilos que ondulan con el nivel real del track
+ * (WebThreads de React Bits, adaptado en components/visuals).
+ *
+ * ENCENDIDO para evaluarlo en vivo (Paco 2026-08-06). No se puede juzgar en el
+ * harness: /api/dev-audio da 404 en produccion, y el panel del navegador
+ * reporta la pagina como oculta, asi que ahi los rAF ni siquiera corren.
+ *
+ * Apagarlo es cambiar este true por false: el chunk de `ogl` va por
+ * next/dynamic, asi que apagado NO se descarga. Si el fondo falla al crear el
+ * contexto WebGL tampoco pasa nada — TapeDeckDesktop lo envuelve para que un
+ * adorno jamas tumbe el modulo.
+ */
+export const TAPE_THREADS_ENABLED = true;

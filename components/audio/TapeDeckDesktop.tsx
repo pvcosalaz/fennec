@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { openCommunityProfile } from "@/lib/tapeNav";
+import { TAPE_THREADS_ENABLED } from "@/lib/featureFlags";
 import { useTranslation } from "react-i18next";
 import "@/lib/i18n";
 import TapeDust from "@/components/audio/TapeDust";
@@ -162,16 +163,16 @@ function VuMeter({ needleRef, label }: { needleRef: React.Ref<HTMLDivElement>; l
 }
 
 export default function TapeDeckDesktop({
-  track, userId, onPass, onOpenMyTracks, onOpenIntro, fondoThreads = false,
+  track, userId, onPass, onOpenMyTracks, onOpenIntro, fondoThreads = TAPE_THREADS_ENABLED,
 }: {
   track: ProjectReview;
   userId: string;
   onPass: () => void;
   onOpenMyTracks: () => void;
   onOpenIntro: () => void;
-  /** Ensayo del fondo WebGL (React Bits · WebThreads) reaccionando al audio.
-   *  Apagado por defecto: vive solo en /dev-ui/shell?tape=1&threads=1 hasta que
-   *  Paco lo apruebe, para que produccion no cambie mientras se calibra. */
+  /** Fondo WebGL (React Bits · WebThreads) reaccionando al audio. Por defecto
+   *  toma TAPE_THREADS_ENABLED; el harness lo fuerza con ?threads=1 para poder
+   *  comparar encendido contra apagado sin tocar la bandera. */
   fondoThreads?: boolean;
 }) {
   /* `tr`, no `t`: en este componente `t` ya es el TIEMPO de reproduccion. */
