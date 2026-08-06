@@ -4,6 +4,7 @@
 import { useSheetDismiss, SHEET_BOTTOM } from "@/components/ui/useSheetDismiss";
 
 import { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Plus, Trash2, Pencil, Check, ArrowLeft,
   Lightbulb, Calendar, Sparkles, Lock,
@@ -54,12 +55,12 @@ function uid() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
 
-const IDEA_CATEGORIES: { id: IdeaCategory; label: string; icon: React.ComponentType<{className?:string}> }[] = [
-  { id: "music-ideas", label: "Music Ideas",  icon: Music2         },
-  { id: "meme",        label: "Memes",        icon: Smile          },
-  { id: "frase",       label: "Quotes",       icon: Quote          },
-  { id: "tutoriales",  label: "Tutorials",    icon: GraduationCap  },
-  { id: "referencia",  label: "References",   icon: BookOpen       },
+const IDEA_CATEGORIES: { id: IdeaCategory; labelKey: string; singularKey: string; icon: React.ComponentType<{className?:string}> }[] = [
+  { id: "music-ideas", labelKey: "icMusicIdeas", singularKey: "icMusicIdeaSingular", icon: Music2         },
+  { id: "meme",        labelKey: "icMemes",      singularKey: "icMemeSingular",      icon: Smile          },
+  { id: "frase",       labelKey: "icQuotes",     singularKey: "icQuoteSingular",     icon: Quote          },
+  { id: "tutoriales",  labelKey: "icTutorials",  singularKey: "icTutorialSingular",  icon: GraduationCap  },
+  { id: "referencia",  labelKey: "icReferences", singularKey: "icReferenceSingular", icon: BookOpen       },
 ];
 
 // ─── Ideas Bank ───────────────────────────────────────────────────────────────
@@ -78,6 +79,7 @@ function IdeasBankView({
   /** Desktop modal: labeled tabs + wider grid instead of the phone layout */
   isDesktop?: boolean;
 }) {
+  const { t } = useTranslation();
   const [tab,          setTab]          = useState<IdeaCategory>("meme");
   const [showForm,     setShowForm]     = useState(false);
   const [schedulingId, setSchedulingId] = useState<string | null>(null);
@@ -101,14 +103,14 @@ function IdeasBankView({
     <div className="mx-auto w-full max-w-4xl space-y-5 px-4">
       <div className="flex items-center gap-3">
         <div>
-          <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">Content</p>
-          <h1 className="text-2xl font-bold text-white">Quick Ideas</h1>
+          <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">{t("tabs.content")}</p>
+          <h1 className="text-2xl font-bold text-white">{t("mkQuickIdeas")}</h1>
         </div>
         <button
           onClick={() => setShowForm((v) => !v)}
           className="ml-auto flex items-center gap-1.5 rounded-xl bg-accent px-3 py-2 text-xs font-semibold text-black"
         >
-          <Plus className="h-3.5 w-3.5" /> New idea
+          <Plus className="h-3.5 w-3.5" /> {t("ibNewIdea")}
         </button>
       </div>
 
@@ -116,7 +118,7 @@ function IdeasBankView({
           on desktop every tab shows its label, always. */}
       {isDesktop ? (
         <div className="flex gap-1">
-          {IDEA_CATEGORIES.map(({ id, label, icon: Icon }) => {
+          {IDEA_CATEGORIES.map(({ id, labelKey, icon: Icon }) => {
             const active = tab === id;
             return (
               <button
@@ -127,14 +129,14 @@ function IdeasBankView({
                 }`}
               >
                 <Icon className="h-3.5 w-3.5 shrink-0" />
-                {label}
+                {t(labelKey)}
               </button>
             );
           })}
         </div>
       ) : (
         <div className="flex gap-1 rounded-2xl border border-white/10 bg-white/5 p-1">
-          {IDEA_CATEGORIES.map(({ id, label, icon: Icon }) => {
+          {IDEA_CATEGORIES.map(({ id, labelKey, icon: Icon }) => {
             const active = tab === id;
             return (
               <button
@@ -147,7 +149,7 @@ function IdeasBankView({
                 }`}
               >
                 <Icon className="h-4 w-4 shrink-0" />
-                {active && <span className="whitespace-nowrap">{label}</span>}
+                {active && <span className="whitespace-nowrap">{t(labelKey)}</span>}
               </button>
             );
           })}
@@ -158,20 +160,20 @@ function IdeasBankView({
       {showForm && (
         <div className="rounded-2xl border border-accent/30 bg-accent/5 p-4 space-y-3">
           <p className="text-xs font-semibold text-accent uppercase tracking-widest">
-            New {IDEA_CATEGORIES.find((c) => c.id === tab)?.label.slice(0, -1)}
+            {t("ibNewCategory", { category: t(IDEA_CATEGORIES.find((c) => c.id === tab)?.singularKey ?? "") })}
           </p>
           <input
             autoFocus
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Title or idea..."
+            placeholder={t("ibTitlePlaceholder")}
             className="w-full h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
           />
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Notes (optional)"
+            placeholder={t("ibNotesPlaceholder")}
             rows={2}
             className="w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white outline-none resize-none placeholder:text-zinc-500 focus:border-accent"
           />
@@ -179,13 +181,13 @@ function IdeasBankView({
             type="url"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="URL (optional)"
+            placeholder={t("ibUrlPlaceholder")}
             className="w-full h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
           />
           <div className="flex gap-2 justify-end">
-            <button onClick={() => setShowForm(false)} className="px-3 py-1.5 text-xs text-zinc-400 hover:text-white transition">Cancel</button>
+            <button onClick={() => setShowForm(false)} className="px-3 py-1.5 text-xs text-zinc-400 hover:text-white transition">{t("mtCancel")}</button>
             <button onClick={submit} className="flex items-center gap-1 rounded-xl bg-accent px-4 py-1.5 text-xs font-semibold text-black">
-              <Check className="h-3.5 w-3.5" /> Save
+              <Check className="h-3.5 w-3.5" /> {t("sdSave")}
             </button>
           </div>
         </div>
@@ -195,8 +197,8 @@ function IdeasBankView({
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <Lightbulb className="h-8 w-8 text-zinc-700 mb-3" />
-          <p className="text-zinc-500 text-sm">No {IDEA_CATEGORIES.find((c) => c.id === tab)?.label.toLowerCase()} yet.</p>
-          <p className="text-zinc-600 text-xs mt-1">Hit "New idea" to add one.</p>
+          <p className="text-zinc-500 text-sm">{t("ibNoneYet", { category: t(IDEA_CATEGORIES.find((c) => c.id === tab)?.labelKey ?? "").toLowerCase() })}</p>
+          <p className="text-zinc-600 text-xs mt-1">{t("ibHitNewIdea")}</p>
         </div>
       ) : (
         <div className={`grid gap-3 sm:grid-cols-2 ${isDesktop ? "lg:grid-cols-3" : ""}`}>
@@ -233,14 +235,14 @@ function IdeasBankView({
                   onClick={() => { onRequestSchedule?.(idea.title, idea.notes || undefined); setSchedulingId(null); }}
                   className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-zinc-400 hover:border-accent/40 hover:text-accent transition"
                 >
-                  <Calendar className="h-3 w-3" /> Add to calendar
+                  <Calendar className="h-3 w-3" /> {t("ibAddToCalendar")}
                 </button>
                 {onWriteScript && (
                   <button
                     onClick={() => onWriteScript(idea)}
                     className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-zinc-400 hover:border-accent/40 hover:text-accent transition"
                   >
-                    <Pencil className="h-3 w-3" /> Write script
+                    <Pencil className="h-3 w-3" /> {t("ibWriteScript")}
                   </button>
                 )}
               </div>
@@ -269,9 +271,10 @@ function ScriptsView({
 }) {
   // Default to the list of what's already there — "Create" is the empty
   // action, most visits are to check/open an existing script (Paco, 2026-07-13).
+  const { t } = useTranslation();
   const [tab,       setTab]       = useState<"create" | "list">("list");
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [fTitle,    setFTitle]    = useState(videoRef ? `My take: ${videoRef.title.slice(0, 60)}` : "");
+  const [fTitle,    setFTitle]    = useState(videoRef ? t("svMyTake", { title: videoRef.title.slice(0, 60) }) : "");
   const [fScript,   setFScript]   = useState("");
 
   const { sheetRef: composeSheetRef, dismiss: dismissComposeSheet } = useSheetDismiss(closeSheet);
@@ -304,8 +307,8 @@ function ScriptsView({
       {/* Header */}
       <div className="flex items-center gap-3">
         <div>
-          <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">Content</p>
-          <h1 className="text-2xl font-bold text-white">Content Generator</h1>
+          <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">{t("tabs.content")}</p>
+          <h1 className="text-2xl font-bold text-white">{t("svContentGenerator")}</h1>
         </div>
       </div>
 
@@ -318,13 +321,13 @@ function ScriptsView({
             onClick={() => setTab("list")}
             className={`rounded-lg px-3 py-1.5 text-[12px] font-medium transition ${tab === "list" ? "bg-accent text-black" : "text-zinc-500 hover:bg-white/5 hover:text-zinc-200"}`}
           >
-            My Scripts {briefs.length > 0 && `(${briefs.length})`}
+            {t("mkMyScripts")} {briefs.length > 0 && `(${briefs.length})`}
           </button>
           <button
             onClick={() => setTab("create")}
             className={`rounded-lg px-3 py-1.5 text-[12px] font-medium transition ${tab === "create" ? "bg-accent text-black" : "text-zinc-500 hover:bg-white/5 hover:text-zinc-200"}`}
           >
-            Create
+            {t("svCreate")}
           </button>
         </div>
       ) : (
@@ -333,13 +336,13 @@ function ScriptsView({
             onClick={() => setTab("list")}
             className={`flex-1 rounded-xl py-2 text-xs font-medium transition ${tab === "list" ? "bg-accent text-black" : "text-zinc-400 hover:text-white"}`}
           >
-            My Scripts {briefs.length > 0 && `(${briefs.length})`}
+            {t("mkMyScripts")} {briefs.length > 0 && `(${briefs.length})`}
           </button>
           <button
             onClick={() => setTab("create")}
             className={`flex-1 rounded-xl py-2 text-xs font-medium transition ${tab === "create" ? "bg-accent text-black" : "text-zinc-400 hover:text-white"}`}
           >
-            Create
+            {t("svCreate")}
           </button>
         </div>
       )}
@@ -351,7 +354,7 @@ function ScriptsView({
           <div className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.03] p-5">
             {videoRef && (
               <div className="space-y-1 rounded-xl border border-purple-400/20 bg-purple-400/5 p-3">
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-purple-400">Inspire Reference</p>
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-purple-400">{t("svInspireReference")}</p>
                 <p className="text-sm font-medium text-white line-clamp-2">{videoRef.title}</p>
               </div>
             )}
@@ -360,22 +363,22 @@ function ScriptsView({
               type="text"
               value={fTitle}
               onChange={(e) => setFTitle(e.target.value)}
-              placeholder="Title or hook for this piece..."
+              placeholder={t("svTitleHookPlaceholder")}
               className="h-11 w-full rounded-xl border border-white/15 bg-black/30 px-4 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
             />
             <textarea
               value={fScript}
               onChange={(e) => setFScript(e.target.value)}
-              placeholder="Write your script, idea, or execution notes..."
+              placeholder={t("svScriptPlaceholder")}
               rows={7}
               className="w-full resize-none rounded-xl border border-white/15 bg-black/30 px-4 py-3 text-sm leading-relaxed text-white outline-none placeholder:text-zinc-500 focus:border-accent"
             />
             <div className="flex justify-end gap-2">
               <button onClick={() => { setFTitle(""); setFScript(""); setTab("list"); }} className="rounded-xl border border-white/10 px-4 py-2 text-xs text-zinc-400 transition hover:text-white">
-                Cancel
+                {t("mtCancel")}
               </button>
               <button onClick={submitBrief} disabled={!fTitle.trim()} className="rounded-xl bg-accent px-5 py-2 text-xs font-bold text-black disabled:opacity-40">
-                Save script
+                {t("svSaveScript")}
               </button>
             </div>
           </div>
@@ -383,14 +386,14 @@ function ScriptsView({
           <div className="flex flex-col items-center justify-center py-12 text-center gap-4">
             <Sparkles className="h-8 w-8 text-accent/60" />
             <div className="space-y-1">
-              <p className="text-white font-semibold">Ready to write?</p>
-              <p className="text-xs text-zinc-500">Tap below to create a new script brief.</p>
+              <p className="text-white font-semibold">{t("svReadyToWrite")}</p>
+              <p className="text-xs text-zinc-500">{t("svTapBelow")}</p>
             </div>
             <button
               onClick={() => setSheetOpen(true)}
               className="flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-black"
             >
-              <Plus className="h-4 w-4" /> New Script
+              <Plus className="h-4 w-4" /> {t("svNewScript")}
             </button>
           </div>
         )
@@ -402,10 +405,10 @@ function ScriptsView({
           {briefs.length === 0 ? (
             <div className={`flex flex-col items-center justify-center py-16 text-center ${isDesktop ? "col-span-2" : ""}`}>
               <Pencil className="h-8 w-8 text-zinc-700 mb-3" />
-              <p className="text-zinc-500 text-sm">No scripts yet.</p>
-              <p className="text-zinc-600 text-xs mt-1">Go to Create and pick a format + line to start.</p>
+              <p className="text-zinc-500 text-sm">{t("svNoScriptsYet")}</p>
+              <p className="text-zinc-600 text-xs mt-1">{t("svGoToCreate")}</p>
               <button onClick={() => setTab("create")} className="mt-4 text-xs text-accent hover:underline">
-                Go to Create →
+                {t("svGoToCreateArrow")}
               </button>
             </div>
           ) : briefs.map((brief) => (
@@ -462,7 +465,7 @@ function ScriptsView({
         <div className="space-y-3">
           {videoRef && (
             <div className="rounded-2xl border border-purple-400/20 bg-purple-400/5 p-3 space-y-1 mb-3">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-purple-400">Inspire Reference</p>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-purple-400">{t("svInspireReference")}</p>
               <p className="text-sm text-white font-medium line-clamp-2">{videoRef.title}</p>
               <p className="text-xs text-zinc-400 line-clamp-2">💡 {videoRef.angle}</p>
             </div>
@@ -472,22 +475,22 @@ function ScriptsView({
             type="text"
             value={fTitle}
             onChange={(e) => setFTitle(e.target.value)}
-            placeholder="Title or hook for this piece..."
+            placeholder={t("svTitleHookPlaceholder")}
             className="w-full h-11 rounded-2xl border border-white/15 bg-white/5 px-4 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
           />
           <textarea
             value={fScript}
             onChange={(e) => setFScript(e.target.value)}
-            placeholder="Write your script, idea, or execution notes..."
+            placeholder={t("svScriptPlaceholder")}
             rows={4}
             className="w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white outline-none resize-none placeholder:text-zinc-500 focus:border-accent"
           />
           <div className="flex gap-2">
             <button onClick={closeSheet} className="flex-1 rounded-2xl border border-white/10 py-3 text-sm text-zinc-400 hover:text-white transition">
-              Cancel
+              {t("mtCancel")}
             </button>
             <button onClick={submitBrief} className="flex-1 rounded-2xl bg-accent py-3 text-sm font-bold text-black">
-              Save script
+              {t("svSaveScript")}
             </button>
           </div>
         </div>
@@ -507,21 +510,17 @@ type TrendingVideo = {
 const CACHE_KEY    = "fennec-trending-ideas-v3";
 const CACHE_TTL_MS = 1000 * 60 * 60 * 24; // 24 horas
 
-const LOADING_PHRASES = [
-  "Scanning YouTube trends…",
-  "Finding what's working this week…",
-  "Analyzing music production content…",
-  "Almost there…",
-];
+const LOADING_PHRASE_KEYS = ["tvLoading1", "tvLoading2", "tvLoading3", "tvLoading4"];
 
 function LoadingFeed() {
+  const { t } = useTranslation();
   const [phraseIdx, setPhraseIdx] = useState(0);
 
   useEffect(() => {
-    const t = setInterval(() => {
-      setPhraseIdx((i) => (i + 1) % LOADING_PHRASES.length);
+    const interval = setInterval(() => {
+      setPhraseIdx((i) => (i + 1) % LOADING_PHRASE_KEYS.length);
     }, 1800);
-    return () => clearInterval(t);
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -542,7 +541,7 @@ function LoadingFeed() {
           key={phraseIdx}
           style={{ animation: "fadeIn 0.4s ease" }}
         >
-          {LOADING_PHRASES[phraseIdx]}
+          {t(LOADING_PHRASE_KEYS[phraseIdx])}
         </p>
       </div>
 
@@ -582,6 +581,7 @@ function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule, onUp
    *  "Your angle" for these instead of serving the generic one. */
   genres?: string[];
 }) {
+  const { t, i18n } = useTranslation();
   const [videos,  setVideos]  = useState<TrendingVideo[]>([]);
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState<string | null>(null);
@@ -627,7 +627,7 @@ function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule, onUp
       // Only cache when we actually have results — never cache empty responses
       localStorage.setItem(cacheKey, JSON.stringify({ videos: data.videos, cachedAt: data.cachedAt }));
     } catch (e) {
-      setError("Could not load trending ideas. Try again later.");
+      setError(t("tvLoadError"));
       console.error(e);
     } finally {
       setLoading(false);
@@ -635,7 +635,7 @@ function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule, onUp
   }
 
   const lastFetchLabel = lastFetch
-    ? new Date(lastFetch).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
+    ? new Date(lastFetch).toLocaleTimeString(i18n.language, { hour: "2-digit", minute: "2-digit" })
     : null;
 
   return (
@@ -644,12 +644,12 @@ function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule, onUp
       {/* Header */}
       <div className="flex items-center gap-3">
         <div>
-          <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">Content · Pro</p>
-          <h1 className="text-2xl font-bold text-white">Daily Ideas</h1>
+          <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">{t("tvContentPro")}</p>
+          <h1 className="text-2xl font-bold text-white">{t("tvDailyIdeas")}</h1>
         </div>
         {isPro && lastFetchLabel && !loading && (
           <span className="ml-auto text-[10px] text-zinc-600">
-            Updated {lastFetchLabel}
+            {t("tvUpdated", { time: lastFetchLabel })}
           </span>
         )}
       </div>
@@ -659,14 +659,14 @@ function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule, onUp
         <div className="flex flex-col items-center gap-4 rounded-2xl border border-accent/30 bg-accent/5 px-8 py-12 text-center">
           <Lock className="h-8 w-8 text-accent" />
           <div>
-            <p className="font-semibold text-white">Upgrade to Pro</p>
+            <p className="font-semibold text-white">{t("tvUpgradeToPro")}</p>
             <p className="text-xs text-zinc-400 mt-1 max-w-xs leading-relaxed">
-              Get a daily feed of trending YouTube videos in the music production niche — analyzed by AI so you know exactly why they work and how to adapt them.
+              {t("tvUpgradeBody")}
             </p>
           </div>
           {/* Price lives in the upgrade sheet — a hardcoded one here went stale ($9.99) */}
           <button onClick={onUpgrade} className="rounded-xl bg-accent px-6 py-2.5 text-sm font-bold text-black hover:brightness-110 active:scale-[0.97] transition">
-            Upgrade to Pro
+            {t("tvUpgradeToPro")}
           </button>
         </div>
       ) : loading ? (
@@ -674,11 +674,11 @@ function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule, onUp
       ) : error ? (
         <div className="rounded-2xl border border-red-400/20 bg-red-400/5 p-6 text-center space-y-2">
           <p className="text-sm text-red-400">{error}</p>
-          <button onClick={fetchFeed} className="text-xs text-accent hover:underline">Try again</button>
+          <button onClick={fetchFeed} className="text-xs text-accent hover:underline">{t("tvTryAgain")}</button>
         </div>
       ) : videos.length === 0 ? (
         <div className="py-16 text-center">
-          <p className="text-zinc-500 text-sm">No trending videos found. Check back tomorrow.</p>
+          <p className="text-zinc-500 text-sm">{t("tvNoneFound")}</p>
         </div>
       ) : (
         <div className={isDesktop ? "grid grid-cols-2 items-start gap-4" : "space-y-4"}>
@@ -704,12 +704,12 @@ function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule, onUp
               {/* Analysis */}
               <div className="px-4 pb-4 pt-3 space-y-3 border-t border-white/5">
                 <div className="space-y-1">
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">Why it works</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">{t("tvWhyItWorks")}</p>
                   <p className="text-xs text-zinc-300 leading-relaxed">{v.why}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
-                    Your angle{genres.length > 0 && ` · ${genres.slice(0, 2).join(" / ")}`}
+                    {t("tvYourAngle")}{genres.length > 0 && ` · ${genres.slice(0, 2).join(" / ")}`}
                   </p>
                   <p className="text-xs text-accent leading-relaxed">{v.angle}</p>
                 </div>
@@ -720,7 +720,7 @@ function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule, onUp
                   className="inline-flex items-center gap-1 text-[10px] text-zinc-500 hover:text-white transition"
                 >
                   <SiYoutube className="h-3 w-3 text-red-500" />
-                  Watch on YouTube
+                  {t("tvWatchOnYoutube")}
                 </a>
                 {/* Action buttons */}
                 <div className="flex gap-2 pt-2 border-t border-white/5 mt-2">
@@ -735,7 +735,7 @@ function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule, onUp
                     })}
                     className="flex-1 py-2 rounded-xl bg-accent/10 border border-accent/30 text-xs font-semibold text-accent hover:bg-accent/20 transition"
                   >
-                    ✨ Use as reference
+                    ✨ {t("tvUseAsReference")}
                   </button>
                 </div>
               </div>
@@ -750,6 +750,7 @@ function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule, onUp
 // ─── Main module ──────────────────────────────────────────────────────────────
 
 export default function ContentModule({ isPro = false, onUpgrade, genres = [], onToolOpenChange, userId }: { isPro?: boolean; onUpgrade?: () => void; genres?: string[]; onToolOpenChange?: (open: boolean) => void; userId?: string }) {
+  const { t } = useTranslation();
   const [ideas,  setIdeas]  = useState<Idea[]>([]);
   const [briefs, setBriefs] = useState<Brief[]>([]);
   const isDesktop = useIsDesktop();
@@ -973,7 +974,7 @@ export default function ContentModule({ isPro = false, onUpgrade, genres = [], o
       onClose={() => setScriptWriter(null)}
       onSave={(title, script) => {
         const isLabGenerated = !!scriptWriter?.channel && scriptWriter.channel !== "";
-        const sourceLabel = scriptSource === "ideas" ? "Quick Idea" : "Inspire";
+        const sourceLabel = scriptSource === "ideas" ? t("mkSrcIdeas") : t("mkSrcInspire");
         const brief = {
           id: uid(),
           title,
@@ -1014,7 +1015,7 @@ export default function ContentModule({ isPro = false, onUpgrade, genres = [], o
               onClick={closeSheet}
               className="mb-6 inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 transition hover:bg-white/5 hover:text-white"
             >
-              <ArrowLeft className="h-4 w-4" /> Back to calendar
+              <ArrowLeft className="h-4 w-4" /> {t("cmBackToCalendar")}
             </button>
             {sheetContent}
           </div>

@@ -249,21 +249,9 @@ const approxPrice = (v: number) => {
 /** The upgrade sheet renders over any tab, so its pitch must match what the
  *  user was actually trying to do — not assume they came from the calculator. */
 const UPGRADE_COPY = {
-  calculator: {
-    line1: "Your price is set.",
-    line2: "Now see the exact number.",
-    sub: "Unlock your precise minimum & recommended rates, and turn them into income.",
-  },
-  content: {
-    line1: "Your content engine,",
-    line2: "unlocked.",
-    sub: "Inspire, Content Lab & Trending. Plan a month of content in minutes.",
-  },
-  generic: {
-    line1: "Go Pro.",
-    line2: "Unlock everything.",
-    sub: "Every Fennec Pro tool, one plan.",
-  },
+  calculator: { line1: "upCalcLine1", line2: "upCalcLine2", sub: "upCalcSub" },
+  content:    { line1: "upContentLine1", line2: "upContentLine2", sub: "upContentSub" },
+  generic:    { line1: "upGenericLine1", line2: "upGenericLine2", sub: "upGenericSub" },
 } as const;
 type UpgradeContext = keyof typeof UPGRADE_COPY;
 
@@ -272,9 +260,9 @@ type UpgradeContext = keyof typeof UPGRADE_COPY;
  *  paywall there is the calculator's exact-price reveal. Pro = that reveal +
  *  ContentModule (Inspire/Lab/Trending) + MyTracksView uploads. */
 const PRO_FEATURES = [
-  { emoji: "🔓", label: "Exact rate reveal",   desc: "Your precise minimum & recommended prices" },
-  { emoji: "💡", label: "Marketing Pro tools", desc: "Inspire, Content Lab & Trending" },
-  { emoji: "🎧", label: "5 free uploads/month", desc: "Timestamped track feedback from producers" },
+  { emoji: "🔓", labelKey: "upFeature1Label", descKey: "upFeature1Desc" },
+  { emoji: "💡", labelKey: "upFeature2Label", descKey: "upFeature2Desc" },
+  { emoji: "🎧", labelKey: "upFeature3Label", descKey: "upFeature3Desc" },
 ];
 
 const sumValues = (values: Record<string, string>) =>
@@ -875,7 +863,7 @@ export default function PricingCalculator() {
                   className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-zinc-200 transition hover:border-accent hover:text-white whitespace-nowrap"
                 >
                   <SlidersHorizontal className="h-4 w-4" />
-                  {showSetup ? "Close" : "My expenses"}
+                  {showSetup ? t("pcClose") : t("pcMyExpenses")}
                 </button>
               </div>
             </div>
@@ -1330,18 +1318,18 @@ export default function PricingCalculator() {
               {!isDesktop && <div className="w-10 h-1 bg-white/20 rounded-full mx-auto" />}
   
               <div className="space-y-1">
-                <p className="text-xl font-black text-white">{UPGRADE_COPY[upgradeContext].line1}</p>
-                <p className="text-xl font-black text-accent">{UPGRADE_COPY[upgradeContext].line2}</p>
-                <p className="text-sm text-zinc-500 mt-2">{UPGRADE_COPY[upgradeContext].sub}</p>
+                <p className="text-xl font-black text-white">{t(UPGRADE_COPY[upgradeContext].line1)}</p>
+                <p className="text-xl font-black text-accent">{t(UPGRADE_COPY[upgradeContext].line2)}</p>
+                <p className="text-sm text-zinc-500 mt-2">{t(UPGRADE_COPY[upgradeContext].sub)}</p>
               </div>
-  
+
               <div className="space-y-2">
                 {PRO_FEATURES.map((item) => (
-                  <div key={item.label} className="flex items-center gap-3 rounded-xl bg-white/5 px-4 py-2.5">
+                  <div key={item.labelKey} className="flex items-center gap-3 rounded-xl bg-white/5 px-4 py-2.5">
                     <span className="text-lg">{item.emoji}</span>
                     <div>
-                      <p className="text-sm font-semibold text-white">{item.label}</p>
-                      <p className="text-[11px] text-zinc-500">{item.desc}</p>
+                      <p className="text-sm font-semibold text-white">{t(item.labelKey)}</p>
+                      <p className="text-[11px] text-zinc-500">{t(item.descKey)}</p>
                     </div>
                   </div>
                 ))}
@@ -1356,8 +1344,8 @@ export default function PricingCalculator() {
                     upgradePlan === "monthly" ? "border-accent bg-accent/10" : "border-white/10 bg-white/5"
                   }`}
                 >
-                  <p className={`text-sm font-bold ${upgradePlan === "monthly" ? "text-white" : "text-zinc-400"}`}>Monthly</p>
-                  <p className="text-[11px] text-zinc-500 mt-0.5">$14.99 / month</p>
+                  <p className={`text-sm font-bold ${upgradePlan === "monthly" ? "text-white" : "text-zinc-400"}`}>{t("upMonthly")}</p>
+                  <p className="text-[11px] text-zinc-500 mt-0.5">{t("upMonthlyPrice")}</p>
                 </button>
                 <button
                   onClick={() => setUpgradePlan("yearly")}
@@ -1366,23 +1354,23 @@ export default function PricingCalculator() {
                   }`}
                 >
                   <p className={`text-sm font-bold ${upgradePlan === "yearly" ? "text-white" : "text-zinc-400"}`}>
-                    Yearly
-                    <span className="ml-1.5 align-middle text-[9px] bg-amber-500 text-black font-black px-1.5 py-0.5 rounded-full">SAVE 33%</span>
+                    {t("upYearly")}
+                    <span className="ml-1.5 align-middle text-[9px] bg-amber-500 text-black font-black px-1.5 py-0.5 rounded-full">{t("upSave33")}</span>
                   </p>
-                  <p className="text-[11px] text-zinc-500 mt-0.5">$119.99 / year · ≈ $10 / mo</p>
+                  <p className="text-[11px] text-zinc-500 mt-0.5">{t("upYearlyPrice")}</p>
                 </button>
               </div>
-  
+
               <button
                 onClick={() => startCheckout(upgradePlan)}
                 disabled={upgrading}
                 className="w-full py-4 rounded-2xl bg-amber-500 hover:bg-amber-400 active:scale-95 transition text-black font-black text-base shadow-lg shadow-amber-500/30 disabled:opacity-60"
               >
-                {upgrading ? "Redirecting…" : upgradePlan === "yearly" ? "Start Pro · $119.99 / year" : "Start Pro · $14.99 / month"}
+                {upgrading ? t("upRedirecting") : upgradePlan === "yearly" ? t("upStartYearly") : t("upStartMonthly")}
               </button>
-  
+
               <button onClick={() => setShowUpgrade(false)} className="w-full text-xs text-zinc-600 hover:text-zinc-400 transition py-1">
-                Maybe later
+                {t("upMaybeLater")}
               </button>
             </div>
           </>
@@ -1443,7 +1431,7 @@ export default function PricingCalculator() {
           <div className="flex-1 flex justify-end pointer-events-auto">
             <button
               onClick={() => { void track("settings_open"); setShowSettings(true); }}
-              aria-label="Settings"
+              aria-label={t("settings")}
               className="flex items-center justify-center h-8 w-8 rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl text-zinc-400 hover:text-accent hover:border-accent/30 transition"
             >
               <Settings className="h-4 w-4" />

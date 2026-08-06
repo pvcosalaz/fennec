@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { Upload, Trash2, ChevronDown, Zap } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
   fetchUserReviews,
   createReview,
@@ -29,6 +30,14 @@ type Props = {
   isPro: boolean;
 };
 
+const CATEGORY_KEYS: Record<TrackCategory, string> = {
+  "Demo": "mtCatDemo",
+  "Missing Mix": "mtCatMissingMix",
+  "Idea": "mtCatIdea",
+  "Missing Master": "mtCatMissingMaster",
+  "Final Version": "mtCatFinal",
+};
+
 function fmt(s: number): string {
   const m = Math.floor(s / 60);
   const sec = Math.floor(s % 60);
@@ -51,6 +60,7 @@ function getAudioDuration(file: File): Promise<number> {
 }
 
 export default function MyTracksView({ userId, isPro }: Props) {
+  const { t } = useTranslation();
   const [tracks, setTracks]       = useState<ProjectReview[]>([]);
   const [loading, setLoading]     = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -88,7 +98,7 @@ export default function MyTracksView({ userId, isPro }: Props) {
   const monthStart = new Date();
   monthStart.setDate(1);
   monthStart.setHours(0, 0, 0, 0);
-  const monthlyUploads = tracks.filter((t) => new Date(t.created_at) >= monthStart).length;
+  const monthlyUploads = tracks.filter((track) => new Date(track.created_at) >= monthStart).length;
   const proFreeLeft = isPro ? Math.max(0, PRO_FREE_PER_MONTH - monthlyUploads) : 0;
   const uploadIsFree = isPro && proFreeLeft > 0;
   // karma === null → economy not live yet (migration pending): don't block client-side
@@ -144,10 +154,10 @@ export default function MyTracksView({ userId, isPro }: Props) {
       if (!result.karmaPaid) {
         const note =
           result.reason === "track_already_paid"
-            ? "Sealed. Karma was already paid to this producer on this tape (1 payout per producer per track)."
+            ? t("mtSealedAlreadyPaid")
             : result.reason === "weekly_cap"
-            ? "Sealed. Weekly karma cap with this producer reached (max 3 payouts per week). The seal still shows."
-            : "Sealed. No karma paid this time.";
+            ? t("mtSealedWeeklyCap")
+            : t("mtSealedNoKarma");
         setStampNotes((prev) => ({ ...prev, [commentId]: note }));
       }
     }
@@ -159,13 +169,13 @@ export default function MyTracksView({ userId, isPro }: Props) {
 
     const fileMB = audioFile.size / 1024 / 1024;
     if (fileMB > MAX_FILE_MB) {
-      setError(`File too large. Max ${MAX_FILE_MB} MB.`);
+      setError(t("mtFileTooLarge", { max: MAX_FILE_MB }));
       return;
     }
 
     const count = await countUserReviews(userId);
     if (count >= MAX_TRACKS) {
-      setError(`You've reached the limit of ${MAX_TRACKS} active tracks.`);
+      setError(t("mtTrackLimit", { max: MAX_TRACKS }));
       return;
     }
 
@@ -198,9 +208,9 @@ export default function MyTracksView({ userId, isPro }: Props) {
     } catch (err) {
       const msg = err instanceof Error ? err.message : JSON.stringify(err);
       if (msg.includes("NOT_ENOUGH_KARMA")) {
-        setError(`You need ${UPLOAD_COST} karma to upload. Earn it when artists seal your marks, or grab a karma pack.`);
+        setError(t("mtNeedKarmaUpload", { cost: UPLOAD_COST }));
       } else {
-        setError(`Upload failed: ${msg}`);
+        setError(t("mtUploadFailed", { msg }));
       }
       console.error(err);
     } finally {
@@ -209,12 +219,12 @@ export default function MyTracksView({ userId, isPro }: Props) {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Delete this track? This cannot be undone.")) return;
+    if (!confirm(t("mtConfirmDelete"))) return;
     try {
       await deleteReview(id);
-      setTracks((prev) => prev.filter((t) => t.id !== id));
+      setTracks((prev) => prev.filter((track) => track.id !== id));
     } catch {
-      setError("Could not delete track. Please try again.");
+      setError(t("mtDeleteFailed"));
     }
   }
 
@@ -225,7 +235,7 @@ export default function MyTracksView({ userId, isPro }: Props) {
         {karma !== null && (
           <span className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold"
             style={{ fontFamily: MONO_FONT, color: AMBER, border: "1px solid rgba(245,166,35,.35)", background: "rgba(245,166,35,.08)" }}>
-            <Zap className="h-3 w-3" /> {karma} karma
+            <Zap className="h-3 w-3" /> {karma} {t("tpKarma")}
           </span>
         )}
         {karma !== null && (
@@ -235,13 +245,13 @@ export default function MyTracksView({ userId, isPro }: Props) {
             className="rounded-full px-3 py-1.5 text-[10px] font-bold transition active:scale-95 disabled:opacity-50 hover:border-amber-500/60"
             style={{ fontFamily: MONO_FONT, color: "rgba(255,255,255,.6)", border: "1px solid rgba(255,255,255,.15)" }}
           >
-            {buying ? "…" : `+${KARMA_PACK.karma} karma · ${KARMA_PACK.label}`}
+            {buying ? "…" : t("mtBuyKarmaPack", { karma: KARMA_PACK.karma, price: KARMA_PACK.label })}
           </button>
         )}
         {isPro && (
           <span className="rounded-full px-3 py-1.5 text-[10px]"
             style={{ fontFamily: MONO_FONT, color: "rgba(255,255,255,.55)", border: "1px solid rgba(255,255,255,.12)" }}>
-            Pro · {proFreeLeft}/{PRO_FREE_PER_MONTH} free uploads this month
+            {t("mtProFreeUploads", { left: proFreeLeft, total: PRO_FREE_PER_MONTH })}
           </span>
         )}
       </div>
@@ -254,7 +264,7 @@ export default function MyTracksView({ userId, isPro }: Props) {
           className="w-full h-12 rounded-xl border border-dashed border-white/20 flex items-center justify-center gap-2 text-sm text-zinc-400 hover:border-amber-500/50 hover:text-amber-400 transition disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <Upload className="h-4 w-4" />
-          Share your music with the community for feedback
+          {t("mtShareMusic")}
           {tracks.length >= MAX_TRACKS && ` (${MAX_TRACKS}/${MAX_TRACKS})`}
         </button>
       )}
@@ -263,15 +273,15 @@ export default function MyTracksView({ userId, isPro }: Props) {
       {showForm && (
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-white">New Track</p>
+            <p className="text-sm font-semibold text-white">{t("mtNewTrack")}</p>
             <span className="text-[10px]" style={{ fontFamily: MONO_FONT, color: uploadIsFree ? "rgba(255,255,255,.5)" : AMBER }}>
-              {uploadIsFree ? `free · Pro (${proFreeLeft} left this month)` : `costs ${UPLOAD_COST} karma`}
+              {uploadIsFree ? t("mtFreeProLeft", { left: proFreeLeft }) : t("mtCostsKarma", { cost: UPLOAD_COST })}
             </span>
           </div>
 
           <input
             type="text"
-            placeholder="Track title"
+            placeholder={t("mtTrackTitlePlaceholder")}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             maxLength={60}
@@ -290,7 +300,7 @@ export default function MyTracksView({ userId, isPro }: Props) {
                     : "border-white/10 bg-white/5 text-zinc-500"
                 }`}
               >
-                {cat}
+                {t(CATEGORY_KEYS[cat])}
               </button>
             ))}
           </div>
@@ -324,8 +334,8 @@ export default function MyTracksView({ userId, isPro }: Props) {
           >
             <Upload className="h-4 w-4" />
             {dragOver
-              ? "Drop it on the reel"
-              : audioFile ? audioFile.name : "Select or drop your track (WAV, MP3, AIFF...)"}
+              ? t("mtDropReel")
+              : audioFile ? audioFile.name : t("mtSelectTrack")}
           </button>
 
           {/* Artwork file */}
@@ -341,13 +351,13 @@ export default function MyTracksView({ userId, isPro }: Props) {
             className="w-full h-10 rounded-xl border border-white/10 bg-white/5 text-sm text-zinc-400 hover:text-white transition flex items-center justify-center gap-2"
           >
             <Upload className="h-4 w-4" />
-            {artFile ? artFile.name : "Artwork (optional)"}
+            {artFile ? artFile.name : t("mtArtworkOptional")}
           </button>
 
           {!canAfford && (
             <div className="space-y-2">
               <p className="text-[11px]" style={{ fontFamily: MONO_FONT, color: "rgba(255,255,255,.45)" }}>
-                You have {karma} karma — you need {UPLOAD_COST}. Earn +{STAMP_REWARD} each time an artist seals one of your marks, or grab a pack:
+                {t("mtNotEnoughKarma", { karma, cost: UPLOAD_COST, reward: STAMP_REWARD })}
               </p>
               <button
                 onClick={buyKarma}
@@ -355,7 +365,7 @@ export default function MyTracksView({ userId, isPro }: Props) {
                 className="rounded-xl px-3 py-2 text-[11px] font-bold transition active:scale-95 disabled:opacity-50"
                 style={{ fontFamily: MONO_FONT, color: AMBER, border: "1px solid rgba(245,166,35,.4)", background: "rgba(245,166,35,.08)" }}
               >
-                {buying ? "Opening checkout…" : `Get ${KARMA_PACK.karma} karma · ${KARMA_PACK.label}`}
+                {buying ? t("mtOpeningCheckout") : t("mtGetKarmaPack", { karma: KARMA_PACK.karma, price: KARMA_PACK.label })}
               </button>
             </div>
           )}
@@ -366,14 +376,14 @@ export default function MyTracksView({ userId, isPro }: Props) {
               onClick={() => { setShowForm(false); setError(null); }}
               className="flex-1 h-10 rounded-xl border border-white/10 text-sm text-zinc-500 hover:text-white transition"
             >
-              Cancel
+              {t("mtCancel")}
             </button>
             <button
               onClick={handleUpload}
               disabled={!audioFile || !title.trim() || uploading || !canAfford}
               className="flex-[2] h-10 rounded-xl bg-amber-500 text-black text-sm font-bold disabled:opacity-40 transition hover:bg-amber-400"
             >
-              {uploading ? "Uploading..." : uploadIsFree ? "Submit (free)" : `Submit · −${UPLOAD_COST} karma`}
+              {uploading ? t("mtUploading") : uploadIsFree ? t("mtSubmitFree") : t("mtSubmitKarma", { cost: UPLOAD_COST })}
             </button>
           </div>
         </div>
@@ -381,11 +391,11 @@ export default function MyTracksView({ userId, isPro }: Props) {
 
       {/* Track list */}
       {loading && (
-        <p className="text-xs text-zinc-600 text-center py-8">Loading your tracks...</p>
+        <p className="text-xs text-zinc-600 text-center py-8">{t("mtLoadingTracks")}</p>
       )}
       {!loading && tracks.length === 0 && !showForm && (
         <p className="text-xs text-zinc-600 text-center py-8">
-          No tracks submitted yet. Hit the button above to get feedback from the community.
+          {t("mtNoTracksYet")}
         </p>
       )}
       {tracks.map((track) => {
@@ -410,10 +420,10 @@ export default function MyTracksView({ userId, isPro }: Props) {
                 <p className="text-sm font-semibold text-white truncate">{track.title}</p>
                 <div className="flex items-center gap-2 mt-0.5">
                   <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide ${CATEGORY_COLORS[track.category]}`}>
-                    {track.category}
+                    {t(CATEGORY_KEYS[track.category])}
                   </span>
                   <span className="text-[10px] text-zinc-600">{fmt(track.duration_seconds)}</span>
-                  <span className="text-[10px] text-zinc-600">· {track.comment_count ?? 0} marks</span>
+                  <span className="text-[10px] text-zinc-600">· {t("mtMarksShort", { count: track.comment_count ?? 0 })}</span>
                 </div>
               </div>
               <button
@@ -432,11 +442,11 @@ export default function MyTracksView({ userId, isPro }: Props) {
             {expanded && (
               <div className="px-4 pb-4 pt-1 space-y-3 border-t border-white/5">
                 {loadingComments && !comments[track.id] && (
-                  <p className="text-[11px] text-zinc-600 py-3" style={{ fontFamily: MONO_FONT }}>Loading marks…</p>
+                  <p className="text-[11px] text-zinc-600 py-3" style={{ fontFamily: MONO_FONT }}>{t("mtLoadingMarks")}</p>
                 )}
                 {!loadingComments && list.length === 0 && (
                   <p className="text-[13px] italic py-3" style={{ fontFamily: SERIF_FONT, color: "rgba(255,255,255,.35)" }}>
-                    Nobody&rsquo;s marked this tape yet.
+                    {t("mtNobodyMarked")}
                   </p>
                 )}
                 {list.map((c) => (
@@ -449,7 +459,7 @@ export default function MyTracksView({ userId, isPro }: Props) {
                           : (c.profile?.username?.[0] ?? "?").toUpperCase()}
                       </span>
                       <span className="text-[10px] font-semibold" style={{ color: "rgba(255,255,255,.6)" }}>
-                        @{c.profile?.username ?? "unknown"}
+                        @{c.profile?.username ?? t("mtUnknownUser")}
                       </span>
                       {c.timestamp_seconds !== null && (
                         <span className="ml-auto text-[9px]" style={{ fontFamily: MONO_FONT, color: "rgba(255,255,255,.3)" }}>
@@ -470,7 +480,7 @@ export default function MyTracksView({ userId, isPro }: Props) {
                             transform: "rotate(-2.5deg)", opacity: 0.9,
                           }}
                         >
-                          ✓ this helped
+                          ✓ {t("mtThisHelped")}
                         </span>
                         {stampNotes[c.id] && (
                           <p className="mt-1.5 text-[9.5px] leading-relaxed" style={{ fontFamily: MONO_FONT, color: "rgba(255,255,255,.4)" }}>
@@ -488,7 +498,7 @@ export default function MyTracksView({ userId, isPro }: Props) {
                           color: "rgba(255,255,255,.45)", border: "1px solid rgba(255,255,255,.18)",
                         }}
                       >
-                        {stamping === c.id ? "…" : "✓ this helped (+2 karma)"}
+                        {stamping === c.id ? "…" : t("mtHelpedButton", { reward: STAMP_REWARD })}
                       </button>
                     ) : null}
                   </div>

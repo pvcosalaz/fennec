@@ -1,5 +1,6 @@
 "use client";
 import { Upload } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useSheetDismiss, SHEET_BOTTOM, SHEET_ENTER } from "@/components/ui/useSheetDismiss";
 
 /* First-visit intro for La Cinta Marcada (see DESIGN.md).
@@ -16,23 +17,19 @@ const MONO_FONT  = 'var(--font-tape-mono, "Space Mono", monospace)';
 /** Mobile: the reel runs vertically (hold-to-mark, drag-to-scrub).
  *  Desktop: it's a horizontal tape machine (click-to-scrub, "+" to mark) —
  *  same idea, different gesture, so the copy has to match what's on screen. */
-function getSteps(isDesktop: boolean): { title: string; body: string }[] {
+function getSteps(isDesktop: boolean, t: (key: string) => string): { title: string; body: string }[] {
   return [
     {
-      title: "Every track is a tape",
-      body: isDesktop
-        ? "Time runs across the tape. The amber marks are notes other producers left at exact moments."
-        : "Time runs down the reel. The amber marks are notes other producers left at exact moments.",
+      title: t("tiStep1Title"),
+      body: isDesktop ? t("tiStep1BodyDesktop") : t("tiStep1BodyMobile"),
     },
     {
-      title: isDesktop ? "Click to mark" : "Hold to mark",
-      body: isDesktop
-        ? "Click the tape to scrub through time. Hit the + button to write a note at the exact moment."
-        : "Press and hold anywhere on the tape to write a note at that second. Drag to scrub through time.",
+      title: isDesktop ? t("tiStep2TitleDesktop") : t("tiStep2TitleMobile"),
+      body: isDesktop ? t("tiStep2BodyDesktop") : t("tiStep2BodyMobile"),
     },
     {
-      title: "Upload your own",
-      body: "Share a track of yours and other producers will leave notes on it, exactly like you do here.",
+      title: t("tiStep3Title"),
+      body: t("tiStep3Body"),
     },
   ];
 }
@@ -47,8 +44,9 @@ export default function TapeIntro({
   /** CTA: jump straight into My Tracks to upload the first track. */
   onUpload: () => void;
 }) {
+  const { t } = useTranslation();
   const { sheetRef, dismiss } = useSheetDismiss(onClose);
-  const STEPS = getSteps(isDesktop);
+  const STEPS = getSteps(isDesktop, t);
 
   // A sheet sliding up from the bottom edge is a phone gesture. On desktop
   // this is a centered dialog: 0.96→1 scale + fade, center origin, and a
@@ -94,9 +92,9 @@ export default function TapeIntro({
 
         <p className="text-[9px] font-bold uppercase text-center mb-1"
           style={{ fontFamily: MONO_FONT, letterSpacing: "0.3em", color: AMBER }}>
-          Track Reviews
+          {t("tiKicker")}
         </p>
-        <h2 className="text-xl font-bold text-white text-center mb-5">How the tape works</h2>
+        <h2 className="text-xl font-bold text-white text-center mb-5">{t("tiTitle")}</h2>
 
         {/* steps docked to a miniature spine */}
         <div className="relative pl-7 mb-6">
@@ -118,8 +116,7 @@ export default function TapeIntro({
 
         <p className="text-[10.5px] leading-relaxed mb-5 text-center"
           style={{ fontFamily: MONO_FONT, color: "rgba(255,255,255,.35)" }}>
-          Bailing early on 4 tracks in a row pauses the queue —
-          a real listen or a mark keeps it rolling.
+          {t("tiFooter")}
         </p>
 
         <div className="flex gap-2">
@@ -127,7 +124,7 @@ export default function TapeIntro({
             onClick={close}
             className="flex-1 h-12 rounded-2xl border border-white/10 text-sm font-semibold text-zinc-400 transition hover:text-white active:scale-[0.98]"
           >
-            Start listening
+            {t("tiStartListening")}
           </button>
           <button
             onClick={onUpload}
@@ -135,7 +132,7 @@ export default function TapeIntro({
             style={{ background: AMBER }}
           >
             <Upload className="h-4 w-4" />
-            Upload your first track
+            {t("tiUploadFirst")}
           </button>
         </div>
       </div>

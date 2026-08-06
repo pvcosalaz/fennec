@@ -19,6 +19,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ChevronLeft, Plus, X, Check, Banknote, ListChecks,
   Music2, ExternalLink, Trash2, Calendar,
@@ -406,6 +407,7 @@ function BriefSection({
 }: {
   project: Project; onChange: (p: Project) => void;
 }) {
+  const { t } = useTranslation();
   const brief = { ...EMPTY_BRIEF, ...(project.brief ?? {}) };
   const refs = brief.references ?? [];
   const [adding, setAdding] = useState(false);
@@ -435,15 +437,15 @@ function BriefSection({
   return (
     <Section
       icon={Music2}
-      title="Creative brief"
-      hint="What the client asked for, in one place instead of scattered across a chat thread."
+      title={t("pdCreativeBrief")}
+      hint={t("pdCreativeBriefHint")}
       right={
         !adding && (
           <button
             onClick={() => setAdding(true)}
             className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-[11px] font-medium text-zinc-300 transition hover:border-accent/50 hover:text-accent"
           >
-            <Plus className="h-3 w-3" /> Reference
+            <Plus className="h-3 w-3" /> {t("pdReference")}
           </button>
         )
       }
@@ -465,7 +467,7 @@ function BriefSection({
                       target="_blank"
                       rel="noopener noreferrer"
                       className="shrink-0 text-zinc-600 transition hover:text-accent"
-                      aria-label={`Open ${r.title}`}
+                      aria-label={t("pdOpenX", { title: r.title })}
                     >
                       <ExternalLink className="h-3 w-3" />
                     </a>
@@ -478,7 +480,7 @@ function BriefSection({
               </div>
               <button
                 onClick={() => removeRef(r.id)}
-                aria-label={`Remove ${r.title}`}
+                aria-label={t("pdRemoveX", { title: r.title })}
                 className="shrink-0 rounded p-1 text-zinc-700 opacity-0 transition hover:text-red-400 group-hover:opacity-100"
               >
                 <X className="h-3 w-3" />
@@ -493,14 +495,14 @@ function BriefSection({
           <input
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="Paste a Spotify or YouTube link"
+            placeholder={t("pdPasteLink")}
             autoFocus
             className={inputCls}
           />
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Track name (optional)"
+            placeholder={t("pdTrackNameOptional")}
             className={inputCls}
           />
           {/* The note is the whole point: "like this" is useless three weeks later */}
@@ -508,7 +510,7 @@ function BriefSection({
             value={note}
             onChange={(e) => setNote(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") addRef(); }}
-            placeholder="What to take from it: the drums, not the vocal"
+            placeholder={t("pdWhatToTake")}
             className={inputCls}
           />
           <div className="flex gap-2">
@@ -516,14 +518,14 @@ function BriefSection({
               onClick={() => { setAdding(false); setUrl(""); setTitle(""); setNote(""); }}
               className="flex-1 rounded-xl border border-white/10 py-2 text-xs font-semibold text-zinc-400 transition hover:border-white/20"
             >
-              Cancel
+              {t("mtCancel")}
             </button>
             <button
               onClick={addRef}
               disabled={!url.trim() && !title.trim()}
               className="flex-1 rounded-xl bg-accent py-2 text-xs font-semibold text-black transition hover:bg-accent/90 disabled:opacity-40"
             >
-              Add reference
+              {t("pdAddReference")}
             </button>
           </div>
         </div>
@@ -531,24 +533,24 @@ function BriefSection({
 
       {refs.length === 0 && !adding && (
         <p className="text-[11px] text-zinc-600">
-          No references yet. Add the tracks the client sent as &ldquo;make it like this&rdquo;.
+          {t("pdNoReferences")}
         </p>
       )}
 
       <div className="grid grid-cols-2 gap-3 border-t border-white/5 pt-3">
-        <Field label="Genre"     value={brief.genre}      onChange={(v) => setBrief({ genre: v })}      placeholder="Orchestral, indie pop…" />
-        <Field label="Mood"      value={brief.mood}       onChange={(v) => setBrief({ mood: v })}       placeholder="Hopeful, tense…" />
-        <Field label="Tempo"     value={brief.tempo}      onChange={(v) => setBrief({ tempo: v })}      placeholder="≈ 92 BPM" />
-        <Field label="Key"       value={brief.musicalKey} onChange={(v) => setBrief({ musicalKey: v })} placeholder="D minor" />
+        <Field label={t("pdGenre")}    value={brief.genre}      onChange={(v) => setBrief({ genre: v })}      placeholder={t("pdGenrePlaceholder")} />
+        <Field label={t("pdMood")}     value={brief.mood}       onChange={(v) => setBrief({ mood: v })}       placeholder={t("pdMoodPlaceholder")} />
+        <Field label={t("pdTempo")}    value={brief.tempo}      onChange={(v) => setBrief({ tempo: v })}      placeholder="≈ 92 BPM" />
+        <Field label={t("pdKey")}      value={brief.musicalKey} onChange={(v) => setBrief({ musicalKey: v })} placeholder={t("pdKeyPlaceholder")} />
       </div>
       <Field
-        label="Instrumentation"
+        label={t("pdInstrumentation")}
         value={brief.instrumentation}
         onChange={(v) => setBrief({ instrumentation: v })}
-        placeholder="Strings, piano, light percussion"
+        placeholder={t("pdInstrumentationPlaceholder")}
       />
       <Field
-        label="Formats needed"
+        label={t("pdFormatsNeeded")}
         value={brief.formats}
         onChange={(v) => setBrief({ formats: v })}
         placeholder="60s, 30s, 15s, stems, instrumental"
@@ -573,6 +575,7 @@ export default function ProjectDetail({
   nextLabel: string | null;
   prevLabel: string | null;
 }) {
+  const { t } = useTranslation();
   const currency = (project.currency ?? getCurrency()) as Currency;
   const StatusIcon = statusMeta.icon;
 

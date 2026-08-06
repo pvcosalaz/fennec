@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { useCloudValue } from "@/lib/useCloudValue";
 import { getCurrency, formatMoney, useCurrency, currencyMeta } from "@/lib/currency";
 import {
@@ -84,6 +85,7 @@ export default function QuoteGenerator({
   autoOpenForm = false,
   userId,
 }: Props) {
+  const { t } = useTranslation();
   const [clients, setClients] = useState<Client[]>([]);
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
@@ -870,7 +872,7 @@ export default function QuoteGenerator({
 
             {form.paymentMethods.length === 0 && (
               <p className="text-[11px] text-zinc-600">
-                Add at least one so the client knows where to send the money.
+                {t("qgAddPaymentMethod")}
               </p>
             )}
           </div>
@@ -880,12 +882,12 @@ export default function QuoteGenerator({
             <span className="text-xs text-zinc-400">Client *</span>
             {clients.length === 0 ? (
               <div className="rounded-xl border border-dashed border-white/10 bg-black/20 p-4">
-                <p className="text-xs text-zinc-500">No clients saved yet.</p>
+                <p className="text-xs text-zinc-500">{t("qgNoClientsSaved")}</p>
                 <button
                   onClick={onGoToClients}
                   className="mt-2 text-xs text-accent underline-offset-2 hover:underline"
                 >
-                  Add a client first →
+                  {t("qgAddClientFirst")}
                 </button>
               </div>
             ) : (
@@ -973,9 +975,9 @@ export default function QuoteGenerator({
       {/* No quotes yet */}
       {!loading && quotes.length === 0 && !showForm && pricing.isSetupComplete && (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[0.02] py-16 text-center">
-          <p className="text-sm text-zinc-500">No quotes yet.</p>
+          <p className="text-sm text-zinc-500">{t("qgNoQuotesYet")}</p>
           <p className="mt-1 text-xs text-zinc-600">
-            Create your first quote and send it to a client in seconds.
+            {t("qgNoQuotesBody")}
           </p>
         </div>
       )}

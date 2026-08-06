@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Calendar, Trash2, Pencil, Check, MonitorPlay } from "lucide-react";
 import type { Brief } from "@/lib/contentData";
 import Teleprompter from "./Teleprompter";
@@ -19,6 +20,7 @@ type Props = {
 };
 
 export default function ScriptDetailOverlay({ brief, onClose, onDelete, onSchedule, onUpdate, scheduledTask, isDesktop = false }: Props) {
+  const { t } = useTranslation();
   const [editing, setEditing] = useState(false);
   const [title,   setTitle]   = useState(brief.title);
   const [script,  setScript]  = useState(brief.script ?? "");
@@ -36,7 +38,7 @@ export default function ScriptDetailOverlay({ brief, onClose, onDelete, onSchedu
   return (
     <ToolPage
       isDesktop={isDesktop}
-      eyebrow={editing ? "Editing script" : "Script"}
+      eyebrow={editing ? t("sdEditingScript") : t("sdScript")}
       onBack={editing
         ? () => { setEditing(false); setTitle(brief.title); setScript(brief.script ?? ""); }
         : onClose}
@@ -47,21 +49,21 @@ export default function ScriptDetailOverlay({ brief, onClose, onDelete, onSchedu
           className="flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2 text-sm font-bold text-black transition disabled:opacity-30"
         >
           {saved ? <Check size={14} /> : null}
-          {saved ? "Saved" : "Save"}
+          {saved ? t("sdSaved") : t("sdSave")}
         </button>
       ) : (
         <>
           <button
             onClick={() => setEditing(true)}
             className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 text-zinc-400 transition hover:text-white"
-            aria-label="Edit script"
+            aria-label={t("sdEditAria")}
           >
             <Pencil size={15} />
           </button>
           <button
             onClick={() => { onDelete(brief.id); onClose(); }}
             className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 text-zinc-600 transition hover:text-red-400"
-            aria-label="Delete script"
+            aria-label={t("sdDeleteAria")}
           >
             <Trash2 size={16} />
           </button>
@@ -75,7 +77,7 @@ export default function ScriptDetailOverlay({ brief, onClose, onDelete, onSchedu
               className="flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl border border-white/12 bg-white/5 font-bold text-white transition hover:bg-white/10 active:scale-[0.98]"
             >
               <MonitorPlay size={16} />
-              Read in Teleprompter
+              {t("sdReadTeleprompter")}
             </button>
           )}
           <button
@@ -83,7 +85,7 @@ export default function ScriptDetailOverlay({ brief, onClose, onDelete, onSchedu
             className="flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-accent font-bold text-black transition hover:brightness-105 active:scale-[0.98]"
           >
             <Calendar size={16} />
-            Schedule this content
+            {t("sdScheduleContent")}
           </button>
         </>
       ) : undefined}
@@ -113,7 +115,7 @@ export default function ScriptDetailOverlay({ brief, onClose, onDelete, onSchedu
               rel="noopener noreferrer"
               className="max-w-[220px] truncate rounded-full border border-accent/30 px-3 py-1 text-xs text-accent transition hover:border-accent/60"
             >
-              Reference ↗
+              {t("sdReference")}
             </a>
           )}
         </div>
@@ -124,7 +126,7 @@ export default function ScriptDetailOverlay({ brief, onClose, onDelete, onSchedu
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Title"
+              placeholder={t("sdTitlePlaceholder")}
               className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-lg font-bold placeholder-zinc-600 focus:outline-none focus:border-accent/50"
             />
 
@@ -132,7 +134,7 @@ export default function ScriptDetailOverlay({ brief, onClose, onDelete, onSchedu
             <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-4 py-3">
               <Calendar size={15} className="text-zinc-500 shrink-0" />
               <div className="flex-1">
-                <p className="text-[10px] text-zinc-500 uppercase tracking-widest mb-0.5">Publish date</p>
+                <p className="text-[10px] text-zinc-500 uppercase tracking-widest mb-0.5">{t("sdPublishDate")}</p>
                 <input
                   type="date"
                   value={date}
@@ -149,7 +151,7 @@ export default function ScriptDetailOverlay({ brief, onClose, onDelete, onSchedu
             <textarea
               value={script}
               onChange={(e) => setScript(e.target.value)}
-              placeholder="Write your script here..."
+              placeholder={t("sdScriptPlaceholder")}
               rows={14}
               className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-zinc-200 placeholder-zinc-600 leading-relaxed resize-none focus:outline-none focus:border-accent/50"
               style={{ fontFamily: "Courier, 'Courier New', monospace", fontSize: "12px" }}
@@ -163,7 +165,7 @@ export default function ScriptDetailOverlay({ brief, onClose, onDelete, onSchedu
             {/* Divider */}
             <div className="flex items-center gap-3">
               <div className="flex-1 h-px bg-white/5" />
-              <p className="text-[10px] text-zinc-600 uppercase tracking-widest">Script</p>
+              <p className="text-[10px] text-zinc-600 uppercase tracking-widest">{t("sdScript")}</p>
               <div className="flex-1 h-px bg-white/5" />
             </div>
 
@@ -171,7 +173,7 @@ export default function ScriptDetailOverlay({ brief, onClose, onDelete, onSchedu
             {script ? (
               <p className="text-sm text-zinc-200 leading-relaxed whitespace-pre-wrap">{script}</p>
             ) : (
-              <p className="text-sm text-zinc-600 italic">No script written yet.</p>
+              <p className="text-sm text-zinc-600 italic">{t("sdNoScript")}</p>
             )}
           </>
         )}

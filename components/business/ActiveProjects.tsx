@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 
 /** How long after a local edit we ignore realtime echoes. Long enough to cover
  *  a round trip, short enough that a genuine edit from another device lands
@@ -80,26 +81,26 @@ function prevStatus(current: ProjectStatus): ProjectStatus | null {
 // ─── Empty state ──────────────────────────────────────────────────────────────
 
 function EmptyState({ onAdd }: { onAdd: () => void }) {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-white/10 py-16 text-center">
       <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/5">
         <Clock className="h-6 w-6 text-zinc-500" />
       </div>
       <div className="space-y-1">
-        <p className="text-sm font-semibold text-white">No active projects</p>
+        <p className="text-sm font-semibold text-white">{t("apEmptyTitle")}</p>
         {/* The normal route is a quote the client approved. Manual creation is
             the exception (work that started before Fennec), so it reads as one
             instead of sitting here as the primary button. */}
         <p className="mx-auto max-w-xs text-xs leading-relaxed text-zinc-500">
-          Projects start when a client approves a quote. Head to Quotes and hit
-          &ldquo;Mark as approved&rdquo;.
+          {t("apEmptyBody")}
         </p>
       </div>
       <button
         onClick={onAdd}
         className="text-xs font-medium text-zinc-500 underline underline-offset-4 transition hover:text-accent"
       >
-        Or log work that started outside Fennec
+        {t("apEmptyManual")}
       </button>
     </div>
   );

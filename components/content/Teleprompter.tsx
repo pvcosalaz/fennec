@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { X, Play, Pause, RotateCcw, Minus, Plus } from "lucide-react";
 
 /* Full-screen teleprompter for reading a script to camera (see roadmap).
@@ -21,6 +22,7 @@ export default function Teleprompter({
   title?: string;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const scrollRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number>(0);
   const lastTsRef = useRef<number>(0);
@@ -111,12 +113,12 @@ export default function Teleprompter({
         </button>
         <span className="text-[11px] font-semibold uppercase tracking-[0.2em] truncate max-w-[55%]"
           style={{ color: "rgba(255,255,255,.4)" }}>
-          {title || "Teleprompter"}
+          {title || t("telTitle")}
         </span>
         <button onClick={() => setMirror((m) => !m)}
           className="text-[10px] font-bold px-2.5 py-1 rounded-full transition"
           style={{ color: mirror ? "#0a0a0c" : "rgba(255,255,255,.5)", background: mirror ? ACCENT : "rgba(255,255,255,.08)" }}>
-          MIRROR
+          {t("telMirror")}
         </button>
       </div>
 
@@ -139,7 +141,7 @@ export default function Teleprompter({
               transform: mirror ? "scaleX(-1)" : "none",
             }}
           >
-            {text || "No script to read."}
+            {text || t("telNoScript")}
           </div>
         </div>
 
@@ -148,13 +150,13 @@ export default function Teleprompter({
           <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
             <div className="flex flex-col items-center gap-2" style={{ color: "rgba(255,255,255,.55)" }}>
               <Play className="h-10 w-10" style={{ fill: "currentColor" }} />
-              <span className="text-[11px] uppercase tracking-widest">Tap to start</span>
+              <span className="text-[11px] uppercase tracking-widest">{t("telTapStart")}</span>
             </div>
           </div>
         )}
         {done && (
           <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
-            <span className="text-[12px] uppercase tracking-widest" style={{ color: ACCENT }}>End of script</span>
+            <span className="text-[12px] uppercase tracking-widest" style={{ color: ACCENT }}>{t("telEndOfScript")}</span>
           </div>
         )}
       </div>
@@ -189,7 +191,7 @@ export default function Teleprompter({
 
           {/* speed */}
           <div className="flex items-center gap-1.5">
-            <span className="text-[9px] uppercase tracking-wider" style={{ color: "rgba(255,255,255,.35)" }}>speed</span>
+            <span className="text-[9px] uppercase tracking-wider" style={{ color: "rgba(255,255,255,.35)" }}>{t("telSpeed")}</span>
             <button
               onClick={() => setSpeedIdx((i) => (i + 1) % SPEEDS.length)}
               className="px-3 h-9 rounded-full flex items-center justify-center bg-white/5 text-white text-[13px] font-bold active:scale-90 transition"

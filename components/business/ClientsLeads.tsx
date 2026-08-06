@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
   UserPlus,
@@ -22,6 +23,7 @@ type Props = {
 const emptyForm = { name: "", email: "", phone: "", company: "" };
 
 export default function ClientsLeads({ onBack, userId }: Props) {
+  const { t } = useTranslation();
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -225,9 +227,9 @@ export default function ClientsLeads({ onBack, userId }: Props) {
       {/* Empty state */}
       {!loading && clients.length === 0 && !showForm && (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[0.02] py-16 text-center">
-          <p className="text-sm text-zinc-500">No clients yet.</p>
+          <p className="text-sm text-zinc-500">{t("clNoClientsYet")}</p>
           <p className="mt-1 text-xs text-zinc-600">
-            Add your first contact to start sending quotes.
+            {t("clNoClientsBody")}
           </p>
         </div>
       )}
