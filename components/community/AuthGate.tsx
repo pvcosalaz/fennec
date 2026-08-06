@@ -117,12 +117,14 @@ export default function AuthGate() {
       className="relative flex flex-col items-center justify-center min-h-full flex-1 px-6 gap-8 overflow-hidden"
       style={{ background: "#0b0a08" }}
     >
-      {/* ── ambient glow field + floating orbs (same treatment as the landing) ── */}
-      <div className="ag-ambient" aria-hidden="true" />
-      <div className="ag-orbs" aria-hidden="true">
-        <span className="ag-orb ag-o1" />
-        <span className="ag-orb ag-o2" />
-        <span className="ag-orb ag-o3" />
+      {/* ── slow aurora field ──
+          Three wide, heavily blurred washes drifting at different speeds, so
+          the gradient recomposes instead of reading as separate blobs. The
+          grain on top dithers whatever banding survives. */}
+      <div className="ag-aurora" aria-hidden="true">
+        <span className="ag-wash ag-w1" />
+        <span className="ag-wash ag-w2" />
+        <span className="ag-wash ag-w3" />
       </div>
       <div className="ag-grain" aria-hidden="true" />
 
@@ -256,44 +258,96 @@ export default function AuthGate() {
       </div>{/* end content wrapper */}
 
       <style>{`
-        .ag-ambient {
-          position:absolute; inset:-25%; z-index:0; pointer-events:none;
-          background:
-            radial-gradient(34% 30% at 78% 14%, rgba(245,166,35,.30), transparent 64%),
-            radial-gradient(30% 28% at 10% 32%, rgba(245,166,35,.16), transparent 66%),
-            radial-gradient(42% 36% at 60% 88%, rgba(224,128,42,.26), transparent 64%);
-          filter: blur(8px); will-change: transform;
-          animation: agDrift 26s ease-in-out infinite alternate;
+        /* The whole field blurs as one. A single large blur beats per-orb
+           blurs: it smears the seams between washes too, so nothing reads as
+           a discrete blob with an edge. */
+        /* Bleeds past the viewport on purpose, and does NOT clip: a blur inside
+           an overflow:hidden box samples the empty space beyond its edges and
+           fades the field out around the rim. The page root already clips. */
+        .ag-aurora {
+          position:absolute; inset:-30%; z-index:0; pointer-events:none;
+          filter: blur(56px) saturate(115%);
         }
-        @keyframes agDrift {
-          0%   { transform: translate3d(0,0,0) scale(1); }
-          50%  { transform: translate3d(-3%,2.5%,0) scale(1.08); }
-          100% { transform: translate3d(3%,-2%,0) scale(1.04); }
+        /* Each wash is centred on its own point via translate(-50%,-50%) — kept
+           inside the keyframes, since animating transform would drop it.
+           closest-side ties the falloff to the element box, so the multi-stop
+           ramp below lands the same way at any viewport size. */
+        .ag-wash {
+          position:absolute; border-radius:50%;
+          will-change: transform; mix-blend-mode: screen;
         }
-        .ag-orbs { position:absolute; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
-        .ag-orb {
-          position:absolute; border-radius:50%; pointer-events:none;
-          mix-blend-mode:screen; opacity:.10; filter:blur(36px); will-change: transform;
+        /* Eight stops, not two.
+           [UI 2026-08-05] going colour to transparent in one hop is what made these
+           band: over a near-black page that ramp crosses only a handful of
+           8-bit luminance levels, and the display quantises it into rings.
+           Same fix as The Tape's reactive glow (2026-08-04): hand-rolled
+           gaussian-ish falloff, then grain on top to dither the remainder. */
+        /* Same three anchors as the old orbs (top-right, mid-left, lower-right)
+           so the composition is unchanged — only the falloff and the pace are. */
+        .ag-w1 {
+          width:78vmax; height:78vmax; left:74%; top:24%;
+          background: radial-gradient(closest-side,
+            rgba(245,166,35,.42) 0%,   rgba(245,166,35,.370) 13%,
+            rgba(245,166,35,.300) 26%, rgba(245,166,35,.224) 39%,
+            rgba(245,166,35,.151) 52%, rgba(245,166,35,.089) 65%,
+            rgba(245,166,35,.043) 78%, rgba(245,166,35,.015) 89%,
+            rgba(245,166,35,0) 100%);
+          animation: agW1 58s ease-in-out infinite alternate;
         }
-        .ag-o1 { width:320px; height:320px; left:58%; top:2%;
-          background:radial-gradient(circle at 38% 32%, rgba(245,166,35,.5), rgba(245,166,35,.16) 48%, transparent 72%);
-          animation: agFloat1 24s ease-in-out infinite alternate; }
-        .ag-o2 { width:220px; height:220px; left:-12%; top:52%;
-          background:radial-gradient(circle at 38% 32%, rgba(255,201,92,.42), rgba(245,166,35,.13) 50%, transparent 72%);
-          animation: agFloat2 19s ease-in-out infinite alternate; }
-        .ag-o3 { width:260px; height:260px; left:60%; top:76%; filter:blur(44px);
-          background:radial-gradient(circle at 40% 35%, rgba(224,128,42,.34), rgba(224,128,42,.1) 52%, transparent 74%);
-          animation: agFloat3 28s ease-in-out infinite alternate; }
-        @keyframes agFloat1 { from{transform:translate(0,0)} to{transform:translate(-24px,30px)} }
-        @keyframes agFloat2 { from{transform:translate(0,0)} to{transform:translate(28px,-22px)} }
-        @keyframes agFloat3 { from{transform:translate(0,0)} to{transform:translate(-20px,-28px)} }
+        .ag-w2 {
+          width:62vmax; height:62vmax; left:14%; top:62%;
+          background: radial-gradient(closest-side,
+            rgba(255,201,92,.30) 0%,   rgba(255,201,92,.264) 13%,
+            rgba(255,201,92,.214) 26%, rgba(255,201,92,.159) 39%,
+            rgba(255,201,92,.107) 52%, rgba(255,201,92,.063) 65%,
+            rgba(255,201,92,.030) 78%, rgba(255,201,92,.011) 89%,
+            rgba(255,201,92,0) 100%);
+          animation: agW2 74s ease-in-out infinite alternate;
+        }
+        .ag-w3 {
+          width:70vmax; height:70vmax; left:68%; top:88%;
+          background: radial-gradient(closest-side,
+            rgba(224,128,42,.36) 0%,   rgba(224,128,42,.316) 13%,
+            rgba(224,128,42,.256) 26%, rgba(224,128,42,.190) 39%,
+            rgba(224,128,42,.128) 52%, rgba(224,128,42,.075) 65%,
+            rgba(224,128,42,.036) 78%, rgba(224,128,42,.013) 89%,
+            rgba(224,128,42,0) 100%);
+          animation: agW3 66s ease-in-out infinite alternate;
+        }
+        /* Slow, and no two cycles in step, so the field never visibly repeats.
+           The -50% pair centres the wash on its left/top anchor and has to be
+           repeated in every frame: transform replaces, it doesn't accumulate. */
+        @keyframes agW1 {
+          0%   { transform: translate(-50%,-50%) scale(1); }
+          100% { transform: translate(-54%,-45%) scale(1.16); }
+        }
+        @keyframes agW2 {
+          0%   { transform: translate(-50%,-50%) scale(1.08); }
+          100% { transform: translate(-45%,-55%) scale(1); }
+        }
+        @keyframes agW3 {
+          0%   { transform: translate(-50%,-50%) scale(1.1); }
+          100% { transform: translate(-55%,-56%) scale(1); }
+        }
+        /* Sits above the field so it dithers it. Drifts on its own slow cycle:
+           a static grain over moving colour lets the eye track the bands
+           sliding underneath a fixed texture. */
         .ag-grain {
-          position:absolute; inset:0; z-index:1; pointer-events:none; opacity:.055;
+          position:absolute; inset:-50%; z-index:1; pointer-events:none; opacity:.07;
           background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.68' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
           background-size:200px 200px;
+          animation: agGrain 42s steps(6) infinite;
+        }
+        @keyframes agGrain {
+          0%,100% { transform: translate3d(0,0,0); }
+          16%     { transform: translate3d(-1.5%,1%,0); }
+          33%     { transform: translate3d(1%,-1.5%,0); }
+          50%     { transform: translate3d(-1%,-1%,0); }
+          66%     { transform: translate3d(1.5%,1.5%,0); }
+          83%     { transform: translate3d(-.5%,1.5%,0); }
         }
         @media (prefers-reduced-motion: reduce) {
-          .ag-ambient, .ag-orb { animation: none !important; }
+          .ag-wash, .ag-grain { animation: none !important; }
         }
       `}</style>
     </div>
