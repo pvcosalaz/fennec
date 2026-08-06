@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { X, Play, Pause, RotateCcw, Minus, Plus } from "lucide-react";
 
@@ -40,6 +41,10 @@ export default function Teleprompter({
   const [fontSize, setFontSize] = useState(32);
   const [mirror, setMirror] = useState(false); // for a real teleprompter rig
   const [done, setDone] = useState(false);
+  /* Portal: se monta despues del primer render para no tocar `document`
+     durante el SSR. */
+  const [montado, setMontado] = useState(false);
+  useEffect(() => { setMontado(true); }, []);
 
   const speed = SPEEDS[speedIdx];
 
@@ -103,7 +108,20 @@ export default function Teleprompter({
     setRunning(true);
   }
 
-  return (
+  /* ── Se dibuja en <body>, no donde vive el componente ──
+     [UI 2026-08-06] El dock se pintaba ENCIMA del teleprompter. No era un
+     z-index bajo: DesktopShell mete a {children} dentro de un `relative z-10`,
+     y eso abre un contexto de apilamiento. Dentro de esa caja el z-[200] de
+     aqui solo compite contra sus hermanos; hacia afuera, TODO el bloque vale
+     10, o sea menos que la fila del avatar (z-20) y que el dock (z-40).
+     Subirle el numero aqui no podia funcionar nunca.
+     El portal lo saca de esa caja y lo vuelve hermano del dock, asi que el
+     fondo opaco por fin lo tapa — que es justo lo que se buscaba al querer
+     "ocultar el dock" en esta pantalla. Sirve para cualquier overlay a
+     pantalla completa que venga despues. */
+  if (!montado) return null;
+
+  return createPortal(
     <div className="fixed inset-0 z-[200] flex flex-col" style={{ background: "#0a0a0c", height: "var(--app-h, 100dvh)" }}>
       {/* top bar */}
       <div className="flex items-center justify-between px-4 shrink-0"
@@ -204,6 +222,7 @@ export default function Teleprompter({
       </div>
 
       <style>{`.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}`}</style>
-    </div>
+    </div>,
+    document.body,
   );
 }
