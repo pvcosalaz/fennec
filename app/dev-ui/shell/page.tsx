@@ -154,7 +154,10 @@ export default function ShellDevPage() {
         <TapeDeckDesktop
           track={{
             id: "t1", user_id: "u1", title: "Violet", category: "Demo",
-            audio_url: "", artwork_url: null, duration_seconds: 48,
+            /* Tono con barrido: sin audio real vuLevel se queda en 0 y no hay
+               forma de juzgar un fondo REACTIVO (que es justo lo que se esta
+               evaluando). /api/dev-audio existe para esto. */
+            audio_url: "/api/dev-audio?tone=1", artwork_url: null, duration_seconds: 48,
             created_at: new Date().toISOString(), comment_count: 3,
             profile: { id: "u1", username: "pvcosalaz", avatar_url: null },
           } as ProjectReview}
@@ -162,6 +165,8 @@ export default function ShellDevPage() {
           onPass={() => {}}
           onOpenMyTracks={() => {}}
           onOpenIntro={() => {}}
+          /* ?tape=1&threads=1 · ensayo del fondo WebGL antes de tocar prod */
+          fondoThreads={params?.get("threads") === "1"}
         />
       ) : (
       <DashboardDesktop

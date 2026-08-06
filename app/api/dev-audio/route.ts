@@ -68,6 +68,12 @@ export async function GET(request: Request) {
       'Content-Type': 'audio/wav',
       'Content-Length': wav.length.toString(),
       'Cache-Control': 'no-store',
+      // The tape's <audio> carries crossOrigin="anonymous" so the AnalyserNode
+      // can read samples. Without this header the browser still PLAYS the file
+      // but hands the analyser nothing but zeros — the VU needles and the
+      // audio-reactive background sat dead while the sound was clearly running
+      // (2026-08-05). Dev-only route: it 404s in production above.
+      'Access-Control-Allow-Origin': '*',
     },
   });
 }
