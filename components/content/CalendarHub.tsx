@@ -213,7 +213,7 @@ export default function CalendarHub({
           not yet linked. Once linked, events just appear (blue dots). */}
       {gcalOn && !gcalConnected && (
         <button
-          onClick={() => userId && connectGoogleCalendar(userId)}
+          onClick={() => { void connectGoogleCalendar(); }}
           className="flex-shrink-0 flex items-center gap-2 self-start rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-[12px] font-medium text-zinc-300 transition hover:border-accent/40 hover:text-white"
         >
           <CalendarPlus size={14} className="text-accent" />

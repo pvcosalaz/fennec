@@ -1,20 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import { randomBytes } from "crypto";
 import { GOOGLE_CLIENT_ID, GOOGLE_REDIRECT_URI, GCAL_SCOPE, gcalConfigured } from "@/lib/googleCalendar";
+import { iniciarOAuth, respuestaConexion, GCAL_COOKIE } from "@/lib/oauthConnect";
 
-const APP = "https://app.fennec.audio";
-
-// Kicks off Google OAuth. Same CSRF pattern as Spotify: a random nonce lives in
-// an HttpOnly cookie and is echoed (with the userId) through `state`.
-export async function GET(req: NextRequest) {
-  if (!gcalConfigured()) {
-    return NextResponse.redirect(`${APP}/?gcal=unconfigured`);
+// Kicks off Google OAuth. POST (not GET) so the Supabase access token can ride
+// in the Authorization header: the userId comes from that token, never from the
+// query string. See lib/oauthConnect.ts for the account-takeover this prevents.
+export async function POST(req: NextRequest) {
+  // Auth first, config second: an anonymous caller shouldn't learn whether the
+  // integration is set up on this deploy.
+  const sesion = await iniciarOAuth(req);
+  if (!sesion.ok) {
+    return NextResponse.json({ error: sesion.error }, { status: sesion.status });
   }
-  const userId = req.nextUrl.searchParams.get("userId") ?? "";
-  if (!userId) return NextResponse.redirect(`${APP}/?gcal=error`);
 
-  const nonce = randomBytes(16).toString("hex");
-  const state = Buffer.from(`${nonce}:${userId}`).toString("base64");
+  if (!gcalConfigured()) {
+    return NextResponse.json({ error: "Google Calendar is not configured" }, { status: 503 });
+  }
+
+  // Only the nonce travels through `state`; the callback takes the userId from
+  // the HttpOnly cookie instead, because `state` round-trips through the user.
+  const state = Buffer.from(sesion.nonce).toString("base64");
 
   const params = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID,
@@ -27,9 +32,8 @@ export async function GET(req: NextRequest) {
     state,
   });
 
-  const response = NextResponse.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params}`);
-  response.cookies.set("gcal_oauth_nonce", nonce, {
-    httpOnly: true, secure: true, sameSite: "lax", maxAge: 600, path: "/",
-  });
-  return response;
+  return respuestaConexion(
+    `https://accounts.google.com/o/oauth2/v2/auth?${params}`,
+    GCAL_COOKIE, sesion.nonce, sesion.userId,
+  );
 }

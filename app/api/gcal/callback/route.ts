@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { exchangeCode, GCAL_PLATFORM } from "@/lib/googleCalendar";
+import { usuarioDesdeCookie, GCAL_COOKIE } from "@/lib/oauthConnect";
 
 const APP = "https://app.fennec.audio";
 
@@ -11,16 +12,11 @@ export async function GET(req: NextRequest) {
 
   if (error || !code) return NextResponse.redirect(`${APP}/?gcal=error`);
 
-  const decoded = Buffer.from(state, "base64").toString("utf8");
-  const colon = decoded.indexOf(":");
-  const nonce = colon !== -1 ? decoded.slice(0, colon) : "";
-  const userId = colon !== -1 ? decoded.slice(colon + 1) : "";
-
-  // Verify CSRF nonce against the HttpOnly cookie
-  const cookieNonce = req.cookies.get("gcal_oauth_nonce")?.value ?? "";
-  if (!nonce || !cookieNonce || nonce !== cookieNonce || !userId) {
-    return NextResponse.redirect(`${APP}/?gcal=error`);
-  }
+  // Identity comes from the HttpOnly cookie written at /connect (which required
+  // a valid Supabase token). `state` only proves this callback belongs to the
+  // flow this browser started — it never decides whose tokens these are.
+  const userId = usuarioDesdeCookie(req, GCAL_COOKIE, state);
+  if (!userId) return NextResponse.redirect(`${APP}/?gcal=error`);
 
   const tokens = await exchangeCode(code);
   if (!tokens?.refresh_token) {
@@ -43,6 +39,6 @@ export async function GET(req: NextRequest) {
   );
 
   const response = NextResponse.redirect(`${APP}/?gcal=connected`);
-  response.cookies.delete("gcal_oauth_nonce");
+  response.cookies.delete(GCAL_COOKIE);
   return response;
 }

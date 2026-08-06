@@ -1,14 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { randomBytes } from "crypto";
+import { iniciarOAuth, respuestaConexion, YOUTUBE_COOKIE } from "@/lib/oauthConnect";
 
-export async function GET(req: NextRequest) {
-  const userId = req.nextUrl.searchParams.get("userId") ?? "";
+// Kicks off YouTube OAuth. POST (not GET) so the Supabase access token can ride
+// in the Authorization header: the userId comes from that token, never from the
+// query string. See lib/oauthConnect.ts for the account-takeover this prevents.
+export async function POST(req: NextRequest) {
+  const sesion = await iniciarOAuth(req);
+  if (!sesion.ok) {
+    return NextResponse.json({ error: sesion.error }, { status: sesion.status });
+  }
 
-  // Generate a random nonce to prevent CSRF attacks on the OAuth callback
-  const nonce = randomBytes(16).toString("hex");
-
-  // State encodes nonce + userId — nonce is verified on callback via HttpOnly cookie
-  const state = Buffer.from(`${nonce}:${userId}`).toString("base64");
+  // Only the nonce travels through `state`; the callback takes the userId from
+  // the HttpOnly cookie instead, because `state` round-trips through the user.
+  const state = Buffer.from(sesion.nonce).toString("base64");
 
   const params = new URLSearchParams({
     client_id:     process.env.GOOGLE_CLIENT_ID ?? "",
@@ -20,16 +24,8 @@ export async function GET(req: NextRequest) {
     state,
   });
 
-  const response = NextResponse.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params}`);
-
-  // HttpOnly cookie holds the nonce — expires in 10 min
-  response.cookies.set("youtube_oauth_nonce", nonce, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-    maxAge: 600,
-    path: "/",
-  });
-
-  return response;
+  return respuestaConexion(
+    `https://accounts.google.com/o/oauth2/v2/auth?${params}`,
+    YOUTUBE_COOKIE, sesion.nonce, sesion.userId,
+  );
 }

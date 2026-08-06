@@ -1,6 +1,6 @@
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextRequest, NextResponse } from "next/server";
-
+import { usuarioDesdeCookie, SPOTIFY_COOKIE } from "@/lib/oauthConnect";
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get("code");
@@ -11,15 +11,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect("https://fennec-pi.vercel.app/?spotify=error");
   }
 
-  // Decode state: format is base64("nonce:userId")
-  const decoded  = Buffer.from(state, "base64").toString("utf8");
-  const colonIdx = decoded.indexOf(":");
-  const nonce    = colonIdx !== -1 ? decoded.slice(0, colonIdx) : "";
-  const userId   = colonIdx !== -1 ? decoded.slice(colonIdx + 1) : "";
-
-  // Verify CSRF nonce against the HttpOnly cookie set in /connect
-  const cookieNonce = req.cookies.get("spotify_oauth_nonce")?.value ?? "";
-  if (!nonce || !cookieNonce || nonce !== cookieNonce || !userId) {
+  // Identity comes from the HttpOnly cookie written at /connect (which required
+  // a valid Supabase token). `state` only proves this callback belongs to the
+  // flow this browser started — it never decides whose tokens these are.
+  const userId = usuarioDesdeCookie(req, SPOTIFY_COOKIE, state);
+  if (!userId) {
     return NextResponse.redirect("https://fennec-pi.vercel.app/?spotify=error");
   }
 
@@ -57,6 +53,6 @@ export async function GET(req: NextRequest) {
 
   // Clear the nonce cookie after successful use
   const response = NextResponse.redirect("https://fennec-pi.vercel.app/?spotify=connected");
-  response.cookies.delete("spotify_oauth_nonce");
+  response.cookies.delete(SPOTIFY_COOKIE);
   return response;
 }
