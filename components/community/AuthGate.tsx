@@ -266,7 +266,7 @@ export default function AuthGate() {
            fades the field out around the rim. The page root already clips. */
         .ag-aurora {
           position:absolute; inset:-30%; z-index:0; pointer-events:none;
-          filter: blur(56px) saturate(115%);
+          filter: blur(56px) saturate(104%);
         }
         /* Each wash is centred on its own point via translate(-50%,-50%) — kept
            inside the keyframes, since animating transform would drop it.
@@ -284,33 +284,36 @@ export default function AuthGate() {
            gaussian-ish falloff, then grain on top to dither the remainder. */
         /* Same three anchors as the old orbs (top-right, mid-left, lower-right)
            so the composition is unchanged — only the falloff and the pace are. */
+        /* Peaks sit around .10-.12 alpha: the field should read as the room the
+           form sits in, not as an object on the page. Low contrast also means
+           fewer 8-bit steps to band in the first place. */
         .ag-w1 {
           width:78vmax; height:78vmax; left:74%; top:24%;
           background: radial-gradient(closest-side,
-            rgba(245,166,35,.42) 0%,   rgba(245,166,35,.370) 13%,
-            rgba(245,166,35,.300) 26%, rgba(245,166,35,.224) 39%,
-            rgba(245,166,35,.151) 52%, rgba(245,166,35,.089) 65%,
-            rgba(245,166,35,.043) 78%, rgba(245,166,35,.015) 89%,
+            rgba(245,166,35,.122) 0%,  rgba(245,166,35,.107) 13%,
+            rgba(245,166,35,.087) 26%, rgba(245,166,35,.065) 39%,
+            rgba(245,166,35,.044) 52%, rgba(245,166,35,.026) 65%,
+            rgba(245,166,35,.012) 78%, rgba(245,166,35,.004) 89%,
             rgba(245,166,35,0) 100%);
           animation: agW1 58s ease-in-out infinite alternate;
         }
         .ag-w2 {
           width:62vmax; height:62vmax; left:14%; top:62%;
           background: radial-gradient(closest-side,
-            rgba(255,201,92,.30) 0%,   rgba(255,201,92,.264) 13%,
-            rgba(255,201,92,.214) 26%, rgba(255,201,92,.159) 39%,
-            rgba(255,201,92,.107) 52%, rgba(255,201,92,.063) 65%,
-            rgba(255,201,92,.030) 78%, rgba(255,201,92,.011) 89%,
+            rgba(255,201,92,.090) 0%,  rgba(255,201,92,.079) 13%,
+            rgba(255,201,92,.064) 26%, rgba(255,201,92,.048) 39%,
+            rgba(255,201,92,.032) 52%, rgba(255,201,92,.019) 65%,
+            rgba(255,201,92,.009) 78%, rgba(255,201,92,.003) 89%,
             rgba(255,201,92,0) 100%);
           animation: agW2 74s ease-in-out infinite alternate;
         }
         .ag-w3 {
           width:70vmax; height:70vmax; left:68%; top:88%;
           background: radial-gradient(closest-side,
-            rgba(224,128,42,.36) 0%,   rgba(224,128,42,.316) 13%,
-            rgba(224,128,42,.256) 26%, rgba(224,128,42,.190) 39%,
-            rgba(224,128,42,.128) 52%, rgba(224,128,42,.075) 65%,
-            rgba(224,128,42,.036) 78%, rgba(224,128,42,.013) 89%,
+            rgba(224,128,42,.104) 0%,  rgba(224,128,42,.092) 13%,
+            rgba(224,128,42,.074) 26%, rgba(224,128,42,.055) 39%,
+            rgba(224,128,42,.037) 52%, rgba(224,128,42,.022) 65%,
+            rgba(224,128,42,.010) 78%, rgba(224,128,42,.004) 89%,
             rgba(224,128,42,0) 100%);
           animation: agW3 66s ease-in-out infinite alternate;
         }
