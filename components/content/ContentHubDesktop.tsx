@@ -130,8 +130,12 @@ export default function ContentHubDesktop({
        y no se leia un grupo, sino cuatro casos sueltos (Paco 2026-08-03).
        Juntas, la fila dice de un vistazo donde termina lo tuyo y donde empieza
        lo que se desbloquea. */
-    { id: "ideas",   label: t("mkQuickIdeas"), sub: ideasCount > 0 ? t("mkSavedIdeas", { count: ideasCount }) : t("mkCaptureIdeas"), icon: Sparkles, pro: false },
+    /* Mis guiones ABRE la fila (Paco 2026-08-06): es el destino, no la
+       entrada. Casi toda visita a Marketing es a revisar o retomar un guion
+       que ya existe; capturar una idea suelta es lo ocasional. La primera
+       tarjeta debe ser a lo que vienes, no al paso previo. */
     { id: "scripts", label: t("mkMyScripts"),  sub: scriptsCount > 0 ? t("mkScriptsWritten", { count: scriptsCount }) : t("mkEverythingLands"), icon: FileText, pro: false },
+    { id: "ideas",   label: t("mkQuickIdeas"), sub: ideasCount > 0 ? t("mkSavedIdeas", { count: ideasCount }) : t("mkCaptureIdeas"), icon: Sparkles, pro: false },
     { id: "inspire", label: "Inspire",     /* Cuatro palabras que venden, no una descripcion que se corta: "Trending
        references for your ge…" truncado no invita a nada, y esta tarjeta es el
        gancho de PRO (Paco 2026-08-04). */
