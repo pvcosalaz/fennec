@@ -690,11 +690,23 @@ export default function PricingCalculator() {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(merged)); } catch { /* ignore */ }
   });
 
+  /* ── Idioma: preferencia de la CUENTA, no del navegador ──
+     [2026-08-07] Antes vivia solo en localStorage, asi que elegias español en
+     la laptop y el telefono seguia en ingles. El idioma es de la persona, no
+     del aparato.
+
+     localStorage NO desaparece: pasa de ser la verdad a ser el cache. Se lee
+     sincrono al montar para que la primera pintura ya salga en tu idioma (sin
+     parpadeo de ingles), y la nube corrige despues si el otro dispositivo lo
+     cambio. La nube es la autoridad; el disco local es la respuesta inmediata. */
+  const [idioma, setIdioma] = useState<string | null>(null);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     const savedLanguage = localStorage.getItem(LANGUAGE_STORAGE_KEY);
     if (savedLanguage === "en" || savedLanguage === "es") {
       void i18n.changeLanguage(savedLanguage);
+      setIdioma(savedLanguage);
     }
     /* Solo al montar. Con [i18n] en las deps, si la identidad del objeto no es
        estable el efecto corre en CADA render y restaura el idioma una y otra
@@ -703,11 +715,25 @@ export default function PricingCalculator() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /* Espeja a i18n venga de donde venga el cambio: Settings, o el selector del
+     recorrido en CoachMarks, que vive mas abajo en este mismo arbol. */
   useEffect(() => {
     if (typeof window === "undefined") return;
     const normalizedLanguage = i18n.resolvedLanguage?.startsWith("es") ? "es" : "en";
     localStorage.setItem(LANGUAGE_STORAGE_KEY, normalizedLanguage);
+    setIdioma(normalizedLanguage);
   }, [i18n.resolvedLanguage]);
+
+  /* Sin sesion, pullUserState devuelve null y esto no hace nada: la pantalla de
+     acceso se pinta antes de que exista cuenta y ahi manda el localStorage. */
+  useCloudValue<string>(LANGUAGE_STORAGE_KEY, idioma, (remoto) => {
+    if (remoto !== "en" && remoto !== "es") return;
+    /* changeLanguage es idempotente por el candado de lib/i18n: pedir el idioma
+       que ya esta activo no dispara nada. Sin eso, esto y el efecto de arriba
+       se retroalimentarian (fue el crash de "Maximum update depth", 2026-08-05). */
+    void i18n.changeLanguage(remoto);
+    setIdioma(remoto);
+  });
 
   const personalTotal = useMemo(
     () => sumValues(state.personalExpenses),
