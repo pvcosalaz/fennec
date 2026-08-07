@@ -99,6 +99,7 @@ function MoneySection({
 }: {
   project: Project; currency: Currency; onChange: (p: Project) => void;
 }) {
+  const { t } = useTranslation();
   const { price, collected, pending } = projectMoney(project);
   const [adding, setAdding] = useState(false);
   const [amount, setAmount] = useState("");
@@ -127,7 +128,9 @@ function MoneySection({
       id: crypto.randomUUID(),
       amount: value,
       date,
-      label: label.trim() || (payments.length === 0 ? "Deposit" : "Payment"),
+      /* Se guarda ya traducido: es contenido del usuario, y a alguien que
+         trabaja en español no debe quedarle "Deposit" en su registro. */
+      label: label.trim() || (payments.length === 0 ? t("pdAnticipo") : t("pdPago")),
     };
     onChange({ ...project, payments: [...payments, payment] });
     setAmount(""); setLabel(""); setAdding(false);
@@ -139,14 +142,14 @@ function MoneySection({
   return (
     <Section
       icon={Banknote}
-      title="Money"
+      title={t("pdDinero")}
       right={
         !adding && (
           <button
             onClick={() => setAdding(true)}
             className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-[11px] font-medium text-zinc-300 transition hover:border-accent/50 hover:text-accent"
           >
-            <Plus className="h-3 w-3" /> Log payment
+            <Plus className="h-3 w-3" /> {t("pdRegistrarPago")}
           </button>
         )
       }
@@ -154,7 +157,7 @@ function MoneySection({
       {/* Three numbers, because one can't tell "billed" from "in the bank" */}
       <div className="grid grid-cols-3 gap-3">
         <div>
-          <p className="text-[10px] uppercase tracking-wider text-zinc-500">Agreed</p>
+          <p className="text-[10px] uppercase tracking-wider text-zinc-500">{t("pdAcordado")}</p>
           {/* Editable: scope changes mid-job, and the price was previously
               locked once the project existed. */}
           {editingPrice ? (
@@ -175,18 +178,18 @@ function MoneySection({
             <button
               onClick={() => { setPriceDraft(String(price)); setEditingPrice(true); }}
               className="mt-0.5 text-sm font-bold text-white transition hover:text-accent"
-              title="Edit the agreed price"
+              title={t("pdEditarPrecio")}
             >
               {formatMoney(price, currency)}
             </button>
           )}
         </div>
         <div>
-          <p className="text-[10px] uppercase tracking-wider text-zinc-500">Collected</p>
+          <p className="text-[10px] uppercase tracking-wider text-zinc-500">{t("apCobradoTotal")}</p>
           <p className="mt-0.5 text-sm font-bold text-emerald-400">{formatMoney(collected, currency)}</p>
         </div>
         <div>
-          <p className="text-[10px] uppercase tracking-wider text-zinc-500">Pending</p>
+          <p className="text-[10px] uppercase tracking-wider text-zinc-500">{t("apPendienteTotal")}</p>
           <p className={`mt-0.5 text-sm font-bold ${pending > 0 ? "text-amber-400" : "text-zinc-500"}`}>
             {formatMoney(pending, currency)}
           </p>
@@ -208,7 +211,7 @@ function MoneySection({
               inputMode="decimal"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              placeholder="Amount"
+              placeholder={t("pdMonto")}
               autoFocus
               className={inputCls}
             />
@@ -223,7 +226,7 @@ function MoneySection({
           <input
             value={label}
             onChange={(e) => setLabel(e.target.value)}
-            placeholder={payments.length === 0 ? "Deposit" : "Second installment"}
+            placeholder={payments.length === 0 ? t("pdAnticipo") : t("pdSegundoPago")}
             className={inputCls}
           />
           <div className="flex gap-2">
@@ -231,14 +234,14 @@ function MoneySection({
               onClick={() => { setAdding(false); setAmount(""); setLabel(""); }}
               className="flex-1 rounded-xl border border-white/10 py-2 text-xs font-semibold text-zinc-400 transition hover:border-white/20"
             >
-              Cancel
+              {t("mtCancel")}
             </button>
             <button
               onClick={addPayment}
               disabled={!Number(amount)}
               className="flex-1 rounded-xl bg-accent py-2 text-xs font-semibold text-black transition hover:bg-accent/90 disabled:opacity-40"
             >
-              Add
+              {t("pdAgregar")}
             </button>
           </div>
         </div>
@@ -258,7 +261,7 @@ function MoneySection({
                 </span>
                 <button
                   onClick={() => removePayment(p.id)}
-                  aria-label={`Remove ${p.label}`}
+                  aria-label={t("pdRemoveX", { title: p.label })}
                   className="rounded p-1 text-zinc-700 transition hover:text-red-400 group-hover:text-zinc-500"
                 >
                   <Trash2 className="h-3 w-3" />
@@ -271,7 +274,7 @@ function MoneySection({
 
       {payments.length === 0 && !adding && (
         <p className="text-[11px] text-zinc-600">
-          Nothing collected yet. Log the deposit when it lands.
+          {t("pdNadaCobradoAun")}
         </p>
       )}
     </Section>
@@ -285,6 +288,7 @@ function DeliverablesSection({
 }: {
   project: Project; onChange: (p: Project) => void;
 }) {
+  const { t } = useTranslation();
   const items = project.deliverables ?? [];
   const { done, total } = deliverableProgress(items);
   const [adding, setAdding] = useState(false);
@@ -312,12 +316,8 @@ function DeliverablesSection({
   return (
     <Section
       icon={ListChecks}
-      title="Deliverables"
-      hint={
-        project.quoteId
-          ? "Copied from the approved quote. What you charged for is what you owe."
-          : undefined
-      }
+      title={t("pdEntregables")}
+      hint={project.quoteId ? t("pdEntregablesHint") : undefined}
       right={
         <div className="flex items-center gap-2">
           {total > 0 && (
@@ -328,7 +328,7 @@ function DeliverablesSection({
               onClick={() => setAdding(true)}
               className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-[11px] font-medium text-zinc-300 transition hover:border-accent/50 hover:text-accent"
             >
-              <Plus className="h-3 w-3" /> Add
+              <Plus className="h-3 w-3" /> {t("pdAgregar")}
             </button>
           )}
         </div>
@@ -359,7 +359,7 @@ function DeliverablesSection({
               </span>
               <button
                 onClick={() => remove(d.id)}
-                aria-label={`Remove ${d.concept}`}
+                aria-label={t("pdRemoveX", { title: d.concept })}
                 className="shrink-0 rounded p-1 text-zinc-700 opacity-0 transition hover:text-red-400 group-hover:opacity-100"
               >
                 <X className="h-3 w-3" />
@@ -375,7 +375,7 @@ function DeliverablesSection({
             value={concept}
             onChange={(e) => setConcept(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") add(); if (e.key === "Escape") setAdding(false); }}
-            placeholder="e.g. 30s cutdown"
+            placeholder={t("pdEjEntregable")}
             autoFocus
             className={inputCls}
           />
@@ -384,16 +384,14 @@ function DeliverablesSection({
             disabled={!concept.trim()}
             className="shrink-0 rounded-xl bg-accent px-4 text-xs font-semibold text-black transition hover:bg-accent/90 disabled:opacity-40"
           >
-            Add
+            {t("pdAgregar")}
           </button>
         </div>
       )}
 
       {total === 0 && !adding && (
         <p className="text-[11px] text-zinc-600">
-          {project.quoteId
-            ? "This project came from a quote with no line items. Add what you owe."
-            : "Nothing listed yet. Add what you owe the client."}
+          {project.quoteId ? t("pdSinPartidas") : t("pdSinEntregables")}
         </p>
       )}
     </Section>
@@ -585,18 +583,18 @@ export default function ProjectDetail({
       <div className="flex items-start gap-3">
         <button
           onClick={onBack}
-          aria-label="Back to projects"
+          aria-label={t("pdVolverProyectos")}
           className="rounded-xl p-2 text-zinc-400 transition hover:bg-white/5 hover:text-white"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold uppercase tracking-widest text-accent">Project</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-accent">{t("bdColProyecto")}</p>
           <h1 className="truncate text-2xl font-bold text-white">{project.name}</h1>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <span className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold ${statusMeta.bg} ${statusMeta.color}`}>
               <StatusIcon className="h-3 w-3" />
-              {statusMeta.label}
+              {t(statusMeta.label)}
             </span>
             {project.clientName && (
               <span className="rounded-full bg-white/5 px-2.5 py-1 text-[10px] text-zinc-400">
@@ -633,7 +631,7 @@ export default function ProjectDetail({
       {/* Deadline lives up top: it's the thing that changes what you do today */}
       <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-3">
         <Calendar className="h-4 w-4 shrink-0 text-accent" />
-        <label className="text-[11px] text-zinc-400">Delivery date</label>
+        <label className="text-[11px] text-zinc-400">{t("pdFechaEntrega")}</label>
         <input
           type="date"
           value={project.deadline || ""}
@@ -649,12 +647,12 @@ export default function ProjectDetail({
 
       {/* Notes */}
       <section className="space-y-2 rounded-2xl border border-white/10 bg-white/5 p-5">
-        <h2 className="text-sm font-semibold text-white">Notes</h2>
+        <h2 className="text-sm font-semibold text-white">{t("apNotas")}</h2>
         <textarea
           value={project.notes}
           onChange={(e) => onChange({ ...project, notes: e.target.value })}
           rows={3}
-          placeholder="Anything that doesn't fit above."
+          placeholder={t("pdNotasPlaceholder")}
           className="w-full resize-none rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white placeholder-zinc-600 outline-none transition focus:border-accent/50"
         />
       </section>

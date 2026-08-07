@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "react-i18next";
 
 /* ═══════════════════════════════════════════════════════════════
    PIPELINE STEPPER
@@ -27,14 +28,15 @@ export type PipelineKey =
   | "draft" | "sent" | "approved"
   | "in_progress" | "review" | "delivered" | "paid";
 
+/* `label` es una LLAVE de i18n, no el texto: se resuelve con t() al pintar. */
 export const PIPELINE: { key: PipelineKey; label: string; owner: "quote" | "project" }[] = [
-  { key: "draft",       label: "Draft",       owner: "quote"   },
-  { key: "sent",        label: "Sent",        owner: "quote"   },
-  { key: "approved",    label: "Approved",    owner: "quote"   },
-  { key: "in_progress", label: "In Progress", owner: "project" },
-  { key: "review",      label: "In Review",   owner: "project" },
-  { key: "delivered",   label: "Delivered",   owner: "project" },
-  { key: "paid",        label: "Paid",        owner: "project" },
+  { key: "draft",       label: "plBorrador",  owner: "quote"   },
+  { key: "sent",        label: "plEnviada",   owner: "quote"   },
+  { key: "approved",    label: "plAprobada",  owner: "quote"   },
+  { key: "in_progress", label: "apEstEnCurso",   owner: "project" },
+  { key: "review",      label: "apEstRevision",  owner: "project" },
+  { key: "delivered",   label: "apEstEntregado", owner: "project" },
+  { key: "paid",        label: "apEstPagado",    owner: "project" },
 ];
 
 export const pipelineIndex = (key: PipelineKey) =>
@@ -50,6 +52,7 @@ export function PipelineStepper({
   canSelect: (key: PipelineKey) => boolean;
   onSelect: (key: PipelineKey) => void;
 }) {
+  const { t } = useTranslation();
   const currentIdx = pipelineIndex(current);
   const currentStep = PIPELINE[currentIdx];
 
@@ -79,10 +82,10 @@ export function PipelineStepper({
               disabled={!selectable}
               onClick={() => selectable && onSelect(step.key)}
               aria-label={
-                isCurrent ? `Current stage: ${step.label}` : `Move to ${step.label}`
+                isCurrent ? t("plEtapaActual", { etapa: t(step.label) }) : t("plMoverA", { etapa: t(step.label) })
               }
               aria-current={isCurrent ? "step" : undefined}
-              title={selectable ? `Move to ${step.label}` : step.label}
+              title={selectable ? t("plMoverA", { etapa: t(step.label) }) : t(step.label)}
               className={`group flex flex-1 items-center py-2 ${
                 selectable ? "cursor-pointer" : "cursor-default"
               }`}
@@ -111,13 +114,13 @@ export function PipelineStepper({
                   : "text-zinc-700"
             }`}
           >
-            {step.label}
+            {t(step.label)}
           </span>
         ))}
       </div>
       <p className="pt-2 text-[10px] font-medium text-zinc-500 sm:hidden">
-        Stage {currentIdx + 1} of {PIPELINE.length} ·{" "}
-        <span className="text-accent">{currentStep.label}</span>
+        {t("plEtapaDe", { n: currentIdx + 1, total: PIPELINE.length })} ·{" "}
+        <span className="text-accent">{t(currentStep.label)}</span>
       </p>
     </div>
   );

@@ -1,14 +1,16 @@
 "use client";
 import { useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 // ─── My Network hero ──────────────────────────────────────────────────────────
 // Warm, calm constellation — static nodes and lines (no radar grid, no pulse
 // rings, no blinking). The only motion is the slow role marquee: constant
 // linear motion is the one acceptable infinite animation (emil-design-eng).
 
+/* Llaves, no texto: el carrusel de roles se rotula al pintar. */
 const TAGS = [
-  "Beat Makers", "Composers", "Mix Engineers", "Sound Designers",
-  "Vocalists", "Producers", "Arrangers", "Foley Artists",
+  "nhBeatMakers", "nhCompositores", "nhIngMezcla", "nhDisenoSonoro",
+  "nhVocalistas", "nhProductores", "nhArreglistas", "nhFoley",
 ];
 
 const CSS = `
@@ -34,6 +36,7 @@ const LINES = NODES.slice(1).map((n) => ({
 }));
 
 export default function NetworkHero() {
+  const { t } = useTranslation();
   const doubled = [...TAGS, ...TAGS];
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -91,7 +94,7 @@ export default function NetworkHero() {
           fontSize: 15, fontWeight: 700, color: "#fff",
           letterSpacing: "-0.01em", margin: 0,
         }}>
-          My Network
+          {t("nhMiRed")}
         </p>
       </div>
 
@@ -119,7 +122,7 @@ export default function NetworkHero() {
               padding: "3px 9px", borderRadius: 20, flexShrink: 0, marginRight: 8,
               border: "1px solid rgba(255,255,255,0.08)",
               background: "rgba(255,255,255,0.03)",
-            }}>{tag}</span>
+            }}>{t(tag)}</span>
           ))}
         </div>
       </div>

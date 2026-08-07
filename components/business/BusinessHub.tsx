@@ -1,6 +1,6 @@
 "use client";
 import { useTranslation } from "react-i18next";
-import "@/lib/i18n";
+import i18nInstance from "@/lib/i18n";
 
 import { useEffect, useState, useMemo } from "react";
 import {
@@ -31,7 +31,10 @@ function getLastNMonths(n: number) {
     return {
       month: d.getMonth(),
       year: d.getFullYear(),
-      label: d.toLocaleString("en-US", { month: "short" }),
+      /* El idioma activo, no "en-US" fijo: con la app en español la grafica
+         seguia rotulada Mar/Apr/May (2026-08-06). resolvedLanguage cae a "en"
+         solo si i18n aun no resuelve nada. */
+      label: d.toLocaleString(i18nInstance.resolvedLanguage ?? "en", { month: "short" }),
       isCurrent: i === n - 1,
     };
   });
@@ -126,7 +129,7 @@ type Props = {
 
 export default function BusinessHub({ onOpenView, userId }: Props) {
   const isDesktop = useIsDesktop();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [projects, setProjects] = useState<Project[]>([]);
   const [quotes,   setQuotes]   = useState<Quote[]>([]);
   const [clients,  setClients]  = useState<Client[]>([]);
@@ -142,7 +145,9 @@ export default function BusinessHub({ onOpenView, userId }: Props) {
   /** What the chart and the hero report in. See reportingCurrency. */
   const reportCcy   = useMemo(() => reportingCurrency(projects, appCurrency), [projects, appCurrency]);
   const revenue     = useMemo(() => revenueThisMonth(projects, reportCcy), [projects, reportCcy]);
-  const months      = useMemo(() => getLastNMonths(6), []);
+  /* Atado al idioma: con deps vacias los rotulos se quedaban congelados en el
+     idioma con el que se monto la pantalla. */
+  const months      = useMemo(() => getLastNMonths(6), [i18n.resolvedLanguage]);
   const revenues    = useMemo(
     () => months.map((m) => revenueForMonth(projects, m.month, m.year, reportCcy)),
     [projects, months, reportCcy]);
@@ -176,7 +181,7 @@ export default function BusinessHub({ onOpenView, userId }: Props) {
           <div className="h-px flex-1 bg-gradient-to-r from-accent/20 to-transparent" />
         </div>
         <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-white">{t("bzTitle")}</h1>
-        <p className="mt-1.5 text-sm text-zinc-500 leading-relaxed">Projects, quotes, clients, and the revenue they bring in.</p>
+        <p className="mt-1.5 text-sm text-zinc-500 leading-relaxed">{t("bzSubtitulo")}</p>
       </div>
 
       {/* ── Revenue this month + bars ── */}

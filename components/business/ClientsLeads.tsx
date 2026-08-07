@@ -118,20 +118,20 @@ export default function ClientsLeads({ onBack, userId }: Props) {
         className="flex items-center gap-1.5 text-xs text-zinc-400 transition hover:text-accent"
       >
         <ArrowLeft className="h-3.5 w-3.5" />
-        Back to Business
+        {t("clVolverBusiness")}
       </button>
 
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
           <p className="text-[10px] font-semibold tracking-[0.3em] text-accent uppercase">
-            Clients & Leads
+            {t("bzClients")}
           </p>
           <h1 className="text-2xl font-bold tracking-tight text-white">
-            Your contacts.
+            {t("clTusContactos")}
           </h1>
           <p className="text-sm text-zinc-400">
-            Prospects, clients, everyone you&apos;ve worked with.
+            {t("clSubtitulo")}
           </p>
         </div>
         <button
@@ -139,14 +139,14 @@ export default function ClientsLeads({ onBack, userId }: Props) {
           className="flex shrink-0 items-center gap-2 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-black transition hover:brightness-110"
         >
           <UserPlus className="h-4 w-4" />
-          Add client
+          {t("clAgregarCliente")}
         </button>
       </div>
 
       {/* Saved toast */}
       {saved && (
         <div className="rounded-xl border border-accent/30 bg-accent/10 px-4 py-2 text-sm text-accent">
-          ✓ Client saved
+          ✓ {t("clClienteGuardado")}
         </div>
       )}
 
@@ -154,22 +154,22 @@ export default function ClientsLeads({ onBack, userId }: Props) {
       {showForm && (
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6 space-y-4">
           <h2 className="text-sm font-semibold text-white">
-            {editing ? "Edit client" : "New client"}
+            {editing ? t("clEditarCliente") : t("clClienteNuevo")}
           </h2>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="flex flex-col gap-1.5">
-              <span className="text-xs text-zinc-400">Name *</span>
+              <span className="text-xs text-zinc-400">{t("clNombre")}</span>
               <input
                 type="text"
-                placeholder="Jordan Rivers"
+                placeholder={t("clEjNombre")}
                 className="h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
                 {...field("name")}
               />
             </label>
 
             <label className="flex flex-col gap-1.5">
-              <span className="text-xs text-zinc-400">Email *</span>
+              <span className="text-xs text-zinc-400">{t("clEmail")}</span>
               <input
                 type="email"
                 placeholder="jordan@studio.com"
@@ -179,7 +179,7 @@ export default function ClientsLeads({ onBack, userId }: Props) {
             </label>
 
             <label className="flex flex-col gap-1.5">
-              <span className="text-xs text-zinc-400">Phone</span>
+              <span className="text-xs text-zinc-400">{t("clTelefono")}</span>
               <input
                 type="tel"
                 placeholder="+52 55 1234 5678"
@@ -189,10 +189,10 @@ export default function ClientsLeads({ onBack, userId }: Props) {
             </label>
 
             <label className="flex flex-col gap-1.5">
-              <span className="text-xs text-zinc-400">Company / Project</span>
+              <span className="text-xs text-zinc-400">{t("clEmpresaProyecto")}</span>
               <input
                 type="text"
-                placeholder="Label XYZ"
+                placeholder={t("clEjEmpresa")}
                 className="h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
                 {...field("company")}
               />
@@ -204,14 +204,14 @@ export default function ClientsLeads({ onBack, userId }: Props) {
               onClick={() => setShowForm(false)}
               className="rounded-xl border border-white/15 px-4 py-2 text-sm text-zinc-300 transition hover:text-white"
             >
-              Cancel
+              {t("mtCancel")}
             </button>
             <button
               onClick={handleSave}
               disabled={!form.name.trim() || !form.email.trim()}
               className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              {editing ? "Save changes" : "Add client"}
+              {editing ? t("clGuardarCambios") : t("clAgregarCliente")}
             </button>
           </div>
         </div>

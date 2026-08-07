@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "react-i18next";
 import {
   type Project, type Quote, type Client, formatCOP,
   projectMoney, paymentsTotal, totalsByCurrency, formatCurrencyTotals,
@@ -64,6 +65,14 @@ const STATUS_STYLE: Record<string, string> = {
   draft: "bg-white/[0.06] text-zinc-400",
 };
 
+/* Llaves, no texto: asi la insignia de cada cotizacion cambia de idioma al
+   instante sin volver a derivar los datos (mismo patron que el calendario). */
+const STATUS_KEY: Record<string, string> = {
+  sent:  "bdEstadoEnviada",
+  paid:  "bdEstadoPagada",
+  draft: "bdEstadoBorrador",
+};
+
 export default function BusinessHubDesktop({
   projects, quotes, clients, revenue, months, revenues,
   revenueCurrency, revenueExtra, onOpenView,
@@ -79,6 +88,7 @@ export default function BusinessHubDesktop({
   revenueExtra: string | null;
   onOpenView: (view: BusinessView, opts?: { create?: boolean }) => void;
 }) {
+  const { t } = useTranslation();
   const activeProjects = projects.filter((p) => p.status !== "paid");
   const sentQuotes     = quotes.filter((q) => q.status === "sent");
   const outstanding    = sentQuotes.reduce((s, q) => s + q.finalPrice, 0);
@@ -126,16 +136,16 @@ export default function BusinessHubDesktop({
       <RiseStyle />
 
       <div className="dd-rise mb-6 flex flex-shrink-0 items-center justify-between">
-        <h1 className="text-[21px] font-bold tracking-tight text-white">Business</h1>
+        <h1 className="text-[21px] font-bold tracking-tight text-white">{t("tabs.business")}</h1>
         <div className="flex items-center gap-2.5">
           <button type="button" onClick={() => onOpenView("clients")} className="rounded-full border border-white/10 px-3.5 py-1.5 text-[11.5px] text-zinc-400 transition hover:text-white">
-            Clients &amp; leads
+            {t("bzClients")}
           </button>
           {/* Says "New quote", so it opens the form. Landing on the list and
               making you press Add again is a second click for nothing
               (Paco 2026-08-02). */}
           <button type="button" onClick={() => onOpenView("quotes", { create: true })} className="rounded-full border border-accent/40 px-3.5 py-1.5 text-[11.5px] font-semibold text-accent transition hover:brightness-110">
-            + New quote
+            {t("bdNuevaCotizacion")}
           </button>
         </div>
       </div>
@@ -150,26 +160,26 @@ export default function BusinessHubDesktop({
           shape (design pass 2026-07-31). */}
       <div className="dd-rise grid items-stretch gap-4" style={{ gridTemplateColumns: ".85fr 1.35fr", animationDelay: ".06s" }}>
         <Instrument
-          label={`Revenue · MTD · ${revenueCurrency}`}
+          label={`${t("bdIngresosMes")} · ${revenueCurrency}`}
           value={formatMoney(revenue, revenueCurrency)}
           size={64}
           footer={
             <span className="relative mt-2 block text-[10px] text-zinc-500">
               {paymentsThisMonth > 0
-                ? `${paymentsThisMonth} ${paymentsThisMonth === 1 ? "payment" : "payments"} this month`
-                : "Nothing collected yet"}
+                ? t("bdPagosEsteMes", { count: paymentsThisMonth })
+                : t("bdNadaCobrado")}
               {revenueExtra && (
                 <span className="mt-0.5 block text-zinc-600">+ {revenueExtra}</span>
               )}
             </span>
           }
         />
-        <Tile label="Revenue · last 6 months">
+        <Tile label={t("bzLast6")}>
           {revenues.every((r) => r === 0) ? (
             /* Flat hairlines across an empty chart read as broken. Say it. */
             <div className="flex h-[168px] flex-col items-center justify-center gap-1">
-              <p className="text-[12.5px] text-zinc-600">No revenue logged yet.</p>
-              <p className="text-[11px] text-zinc-700">Mark a project paid and it lands here.</p>
+              <p className="text-[12.5px] text-zinc-600">{t("bdSinIngresos")}</p>
+              <p className="text-[11px] text-zinc-700">{t("bdSinIngresosSub")}</p>
             </div>
           ) : (
             <div className="mt-3 flex h-[168px] items-end gap-2.5">
@@ -192,33 +202,33 @@ export default function BusinessHubDesktop({
 
       {/* Secondary metrics — hairline columns, not four more boxes. */}
       <div className="dd-rise" style={{ animationDelay: ".12s" }}>
-        <Tile label="Pipeline" className="py-1">
+        <Tile label={t("bdPipeline")} className="py-1">
           <Cols>
             <Col
               value={hasOutstanding ? outstandingTot.value : "—"}
-              label="Awaiting reply"
+              label={t("bdEsperandoRespuesta")}
               muted={!hasOutstanding}
               sub={sentQuotes.length
-                ? `${sentQuotes.length} ${sentQuotes.length === 1 ? "quote" : "quotes"} out`
+                ? t("bdCotizacionesFuera", { count: sentQuotes.length })
                 : undefined}
               extra={hasOutstanding ? outstandingTot.extra : null}
               onClick={() => onOpenView("quotes")}
             />
             <Col
               value={hasActiveValue ? activeTot.value : "—"}
-              label="In progress"
+              label={t("bdEnCurso")}
               muted={activeProjects.length === 0}
               sub={activeProjects.length
-                ? `${activeProjects.length} ${activeProjects.length === 1 ? "project" : "projects"}`
+                ? t("bdProyectosCuenta", { count: activeProjects.length })
                 : undefined}
               extra={hasActiveValue ? activeTot.extra : null}
               onClick={() => onOpenView("projects")}
             />
             <Col
               value={hasOwed ? owedTot.value : "—"}
-              label="Owed to you"
+              label={t("bdTeDeben")}
               muted={!hasOwed}
-              sub={noDeposit > 0 ? `${noDeposit} without deposit` : undefined}
+              sub={noDeposit > 0 ? t("bdSinAnticipo", { count: noDeposit }) : undefined}
               extra={hasOwed ? owedTot.extra : null}
               onClick={() => onOpenView("projects")}
             />
@@ -232,19 +242,19 @@ export default function BusinessHubDesktop({
       <div className="dd-rise grid gap-4" style={{ gridTemplateColumns: "1.55fr 1fr", animationDelay: ".18s" }}>
         <Tile padded={false} className="flex flex-col">
           <div className="flex flex-shrink-0 items-center justify-between px-5 py-3.5">
-            <b className="text-[13.5px] font-bold text-white">Quotes</b>
-            <button type="button" onClick={() => onOpenView("quotes")} className="text-[11px] font-semibold text-accent transition hover:brightness-110">View all →</button>
+            <b className="text-[13.5px] font-bold text-white">{t("bzQuotes")}</b>
+            <button type="button" onClick={() => onOpenView("quotes")} className="text-[11px] font-semibold text-accent transition hover:brightness-110">{t("bdVerTodas")}</button>
           </div>
           {recentQuotes.length === 0 ? (
             <div className="px-5 pb-10 pt-4 text-center text-[12.5px] text-zinc-600">
-              No quotes yet. Turn a calculated rate into a client-ready quote.
+              {t("bdSinCotizaciones")}
             </div>
           ) : (
             <table className="w-full border-collapse text-[12.5px]">
               <thead>
                 <tr>
-                  {["Client", "Project", "Amount", "Status"].map((h) => (
-                    <th key={h} className="border-y border-white/[0.06] px-5 py-2.5 text-left text-[9.5px] font-semibold uppercase tracking-[0.16em] text-zinc-600">{h}</th>
+                  {["bdColCliente", "bdColProyecto", "bdColMonto", "bdColEstado"].map((k) => (
+                    <th key={k} className="border-y border-white/[0.06] px-5 py-2.5 text-left text-[9.5px] font-semibold uppercase tracking-[0.16em] text-zinc-600">{t(k)}</th>
                   ))}
                 </tr>
               </thead>
@@ -255,7 +265,7 @@ export default function BusinessHubDesktop({
                     <td className="border-b border-white/[0.04] px-5 py-3 text-zinc-300">{q.projectName || q.projectTypeName}</td>
                     <td className="border-b border-white/[0.04] px-5 py-3 font-semibold tabular-nums text-white">{formatMoney(q.finalPrice, q.currency ?? appCurrency)}</td>
                     <td className="border-b border-white/[0.04] px-5 py-3">
-                      <span className={`rounded-md px-2 py-0.5 text-[10px] font-bold uppercase ${STATUS_STYLE[q.status] ?? STATUS_STYLE.draft}`}>{q.status}</span>
+                      <span className={`rounded-md px-2 py-0.5 text-[10px] font-bold uppercase ${STATUS_STYLE[q.status] ?? STATUS_STYLE.draft}`}>{t(STATUS_KEY[q.status] ?? STATUS_KEY.draft)}</span>
                     </td>
                   </tr>
                 ))}
@@ -271,27 +281,28 @@ export default function BusinessHubDesktop({
               className="group flex flex-col items-center justify-center gap-1 px-5 py-8 text-center transition hover:bg-white/[0.015]"
             >
               <span className="text-[12px] text-zinc-600">
-                {recentQuotes.length === 1 ? "One quote out." : `${recentQuotes.length} quotes out.`}
+                {t("bdCotizacionesFueraPunto", { count: recentQuotes.length })}
               </span>
               <span className="text-[11.5px] font-semibold text-accent transition group-hover:brightness-110">
-                Build the next one →
+                {t("bdArmaLaSiguiente")}
               </span>
             </button>
           )}
         </Tile>
 
-        <Tile label="Tools" className="self-start">
+        <Tile label={t("bdHerramientas")} className="self-start">
           <div className="flex flex-col divide-y divide-white/[0.05]">
+            {/* `titulo`, no `t`: aqui `t` ya es la funcion de traduccion. */}
             {([
-              { v: "calculator", t: "Pricing Calculator", d: "Know what to charge", icon: <CalculatorIcon /> },
-              { v: "projects",   t: "Active Projects",    d: `${activeProjects.length} in progress`, icon: <ProjectsIcon /> },
-              { v: "clients",    t: "Clients & Leads",    d: `${clients.length} in your roster`, icon: <ClientsIcon /> },
-            ] as { v: BusinessView; t: string; d: string; icon: React.ReactNode }[]).map(({ v, t, d, icon }) => (
+              { v: "calculator", titulo: t("bzCalculator"), d: t("bdSaberQueCobrar"), icon: <CalculatorIcon /> },
+              { v: "projects",   titulo: t("bzProjects"),   d: t("bdEnCursoCuenta", { count: activeProjects.length }), icon: <ProjectsIcon /> },
+              { v: "clients",    titulo: t("bzClients"),    d: t("bdEnTuCartera", { count: clients.length }), icon: <ClientsIcon /> },
+            ] as { v: BusinessView; titulo: string; d: string; icon: React.ReactNode }[]).map(({ v, titulo, d, icon }) => (
               <button key={v} type="button" onClick={() => onOpenView(v)}
                 className="group flex items-center gap-3.5 py-3.5 text-left transition first:pt-2 hover:bg-white/[0.02]">
                 <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl transition group-hover:bg-accent/10" style={{ background: "rgba(255,255,255,.045)" }}>{icon}</div>
                 <div className="min-w-0 flex-1">
-                  <b className="block truncate text-[13.5px] font-bold text-white">{t}</b>
+                  <b className="block truncate text-[13.5px] font-bold text-white">{titulo}</b>
                   <span className="mt-0.5 block truncate text-[11.5px] text-zinc-500">{d}</span>
                 </div>
                 <span className="flex-shrink-0 text-zinc-600 opacity-0 transition-opacity group-hover:opacity-100">

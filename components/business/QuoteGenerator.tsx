@@ -459,20 +459,20 @@ export default function QuoteGenerator({
         className="flex items-center gap-1.5 text-xs text-zinc-400 transition hover:text-accent"
       >
         <ArrowLeft className="h-3.5 w-3.5" />
-        Back to Business
+        {t("clVolverBusiness")}
       </button>
 
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
           <p className="text-[10px] font-semibold tracking-[0.3em] text-accent uppercase">
-            Quote Generator
+            {t("qgTitulo")}
           </p>
           <h1 className="text-2xl font-bold tracking-tight text-white">
-            Create a quote.
+            {t("qgCrearCotizacion")}
           </h1>
           <p className="text-sm text-zinc-400">
-            Price your project and send it directly to your client.
+            {t("qgSubtitulo")}
           </p>
         </div>
         {pricing.isSetupComplete && !showForm && (
@@ -481,7 +481,7 @@ export default function QuoteGenerator({
             className="flex shrink-0 items-center gap-2 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-black transition hover:brightness-110"
           >
             <FilePlus className="h-4 w-4" />
-            New quote
+            {t("qgNuevaCotizacion")}
           </button>
         )}
       </div>
@@ -492,17 +492,16 @@ export default function QuoteGenerator({
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
           <div>
             <p className="text-sm font-medium text-white">
-              Set up your pricing first
+              {t("qgConfiguraPrimero")}
             </p>
             <p className="mt-1 text-xs text-zinc-400">
-              The Quote Generator uses your Pricing Calculator to set minimum
-              rates.
+              {t("qgConfiguraPrimeroSub")}
             </p>
             <button
               onClick={onGoToCalculator}
               className="mt-3 rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-black transition hover:brightness-110"
             >
-              Open Pricing Calculator
+              {t("qgAbrirCalculadora")}
             </button>
           </div>
         </div>
@@ -512,7 +511,7 @@ export default function QuoteGenerator({
       {saved && (
         <div className="flex items-center gap-2 rounded-xl border border-accent/30 bg-accent/10 px-4 py-2 text-sm text-accent">
           <CheckCircle2 className="h-4 w-4" />
-          Quote saved. Ready to send.
+          {t("qgCotizacionGuardada")}
         </div>
       )}
 
@@ -526,10 +525,8 @@ export default function QuoteGenerator({
         >
           <ArrowRight className="h-4 w-4 flex-shrink-0" />
           <span>
-            Its project was updated too
-            {projectSync.added > 0
-              ? ` · ${projectSync.added} new ${projectSync.added === 1 ? "deliverable" : "deliverables"}`
-              : ""}
+            {t("qgProyectoActualizado")}
+            {projectSync.added > 0 ? ` · ${t("qgEntregablesNuevos", { count: projectSync.added })}` : ""}
           </span>
         </button>
       )}
@@ -541,10 +538,10 @@ export default function QuoteGenerator({
 
           {/* Project name */}
           <label className="flex flex-col gap-1.5">
-            <span className="text-xs text-zinc-400">Project name *</span>
+            <span className="text-xs text-zinc-400">{t("apNombreProyecto")}</span>
             <input
               type="text"
-              placeholder="Original Soundtrack – Short Film"
+              placeholder={t("qgEjNombreProyecto")}
               value={form.projectName}
               onChange={(e) =>
                 setForm((p) => ({ ...p, projectName: e.target.value }))
@@ -555,7 +552,7 @@ export default function QuoteGenerator({
 
           {/* Project type */}
           <label className="flex flex-col gap-1.5">
-            <span className="text-xs text-zinc-400">Project type *</span>
+            <span className="text-xs text-zinc-400">{t("qgTipoProyecto")}</span>
             <Select
               value={form.projectTypeId}
               onChange={handleProjectTypeChange}
@@ -569,7 +566,7 @@ export default function QuoteGenerator({
               <div className="grid grid-cols-2 gap-3">
               <div>
                 <div className="flex items-center gap-1.5">
-                  <p className="text-xs text-zinc-500">Minimum price</p>
+                  <p className="text-xs text-zinc-500">{t("qgPrecioMinimo")}</p>
                   {/* Inline disclosure, not a floating tooltip: this card sits
                       inside a scrolling form, and absolutely-positioned popovers
                       have already been clipped twice in this app. */}
@@ -577,7 +574,7 @@ export default function QuoteGenerator({
                     type="button"
                     onClick={() => setShowPriceInfo((v) => !v)}
                     aria-expanded={showPriceInfo}
-                    aria-label="How these prices are calculated"
+                    aria-label={t("qgComoSeCalcula")}
                     className={`flex h-4 w-4 items-center justify-center rounded-full border text-[9px] font-bold transition ${
                       showPriceInfo
                         ? "border-accent/60 text-accent"
@@ -592,7 +589,7 @@ export default function QuoteGenerator({
                 </p>
               </div>
               <div>
-                <p className="text-xs text-zinc-500">Recommended</p>
+                <p className="text-xs text-zinc-500">{t("qgRecomendado")}</p>
                 <p className="mt-0.5 text-sm font-semibold text-accent">
                   {formatCOP(recommendedPrice)}
                 </p>
@@ -638,8 +635,7 @@ export default function QuoteGenerator({
                       : "."}
                   </p>
                   <p className="text-zinc-500">
-                    Both come from your Pricing Calculator. Change your expenses
-                    or hours there and these move with them.
+                    {t("qgAmbosVienenDe")}
                   </p>
                   <button
                     type="button"
@@ -657,7 +653,7 @@ export default function QuoteGenerator({
               rush), so the client needs the concepts, not one lump number.
               The total is computed from these lines. */}
           <div className="flex flex-col gap-1.5">
-            <span className="text-xs text-zinc-400">Breakdown *</span>
+            <span className="text-xs text-zinc-400">{t("qgDesglose")}</span>
             <div className="flex flex-col gap-1.5">
               {form.items.map((it, i) => (
                 <div key={it.id} className="flex items-center gap-1.5">
@@ -681,7 +677,7 @@ export default function QuoteGenerator({
                       ×
                     </span>
                     <input
-                      type="number" min="1" step="1" aria-label="Quantity"
+                      type="number" min="1" step="1" aria-label={t("qgCantidad")}
                       value={it.qty}
                       onChange={(e) => setForm((p) => ({
                         ...p,
@@ -703,7 +699,7 @@ export default function QuoteGenerator({
                       {currencySymbol}
                     </span>
                     <input
-                      type="number" min="0" step="1000" placeholder="0" aria-label="Unit price"
+                      type="number" min="0" step="1000" placeholder="0" aria-label={t("qgPrecioUnitario")}
                       value={it.unitPrice || ""}
                       onChange={(e) => setForm((p) => ({
                         ...p,
@@ -714,7 +710,7 @@ export default function QuoteGenerator({
                   </div>
                   <button
                     type="button"
-                    aria-label="Remove concept"
+                    aria-label={t("qgQuitarConcepto")}
                     disabled={form.items.length === 1}
                     onClick={() => setForm((p) => ({ ...p, items: p.items.filter((x) => x.id !== it.id) }))}
                     className="flex h-10 w-8 flex-shrink-0 items-center justify-center rounded-lg text-zinc-600 transition hover:text-white disabled:opacity-25"
@@ -737,16 +733,16 @@ export default function QuoteGenerator({
               or none at all. Never hardcode 16%. */}
           <div className="flex items-end gap-1.5">
             <label className="flex flex-1 flex-col gap-1.5">
-              <span className="text-xs text-zinc-400">Tax label</span>
+              <span className="text-xs text-zinc-400">{t("qgEtiquetaImpuesto")}</span>
               <input
-                type="text" placeholder="IVA (optional)"
+                type="text" placeholder={t("qgIvaOpcional")}
                 value={form.taxLabel}
                 onChange={(e) => setForm((p) => ({ ...p, taxLabel: e.target.value }))}
                 className="h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
               />
             </label>
             <label className="flex w-24 flex-col gap-1.5">
-              <span className="text-xs text-zinc-400">Rate %</span>
+              <span className="text-xs text-zinc-400">{t("qgTasa")}</span>
               <input
                 type="number" min="0" max="100" step="1" placeholder="0"
                 value={form.taxRate ? Math.round(form.taxRate * 100) : ""}
@@ -784,7 +780,7 @@ export default function QuoteGenerator({
               of the quote that decides whether you actually get paid, and the
               PDF renders it as a "How to pay" section (Paco 2026-08-01). */}
           <div className="flex flex-col gap-1.5">
-            <span className="text-xs text-zinc-400">Payment options</span>
+            <span className="text-xs text-zinc-400">{t("qgOpcionesPago")}</span>
 
             {form.paymentMethods.length > 0 && (
               <div className="flex flex-col gap-1.5">
@@ -798,8 +794,8 @@ export default function QuoteGenerator({
                       {pm.method === "other" && (
                         <input
                           type="text"
-                          aria-label="Method name"
-                          placeholder="Name it"
+                          aria-label={t("qgNombreMetodo")}
+                          placeholder={t("qgNombralo")}
                           value={pm.label ?? ""}
                           onChange={(e) => updatePaymentMethod(pm.id, { label: e.target.value })}
                           className="h-10 w-28 flex-shrink-0 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
@@ -838,7 +834,7 @@ export default function QuoteGenerator({
                   object inside the card (Paco 2026-08-01). */}
               <Select
                 value=""
-                aria-label="Add a payment method"
+                aria-label={t("qgAgregarMetodo")}
                 triggerLabel="+ Add payment method"
                 compact
                 options={PAYMENT_METHODS.map((m) => ({ value: m.id, label: m.label }))}
@@ -860,12 +856,12 @@ export default function QuoteGenerator({
                   onClick={() => setPaymentDefault(form.paymentMethods)}
                   className="text-[11px] font-semibold text-accent transition hover:brightness-110"
                 >
-                  Save as default
+                  {t("qgGuardarPorDefecto")}
                 </button>
               )}
               {form.paymentMethods.length > 0 && samePaymentAsDefault && (
                 <span className="text-[11px] font-medium text-emerald-400/80">
-                  Saved as your default
+                  {t("qgGuardadoPorDefecto")}
                 </span>
               )}
             </div>
@@ -879,7 +875,7 @@ export default function QuoteGenerator({
 
           {/* Client */}
           <div className="flex flex-col gap-1.5">
-            <span className="text-xs text-zinc-400">Client *</span>
+            <span className="text-xs text-zinc-400">{t("qgClienteReq")}</span>
             {clients.length === 0 ? (
               <div className="rounded-xl border border-dashed border-white/10 bg-black/20 p-4">
                 <p className="text-xs text-zinc-500">{t("qgNoClientsSaved")}</p>
@@ -894,7 +890,7 @@ export default function QuoteGenerator({
               <Select
                 value={form.clientId}
                 onChange={(val) => setForm((p) => ({ ...p, clientId: val }))}
-                placeholder="Select a client"
+                placeholder={t("qgSeleccionaCliente")}
                 options={clients.map((c) => ({ value: c.id, label: c.name + (c.company ? ` — ${c.company}` : "") }))}
               />
             )}
@@ -902,7 +898,7 @@ export default function QuoteGenerator({
 
           {/* Notes */}
           <label className="flex flex-col gap-1.5">
-            <span className="text-xs text-zinc-400">Notes &amp; terms (optional)</span>
+            <span className="text-xs text-zinc-400">{t("qgNotasTerminos")}</span>
             <textarea
               placeholder={"Deposit, deadlines, revisions included, usage rights…"}
               value={form.notes}
@@ -926,7 +922,7 @@ export default function QuoteGenerator({
                   onClick={() => setNotesDefault(form.notes)}
                   className="text-[11px] font-semibold text-accent transition hover:brightness-110"
                 >
-                  Save as default for future quotes
+                  {t("qgGuardarPorDefectoFuturas")}
                 </button>
               )}
               {form.notes.trim() !== "" && form.notes === notesDefault && (
@@ -940,7 +936,7 @@ export default function QuoteGenerator({
                   onClick={() => setForm((p) => ({ ...p, notes: notesDefault }))}
                   className="text-[11px] font-semibold text-accent transition hover:brightness-110"
                 >
-                  Insert my default terms
+                  {t("qgInsertarTerminos")}
                 </button>
               )}
             </div>
@@ -952,14 +948,14 @@ export default function QuoteGenerator({
               onClick={cancelForm}
               className="rounded-xl border border-white/15 px-4 py-2 text-sm text-zinc-300 transition hover:text-white"
             >
-              Cancel
+              {t("mtCancel")}
             </button>
             <button
               onClick={handleSave}
               disabled={!canSave}
               className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              Save quote
+              {t("qgGuardarCotizacion")}
             </button>
           </div>
         </div>
@@ -986,7 +982,7 @@ export default function QuoteGenerator({
       {!loading && quotes.length > 0 && (
         <div className="space-y-3">
           <h2 className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
-            Saved quotes
+            {t("qgCotizacionesGuardadas")}
           </h2>
           {quotes.map((quote) => (
             <div
@@ -1025,7 +1021,7 @@ export default function QuoteGenerator({
                     <button
                       onClick={() => window.open(`/quote/${quote.id}/print`, "_blank")}
                       className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-zinc-300 transition hover:border-accent/50 hover:text-accent"
-                      title="Open the client-ready PDF"
+                      title={t("qgAbrirPdf")}
                     >
                       <FileText className="h-3 w-3" />
                       PDF
@@ -1033,15 +1029,15 @@ export default function QuoteGenerator({
                     <button
                       onClick={() => startEdit(quote)}
                       className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-zinc-300 transition hover:border-accent/50 hover:text-accent"
-                      title="Edit this quote"
+                      title={t("qgEditarCotizacion")}
                     >
                       <Pencil className="h-3 w-3" />
-                      Edit
+                      {t("qgEditar")}
                     </button>
                     <button
                       onClick={() => handleSendEmail(quote)}
                       className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-zinc-300 transition hover:border-accent/50 hover:text-accent"
-                      title="Email this quote to the client"
+                      title={t("qgEnviarCorreo")}
                     >
                       <Send className="h-3 w-3" />
                       {quote.status === "draft" ? "Send" : "Resend"}
@@ -1086,10 +1082,10 @@ export default function QuoteGenerator({
                   <button
                     onClick={() => setQuoteStatus(quote, "sent")}
                     className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-zinc-300 transition hover:border-amber-400/50 hover:text-amber-400"
-                    title="You sent it another way (WhatsApp, PDF, in person)"
+                    title={t("qgEnviadaOtroMedio")}
                   >
                     <Send className="h-3 w-3" />
-                    Mark as sent
+                    {t("qgMarcarEnviada")}
                   </button>
                 )}
 
@@ -1111,32 +1107,32 @@ export default function QuoteGenerator({
                           onClick={() => { setConfirmApproveId(null); handleApprove(quote); }}
                           className="rounded-lg border border-emerald-500/30 bg-emerald-500/20 px-2.5 py-1.5 text-[11px] font-semibold text-emerald-400 transition hover:bg-emerald-500/30"
                         >
-                          Yes, approved
+                          {t("qgSiAprobada")}
                         </button>
                         <button
                           onClick={() => setConfirmApproveId(null)}
                           className="rounded-lg border border-white/10 px-2.5 py-1.5 text-[11px] font-semibold text-zinc-400 transition hover:border-white/20"
                         >
-                          Cancel
+                          {t("mtCancel")}
                         </button>
                       </span>
                     ) : (
                       <button
                         onClick={() => setConfirmApproveId(quote.id)}
                         className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs font-medium text-zinc-300 transition hover:border-emerald-400/50 hover:text-emerald-400"
-                        title="The client said yes. This starts the project."
+                        title={t("qgClienteAcepto")}
                       >
                         <CheckCircle2 className="h-3 w-3" />
-                        Mark as approved
+                        {t("qgMarcarAprobada")}
                       </button>
                     )}
                     <button
                       onClick={() => setQuoteStatus(quote, "declined")}
                       className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-zinc-500 transition hover:border-red-400/40 hover:text-red-400"
-                      title="The client passed on this quote"
+                      title={t("qgClienteRechazo")}
                     >
                       <XCircle className="h-3 w-3" />
-                      Declined
+                      {t("qgRechazada")}
                     </button>
                   </>
                 )}
@@ -1152,7 +1148,7 @@ export default function QuoteGenerator({
                         className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-zinc-300 transition hover:border-accent/50 hover:text-accent"
                       >
                         <ArrowRight className="h-3 w-3" />
-                        View project
+                        {t("qgVerProyecto")}
                       </button>
                     ) : (
                       /* Its project was deleted. The client still approved, so
@@ -1160,10 +1156,10 @@ export default function QuoteGenerator({
                       <button
                         onClick={() => handleApprove(quote)}
                         className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-zinc-300 transition hover:border-emerald-400/50 hover:text-emerald-400"
-                        title="Its project was deleted. Create it again from this quote."
+                        title={t("qgProyectoBorrado")}
                       >
                         <RotateCcw className="h-3 w-3" />
-                        Rebuild project
+                        {t("qgRecrearProyecto")}
                       </button>
                     )}
                   </>
@@ -1173,10 +1169,10 @@ export default function QuoteGenerator({
                   <button
                     onClick={() => setQuoteStatus(quote, "sent")}
                     className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-zinc-400 transition hover:border-accent/50 hover:text-accent"
-                    title="They came back — put it back in play"
+                    title={t("qgVolvieron")}
                   >
                     <RotateCcw className="h-3 w-3" />
-                    Reopen
+                    {t("qgReabrir")}
                   </button>
                 )}
               </div>

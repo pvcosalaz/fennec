@@ -19,6 +19,10 @@ import TapeDeckDesktop from "@/components/audio/TapeDeckDesktop";
 import type { ProjectReview } from "@/lib/audioTypes";
 import ScriptWriterOverlay from "@/components/content/ScriptWriterOverlay";
 import ContentModule from "@/components/content/ContentModule";
+import BusinessHub from "@/components/business/BusinessHub";
+import QuoteGenerator from "@/components/business/QuoteGenerator";
+import ActiveProjects from "@/components/business/ActiveProjects";
+import ClientsLeads from "@/components/business/ClientsLeads";
 import SettingsModule from "@/components/settings/SettingsModule";
 import type { Profile, Post } from "@/lib/communityTypes";
 import { dayKey, type ContributionDays } from "@/lib/contributions";
@@ -148,6 +152,17 @@ export default function ShellDevPage() {
         />
       ) : tool === "content" ? (
         <ContentModule isPro genres={[]} userId={mockProfile.id} onUpgrade={() => {}} />
+      ) : tool === "business" ? (
+        /* ?tool=business|quotes|projects|clients · Negocio y sus pantallas
+           internas, para revisar la traduccion sin sesion real (2026-08-06). */
+        <BusinessHub onOpenView={() => {}} userId={mockProfile.id} />
+      ) : tool === "quotes" ? (
+        <QuoteGenerator onBack={() => {}} onGoToClients={() => {}} onGoToCalculator={() => {}}
+          onGoToProjects={() => {}} userId={mockProfile.id} />
+      ) : tool === "projects" ? (
+        <ActiveProjects onBack={() => {}} userId={mockProfile.id} />
+      ) : tool === "clients" ? (
+        <ClientsLeads onBack={() => {}} userId={mockProfile.id} />
       ) : tool === "script" ? (
         <ScriptWriterOverlay isDesktop videoRef={mockRef} onSave={() => {}} onClose={() => {}} />
       ) : tape ? (

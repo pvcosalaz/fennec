@@ -51,21 +51,25 @@ import { supabase } from "@/lib/supabase";
 
 const STATUS_ORDER: ProjectStatus[] = ["in_progress", "review", "delivered", "paid"];
 
+/* `label` guarda una LLAVE, no el texto: se resuelve con t() al pintar, asi el
+   estado cambia de idioma al instante sin recalcular los proyectos. */
 const STATUS_META: Record<ProjectStatus, { label: string; color: string; bg: string; icon: React.ComponentType<{ className?: string }> }> = {
-  in_progress: { label: "In Progress", color: "text-blue-400",   bg: "bg-blue-400/10",   icon: Clock        },
-  review:      { label: "In Review",   color: "text-amber-400",  bg: "bg-amber-400/10",  icon: Send         },
-  delivered:   { label: "Delivered",   color: "text-purple-400", bg: "bg-purple-400/10", icon: CheckCircle2 },
-  paid:        { label: "Paid",        color: "text-emerald-400",bg: "bg-emerald-400/10",icon: Banknote     },
+  in_progress: { label: "apEstEnCurso",   color: "text-blue-400",   bg: "bg-blue-400/10",   icon: Clock        },
+  review:      { label: "apEstRevision",  color: "text-amber-400",  bg: "bg-amber-400/10",  icon: Send         },
+  delivered:   { label: "apEstEntregado", color: "text-purple-400", bg: "bg-purple-400/10", icon: CheckCircle2 },
+  paid:        { label: "apEstPagado",    color: "text-emerald-400",bg: "bg-emerald-400/10",icon: Banknote     },
 };
 
-function deadlineInfo(deadline: string): { label: string; color: string } {
-  if (!deadline) return { label: "No deadline", color: "text-zinc-600" };
+/* Devuelve llave + dias en vez de texto armado: en espanol el plural y el
+   orden no coinciden con el ingles, asi que la frase se compone en i18n. */
+function deadlineInfo(deadline: string): { key: string; days: number; color: string } {
+  if (!deadline) return { key: "apSinFecha", days: 0, color: "text-zinc-600" };
   const days = Math.ceil((new Date(deadline).getTime() - Date.now()) / 86400000);
-  if (days < 0)  return { label: `${Math.abs(days)}d overdue`, color: "text-red-400" };
-  if (days === 0) return { label: "Due today",                  color: "text-red-400" };
-  if (days <= 3)  return { label: `${days}d left`,             color: "text-red-400" };
-  if (days <= 7)  return { label: `${days}d left`,             color: "text-amber-400" };
-  return { label: `${days}d left`, color: "text-emerald-400" };
+  if (days < 0)   return { key: "apVencido",  days: Math.abs(days), color: "text-red-400" };
+  if (days === 0) return { key: "apVenceHoy", days: 0,              color: "text-red-400" };
+  if (days <= 3)  return { key: "apRestan",   days,                 color: "text-red-400" };
+  if (days <= 7)  return { key: "apRestan",   days,                 color: "text-amber-400" };
+  return { key: "apRestan", days, color: "text-emerald-400" };
 }
 
 function nextStatus(current: ProjectStatus): ProjectStatus {
@@ -132,37 +136,38 @@ function ProjectForm({
   onSave: (f: FormState) => void;
   onCancel: () => void;
 }) {
+  const { t } = useTranslation();
   const [form, setForm] = useState<FormState>({ ...EMPTY_FORM, ...initial });
   const set = (k: keyof FormState, v: string) => setForm((p) => ({ ...p, [k]: v }));
   const valid = form.name.trim() && form.price;
 
   return (
     <div className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-5">
-      <p className="text-sm font-semibold text-white">New project</p>
+      <p className="text-sm font-semibold text-white">{t("apProyectoNuevo")}</p>
 
       {/* Name */}
       <div className="space-y-1.5">
-        <label className="text-xs text-zinc-400">Project name *</label>
+        <label className="text-xs text-zinc-400">{t("apNombreProyecto")}</label>
         <input
           value={form.name}
           onChange={(e) => set("name", e.target.value)}
-          placeholder="e.g. Score for short film"
+          placeholder={t("apNombreEjemplo")}
           className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white placeholder-zinc-600 outline-none focus:border-accent/50"
         />
       </div>
 
       {/* Client */}
       <div className="space-y-1.5">
-        <label className="text-xs text-zinc-400">Client</label>
+        <label className="text-xs text-zinc-400">{t("apCliente")}</label>
         <Select
           value={form.clientId}
           onChange={(val) => set("clientId", val)}
-          placeholder="No client"
+          placeholder={t("apSinCliente")}
           options={clients.map((c) => ({ value: c.id, label: c.name + (c.company ? ` · ${c.company}` : "") }))}
         />
         {clients.length === 0 && (
           <p className="text-[11px] text-amber-500/70 flex items-center gap-1">
-            <Lock size={9} /> Optional. Add clients with Pro to track who pays you.
+            <Lock size={9} /> {t("apClientesOpcional")}
           </p>
         )}
       </div>
@@ -170,16 +175,16 @@ function ProjectForm({
       {/* Type + Price */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <label className="text-xs text-zinc-400">Project type</label>
+          <label className="text-xs text-zinc-400">{t("apTipoProyecto")}</label>
           <Select
             value={form.projectTypeId}
             onChange={(val) => set("projectTypeId", val)}
-            placeholder="Select…"
+            placeholder={t("apSelecciona")}
             options={projectTypes.map((pt) => ({ value: pt.id, label: pt.label }))}
           />
         </div>
         <div className="space-y-1.5">
-          <label className="text-xs text-zinc-400">Agreed price *</label>
+          <label className="text-xs text-zinc-400">{t("apPrecioAcordado")}</label>
           <input
             type="number"
             value={form.price}
@@ -192,7 +197,7 @@ function ProjectForm({
 
       {/* Deadline */}
       <div className="space-y-1.5">
-        <label className="text-xs text-zinc-400">Delivery deadline</label>
+        <label className="text-xs text-zinc-400">{t("apFechaEntrega")}</label>
         <input
           type="date"
           value={form.deadline}
@@ -204,11 +209,11 @@ function ProjectForm({
 
       {/* Notes */}
       <div className="space-y-1.5">
-        <label className="text-xs text-zinc-400">Notes</label>
+        <label className="text-xs text-zinc-400">{t("apNotas")}</label>
         <textarea
           value={form.notes}
           onChange={(e) => set("notes", e.target.value)}
-          placeholder="Deliverables, revisions, special requirements..."
+          placeholder={t("apNotasEjemplo")}
           rows={2}
           className="w-full resize-none rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white placeholder-zinc-600 outline-none focus:border-accent/50"
         />
@@ -220,14 +225,14 @@ function ProjectForm({
           onClick={onCancel}
           className="flex-1 rounded-xl border border-white/10 py-2.5 text-sm font-semibold text-zinc-400 transition hover:border-white/20"
         >
-          Cancel
+          {t("mtCancel")}
         </button>
         <button
           onClick={() => valid && onSave(form)}
           disabled={!valid}
           className="flex-1 rounded-xl bg-accent py-2.5 text-sm font-semibold text-black transition hover:bg-accent/90 disabled:opacity-40"
         >
-          Save project
+          {t("apGuardarProyecto")}
         </button>
       </div>
       <p className="text-[11px] text-zinc-500 flex items-center gap-1 pt-0.5">
@@ -252,6 +257,7 @@ function ProjectCard({
   onRevert: () => void;
   onDelete: () => void;
 }) {
+  const { t } = useTranslation();
   const meta   = STATUS_META[project.status];
   const StatusIcon = meta.icon;
   const dl     = deadlineInfo(project.deadline);
@@ -287,13 +293,13 @@ function ProjectCard({
               onClick={onDelete}
               className="rounded-lg px-2 py-1 text-[10px] font-semibold bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 transition"
             >
-              Delete
+              {t("apEliminar")}
             </button>
             <button
               onClick={() => setConfirmDelete(false)}
               className="rounded-lg px-2 py-1 text-[10px] font-semibold bg-white/5 text-zinc-400 border border-white/10 hover:bg-white/10 transition"
             >
-              Cancel
+              {t("mtCancel")}
             </button>
           </div>
         ) : (
@@ -311,14 +317,14 @@ function ProjectCard({
         {/* Status pill */}
         <span className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold ${meta.bg} ${meta.color}`}>
           <StatusIcon className="h-3 w-3" />
-          {meta.label}
+          {t(meta.label)}
         </span>
 
         {/* Deadline */}
         {project.deadline && (
           <span className={`flex items-center gap-1 rounded-full bg-white/5 px-2.5 py-1 text-[10px] font-medium ${dl.color}`}>
             <Calendar className="h-3 w-3" />
-            {dl.label}
+            {t(dl.key, { count: dl.days })}
           </span>
         )}
 
@@ -346,12 +352,12 @@ function ProjectCard({
         {/* Deposit status — the thing that was invisible before */}
         {!isPaid && collected > 0 && (
           <span className="rounded-full bg-emerald-400/10 px-2.5 py-1 text-[10px] font-medium text-emerald-400">
-            {money(collected)} in
+            {t("apCobrado", { monto: money(collected) })}
           </span>
         )}
         {!isPaid && collected === 0 && project.price > 0 && (
           <span className="rounded-full bg-amber-400/10 px-2.5 py-1 text-[10px] font-medium text-amber-400">
-            No deposit yet
+            {t("apSinAnticipoAun")}
           </span>
         )}
       </div>
@@ -368,7 +374,7 @@ function ProjectCard({
             {money(project.price)}
           </p>
           {!isPaid && pending > 0 && collected > 0 && (
-            <p className="text-[10px] text-amber-400/80">{money(pending)} pending</p>
+            <p className="text-[10px] text-amber-400/80">{t("apPendiente", { monto: money(pending) })}</p>
           )}
         </div>
         {!isPaid && (
@@ -377,17 +383,17 @@ function ProjectCard({
               <button
                 onClick={onRevert}
                 className="group flex items-center gap-1.5 rounded-xl border border-white/10 px-3 py-1.5 text-xs font-medium text-zinc-300 transition hover:border-accent/50 hover:text-accent"
-                title={`Back to ${STATUS_META[prevStatus(project.status)!].label}`}
+                title={t("apVolverA", { estado: t(STATUS_META[prevStatus(project.status)!].label) })}
               >
                 <ChevronRight className="h-3 w-3 rotate-180 transition-colors group-hover:text-accent" />
-                {STATUS_META[prevStatus(project.status)!].label}
+                {t(STATUS_META[prevStatus(project.status)!].label)}
               </button>
             )}
             <button
               onClick={onAdvance}
               className="flex items-center gap-1.5 rounded-xl border border-white/10 px-3 py-1.5 text-xs font-medium text-zinc-300 transition hover:border-accent/50 hover:text-accent"
             >
-              Mark as {STATUS_META[nextStatus(project.status)].label}
+              {t("apMarcarComo", { estado: t(STATUS_META[nextStatus(project.status)].label) })}
               <ChevronRight className="h-3 w-3" />
             </button>
           </div>
@@ -403,6 +409,7 @@ function ProjectCard({
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function ActiveProjects({ onBack, userId }: { onBack: () => void; userId: string }) {
+  const { t } = useTranslation();
   const [projects, setProjects] = useState<Project[]>([]);
   const [clients, setClients]   = useState<Client[]>([]);
   const [loading, setLoading]   = useState(true);
@@ -596,15 +603,15 @@ export default function ActiveProjects({ onBack, userId }: { onBack: () => void;
           <ChevronLeft className="h-5 w-5" />
         </button>
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold tracking-widest text-accent uppercase">Business</p>
-          <h1 className="text-2xl font-bold text-white">Active Projects</h1>
+          <p className="text-xs font-semibold tracking-widest text-accent uppercase">{t("tabs.business")}</p>
+          <h1 className="text-2xl font-bold text-white">{t("bzProjects")}</h1>
         </div>
         {!showForm && (
           <button
             onClick={() => setShowForm(true)}
             className="flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-black transition hover:bg-accent/90"
           >
-            <Plus className="h-3.5 w-3.5" /> New
+            <Plus className="h-3.5 w-3.5" /> {t("apNuevo")}
           </button>
         )}
       </div>
@@ -620,7 +627,7 @@ export default function ActiveProjects({ onBack, userId }: { onBack: () => void;
       {!loading && projects.length > 0 && (
         <div className="grid grid-cols-3 gap-3">
           <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <p className="mb-1 text-xs text-zinc-500">In progress</p>
+            <p className="mb-1 text-xs text-zinc-500">{t("bdEnCurso")}</p>
             <p className="text-lg font-bold text-white">{active.length}</p>
             <p className="mt-0.5 text-xs text-zinc-400">
               {formatCurrencyTotals(totalActive, appCurrency).value}
@@ -632,7 +639,7 @@ export default function ActiveProjects({ onBack, userId }: { onBack: () => void;
             )}
           </div>
           <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4">
-            <p className="mb-1 text-xs text-zinc-500">Collected</p>
+            <p className="mb-1 text-xs text-zinc-500">{t("apCobradoTotal")}</p>
             <p className="text-lg font-bold text-emerald-400">
               {formatCurrencyTotals(totalCollected, appCurrency).value}
             </p>
@@ -641,11 +648,11 @@ export default function ActiveProjects({ onBack, userId }: { onBack: () => void;
                 {formatCurrencyTotals(totalCollected, appCurrency).extra}
               </p>
             ) : (
-              <p className="mt-0.5 text-xs text-zinc-500">{paid.length} closed</p>
+              <p className="mt-0.5 text-xs text-zinc-500">{t("apCerrados", { count: paid.length })}</p>
             )}
           </div>
           <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4">
-            <p className="mb-1 text-xs text-zinc-500">Pending</p>
+            <p className="mb-1 text-xs text-zinc-500">{t("apPendienteTotal")}</p>
             <p className="text-lg font-bold text-amber-400">
               {formatCurrencyTotals(totalPending, appCurrency).value}
             </p>
