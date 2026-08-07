@@ -1,11 +1,14 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 import FennecFox from "@/components/dashboard/FennecFox";
 
 type OAuthProvider = "apple" | "google" | "facebook";
 
 export default function AuthGate() {
+  const { t } = useTranslation();
   const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading]   = useState(false);
@@ -37,7 +40,7 @@ export default function AuthGate() {
     setError(null);
     setMessage(null);
     if (enabledProviders && enabledProviders[provider] === false) {
-      setError(`${label} sign-in isn't available yet. Please use Google or email for now.`);
+      setError(t("agProveedorNoDisponible", { proveedor: label }));
       return;
     }
     setLoading(true);
@@ -70,7 +73,7 @@ export default function AuthGate() {
       if (signUpErr) {
         setError(signUpErr.message);
       } else {
-        setMessage("Check your email to confirm your account.");
+        setMessage(t("agRevisaCorreo"));
         setPendingConfirmEmail(email.trim());
       }
     } else if (error) {
@@ -97,7 +100,7 @@ export default function AuthGate() {
     setError(null);
     setMessage(null);
     if (!email.trim()) {
-      setError("Enter your email above first, then tap \"Forgot password?\".");
+      setError(t("agEscribeCorreoPrimero"));
       return;
     }
     setLoading(true);
@@ -108,7 +111,7 @@ export default function AuthGate() {
       redirectTo: `${window.location.origin}/auth/reset-password`,
     });
     if (error) setError(error.message);
-    else setMessage("Check your email for a link to reset your password.");
+    else setMessage(t("agRevisaCorreoReset"));
     setLoading(false);
   }
 
@@ -138,7 +141,7 @@ export default function AuthGate() {
         <div className="text-center space-y-1">
           <p className="text-xs font-semibold tracking-[0.35em] text-amber-500 uppercase">Fennec</p>
           <h1 className="text-2xl font-bold text-white leading-tight">
-            Your music business<br />& community hub.
+            {t("agEsloganL1")}<br />{t("agEsloganL2")}
           </h1>
         </div>
       </div>
@@ -152,7 +155,7 @@ export default function AuthGate() {
           <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.08l.01.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
           </svg>
-          Continue with Apple
+          {t("agApple")}
         </button>
 
         <button
@@ -166,7 +169,7 @@ export default function AuthGate() {
             <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
             <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
           </svg>
-          Continue with Google
+          {t("agGoogle")}
         </button>
 
         <button
@@ -177,12 +180,12 @@ export default function AuthGate() {
           <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2">
             <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.267h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/>
           </svg>
-          Continue with Facebook
+          {t("agFacebook")}
         </button>
 
         <div className="flex items-center gap-3">
           <div className="flex-1 h-px bg-white/10" />
-          <span className="text-xs text-zinc-600">or</span>
+          <span className="text-xs text-zinc-600">{t("agO")}</span>
           <div className="flex-1 h-px bg-white/10" />
         </div>
 
@@ -197,7 +200,7 @@ export default function AuthGate() {
           />
           <input
             type="password"
-            placeholder="Password"
+            placeholder={t("agPassword")}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -211,7 +214,7 @@ export default function AuthGate() {
               disabled={loading}
               className="text-xs text-zinc-500 underline-offset-2 hover:text-amber-500 hover:underline transition disabled:opacity-50"
             >
-              Forgot password?
+              {t("agOlvidaste")}
             </button>
           </div>
           {error && <p className="text-xs text-red-400">{error}</p>}
@@ -220,7 +223,7 @@ export default function AuthGate() {
               land in spam or never arrive, leaving the user stuck. */}
           {pendingConfirmEmail && (
             resent ? (
-              <p className="text-xs text-zinc-500">Confirmation email sent again.</p>
+              <p className="text-xs text-zinc-500">{t("agCorreoReenviado")}</p>
             ) : (
               <button
                 type="button"
@@ -228,7 +231,7 @@ export default function AuthGate() {
                 disabled={loading}
                 className="text-xs text-zinc-500 underline-offset-2 hover:text-amber-500 hover:underline transition disabled:opacity-50"
               >
-                Didn&apos;t get it? Resend confirmation email
+                {t("agReenviar")}
               </button>
             )
           )}
@@ -237,7 +240,7 @@ export default function AuthGate() {
             disabled={loading}
             className="w-full h-11 rounded-xl bg-amber-500 text-black text-sm font-semibold hover:bg-amber-400 transition disabled:opacity-50"
           >
-            {loading ? "Loading..." : "Log in / Sign up"}
+            {loading ? t("agCargando") : t("agEntrar")}
           </button>
         </form>
 
@@ -245,13 +248,13 @@ export default function AuthGate() {
             account is created. Passive consent under the sign-in controls
             is the standard pattern (no blocking modal). */}
         <p className="pt-1 text-center text-[11px] leading-relaxed text-zinc-500">
-          By continuing, you agree to Fennec&apos;s{" "}
+          {t("agConsentimiento")}{" "}
           <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-zinc-400 underline underline-offset-2 hover:text-white">
-            Terms of Service
+            {t("agTerminos")}
           </a>{" "}
-          and{" "}
+          {t("agY")}{" "}
           <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-zinc-400 underline underline-offset-2 hover:text-white">
-            Privacy Policy
+            {t("agPrivacidad")}
           </a>.
         </p>
       </div>

@@ -71,7 +71,7 @@ export default function UserProfilePage({ userId, currentProfile, onBack, onOpen
   if (!profile) {
     return (
       <div className="mx-auto w-full max-w-4xl px-2 pt-6 text-center text-zinc-500 text-sm">
-        Usuario no encontrado.
+        {t("cmUsuarioNoEncontrado")}
       </div>
     );
   }
@@ -209,13 +209,13 @@ export default function UserProfilePage({ userId, currentProfile, onBack, onOpen
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 space-y-3">
           {profile.worked_with && (
             <div className="space-y-0.5">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">Worked with</p>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">{t("cmTrabajoCon")}</p>
               <p className="text-sm text-zinc-300">{profile.worked_with}</p>
             </div>
           )}
           {profile.worked_in && (
             <div className="space-y-0.5">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">Worked in</p>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">{t("cmTrabajoEn")}</p>
               <p className="text-sm text-zinc-300">{profile.worked_in}</p>
             </div>
           )}

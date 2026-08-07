@@ -375,8 +375,8 @@ i18n.addResourceBundle("en", "translation", {
 i18n.addResourceBundle("es", "translation", {
   cmTitle: "Comunidad", cmFennecCommunity: "Comunidad Fennec",
   cmIndustryNews: "Noticias de la industria", cmUpdatedHourly: "Se actualiza cada hora",
-  cmNewPost: "Nuevo post", cmPost: "Publicar", cmPlaceholder: "Que esta pasando en tu estudio?",
-  cmNoPosts: "Aun no hay posts - se quien estrene esto.", cmNoPostsProfile: "Aun no hay posts.",
+  cmNewPost: "Nuevo post", cmPost: "Publicar", cmPlaceholder: "¿Qué está pasando en tu estudio?",
+  cmNoPosts: "Aún no hay posts. Sé quien estrene esto.", cmNoPostsProfile: "Aún no hay posts.",
   cmPosts: "Posts", cmTracksOnTape: "Tracks en La Cinta",
 }, true, true);
 
@@ -1030,6 +1030,92 @@ i18n.addResourceBundle("es", "translation", {
   nhIngMezcla: "Ing. de mezcla", nhDisenoSonoro: "Diseño sonoro",
   nhVocalistas: "Vocalistas", nhProductores: "Productores",
   nhArreglistas: "Arreglistas", nhFoley: "Artistas foley",
+}, true, true);
+
+/* Community + pantalla de acceso (2026-08-07).
+   Fennec, PRO, Fennec ID, Melody Bank y GIFs NO se traducen: son nombres de
+   producto, no texto. */
+i18n.addResourceBundle("en", "translation", {
+  agEsloganL1: "Your music business", agEsloganL2: "& community hub.",
+  agApple: "Continue with Apple", agGoogle: "Continue with Google",
+  agFacebook: "Continue with Facebook",
+  agPassword: "Password", agOlvidaste: "Forgot password?", agO: "or",
+  agCorreoReenviado: "Confirmation email sent again.",
+  agReenviar: "Didn't get it? Resend confirmation email",
+  agCargando: "Loading...", agEntrar: "Log in / Sign up",
+  agConsentimiento: "By continuing, you agree to Fennec's",
+  agTerminos: "Terms of Service", agY: "and", agPrivacidad: "Privacy Policy",
+  agProveedorNoDisponible: "{{proveedor}} sign-in isn't available yet. Please use Google or email for now.",
+  agRevisaCorreo: "Check your email to confirm your account.",
+  agEscribeCorreoPrimero: "Enter your email above first, then tap \"Forgot password?\".",
+  agRevisaCorreoReset: "Check your email for a link to reset your password.",
+
+  cmHilo: "Thread", cmEscribeComentario: "Write a comment...",
+  cmTuMarcaAqui: "Your brand here →", cmTuMarcaAquiPregunta: "Your brand here?",
+  cmAnunciate: "Advertise on Fennec",
+  cmNoticiasError: "Couldn't load news right now. Try again later.",
+  cmAdjuntarAudio: "Attach audio from Melody Bank",
+  cmAdjuntarImagen: "Attach image", cmAdjuntarGif: "Attach GIF",
+  cmBuscarGifs: "Search GIFs...", cmVibe: "Vibe",
+  cmEligeUsuario: "Choose your username",
+  cmAsiTeVeran: "This is how other producers will see you",
+  cmTuUsuario: "yourusername",
+  cmEditarPerfil: "Edit profile", cmFotoEstudio: "Studio photo",
+  cmSubirFotoEstudio: "Upload studio photo",
+  cmBio: "Bio", cmBioPlaceholder: "Tell us about yourself...",
+  cmGenerosEjemplo: "e.g. Dark Trap, Neoclassical...",
+  cmTrabajoCon: "Worked with", cmTrabajoConEjemplo: "e.g. Bad Bunny, Hans Zimmer, Sony Music",
+  cmTrabajoEn: "Worked in", cmTrabajoEnEjemplo: "e.g. Succession, FIFA 25, Coca-Cola ad",
+}, true, true);
+i18n.addResourceBundle("es", "translation", {
+  agEsloganL1: "Tu negocio musical", agEsloganL2: "y tu comunidad.",
+  agApple: "Continuar con Apple", agGoogle: "Continuar con Google",
+  agFacebook: "Continuar con Facebook",
+  agPassword: "Contraseña", agOlvidaste: "¿Olvidaste tu contraseña?", agO: "o",
+  agCorreoReenviado: "Correo de confirmación reenviado.",
+  agReenviar: "¿No te llegó? Reenviar correo de confirmación",
+  agCargando: "Cargando...", agEntrar: "Entrar / Crear cuenta",
+  agConsentimiento: "Al continuar, aceptas los",
+  agTerminos: "Términos de servicio", agY: "y la", agPrivacidad: "Política de privacidad",
+  agProveedorNoDisponible: "Entrar con {{proveedor}} todavía no está disponible. Usa Google o tu correo por ahora.",
+  agRevisaCorreo: "Revisa tu correo para confirmar tu cuenta.",
+  agEscribeCorreoPrimero: "Escribe tu correo arriba y luego toca \"¿Olvidaste tu contraseña?\".",
+  agRevisaCorreoReset: "Revisa tu correo, ahí va el enlace para cambiar tu contraseña.",
+
+  cmHilo: "Hilo", cmEscribeComentario: "Escribe un comentario...",
+  cmTuMarcaAqui: "Tu marca aquí →", cmTuMarcaAquiPregunta: "¿Tu marca aquí?",
+  cmAnunciate: "Anúnciate en Fennec",
+  cmNoticiasError: "No se pudieron cargar las noticias. Intenta más tarde.",
+  cmAdjuntarAudio: "Adjuntar audio del Melody Bank",
+  cmAdjuntarImagen: "Adjuntar imagen", cmAdjuntarGif: "Adjuntar GIF",
+  cmBuscarGifs: "Buscar GIFs...", cmVibe: "Vibe",
+  cmEligeUsuario: "Elige tu nombre de usuario",
+  cmAsiTeVeran: "Así te van a ver los demás productores",
+  cmTuUsuario: "tunombredeusuario",
+  cmEditarPerfil: "Editar perfil", cmFotoEstudio: "Foto del estudio",
+  cmSubirFotoEstudio: "Sube la foto de tu estudio",
+  cmBio: "Bio", cmBioPlaceholder: "Cuéntanos de ti...",
+  cmGenerosEjemplo: "ej. Dark Trap, Neoclásico...",
+  cmTrabajoCon: "Ha trabajado con", cmTrabajoConEjemplo: "ej. Bad Bunny, Hans Zimmer, Sony Music",
+  cmTrabajoEn: "Ha trabajado en", cmTrabajoEnEjemplo: "ej. Succession, FIFA 25, comercial de Coca-Cola",
+}, true, true);
+
+/* Categorías del feed + pestañas de Comunidad (2026-08-07).
+   Viven en lib/communityTypes.ts y en PostCard como LLAVES, para que el filtro
+   y la insignia de cada post cambien de idioma sin recalcular el feed. */
+i18n.addResourceBundle("en", "translation", {
+  catMusica: "Music", catEquipo: "Gear & Tools", catSync: "Sync & Scoring",
+  catNegocio: "Business", catMentalidad: "Mindset", catGeneral: "General",
+  cmTodas: "All", cmFeed: "Feed", cmNoticias: "News",
+  cmCargarMas: "Load more", cmCargando: "Loading…", cmUsuarioNoEncontrado: "User not found.",
+  myProfileCorto: "{{name}} — my profile",
+}, true, true);
+i18n.addResourceBundle("es", "translation", {
+  catMusica: "Música", catEquipo: "Equipo y herramientas", catSync: "Sync y scoring",
+  catNegocio: "Negocio", catMentalidad: "Mentalidad", catGeneral: "General",
+  cmTodas: "Todas", cmFeed: "Feed", cmNoticias: "Noticias",
+  cmCargarMas: "Cargar más", cmCargando: "Cargando…", cmUsuarioNoEncontrado: "Usuario no encontrado.",
+  myProfileCorto: "{{name}} — mi perfil",
 }, true, true);
 
 export default i18n;

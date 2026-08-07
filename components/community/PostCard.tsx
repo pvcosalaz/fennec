@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { MessageCircle, Repeat2, Bookmark, BookmarkCheck, Trash2, MoreHorizontal } from "lucide-react";
 import { toggleVibe, toggleBookmark, deletePost } from "@/lib/communityDb";
@@ -39,12 +40,12 @@ function avatarColor(username: string) {
 
 // Per-category accent — colored dot + label, no emojis
 const CATEGORY_META: Record<string, { label: string; color: string }> = {
-  music:    { label: "Music",          color: "#f5a623" },
-  gear:     { label: "Gear & Tools",   color: "#a78bfa" },
-  sync:     { label: "Sync & Scoring", color: "#34d399" },
-  business: { label: "Business",       color: "#60a5fa" },
-  mindset:  { label: "Mindset",        color: "#f472b6" },
-  general:  { label: "General",        color: "#a1a1aa" },
+  music:    { label: "catMusica",     color: "#f5a623" },
+  gear:     { label: "catEquipo",     color: "#a78bfa" },
+  sync:     { label: "catSync",       color: "#34d399" },
+  business: { label: "catNegocio",    color: "#60a5fa" },
+  mindset:  { label: "catMentalidad", color: "#f472b6" },
+  general:  { label: "catGeneral",    color: "#a1a1aa" },
 };
 
 // Animated EQ icon — the "vibe" action, audio-native instead of a heart
@@ -74,6 +75,7 @@ function VibeIcon({ active }: { active: boolean }) {
 }
 
 export default function PostCard({ post, currentProfile, onOpenThread, onLoop, onOpenProfile, onDelete }: Props) {
+  const { t } = useTranslation();
   const [vibed, setVibed]           = useState(post.user_vibed);
   const [vibeCount, setVibeCount]   = useState(post.vibe_count);
   const [bookmarked, setBookmarked] = useState(post.user_bookmarked);
@@ -126,7 +128,7 @@ export default function PostCard({ post, currentProfile, onOpenThread, onLoop, o
           <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.12em] px-2.5 py-1 rounded-full border"
             style={{ color: `${cat.color}cc`, borderColor: `${cat.color}26`, background: `${cat.color}0d` }}>
             <span className="w-1.5 h-1.5 rounded-full" style={{ background: cat.color, boxShadow: `0 0 5px ${cat.color}99` }} />
-            {cat.label}
+            {t(cat.label)}
           </span>
         </div>
 
@@ -224,7 +226,7 @@ export default function PostCard({ post, currentProfile, onOpenThread, onLoop, o
       <div className="border-t border-white/5 flex items-center justify-around px-4 py-3.5">
         <button
           onClick={handleVibe}
-          aria-label="Vibe"
+          aria-label={t("cmVibe")}
           className={`flex items-center gap-2 text-sm transition active:scale-90 duration-150 ${vibed ? "text-amber-500" : "text-zinc-500 hover:text-zinc-300"}`}
         >
           <VibeIcon active={vibed} />

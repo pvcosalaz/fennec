@@ -172,7 +172,7 @@ export default function ComposerSheet({ profile, onClose, onPostCreated, initial
               }`}
             >
               <span>{cat.emoji}</span>
-              {cat.label}
+              {t(cat.label)}
             </button>
           ))}
         </div>
@@ -223,21 +223,21 @@ export default function ComposerSheet({ profile, onClose, onPostCreated, initial
             <button
               onClick={() => setShowMelody(true)}
               className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center hover:bg-white/10 transition"
-              title="Adjuntar audio del Melody Bank"
+              title={t("cmAdjuntarAudio")}
             >
               <Music2 className="h-4 w-4 text-zinc-400" />
             </button>
             <button
               onClick={() => fileRef.current?.click()}
               className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center hover:bg-white/10 transition"
-              title="Adjuntar imagen"
+              title={t("cmAdjuntarImagen")}
             >
               <ImageIcon className="h-4 w-4 text-zinc-400" />
             </button>
             <button
               onClick={() => setShowGif(true)}
               className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center hover:bg-white/10 transition"
-              title="Adjuntar GIF"
+              title={t("cmAdjuntarGif")}
             >
               <SmilePlus className="h-4 w-4 text-zinc-400" />
             </button>

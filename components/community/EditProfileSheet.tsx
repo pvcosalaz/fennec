@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "react-i18next";
 import { useState, useRef } from "react";
 import { X, Plus, ImagePlus } from "lucide-react";
 import { updateProfile, uploadImage } from "@/lib/communityDb";
@@ -12,6 +13,7 @@ type Props = {
 };
 
 export default function EditProfileSheet({ profile, onClose, onSaved }: Props) {
+  const { t } = useTranslation();
   const { sheetRef, dismiss } = useSheetDismiss(onClose);
   const [bio, setBio]               = useState(profile.bio ?? "");
   const [genreInput, setGenreInput] = useState("");
@@ -90,13 +92,13 @@ export default function EditProfileSheet({ profile, onClose, onSaved }: Props) {
 
         {/* Header */}
         <div className="flex items-center justify-between">
-          <span className="text-sm font-semibold text-white">Edit profile</span>
+          <span className="text-sm font-semibold text-white">{t("cmEditarPerfil")}</span>
           <button onClick={onClose}><X className="h-5 w-5 text-zinc-500" /></button>
         </div>
 
         {/* Banner */}
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">Studio photo</label>
+          <label className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">{t("cmFotoEstudio")}</label>
           <button
             onClick={() => bannerRef.current?.click()}
             className="relative w-full h-28 rounded-2xl overflow-hidden border border-white/10 bg-white/5 hover:border-amber-500 transition flex items-center justify-center"
@@ -105,11 +107,11 @@ export default function EditProfileSheet({ profile, onClose, onSaved }: Props) {
               ? <img src={bannerUrl} className="w-full h-full object-cover" alt="" />
               : <div className="flex flex-col items-center gap-1.5 text-zinc-600">
                   <ImagePlus className="h-6 w-6" />
-                  <span className="text-xs">Upload studio photo</span>
+                  <span className="text-xs">{t("cmSubirFotoEstudio")}</span>
                 </div>}
             {bannerUrl && (
               <div className="absolute inset-0 bg-black/30 opacity-0 hover:opacity-100 transition flex items-center justify-center">
-                <span className="text-xs text-white font-medium">Change photo</span>
+                <span className="text-xs text-white font-medium">{t("stChangePhotoClick")}</span>
               </div>
             )}
           </button>
@@ -131,18 +133,18 @@ export default function EditProfileSheet({ profile, onClose, onSaved }: Props) {
               onClick={() => fileRef.current?.click()}
               className="text-xs text-amber-500 hover:text-amber-400"
             >
-              Cambiar foto
+              {t("stChangePhotoClick")}
             </button>
           </div>
         </div>
 
         {/* Bio */}
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">Bio</label>
+          <label className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">{t("cmBio")}</label>
           <textarea
             value={bio}
             onChange={(e) => setBio(e.target.value)}
-            placeholder="Tell us about yourself..."
+            placeholder={t("cmBioPlaceholder")}
             maxLength={160}
             rows={3}
             className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-amber-500 resize-none"
@@ -152,7 +154,7 @@ export default function EditProfileSheet({ profile, onClose, onSaved }: Props) {
 
         {/* Genres */}
         <div className="space-y-2">
-          <label className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">Genres</label>
+          <label className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">{t("stGenres")}</label>
           <div className="flex flex-wrap gap-1.5">
             {genres.map((tag) => (
               <button
@@ -169,7 +171,7 @@ export default function EditProfileSheet({ profile, onClose, onSaved }: Props) {
               value={genreInput}
               onChange={(e) => setGenreInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addGenre(); } }}
-              placeholder="e.g. Dark Trap, Neoclassical..."
+              placeholder={t("cmGenerosEjemplo")}
               className="flex-1 h-9 rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-amber-500"
             />
             <button
@@ -183,22 +185,22 @@ export default function EditProfileSheet({ profile, onClose, onSaved }: Props) {
 
         {/* Worked with */}
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">Worked with</label>
+          <label className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">{t("cmTrabajoCon")}</label>
           <input
             value={workedWith}
             onChange={(e) => setWorkedWith(e.target.value)}
-            placeholder="e.g. Bad Bunny, Hans Zimmer, Sony Music"
+            placeholder={t("cmTrabajoConEjemplo")}
             className="w-full h-11 rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-amber-500"
           />
         </div>
 
         {/* Worked in */}
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">Worked in</label>
+          <label className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">{t("cmTrabajoEn")}</label>
           <input
             value={workedIn}
             onChange={(e) => setWorkedIn(e.target.value)}
-            placeholder="e.g. Succession, FIFA 25, Coca-Cola ad"
+            placeholder={t("cmTrabajoEnEjemplo")}
             className="w-full h-11 rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-amber-500"
           />
         </div>

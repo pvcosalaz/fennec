@@ -110,6 +110,7 @@ const SPONSORS = [
 ];
 
 function SponsorsRow() {
+  const { t } = useTranslation();
   return (
     <div className="space-y-2">
       {/* Label */}
@@ -117,7 +118,7 @@ function SponsorsRow() {
         <span className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
           Sponsors
         </span>
-        <span className="text-[10px] text-zinc-700">Your brand here →</span>
+        <span className="text-[10px] text-zinc-700">{t("cmTuMarcaAqui")}</span>
       </div>
 
       {/* Horizontal scroll */}
@@ -143,8 +144,8 @@ function SponsorsRow() {
           className="shrink-0 flex flex-col items-center justify-center gap-1 rounded-2xl border border-dashed border-white/10 bg-white/[0.02] text-center"
           style={{ width: 110, height: 72 }}
         >
-          <p className="text-[10px] font-semibold text-zinc-600">Your brand here?</p>
-          <p className="text-[9px] text-zinc-700">Advertise on Fennec</p>
+          <p className="text-[10px] font-semibold text-zinc-600">{t("cmTuMarcaAquiPregunta")}</p>
+          <p className="text-[9px] text-zinc-700">{t("cmAnunciate")}</p>
         </div>
       </div>
     </div>
@@ -192,7 +193,7 @@ function NewsPanel({ onSelect }: { onSelect: (item: NewsItem) => void }) {
 
       {error && (
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-6 text-center">
-          <p className="text-sm text-zinc-500">Couldn&apos;t load news right now. Try again later.</p>
+          <p className="text-sm text-zinc-500">{t("cmNoticiasError")}</p>
         </div>
       )}
 
@@ -390,7 +391,7 @@ export default function Community({ profile, openComposerWith, onComposerConsume
             fennecTab === "community" ? "text-white" : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"
           }`}
         >
-          Feed
+          {t("cmFeed")}
           {fennecTab === "community" && (
             <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-[3px] rounded-full bg-accent shadow-[0_0_10px_rgba(245,166,35,0.55)]" />
           )}
@@ -402,7 +403,7 @@ export default function Community({ profile, openComposerWith, onComposerConsume
             fennecTab === "news" ? "text-white" : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"
           }`}
         >
-          News
+          {t("cmNoticias")}
           {fennecTab === "news" && (
             <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-[3px] rounded-full bg-accent shadow-[0_0_10px_rgba(245,166,35,0.55)]" />
           )}

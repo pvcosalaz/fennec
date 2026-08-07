@@ -322,7 +322,7 @@ export default function DesktopShell({
                 type="button"
                 onClick={() => (id === "network" ? onOpenNetwork() : onNavigate(id))}
                 aria-current={active ? "page" : undefined}
-                title={compact ? label : undefined}
+                title={compact ? t(label) : undefined}
                 /* El layout del boton es IDENTICO abierto y cerrado: un slot de
                    icono de ancho fijo y la etiqueta en absoluto. Antes el boton
                    alternaba justify-center/px y la etiqueta pasaba de width 0 a
@@ -412,7 +412,7 @@ export default function DesktopShell({
             type="button"
             onClick={onOpenMyProfile}
             aria-label={`${name} — view my community profile`}
-            title={compact ? `${name} — my profile` : "My community profile"}
+            title={compact ? t("myProfileCorto", { name }) : t("myProfile")}
             className={`w-full text-left transition hover:brightness-110 active:scale-[0.98] ${compact ? "grid place-items-center py-1" : "rounded-[14px] p-3"}`}
             style={compact ? undefined : { border: `1px solid ${HAIR}`, background: "linear-gradient(150deg,#17151c,#100f13)" }}
           >

@@ -195,7 +195,7 @@ export default function FeedView({ profile, onOpenThread, onOpenProfile, openCom
                inferior de la pantalla (Paco 2026-08-04). */
             onClick={(e) => { setAnchor(e.currentTarget.getBoundingClientRect()); setComposerOpen(true); }}
             className="w-10 h-10 rounded-2xl bg-accent flex items-center justify-center hover:bg-amber-400 active:scale-90 transition shadow-[0_0_16px_rgba(245,166,35,0.35)]"
-            aria-label="New post"
+            aria-label={t("cmNewPost")}
           >
             <Plus className="h-5 w-5 text-black" />
           </button>
@@ -212,7 +212,7 @@ export default function FeedView({ profile, onOpenThread, onOpenProfile, openCom
               : "bg-white/[0.04] text-zinc-400 border-transparent hover:text-white"
           }`}
         >
-          All
+          {t("cmTodas")}
         </button>
         {CATEGORIES.map((cat) => {
           const c = CHIP_COLORS[cat.id] ?? "#a1a1aa";
@@ -227,7 +227,7 @@ export default function FeedView({ profile, onOpenThread, onOpenProfile, openCom
                 : { color: "#a1a1aa", borderColor: "transparent", background: "rgba(255,255,255,0.04)" }}
             >
               <span className="w-1.5 h-1.5 rounded-full" style={{ background: c, boxShadow: active ? `0 0 5px ${c}` : "none", opacity: active ? 1 : 0.55 }} />
-              {cat.label}
+              {t(cat.label)}
             </button>
           );
         })}
@@ -284,7 +284,7 @@ export default function FeedView({ profile, onOpenThread, onOpenProfile, openCom
             }}
             className="w-full py-3 text-xs text-zinc-600 hover:text-zinc-400 transition"
           >
-            {loading ? "Loading…" : "Load more"}
+            {loading ? t("cmCargando") : t("cmCargarMas")}
           </button>
         )}
       </div>

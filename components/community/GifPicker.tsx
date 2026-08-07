@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "react-i18next";
 import { useState, useEffect } from "react";
 import { Search, X } from "lucide-react";
 import { useSheetDismiss, SHEET_BOTTOM, SHEET_ENTER } from "@/components/ui/useSheetDismiss";
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export default function GifPicker({ onSelect, onClose }: Props) {
+  const { t } = useTranslation();
   const { sheetRef, dismiss } = useSheetDismiss(onClose);
   const [query, setQuery]     = useState("");
   const [gifs, setGifs]       = useState<GifResult[]>([]);
@@ -74,7 +76,7 @@ export default function GifPicker({ onSelect, onClose }: Props) {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search GIFs..."
+            placeholder={t("cmBuscarGifs")}
             className="w-full h-10 rounded-xl border border-white/10 bg-white/5 pl-9 pr-3 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-amber-500"
             autoFocus
           />

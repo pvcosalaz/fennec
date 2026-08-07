@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "react-i18next";
 import { useEffect, useState, useRef } from "react";
 import { ArrowLeft, SmilePlus, Send } from "lucide-react";
 import { fetchComments, createComment, toggleVibe } from "@/lib/communityDb";
@@ -30,6 +31,7 @@ function avatarColor(username: string) {
 }
 
 export default function CommentsView({ post, profile, onBack, onOpenProfile }: Props) {
+  const { t } = useTranslation();
   const [comments, setComments]     = useState<Comment[]>([]);
   const [loading, setLoading]       = useState(true);
   const [text, setText]             = useState("");
@@ -75,7 +77,7 @@ export default function CommentsView({ post, profile, onBack, onOpenProfile }: P
         <button onClick={onBack} className="text-zinc-400 hover:text-white transition">
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <span className="text-sm font-semibold text-white">Thread</span>
+        <span className="text-sm font-semibold text-white">{t("cmHilo")}</span>
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
@@ -158,7 +160,7 @@ export default function CommentsView({ post, profile, onBack, onOpenProfile }: P
               value={text}
               onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-              placeholder="Write a comment..."
+              placeholder={t("cmEscribeComentario")}
               className="flex-1 text-sm text-white placeholder:text-zinc-500 bg-transparent outline-none"
             />
             <button onClick={() => setShowGif(true)}>

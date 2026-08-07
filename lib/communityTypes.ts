@@ -68,11 +68,13 @@ export type Comment = {
   user_vibed: boolean;
 };
 
+/* `label` es una LLAVE de i18n, no el texto: se resuelve con t() al pintar,
+   igual que los estados de proyecto en Business. */
 export const CATEGORIES: { id: PostCategory; label: string; emoji: string }[] = [
-  { id: "music",    label: "Music",          emoji: "🎵" },
-  { id: "gear",     label: "Gear & Tools",   emoji: "🎛️" },
-  { id: "sync",     label: "Sync & Scoring", emoji: "🎬" },
-  { id: "business", label: "Business",       emoji: "💼" },
-  { id: "mindset",  label: "Mindset",        emoji: "🧠" },
-  { id: "general",  label: "General",        emoji: "💬" },
+  { id: "music",    label: "catMusica",   emoji: "🎵" },
+  { id: "gear",     label: "catEquipo",   emoji: "🎛️" },
+  { id: "sync",     label: "catSync",     emoji: "🎬" },
+  { id: "business", label: "catNegocio",  emoji: "💼" },
+  { id: "mindset",  label: "catMentalidad", emoji: "🧠" },
+  { id: "general",  label: "catGeneral",  emoji: "💬" },
 ];

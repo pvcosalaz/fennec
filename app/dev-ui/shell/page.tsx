@@ -20,6 +20,7 @@ import type { ProjectReview } from "@/lib/audioTypes";
 import ScriptWriterOverlay from "@/components/content/ScriptWriterOverlay";
 import ContentModule from "@/components/content/ContentModule";
 import BusinessHub from "@/components/business/BusinessHub";
+import Community from "@/components/community/Community";
 import QuoteGenerator from "@/components/business/QuoteGenerator";
 import ActiveProjects from "@/components/business/ActiveProjects";
 import ClientsLeads from "@/components/business/ClientsLeads";
@@ -184,6 +185,10 @@ export default function ShellDevPage() {
         <ActiveProjects onBack={() => {}} userId={mockProfile.id} />
       ) : tool === "clients" ? (
         <ClientsLeads onBack={() => {}} userId={mockProfile.id} />
+      ) : tool === "community" ? (
+        /* ?tool=community · el feed y el perfil, para revisar traduccion sin
+           sesion real (2026-08-07). */
+        <Community profile={mockProfile} />
       ) : tool === "script" ? (
         <ScriptWriterOverlay isDesktop videoRef={mockRef} onSave={() => {}} onClose={() => {}} />
       ) : tape ? (
