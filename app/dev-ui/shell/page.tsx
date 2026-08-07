@@ -91,16 +91,31 @@ export default function ShellDevPage() {
     if (saved === "es" || saved === "en") void i18n.changeLanguage(saved);
   }, []);
   if (process.env.NODE_ENV === "production") notFound();
-  const paramsIni = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
-  /* Con ?tape=1 la pestaña activa DEBE ser "ideas": de eso depende que el shell
-     le de el lienzo a sangre, y si el harness se queda en "dashboard" muestra
-     la version angosta y no sirve para lo que se hizo. */
-  const [tab, setTab] = useState<DesktopTab>(paramsIni?.get("tape") === "1" ? "ideas" : "dashboard");
+
+  /* ── Los parametros se leen DESPUES de montar, no durante el render ──
+     [2026-08-07] Antes se leia `window.location.search` en pleno render con un
+     `typeof window !== "undefined"`. Eso es exactamente el primer caso que
+     enumera el error de hidratacion de React: en el servidor no hay window, asi
+     que salia `null` y se pintaba el dashboard; en el cliente si habia, y se
+     pintaba el modulo del parametro. Dos arboles distintos para el mismo HTML.
+     El "1 Issue" permanente de la consola era ESTO, y estuvo tapando errores
+     reales toda la sesion. Produccion nunca lo tuvo: el unico
+     `typeof window` que queda alla vive dentro de un useEffect. */
+  const [params, setParams] = useState<URLSearchParams | null>(null);
+  const [tab, setTab] = useState<DesktopTab>("dashboard");
+
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search);
+    setParams(p);
+    /* Con ?tape=1 la pestaña activa DEBE ser "ideas": de eso depende que el
+       shell le de el lienzo a sangre, y si el harness se queda en "dashboard"
+       muestra la version angosta y no sirve para lo que se hizo. */
+    if (p.get("tape") === "1") setTab("ideas");
+  }, []);
+
   // ?tool=script monta el escritor de guiones DENTRO del shell, que es la única
   // forma de comprobar que ya no se mete debajo de la barra lateral ni choca
   // con el avatar pegado al borde derecho.
-  const params = typeof window !== "undefined"
-    ? new URLSearchParams(window.location.search) : null;
   const tool = params?.get("tool");
   /* ?photo=<url>&luma=<0..1> para ver el dashboard con foto de estudio sin
      tener que subir una. Va por parametro y no como asset del repo para no
@@ -117,6 +132,12 @@ export default function ShellDevPage() {
   const tape = params?.get("tape") === "1";
   const photo = params?.get("photo") ?? null;
   const photoLuma = Number(params?.get("luma") ?? "0.5");
+
+  /* Hasta que los parametros existan no se pinta nada. Servidor y primer render
+     del cliente coinciden (los dos en null), que es lo que mata el mismatch; y
+     de paso no hay parpadeo del dashboard antes del modulo pedido — ese
+     parpadeo ya me hizo capturar la pantalla equivocada mas de una vez. */
+  if (!params) return null;
 
   if (dust) {
     return (
