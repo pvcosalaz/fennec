@@ -1,4 +1,6 @@
 "use client";
+import { useTranslation } from "react-i18next";
+import "@/lib/i18n";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
@@ -31,38 +33,40 @@ type View = "record" | "bank" | "detail";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
+/* `label` guarda una LLAVE, no el texto: se resuelve con t() al pintar, para
+   que los filtros cambien de idioma sin recalcular las melodias. */
 const MOOD_OPTIONS: { id: MoodTag; label: string; color: string }[] = [
-  { id: "dark",        label: "Dark",        color: "#4d96ff" },
-  { id: "uplifting",   label: "Uplifting",   color: "#ffd93d" },
-  { id: "chill",       label: "Chill",       color: "#6bcb77" },
-  { id: "melancholic", label: "Melancholic", color: "#c77dff" },
-  { id: "aggressive",  label: "Aggressive",  color: "#ff6b6b" },
-  { id: "epic",        label: "Epic",        color: "#ff9f43" },
-  { id: "romantic",    label: "Romantic",    color: "#ff9ff3" },
-  { id: "groovy",      label: "Groovy",      color: "#48dbfb" },
+  { id: "dark",        label: "mbAnimoOscuro",      color: "#4d96ff" },
+  { id: "uplifting",   label: "mbAnimoLuminoso",    color: "#ffd93d" },
+  { id: "chill",       label: "mbAnimoRelajado",    color: "#6bcb77" },
+  { id: "melancholic", label: "mbAnimoMelancolico", color: "#c77dff" },
+  { id: "aggressive",  label: "mbAnimoAgresivo",    color: "#ff6b6b" },
+  { id: "epic",        label: "mbAnimoEpico",       color: "#ff9f43" },
+  { id: "romantic",    label: "mbAnimoRomantico",   color: "#ff9ff3" },
+  { id: "groovy",      label: "mbAnimoGroovy",      color: "#48dbfb" },
 ];
 
 const BPM_OPTIONS: { id: BpmRange; label: string; sub: string }[] = [
-  { id: "slow", label: "Slow",  sub: "< 90"    },
-  { id: "mid",  label: "Mid",   sub: "90–130"  },
-  { id: "fast", label: "Fast",  sub: "130+"    },
+  { id: "slow", label: "mbBpmLento",  sub: "< 90"    },
+  { id: "mid",  label: "mbBpmMedio",  sub: "90–130"  },
+  { id: "fast", label: "mbBpmRapido", sub: "130+"    },
 ];
 
 const INSTRUMENT_OPTIONS: { id: InstrumentTag; label: string; emoji: string }[] = [
-  { id: "piano",   label: "Piano",   emoji: "🎹" },
-  { id: "guitar",  label: "Guitar",  emoji: "🎸" },
-  { id: "strings", label: "Strings", emoji: "🎻" },
-  { id: "synth",   label: "Synth",   emoji: "🎛️" },
-  { id: "bass",    label: "Bass",    emoji: "🎵" },
-  { id: "drums",   label: "Drums",   emoji: "🥁" },
-  { id: "brass",   label: "Brass",   emoji: "🎺" },
-  { id: "flute",   label: "Flute",   emoji: "🪈" },
+  { id: "piano",   label: "mbInsPiano",    emoji: "🎹" },
+  { id: "guitar",  label: "mbInsGuitarra", emoji: "🎸" },
+  { id: "strings", label: "mbInsCuerdas",  emoji: "🎻" },
+  { id: "synth",   label: "mbInsSinte",    emoji: "🎛️" },
+  { id: "bass",    label: "mbInsBajo",     emoji: "🎵" },
+  { id: "drums",   label: "mbInsBateria",  emoji: "🥁" },
+  { id: "brass",   label: "mbInsMetales",  emoji: "🎺" },
+  { id: "flute",   label: "mbInsFlauta",   emoji: "🪈" },
 ];
 
 const STATUS_OPTIONS: { id: IdeaStatus; label: string; color: string }[] = [
-  { id: "raw",         label: "Raw idea",    color: "bg-zinc-700/60 text-zinc-300"      },
-  { id: "in_progress", label: "In progress", color: "bg-amber-400/20 text-amber-400"    },
-  { id: "used",        label: "Used",        color: "bg-emerald-400/20 text-emerald-400" },
+  { id: "raw",         label: "mbEstadoCruda",   color: "bg-zinc-700/60 text-zinc-300"      },
+  { id: "in_progress", label: "mbEstadoEnCurso", color: "bg-amber-400/20 text-amber-400"    },
+  { id: "used",        label: "mbEstadoUsada",   color: "bg-emerald-400/20 text-emerald-400" },
 ];
 
 const MOOD_COLOR: Record<MoodTag, string> = Object.fromEntries(
@@ -177,6 +181,7 @@ export default function IdeasModule({
   onBack: () => void;
   onShareToFeed?: (blob: Blob, title: string) => Promise<void>;
 }) {
+  const { t } = useTranslation();
   const [view,     setView]     = useState<View>("record");
   const [melodies, setMelodies] = useState<Melody[]>([]);
   const [selected, setSelected] = useState<Melody | null>(null);
@@ -222,6 +227,7 @@ function RecordView({
   onOpenBank: () => void;
   onSave: (m: Melody) => void;
 }) {
+  const { t } = useTranslation();
   const [phase,    setPhase]    = useState<"idle" | "recording" | "done">("idle");
   const [timer,    setTimer]    = useState(0);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
@@ -330,7 +336,7 @@ function RecordView({
           <h1 className="text-3xl font-bold text-white">
             Melody <span className="text-accent">Bank</span>
           </h1>
-          <p className="text-xs text-zinc-500">Capture your ideas before they disappear</p>
+          <p className="text-xs text-zinc-500">{t("mbSubtitulo")}</p>
         </div>
         <button
           onClick={onOpenBank}
@@ -374,7 +380,7 @@ function RecordView({
         )}
 
         {phase === "idle" && (
-          <p className="text-xs text-zinc-600 text-center">Tap to start recording</p>
+          <p className="text-xs text-zinc-600 text-center">{t("mbTocaParaGrabar")}</p>
         )}
       </div>
 
@@ -388,13 +394,13 @@ function RecordView({
             autoFocus type="text" value={title}
             onChange={(e) => setTitle(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && save()}
-            placeholder="Name this idea..."
+            placeholder={t("mbNombraIdea")}
             className="w-full h-11 rounded-xl border border-white/15 bg-black/30 px-4 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
           />
 
           {/* Mood */}
           <div className="space-y-2">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">Mood</p>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">{t("mbAnimo")}</p>
             <div className="flex flex-wrap gap-1.5">
               {MOOD_OPTIONS.map((m) => {
                 const sel = moods.includes(m.id);
@@ -409,7 +415,7 @@ function RecordView({
                       color:            sel ? m.color        : "#71717a",
                     }}
                   >
-                    {m.label}
+                    {t(m.label)}
                   </button>
                 );
               })}
@@ -430,7 +436,7 @@ function RecordView({
                       sel ? "border-accent bg-accent/10 text-accent" : "border-white/10 text-zinc-500 hover:text-white"
                     }`}
                   >
-                    <p>{b.label}</p>
+                    <p>{t(b.label)}</p>
                     <p className="text-[9px] opacity-60 mt-0.5">{b.sub}</p>
                   </button>
                 );
@@ -440,7 +446,7 @@ function RecordView({
 
           {/* Instruments */}
           <div className="space-y-2">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">Sounds like</p>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">{t("mbSuenaA")}</p>
             <div className="flex flex-wrap gap-1.5">
               {INSTRUMENT_OPTIONS.map((instr) => {
                 const sel = instruments.includes(instr.id);
@@ -452,7 +458,7 @@ function RecordView({
                       sel ? "border-accent/50 bg-accent/10 text-accent" : "border-white/10 text-zinc-500 hover:text-white"
                     }`}
                   >
-                    <span>{instr.emoji}</span> {instr.label}
+                    <span>{instr.emoji}</span> {t(instr.label)}
                   </button>
                 );
               })}
@@ -463,7 +469,7 @@ function RecordView({
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Notes (optional). Context, references, project ideas..."
+            placeholder={t("mbNotasPlaceholder")}
             rows={2}
             className="w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2.5 text-sm text-white outline-none resize-none placeholder:text-zinc-500 focus:border-accent"
           />
@@ -480,7 +486,7 @@ function RecordView({
                     : "border-white/10 text-zinc-600 hover:text-zinc-400"
                 }`}
               >
-                {s.label}
+                {t(s.label)}
               </button>
             ))}
           </div>
@@ -512,6 +518,7 @@ function MelodyCard({
   onDelete: (id: string) => void;
   onShareToFeed?: (blob: Blob, title: string) => Promise<void>;
 }) {
+  const { t } = useTranslation();
   const [playing,         setPlaying]         = useState(false);
   const [shareOpen,       setShareOpen]       = useState(false);
   const [sharingFennec,   setSharingFennec]   = useState(false);
@@ -589,7 +596,7 @@ function MelodyCard({
     try {
       await onShareToFeed(m.blob, m.title);
       setSharedFennec(true);
-    } catch { alert("Error sharing. Try again."); }
+    } catch { alert(t("mbErrorCompartir")); }
     finally { setSharingFennec(false); setShareOpen(false); }
   }
 
@@ -600,11 +607,11 @@ function MelodyCard({
         <p className="text-sm font-semibold text-white leading-snug">{m.title}</p>
         <div className="flex items-center gap-1.5 shrink-0">
           <span className={`text-[10px] font-medium rounded-full px-2 py-0.5 ${statusOpt?.color}`}>
-            {statusOpt?.label}
+            {statusOpt?.label ? t(statusOpt.label) : null}
           </span>
           {confirmDelete ? (
             <>
-              <button onClick={() => onDelete(m.id)} className="text-[10px] font-semibold text-red-400">Delete</button>
+              <button onClick={() => onDelete(m.id)} className="text-[10px] font-semibold text-red-400">{t("apEliminar")}</button>
               <button onClick={() => setConfirmDelete(false)} className="text-[10px] text-zinc-500">✕</button>
             </>
           ) : (
@@ -621,14 +628,14 @@ function MelodyCard({
           {m.moods.map((mood) => (
             <span key={mood} className="rounded-full px-2 py-0.5 text-[10px] font-medium"
               style={{ backgroundColor: MOOD_COLOR[mood] + "20", color: MOOD_COLOR[mood] }}>
-              {MOOD_OPTIONS.find((o) => o.id === mood)?.label}
+              {(() => { const o = MOOD_OPTIONS.find((x) => x.id === mood); return o ? t(o.label) : null; })()}
             </span>
           ))}
           {m.instruments.map((instr) => {
             const opt = INSTRUMENT_OPTIONS.find((o) => o.id === instr);
             return (
               <span key={instr} className="rounded-full px-2 py-0.5 text-[10px] text-zinc-500 border border-white/8">
-                {opt?.emoji} {opt?.label}
+                {opt?.emoji} {opt?.label ? t(opt.label) : null}
               </span>
             );
           })}
@@ -675,7 +682,7 @@ function MelodyCard({
             className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition px-3 py-1.5 rounded-xl border border-white/10 hover:border-white/20"
           >
             <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-current"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" stroke="currentColor" strokeWidth="2" fill="none"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" stroke="currentColor" strokeWidth="2" fill="none"/></svg>
-            {sharedFennec ? "Shared ✓" : "Share"}
+            {sharedFennec ? t("mbCompartido") : t("mbCompartir")}
           </button>
           {shareOpen && (
             <>
@@ -686,14 +693,14 @@ function MelodyCard({
                   disabled={sharingFennec || sharedFennec || !onShareToFeed}
                   className="w-full flex items-center px-4 py-3 text-xs text-white hover:bg-white/5 transition disabled:opacity-50"
                 >
-                  <span>{sharingFennec ? "Posting…" : sharedFennec ? "Posted to Community!" : "Share to Fennec feed"}</span>
+                  <span>{sharingFennec ? t("mbPublicando") : sharedFennec ? t("mbPublicado") : t("mbCompartirFeed")}</span>
                 </button>
                 <div className="h-px bg-white/5" />
                 <button
                   onClick={shareNative}
                   className="w-full flex items-center px-4 py-3 text-xs text-zinc-400 hover:bg-white/5 hover:text-white transition"
                 >
-                  <span>Share audio file</span>
+                  <span>{t("mbCompartirArchivo")}</span>
                 </button>
               </div>
             </>
@@ -712,6 +719,7 @@ function BankView({
   onDelete: (id: string) => void;
   onShareToFeed?: (blob: Blob, title: string) => Promise<void>;
 }) {
+  const { t } = useTranslation();
   const [query,      setQuery]      = useState("");
   const [filterMood, setFilterMood] = useState<MoodTag | null>(null);
   const [filterStat, setFilterStat] = useState<IdeaStatus | null>(null);
@@ -731,7 +739,7 @@ function BankView({
         </button>
         <div>
           <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">Melody Bank</p>
-          <h1 className="text-2xl font-bold text-white">My Melodies</h1>
+          <h1 className="text-2xl font-bold text-white">{t("mbMisMelodias")}</h1>
         </div>
       </div>
 
@@ -740,7 +748,7 @@ function BankView({
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-600" />
         <input
           type="text" value={query} onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search by title or notes..."
+          placeholder={t("mbBuscar")}
           className="w-full h-10 rounded-xl border border-white/10 bg-white/5 pl-9 pr-9 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
         />
         {query && (
@@ -752,7 +760,7 @@ function BankView({
 
       {/* Mood filter */}
       <div className="space-y-2">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">Filter by mood</p>
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">{t("mbFiltrarAnimo")}</p>
         <div className="flex flex-wrap gap-1.5">
           {MOOD_OPTIONS.map((m) => {
             const active = filterMood === m.id;
@@ -767,7 +775,7 @@ function BankView({
                   color:            active ? m.color        : "#52525b",
                 }}
               >
-                {m.label}
+                {t(m.label)}
               </button>
             );
           })}
@@ -786,7 +794,7 @@ function BankView({
                 : "border-white/10 text-zinc-600 hover:text-zinc-400"
             }`}
           >
-            {s.label}
+            {t(s.label)}
           </button>
         ))}
       </div>
@@ -795,7 +803,7 @@ function BankView({
       {filtered.length === 0 ? (
         <div className="py-16 text-center space-y-2">
           <Music className="h-8 w-8 text-zinc-700 mx-auto" />
-          <p className="text-sm text-zinc-500">{melodies.length === 0 ? "No ideas saved yet." : "No results for that filter."}</p>
+          <p className="text-sm text-zinc-500">{melodies.length === 0 ? t("mbSinIdeas") : t("mbSinResultados")}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -823,6 +831,7 @@ function DetailView({
   onDelete: () => void;
   onShareToFeed?: (blob: Blob, title: string) => Promise<void>;
 }) {
+  const { t } = useTranslation();
   const [playing,          setPlaying]          = useState(false);
   const [confirmDelete,    setConfirmDelete]    = useState(false);
   const [sharing,          setSharing]          = useState(false);
@@ -840,7 +849,7 @@ function DetailView({
       } else if (navigator.share) {
         await navigator.share({ title: melody.title, text: `🎵 ${melody.title}` });
       } else {
-        alert("Sharing not supported on this browser.");
+        alert(t("mbNoSoportado"));
       }
     } catch (e) {
       if ((e as Error).name !== "AbortError") console.error(e);
@@ -857,7 +866,7 @@ function DetailView({
       setSharedToFennec(true);
     } catch (err) {
       console.error(err);
-      alert("Error sharing. Try again.");
+      alert(t("mbErrorCompartir"));
     } finally {
       setSharingToFennec(false);
     }
@@ -887,8 +896,8 @@ function DetailView({
         </div>
         {confirmDelete ? (
           <div className="flex items-center gap-3">
-            <button onClick={onDelete} className="text-xs font-semibold text-red-400">Delete</button>
-            <button onClick={() => setConfirmDelete(false)} className="text-xs text-zinc-500">Cancel</button>
+            <button onClick={onDelete} className="text-xs font-semibold text-red-400">{t("apEliminar")}</button>
+            <button onClick={() => setConfirmDelete(false)} className="text-xs text-zinc-500">{t("mtCancel")}</button>
           </div>
         ) : (
           <button onClick={() => setConfirmDelete(true)} className="text-zinc-600 hover:text-red-400 transition">
@@ -905,7 +914,7 @@ function DetailView({
           <span>{new Date(melody.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
           {statusOpt && (
             <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${statusOpt.color}`}>
-              {statusOpt.label}
+              {t(statusOpt.label)}
             </span>
           )}
         </div>
@@ -930,11 +939,11 @@ function DetailView({
       {/* Metadata */}
       {(melody.moods.length > 0 || melody.bpm || melody.instruments.length > 0 || melody.notes) && (
         <div className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
-          <p className="text-sm font-semibold text-white">Details</p>
+          <p className="text-sm font-semibold text-white">{t("mbDetalles")}</p>
 
           {melody.moods.length > 0 && (
             <div className="space-y-1.5">
-              <p className="text-[10px] uppercase tracking-widest text-zinc-600">Mood</p>
+              <p className="text-[10px] uppercase tracking-widest text-zinc-600">{t("mbAnimo")}</p>
               <div className="flex flex-wrap gap-1.5">
                 {melody.moods.map((mood) => (
                   <span
@@ -959,7 +968,7 @@ function DetailView({
               )}
               {melody.instruments.length > 0 && (
                 <div className="space-y-1">
-                  <p className="text-[10px] uppercase tracking-widest text-zinc-600">Sounds like</p>
+                  <p className="text-[10px] uppercase tracking-widest text-zinc-600">{t("mbSuenaA")}</p>
                   <div className="flex flex-wrap gap-1">
                     {melody.instruments.map((instr) => {
                       const opt = INSTRUMENT_OPTIONS.find((o) => o.id === instr);
@@ -975,7 +984,7 @@ function DetailView({
 
           {melody.notes && (
             <div className="space-y-1">
-              <p className="text-[10px] uppercase tracking-widest text-zinc-600">Notes</p>
+              <p className="text-[10px] uppercase tracking-widest text-zinc-600">{t("apNotas")}</p>
               <p className="text-xs text-zinc-300 leading-relaxed">{melody.notes}</p>
             </div>
           )}
@@ -984,14 +993,14 @@ function DetailView({
 
       {/* Share */}
       <div className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-3">
-        <p className="text-sm font-semibold text-white">Share</p>
+        <p className="text-sm font-semibold text-white">{t("mbCompartir")}</p>
         <button
           onClick={shareNative} disabled={sharing}
           className="w-full flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 px-4 py-3 hover:border-accent/40 transition disabled:opacity-50"
         >
           <Share2 className="h-4 w-4 text-accent flex-shrink-0" />
           <div className="text-left">
-            <p className="text-sm font-medium text-white">{sharing ? "Opening…" : "Share audio file"}</p>
+            <p className="text-sm font-medium text-white">{sharing ? t("mbAbriendo") : t("mbCompartirArchivo")}</p>
             <p className="text-xs text-zinc-500">AirDrop, WhatsApp, Instagram, TikTok…</p>
           </div>
         </button>
@@ -1003,9 +1012,9 @@ function DetailView({
           <img src="/fennec-logo.png" className="h-5 w-5 shrink-0 brightness-0 invert" alt="" />
           <div className="text-left flex-1">
             <p className="text-sm font-medium text-white">
-              {sharingToFennec ? "Posting…" : sharedToFennec ? "Posted to Community!" : "Share to Fennec"}
+              {sharingToFennec ? t("mbPublicando") : sharedToFennec ? t("mbPublicado") : t("mbCompartirFennec")}
             </p>
-            <p className="text-xs text-zinc-500">Post to the community feed</p>
+            <p className="text-xs text-zinc-500">{t("mbPublicarEnFeed")}</p>
           </div>
           {sharedToFennec && <span className="text-accent text-lg">✓</span>}
         </button>

@@ -411,7 +411,7 @@ export default function DesktopShell({
           <button
             type="button"
             onClick={onOpenMyProfile}
-            aria-label={`${name} — view my community profile`}
+            aria-label={t("dsVerMiPerfil", { name })}
             title={compact ? t("myProfileCorto", { name }) : t("myProfile")}
             className={`w-full text-left transition hover:brightness-110 active:scale-[0.98] ${compact ? "grid place-items-center py-1" : "rounded-[14px] p-3"}`}
             style={compact ? undefined : { border: `1px solid ${HAIR}`, background: "linear-gradient(150deg,#17151c,#100f13)" }}
@@ -493,7 +493,7 @@ export default function DesktopShell({
             <button
               type="button"
               onClick={onOpenSettings}
-              aria-label={`${name} — account and settings`}
+              aria-label={t("dsCuentaAjustes", { name })}
               title="Settings"
               className="rounded-full transition hover:brightness-110"
             >

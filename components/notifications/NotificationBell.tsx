@@ -1,4 +1,6 @@
 "use client";
+import { useTranslation } from "react-i18next";
+import "@/lib/i18n";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Bell } from "lucide-react";
 import { countUnread } from "@/lib/notificationDb";
@@ -10,6 +12,7 @@ type Props = {
 };
 
 export default function NotificationBell({ userId, align = "left" }: Props) {
+  const { t } = useTranslation();
   const [unread, setUnread]         = useState(0);
   const [open, setOpen]             = useState(false);
   const [subscribed, setSubscribed] = useState(false);
@@ -106,7 +109,7 @@ export default function NotificationBell({ userId, align = "left" }: Props) {
         ref={btnRef}
         onClick={toggle}
         className="relative flex items-center justify-center h-8 w-8 rounded-xl border border-white/10 bg-white/5 text-zinc-400 hover:text-accent hover:border-accent/30 transition"
-        aria-label="Notifications"
+        aria-label={t("stNotifications")}
       >
         <Bell className="h-4 w-4" />
         {unread > 0 && (

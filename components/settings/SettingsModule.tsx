@@ -186,14 +186,14 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
-      if (!token) { setDeleteError("Your session expired. Please sign in again."); setDeleting(false); return; }
+      if (!token) { setDeleteError(t("stSesionExpirada")); setDeleting(false); return; }
       const res = await fetch("/api/account/delete", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        setDeleteError(body.error ?? "Could not delete your account. Please try again.");
+        setDeleteError(body.error ?? t("stErrorBorrarCuenta"));
         setDeleting(false);
         return;
       }
@@ -202,7 +202,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
       await supabase.auth.signOut().catch(() => {});
       if (onSignOut) onSignOut(); else window.location.href = "/";
     } catch {
-      setDeleteError("Could not delete your account. Please try again.");
+      setDeleteError(t("stErrorBorrarCuenta"));
       setDeleting(false);
     }
   }
@@ -266,7 +266,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
       onAvatarChange?.(url);
     } catch (err) {
       console.error("Avatar upload failed", err);
-      alert("No se pudo actualizar la foto. Intenta de nuevo.");
+      alert(t("stErrorFoto"));
     } finally {
       setUploadingAvatar(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -339,7 +339,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
   // ── Suggest a feature section ──
   if (section === "suggest") {
     const STATUS_LABEL: Record<Suggestion["status"], string> = {
-      new: "Received", planned: "Planned", in_progress: "In progress",
+      new: t("stSugRecibida"), planned: t("stSugPlaneada"), in_progress: t("stSugEnCurso"),
       done: "Shipped", declined: "Not planned",
     };
     return (
@@ -364,7 +364,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
           <textarea
             value={suggestBody}
             onChange={(e) => setSuggestBody(e.target.value)}
-            placeholder="I wish Fennec could…"
+            placeholder={t("stSugPlaceholder")}
             rows={4}
             maxLength={1000}
             className="w-full bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none resize-none"
@@ -386,7 +386,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
 
         {mySuggestions.length > 0 && (
           <div className="space-y-2">
-            <p className="text-xs font-semibold tracking-[0.2em] text-zinc-500 uppercase">Your suggestions</p>
+            <p className="text-xs font-semibold tracking-[0.2em] text-zinc-500 uppercase">{t("stTusSugerencias")}</p>
             {mySuggestions.map((s) => (
               <div key={s.id} className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
                 <p className="text-sm text-zinc-200 leading-relaxed">{s.body}</p>
@@ -434,7 +434,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
           </button>
           <div>
             <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">{t("stKicker")}</p>
-            <h1 className="text-2xl font-bold text-white">Profile</h1>
+            <h1 className="text-2xl font-bold text-white">{t("stProfile")}</h1>
           </div>
         </div>
         {isDesktop && botonGuardar}
@@ -504,7 +504,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
             type="text"
             value={profile.name}
             onChange={(e) => setProfile((p) => ({ ...p, name: e.target.value }))}
-            placeholder="Your name"
+            placeholder={t("stTuNombre")}
             className="w-full h-10 rounded-xl border border-white/15 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-accent"
           />
         </div>
@@ -514,7 +514,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
           <Select
             value={profile.role}
             onChange={(val) => setProfile((p) => ({ ...p, role: val }))}
-            placeholder="Select your role"
+            placeholder={t("stEligeRol")}
             options={ROLES.map((r) => ({ value: r, label: r }))}
           />
         </div>
@@ -524,7 +524,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
           <Select
             value={profile.country}
             onChange={(val) => setProfile((p) => ({ ...p, country: val }))}
-            placeholder="Select your country"
+            placeholder={t("stEligePais")}
             options={COUNTRIES.map((c) => ({ value: c.name, label: `${c.flag}  ${c.name}` }))}
           />
         </div>
@@ -569,8 +569,8 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
 
         {[
           { key: "instagram", icon: SiInstagram, placeholder: "@username",       color: "#E1306C" },
-          { key: "spotify",   icon: SiSpotify,   placeholder: "Artist name / URL", color: "#1DB954" },
-          { key: "youtube",   icon: SiYoutube,   placeholder: "Channel URL",      color: "#FF0000" },
+          { key: "spotify",   icon: SiSpotify,   placeholder: t("stArtistaUrl"), color: "#1DB954" },
+          { key: "youtube",   icon: SiYoutube,   placeholder: t("stCanalUrl"),      color: "#FF0000" },
           { key: "tiktok",    icon: SiTiktok,    placeholder: "@username",        color: "#ffffff" },
         ].map(({ key, icon: Icon, placeholder, color }) => (
           <div key={key} className="flex items-center gap-3">
@@ -602,7 +602,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
         </button>
         <div>
           <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">{t("stKicker")}</p>
-          <h1 className="text-2xl font-bold text-white">Language</h1>
+          <h1 className="text-2xl font-bold text-white">{t("stLanguage")}</h1>
         </div>
       </div>
 
@@ -642,7 +642,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
         </button>
         <div>
           <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">{t("stKicker")}</p>
-          <h1 className="text-2xl font-bold text-white">Currency</h1>
+          <h1 className="text-2xl font-bold text-white">{t("stCurrency")}</h1>
         </div>
       </div>
 
@@ -777,39 +777,39 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
         </button>
         <div>
           <p className="text-xs font-semibold tracking-[0.35em] text-accent uppercase">{t("stKicker")}</p>
-          <h1 className="text-2xl font-bold text-white">Data & Reset</h1>
+          <h1 className="text-2xl font-bold text-white">{t("stData")}</h1>
         </div>
       </div>
 
       <p className="text-xs text-zinc-500 leading-relaxed">
-        Reset individual modules. This cannot be undone.
+        {t("stReiniciarAviso")}
       </p>
 
       <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
         {[
-          { key: "fennec-pricing-v1",          label: "Pricing Calculator" },
-          { key: "fennec-quotes-v1",            label: "Quotes" },
-          { key: "fennec-projects-v1",          label: "Active Projects" },
-          { key: "fennec-clients-v1",           label: "Clients & Leads" },
-          { key: "fennec-content-lines-v4",     label: "Content Lines" },
-          { key: "fennec-content-formats-v4",   label: "Content Formats" },
-          { key: "fennec-briefs-v1",            label: "Scripts & Ideas" },
-          { key: "fennec-ideas-bank-v1",        label: "Quick Ideas" },
-          { key: "fennec-posts-v1",             label: "Calendar Posts" },
+          { key: "fennec-pricing-v1",          label: t("bzCalculator") },
+          { key: "fennec-quotes-v1",            label: t("bzQuotes") },
+          { key: "fennec-projects-v1",          label: t("bzProjects") },
+          { key: "fennec-clients-v1",           label: t("bzClients") },
+          { key: "fennec-content-lines-v4",     label: t("stLineasContenido") },
+          { key: "fennec-content-formats-v4",   label: t("stFormatosContenido") },
+          { key: "fennec-briefs-v1",            label: t("stGuionesIdeas") },
+          { key: "fennec-ideas-bank-v1",        label: t("mkQuickIdeas") },
+          { key: "fennec-posts-v1",             label: t("stPostsCalendario") },
         ].map((item, i) => (
           <div key={item.key} className={`flex items-center justify-between px-5 py-4 ${i > 0 ? "border-t border-white/5" : ""}`}>
             <p className="text-sm text-zinc-300">{item.label}</p>
             {confirmReset === item.key ? (
               <div className="flex items-center gap-2">
-                <span className="text-xs text-red-400">Sure?</span>
+                <span className="text-xs text-red-400">{t("stSeguro")}</span>
                 <button
                   onClick={() => resetData(item.key, item.label)}
                   className="rounded-lg bg-red-500/20 px-3 py-1 text-xs font-semibold text-red-400 hover:bg-red-500/30 transition"
                 >
-                  Reset
+                  {t("stReiniciar")}
                 </button>
                 <button onClick={() => setConfirmReset(null)} className="text-xs text-zinc-500 hover:text-white transition">
-                  Cancel
+                  {t("mtCancel")}
                 </button>
               </div>
             ) : (
@@ -817,7 +817,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
                 onClick={() => setConfirmReset(item.key)}
                 className="text-xs text-zinc-600 hover:text-red-400 transition"
               >
-                Reset
+                {t("stReiniciar")}
               </button>
             )}
           </div>
@@ -828,12 +828,10 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
       <div className="rounded-2xl border border-red-500/20 bg-red-500/[0.04] p-5 space-y-3">
         <div className="flex items-center gap-2">
           <AlertTriangle className="h-4 w-4 text-red-400 flex-shrink-0" />
-          <h2 className="text-sm font-semibold text-white">Delete account</h2>
+          <h2 className="text-sm font-semibold text-white">{t("stBorrarCuenta")}</h2>
         </div>
         <p className="text-xs text-zinc-500 leading-relaxed">
-          Permanently delete your Fennec account and all associated data: your profile,
-          projects, quotes, clients, tracks, and social connections. This cannot be undone.
-          Any active Pro subscription is cancelled.
+          {t("stBorrarCuentaAviso")}
         </p>
         {deleteError && <p className="text-xs text-red-400">{deleteError}</p>}
         {confirmDelete ? (
@@ -843,7 +841,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
               disabled={deleting}
               className="rounded-lg bg-red-500 px-4 py-2 text-xs font-semibold text-white hover:bg-red-600 transition disabled:opacity-50"
             >
-              {deleting ? "Deleting..." : "Yes, permanently delete"}
+              {deleting ? t("stBorrando") : t("stSiBorrar")}
             </button>
             <button
               onClick={() => setConfirmDelete(false)}
@@ -858,7 +856,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
             onClick={() => setConfirmDelete(true)}
             className="rounded-lg border border-red-500/30 px-4 py-2 text-xs font-semibold text-red-400 hover:bg-red-500/10 transition"
           >
-            Delete account
+            {t("stBorrarCuenta")}
           </button>
         )}
       </div>
