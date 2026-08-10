@@ -1,4 +1,6 @@
 "use client";
+import { useTranslation } from "react-i18next";
+import "@/lib/i18n";
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import type { ProjectReview } from "@/lib/audioTypes";
@@ -25,6 +27,7 @@ type Props = {
 };
 
 export default function AudioModule({ userId, isPro, onSheetChange }: Props) {
+  const { t } = useTranslation();
   const isDesktop = useIsDesktop();
   const [overlay, setOverlay]       = useState<Overlay>(null);
   const [queue, setQueue]           = useState<ProjectReview[]>([]);
@@ -121,12 +124,12 @@ export default function AudioModule({ userId, isPro, onSheetChange }: Props) {
       {/* ── Main player — the tape is the screen ──────────────── */}
       {loadingQueue && (
         <div className="absolute inset-0 flex items-center justify-center" style={{ background: "#131216" }}>
-          <p className="text-xs text-zinc-600">Loading tracks...</p>
+          <p className="text-xs text-zinc-600">{t("amCargandoTracks")}</p>
         </div>
       )}
       {!loadingQueue && !currentTrack && (
         <div className="absolute inset-0 flex items-center justify-center px-10 text-center" style={{ background: "#131216" }}>
-          <p className="text-xs text-zinc-600">No tracks available right now. Check back later!</p>
+          <p className="text-xs text-zinc-600">{t("amSinTracks")}</p>
         </div>
       )}
       {!loadingQueue && currentTrack && (
@@ -170,7 +173,7 @@ export default function AudioModule({ userId, isPro, onSheetChange }: Props) {
       {overlay === "melody" && (
         <div className="fixed inset-0 z-50 bg-[#111114] overflow-y-auto pb-32">
           <div className="flex justify-end px-4 pt-14 pb-2">
-            <button onClick={() => setOverlay(null)} aria-label="Close" className="text-zinc-500 hover:text-white transition">
+            <button onClick={() => setOverlay(null)} aria-label={t("amCerrar")} className="text-zinc-500 hover:text-white transition">
               <X className="h-5 w-5" />
             </button>
           </div>
@@ -202,6 +205,7 @@ function MyTracksSheet({
   isDesktop?: boolean;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const { sheetRef, dismiss } = useSheetDismiss(onClose);
   const close = isDesktop ? onClose : dismiss;
   return (
@@ -236,7 +240,7 @@ function MyTracksSheet({
           </div>
         )}
         <div className={`flex items-center justify-between px-4 pb-4 ${isDesktop ? "pt-5" : "pt-2"}`}>
-          <span className="text-sm font-bold text-white">My Tracks</span>
+          <span className="text-sm font-bold text-white">{t("tpMyTracks")}</span>
           <button onClick={close} aria-label="Close" className="text-zinc-500 hover:text-white transition">
             <X className="h-5 w-5" />
           </button>

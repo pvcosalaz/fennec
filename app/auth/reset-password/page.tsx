@@ -1,4 +1,6 @@
 "use client";
+import { useTranslation } from "react-i18next";
+import "@/lib/i18n";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import FennecFox from "@/components/dashboard/FennecFox";
@@ -13,6 +15,7 @@ import FennecFox from "@/components/dashboard/FennecFox";
 type Status = "checking" | "ready" | "invalid" | "done";
 
 export default function ResetPasswordPage() {
+  const { t } = useTranslation();
   const [status, setStatus]     = useState<Status>("checking");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm]   = useState("");
@@ -69,8 +72,8 @@ export default function ResetPasswordPage() {
 
         {status === "invalid" && (
           <div className="space-y-3 text-center">
-            <p className="text-sm font-semibold text-white">This link has expired or is invalid.</p>
-            <p className="text-xs text-zinc-500">Request a new one from the login screen.</p>
+            <p className="text-sm font-semibold text-white">{t("rpEnlaceInvalido")}</p>
+            <p className="text-xs text-zinc-500">{t("rpPideOtro")}</p>
             <a href="/" className="mt-2 inline-block text-xs font-semibold text-amber-500 underline underline-offset-2">
               Back to login
             </a>
@@ -83,10 +86,10 @@ export default function ResetPasswordPage() {
 
         {status === "ready" && (
           <form onSubmit={handleSubmit} className="space-y-2">
-            <p className="mb-3 text-center text-sm font-semibold text-white">Set a new password</p>
+            <p className="mb-3 text-center text-sm font-semibold text-white">{t("rpNuevaContrasena")}</p>
             <input
               type="password"
-              placeholder="New password"
+              placeholder={t("pwNew")}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -96,7 +99,7 @@ export default function ResetPasswordPage() {
             />
             <input
               type="password"
-              placeholder="Confirm new password"
+              placeholder={t("pwConfirm")}
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               required

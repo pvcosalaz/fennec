@@ -1,4 +1,6 @@
 "use client";
+import { useTranslation } from "react-i18next";
+import "@/lib/i18n";
 
 import { useState } from "react";
 import { Plus, Trash2, X, ArrowRight, Loader2, Check, Sparkles } from "lucide-react";
@@ -113,6 +115,7 @@ function Row({ first, selected, onSelect, onDelete, dot, title, description }: {
 }
 
 export default function MusicContentLab({ onClose, onGenerateScript, isDesktop = false }: Props) {
+  const { t } = useTranslation();
   const [formats, setFormats] = useState<ContentFormat[]>(() =>
     loadFromStorage(CONTENT_FORMATS_KEY, DEFAULT_FORMATS)
   );
@@ -267,7 +270,7 @@ export default function MusicContentLab({ onClose, onGenerateScript, isDesktop =
           <button
             onClick={() => { setView("matrix"); setNewName(""); }}
             className="h-9 rounded-xl px-2.5 text-zinc-500 transition hover:text-white"
-            aria-label="Cancel"
+            aria-label={t("mtCancel")}
           >
             <X size={15} />
           </button>
@@ -330,7 +333,7 @@ export default function MusicContentLab({ onClose, onGenerateScript, isDesktop =
               className="flex h-10 items-center gap-2 rounded-xl bg-accent px-5 text-[13px] font-bold text-black transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-25"
             >
               {generating
-                ? <><Loader2 size={15} className="animate-spin" /> Generating…</>
+                ? <><Loader2 size={15} className="animate-spin" /> {t("mclGenerando")}</>
                 : <><Sparkles size={15} /> Generate &amp; write script</>}
             </button>
           </div>
@@ -445,7 +448,7 @@ export default function MusicContentLab({ onClose, onGenerateScript, isDesktop =
             style={{ backgroundColor: selectedFormat!.color }}
           />
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-amber-400 mb-0.5">Your idea</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-amber-400 mb-0.5">{t("mclTuIdea")}</p>
             <p className="text-sm text-white leading-snug">{combination}</p>
           </div>
           <button
@@ -478,7 +481,7 @@ export default function MusicContentLab({ onClose, onGenerateScript, isDesktop =
             className="w-full h-11 rounded-2xl bg-amber-400 text-black text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-60 transition"
           >
             {generating ? (
-              <><Loader2 size={16} className="animate-spin" /> Generating...</>
+              <><Loader2 size={16} className="animate-spin" /> {t("mclGenerando")}</>
             ) : (
               "Generate & Write Script"
             )}
@@ -495,7 +498,7 @@ export default function MusicContentLab({ onClose, onGenerateScript, isDesktop =
         {/* LEFT — Formats */}
         <div className="flex flex-col w-1/2 border-r border-white/5">
           <div className="flex items-center justify-between px-3 py-2 sticky top-0 bg-zinc-950 z-10">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Formats</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">{t("mclFormatos")}</p>
             <button
               onClick={() => { setView("add-format"); setNewName(""); }}
               className="h-5 w-5 rounded-full bg-white/5 flex items-center justify-center text-zinc-500 hover:text-white transition"
@@ -538,7 +541,7 @@ export default function MusicContentLab({ onClose, onGenerateScript, isDesktop =
         {/* RIGHT — Content Lines */}
         <div className="flex flex-col w-1/2">
           <div className="flex items-center justify-between px-3 py-2 sticky top-0 bg-zinc-950 z-10">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Content Lines</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">{t("stLineasContenido")}</p>
             <button
               onClick={() => { setView("add-line"); setNewName(""); }}
               className="h-5 w-5 rounded-full bg-white/5 flex items-center justify-center text-zinc-500 hover:text-white transition"

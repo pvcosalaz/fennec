@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import i18nInstance from "@/lib/i18n";
 import { ChevronLeft, ChevronRight, Check, ArrowRight, Pencil, Lock } from "lucide-react";
 import InspireHero from "@/components/remotion/InspireHero";
 import { QuickIdeasCard, ContentLabCard, MyScriptsCard } from "@/components/remotion/ContentToolCards";
@@ -57,13 +59,12 @@ function getWeekDays(anchor: Date): Date[] {
 
 function greeting(userName: string): { text: string; emoji: string } {
   const h = new Date().getHours();
-  if (h < 5)  return { text: `Good evening, ${userName}`, emoji: "🌙" };
-  if (h < 12) return { text: `Good morning, ${userName}`, emoji: "☀️" };
-  if (h < 19) return { text: `Good afternoon, ${userName}`, emoji: "👋" };
-  return { text: `Good evening, ${userName}`, emoji: "🌙" };
+  const saludo = h < 5 ? "goodEvening" : h < 12 ? "goodMorning" : h < 19 ? "goodAfternoon" : "goodEvening";
+  const emoji  = h >= 5 && h < 12 ? "☀️" : h >= 12 && h < 19 ? "👋" : "🌙";
+  return { text: `${i18nInstance.t(saludo)}, ${userName}`, emoji };
 }
 
-const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const DAY_KEYS = ["mkMon","mkTue","mkWed","mkThu","mkFri","mkSat","mkSun"];
 
 const SOURCE_COLORS: Record<string, string> = {
   inspire: "bg-purple-400/20 text-purple-400",
@@ -72,21 +73,17 @@ const SOURCE_COLORS: Record<string, string> = {
   manual: "bg-zinc-400/20 text-zinc-400",
 };
 
-const SOURCE_LABELS: Record<string, string> = {
-  inspire: "Inspire",
-  ideas: "Ideas",
-  scripts: "Script",
-  manual: "Manual",
+const SOURCE_KEYS: Record<string, string> = {
+  inspire: "mkSrcInspire", ideas: "mkSrcIdeas", scripts: "mkSrcScript", manual: "mkSrcManual",
 };
 
-const MONTH_NAMES_ES = [
-  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
-];
+/* Llaves, no texto: este archivo tenia los meses fijos en ESPAÑOL junto a un
+   saludo fijo en INGLES. Ahora los dos salen del idioma activo. */
+const MONTH_KEYS = ["mkM0","mkM1","mkM2","mkM3","mkM4","mkM5","mkM6","mkM7","mkM8","mkM9","mkM10","mkM11"];
 
 function formatDateES(ymd: string): string {
   const [year, month, day] = ymd.split("-").map(Number);
-  return `${day} de ${MONTH_NAMES_ES[month - 1]} ${year}`;
+  return i18nInstance.t("chFechaLarga", { dia: day, mes: i18nInstance.t(MONTH_KEYS[month - 1]), anio: year });
 }
 
 function ProLock() {
@@ -112,6 +109,7 @@ export default function CalendarHub({
   onUpgrade,
   userId,
 }: Props) {
+  const { t } = useTranslation();
   const today = new Date();
   const todayYMD = toYMD(today);
 
@@ -174,7 +172,7 @@ export default function CalendarHub({
   // Week range label: e.g. "5–11 Mayo"
   const startDay = weekDays[0].getDate();
   const endDay = weekDays[6].getDate();
-  const monthName = MONTH_NAMES_ES[weekDays[0].getMonth()];
+  const monthName = t(MONTH_KEYS[weekDays[0].getMonth()]);
   const weekRangeLabel = `${startDay}–${endDay} ${monthName}`;
 
   function prevWeek() {
@@ -197,7 +195,7 @@ export default function CalendarHub({
       <div className="flex-shrink-0">
         <div className="flex items-center gap-2.5">
           <p className="text-[10px] font-bold tracking-[0.18em] text-accent/70 uppercase flex-shrink-0">
-            Content Hub
+            {t("chContentHub")}
           </p>
           <div className="h-px flex-1 bg-gradient-to-r from-accent/20 to-transparent" />
         </div>
@@ -227,7 +225,7 @@ export default function CalendarHub({
         <button
           onClick={prevWeek}
           className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
-          aria-label="Previous week"
+          aria-label={t("chSemanaAnterior")}
         >
           <ChevronLeft size={18} />
         </button>
@@ -235,7 +233,7 @@ export default function CalendarHub({
         <button
           onClick={nextWeek}
           className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
-          aria-label="Next week"
+          aria-label={t("chSemanaSiguiente")}
         >
           <ChevronRight size={18} />
         </button>
@@ -266,7 +264,7 @@ export default function CalendarHub({
               onClick={() => { setSelectedDay(ymd); setDayDetailOpen(true); }}
               className={buttonClass}
             >
-              <span className="text-xs uppercase">{DAY_LABELS[i]}</span>
+              <span className="text-xs uppercase">{t(DAY_KEYS[i])}</span>
               <span className="text-sm font-bold">{day.getDate()}</span>
               {/* two dots: amber = content tasks, blue = Google events */}
               <span className="flex h-1.5 items-center gap-[3px]">
@@ -400,7 +398,7 @@ export default function CalendarHub({
                             SOURCE_COLORS[task.source]
                           }`}
                         >
-                          {SOURCE_LABELS[task.source]}
+                          {t(SOURCE_KEYS[task.source])}
                         </span>
                       </div>
 
@@ -410,7 +408,7 @@ export default function CalendarHub({
                           <button
                             onClick={() => { onEditScript(task.title); setDayDetailOpen(false); }}
                             className="text-zinc-600 hover:text-amber-400 transition-colors"
-                            aria-label="Edit script"
+                            aria-label={t("sdEditAria")}
                           >
                             <Pencil size={14} />
                           </button>
@@ -418,7 +416,7 @@ export default function CalendarHub({
                         <button
                           onClick={() => onDeleteTask(task.id)}
                           className="text-zinc-600 hover:text-red-400 transition-colors text-sm leading-none"
-                          aria-label="Delete task"
+                          aria-label={t("chBorrarTarea")}
                         >
                           ✕
                         </button>

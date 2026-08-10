@@ -847,10 +847,10 @@ export default function TapeDeckDesktop({
           <input
             autoFocus value={body} onChange={(e) => setBody(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || !e.shiftKey)) { e.preventDefault(); void submitMark(); } if (e.key === "Escape") setMarking(false); }}
-            placeholder="Leave a precise note at this moment…"
+            placeholder={tr("tdNotaPrecisa")}
             className="flex-1 bg-transparent text-[14px] text-white placeholder:text-zinc-600 outline-none"
           />
-          <button onClick={() => setMarking(false)} className="text-[12px] text-zinc-500 hover:text-white">Cancel</button>
+          <button onClick={() => setMarking(false)} className="text-[12px] text-zinc-500 hover:text-white">{tr("mtCancel")}</button>
           <button onClick={submitMark} disabled={posting || !body.trim()} className="rounded-xl px-4 py-2 text-[12px] font-bold text-black transition disabled:opacity-40" style={{ background: `linear-gradient(180deg,${AMBER_HOT},${AMBER})` }}>
             {posting ? "…" : "Send note"}
           </button>
@@ -894,8 +894,8 @@ export default function TapeDeckDesktop({
         <div className="ml-2 flex items-center gap-2 rounded-full border border-white/10 px-2.5 py-1">
           <button
             onClick={() => { if (mudo) { setMudo(false); } else { volPrevio.current = vol; setMudo(true); } }}
-            aria-label={mudo ? "Unmute" : "Mute"}
-            title={mudo ? "Unmute" : "Mute"}
+            aria-label={mudo ? tr("tdActivarSonido") : tr("tdSilenciar")}
+            title={mudo ? tr("tdActivarSonido") : tr("tdSilenciar")}
             className="grid h-6 w-6 place-items-center rounded-full text-zinc-500 transition hover:text-white"
           >
             {mudo || vol === 0 ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
@@ -905,7 +905,7 @@ export default function TapeDeckDesktop({
             min={0} max={1} step={0.01}
             value={mudo ? 0 : vol}
             onChange={(e) => { const n = Number(e.target.value); setVol(n); if (n > 0) setMudo(false); }}
-            aria-label="Volume"
+            aria-label={tr("tdVolumen")}
             className="tape-fader"
             style={{ ["--fill" as string]: `${(mudo ? 0 : vol) * 100}%` }}
           />
@@ -913,15 +913,15 @@ export default function TapeDeckDesktop({
 
         {/* zoom cluster — % resets to the resting scale */}
         <div className="ml-2 flex items-center gap-0.5 rounded-full border border-white/10 px-1.5 py-1">
-          <button onClick={() => applyZoom(pxPerSecRef.current / 1.35)} aria-label="Zoom out"
+          <button onClick={() => applyZoom(pxPerSecRef.current / 1.35)} aria-label={tr("tdAlejar")}
             className="grid h-6 w-6 place-items-center rounded-full text-zinc-500 transition hover:text-white">
             <ZoomOut className="h-3.5 w-3.5" />
           </button>
-          <button onClick={() => applyZoom(PX_PER_SEC)} title="Reset zoom"
+          <button onClick={() => applyZoom(PX_PER_SEC)} title={tr("tdZoomNormal")}
             className="min-w-[42px] text-center font-mono text-[10px] font-bold tabular-nums text-zinc-400 transition hover:text-white">
             {Math.round((pxPerSec / PX_PER_SEC) * 100)}%
           </button>
-          <button onClick={() => applyZoom(pxPerSecRef.current * 1.35)} aria-label="Zoom in"
+          <button onClick={() => applyZoom(pxPerSecRef.current * 1.35)} aria-label={tr("tdAcercar")}
             className="grid h-6 w-6 place-items-center rounded-full text-zinc-500 transition hover:text-white">
             <ZoomIn className="h-3.5 w-3.5" />
           </button>
@@ -946,7 +946,7 @@ export default function TapeDeckDesktop({
             trazo se ve fragil. */}
         <button
           onClick={toggle}
-          aria-label={playing ? "Pause" : "Play"}
+          aria-label={playing ? tr("tdPausa") : tr("tdReproducir")}
           className="grid place-items-center rounded-full text-black transition hover:brightness-105 active:scale-[0.96]"
           style={{
             height: 74, width: 74,

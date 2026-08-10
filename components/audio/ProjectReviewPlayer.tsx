@@ -1,4 +1,6 @@
 "use client";
+import { useTranslation } from "react-i18next";
+import "@/lib/i18n";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Mic, Plus, MoreHorizontal, ChevronDown, HelpCircle } from "lucide-react";
 import type { ProjectReview, ReviewComment } from "@/lib/audioTypes";
@@ -75,6 +77,7 @@ export default function ProjectReviewPlayer({
   onOpenMyTracks,
   onOpenIntro,
 }: Props) {
+  const { t } = useTranslation();
   const audioRef    = useRef<HTMLAudioElement | null>(null);
   const analyserRef = useRef<{ ctx: AudioContext; analyser: AnalyserNode; data: Uint8Array<ArrayBuffer> } | null>(null);
   const rafRef      = useRef<number>(0);
@@ -769,7 +772,7 @@ export default function ProjectReviewPlayer({
               autoFocus
               value={markBody}
               onChange={(e) => setMarkBody(e.target.value)}
-              placeholder="What do you hear at this moment…"
+              placeholder={t("prQueEscuchas")}
               rows={2}
               className="w-full bg-transparent outline-none resize-none text-[14.5px] italic leading-relaxed"
               style={{ fontFamily: SERIF_FONT, color: "rgba(255,255,255,.92)", caretColor: AMBER }}
@@ -953,7 +956,7 @@ export default function ProjectReviewPlayer({
         {hasActions && (
           <button
             onClick={() => setShowActions((v) => !v)}
-            aria-label="More actions"
+            aria-label={t("prMasAcciones")}
             aria-expanded={showActions}
             className="w-10 h-10 rounded-full flex items-center justify-center transition active:scale-95"
             style={{ color: showActions ? "rgba(255,255,255,.9)" : "rgba(255,255,255,.45)" }}
@@ -985,7 +988,7 @@ export default function ProjectReviewPlayer({
                 transitionDelay: showActions ? ".1s" : "0s",
               }}
             >
-              <span className="text-[12px] font-semibold">How it works</span>
+              <span className="text-[12px] font-semibold">{t("tpHowItWorks")}</span>
               <HelpCircle className="h-4 w-4" />
             </button>
           )}
@@ -1020,7 +1023,7 @@ export default function ProjectReviewPlayer({
                 transition: "opacity .28s cubic-bezier(.22,1,.36,1), transform .28s cubic-bezier(.22,1,.36,1)",
               }}
             >
-              <span className="text-[12px] font-bold">My Tracks</span>
+              <span className="text-[12px] font-bold">{t("tpMyTracks")}</span>
               <Plus className="h-4 w-4" />
             </button>
           )}
@@ -1050,7 +1053,7 @@ export default function ProjectReviewPlayer({
             <p className="mt-2 text-[13px] leading-relaxed text-zinc-300">
               When the artist seals it as helpful, you earn <strong style={{ color: AMBER }}>+2 karma</strong>. Karma is what you spend to get feedback on your own tracks.
             </p>
-            <p className="mt-2 text-xs font-semibold" style={{ color: AMBER }}>Give to get.</p>
+            <p className="mt-2 text-xs font-semibold" style={{ color: AMBER }}>{t("prDaParaRecibir")}</p>
             <button
               onClick={() => setShowKarmaIntro(false)}
               className="mt-5 w-full rounded-2xl py-3 text-sm font-bold text-black transition active:scale-[0.98]"

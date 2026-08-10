@@ -1176,11 +1176,11 @@ export default function PricingCalculator() {
                             </p>
                             <div className="grid grid-cols-2 gap-4">
                               <div>
-                                <p className="text-xs text-zinc-500">Minimum</p>
+                                <p className="text-xs text-zinc-500">{t("pcMinimo")}</p>
                                 <p className="text-lg font-semibold text-zinc-200">{formatCurrency(minPricePerProject, calcCurrency)}</p>
                               </div>
                               <div>
-                                <p className="text-xs text-zinc-500">Recommended</p>
+                                <p className="text-xs text-zinc-500">{t("qgRecomendado")}</p>
                                 <p className="text-lg font-bold text-accent">{formatCurrency(recommendedPrice, calcCurrency)}</p>
                               </div>
                             </div>
@@ -1193,11 +1193,11 @@ export default function PricingCalculator() {
                             </p>
                             <div className="grid grid-cols-2 gap-4 mb-5">
                               <div>
-                                <p className="text-xs text-zinc-500">Minimum total</p>
+                                <p className="text-xs text-zinc-500">{t("pcMinimoTotal")}</p>
                                 <p className="text-lg font-semibold text-zinc-200">{formatCurrency(monthlyMin, calcCurrency)}</p>
                               </div>
                               <div>
-                                <p className="text-xs text-zinc-500">Recommended total</p>
+                                <p className="text-xs text-zinc-500">{t("pcRecomendadoTotal")}</p>
                                 <p className="text-xl font-bold text-accent">{formatCurrency(monthlyRec, calcCurrency)}</p>
                               </div>
                             </div>
@@ -1205,7 +1205,7 @@ export default function PricingCalculator() {
                             {/* vs monthly target */}
                             <div className="border-t border-white/10 pt-4 space-y-2">
                               <div className="flex items-center justify-between text-xs">
-                                <span className="text-zinc-400">Your monthly target</span>
+                                <span className="text-zinc-400">{t("pcObjetivoMensual")}</span>
                                 <span className="font-semibold text-zinc-200">{formatCurrency(monthlyTotalCOP, calcCurrency)}</span>
                               </div>
                               <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
@@ -1233,7 +1233,7 @@ export default function PricingCalculator() {
                           return (
                             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-2xl bg-black/55 px-6 text-center">
                               <div className="space-y-1.5">
-                                <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-400">Your rate lands around</p>
+                                <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-400">{t("pcTuTarifaRonda")}</p>
                                 <p className="text-2xl font-black text-white tabular-nums">
                                   {aMin === aRec
                                     ? `≈ ${formatCurrency(aRec, calcCurrency)}`
@@ -1265,7 +1265,7 @@ export default function PricingCalculator() {
                       >
                         <div className="text-left">
                           <p className="text-sm font-black text-black">Send this quote to a client →</p>
-                          <p className="text-[11px] text-black/60 mt-0.5">Your price is set. Now get paid.</p>
+                          <p className="text-[11px] text-black/60 mt-0.5">{t("pcPrecioListo")}</p>
                         </div>
                         <span className="text-xl">💸</span>
                       </button>
@@ -1515,7 +1515,7 @@ export default function PricingCalculator() {
                   >
                     <img
                       src="/fennec-icon-transparent.png"
-                      alt="Home"
+                      alt={t("tabs.dashboard")}
                       style={{
                         width: 38, height: 38, objectFit: "contain",
                         filter: isActive ? "brightness(0)" : "brightness(0) invert(1)",

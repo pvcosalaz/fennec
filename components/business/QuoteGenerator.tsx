@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import { useCloudValue } from "@/lib/useCloudValue";
 import { getCurrency, formatMoney, useCurrency, currencyMeta } from "@/lib/currency";
 import {
@@ -607,32 +607,27 @@ export default function QuoteGenerator({
                   the values they typed into the calculator. */}
               {showPriceInfo && (
                 <div className="mt-3 space-y-2.5 border-t border-white/10 pt-3 text-[11px] leading-relaxed text-zinc-400">
+                  {/* Trans, no concatenacion: la negrita cae sobre valores
+                      dinamicos y el orden de la frase no es el mismo en los dos
+                      idiomas. Partirla en trozos daria un español roto. */}
                   <p>
-                    <b className="font-semibold text-zinc-300">Minimum.</b> What
-                    you need per project for the month to close. Your monthly
-                    target of{" "}
-                    <b className="font-semibold text-zinc-300">
-                      {formatCOP(pricing.monthlyTarget)}
-                    </b>{" "}
-                    split across the{" "}
-                    <b className="font-semibold text-zinc-300">
-                      {pricing.maxProjects}
-                    </b>{" "}
-                    {pricing.maxProjects === 1 ? "project" : "projects"} you can
-                    take at {pricing.hoursPerProject}h each. Charge under this
-                    and the project costs you money.
+                    <Trans
+                      i18nKey="qgExplicaMinimo"
+                      count={pricing.maxProjects}
+                      values={{
+                        objetivo: formatCOP(pricing.monthlyTarget),
+                        proyectos: pricing.maxProjects,
+                        horas: pricing.hoursPerProject,
+                      }}
+                      components={{ b: <b className="font-semibold text-zinc-300" /> }}
+                    />
                   </p>
                   <p>
-                    <b className="font-semibold text-zinc-300">Recommended.</b>{" "}
-                    Your minimum adjusted for who&rsquo;s paying.{" "}
-                    {activeProjectType.label} sits at{" "}
-                    <b className="font-semibold text-zinc-300">
-                      ×{activeProjectType.multiplier}
-                    </b>{" "}
-                    of a baseline job
-                    {recommendedIsFloored
-                      ? ", which lands below your minimum, so the minimum wins."
-                      : "."}
+                    <Trans
+                      i18nKey={recommendedIsFloored ? "qgExplicaRecomendadoTope" : "qgExplicaRecomendado"}
+                      values={{ tipo: activeProjectType.label, mult: activeProjectType.multiplier }}
+                      components={{ b: <b className="font-semibold text-zinc-300" /> }}
+                    />
                   </p>
                   <p className="text-zinc-500">
                     {t("qgAmbosVienenDe")}
@@ -642,7 +637,7 @@ export default function QuoteGenerator({
                     onClick={onGoToCalculator}
                     className="text-[11px] font-semibold text-accent transition hover:brightness-110"
                   >
-                    Open Pricing Calculator →
+                    {t("qgAbrirCalculadora")} →
                   </button>
                 </div>
               )}
@@ -755,7 +750,7 @@ export default function QuoteGenerator({
           {/* Running total — the number the client will see */}
           <div className="rounded-xl border border-white/10 bg-black/20 px-4 py-3">
             <div className="flex items-baseline justify-between text-[13px]">
-              <span className="text-zinc-500">Subtotal</span>
+              <span className="text-zinc-500">{t("qgSubtotal")}</span>
               <span className="tabular-nums text-zinc-300">{formatMoney(subtotal)}</span>
             </div>
             {form.taxRate > 0 && (
@@ -1102,7 +1097,7 @@ export default function QuoteGenerator({
                          the project and locks the quote to it. Same pattern the
                          delete button already uses in this module. */
                       <span className="flex items-center gap-2">
-                        <span className="text-[11px] text-zinc-400">Start the project?</span>
+                        <span className="text-[11px] text-zinc-400">{t("qgArrancarProyecto")}</span>
                         <button
                           onClick={() => { setConfirmApproveId(null); handleApprove(quote); }}
                           className="rounded-lg border border-emerald-500/30 bg-emerald-500/20 px-2.5 py-1.5 text-[11px] font-semibold text-emerald-400 transition hover:bg-emerald-500/30"

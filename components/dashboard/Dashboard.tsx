@@ -1,4 +1,6 @@
 "use client";
+import { useTranslation } from "react-i18next";
+import "@/lib/i18n";
 
 import { useEffect, useState, useRef } from "react";
 import { SiInstagram, SiTiktok, SiYoutube } from "react-icons/si";
@@ -175,6 +177,7 @@ export default function Dashboard({
   onOpenCalculator?: () => void;
   className?: string;
 }) {
+  const { t } = useTranslation();
   const isDesktop = useIsDesktop();
   const [projects,   setProjects]   = useState<Project[]>([]);
   const [quotes,     setQuotes]     = useState<Quote[]>([]);
@@ -770,10 +773,10 @@ export default function Dashboard({
           <div className="h-px flex-1" style={{ background: `linear-gradient(90deg, transparent, ${accent}25)` }} />
           <div className="flex items-center gap-1.5">
             <p className="text-[9px] font-bold tracking-[0.35em] uppercase"
-               style={{ color: `${accent}60` }}>FENNEC dB</p>
+               style={{ color: `${accent}60` }}>{t("dbFennecDb")}</p>
             <button type="button" onClick={() => setShowDbInfo((v) => !v)}
               style={{ color: `${accent}55`, lineHeight: 1 }}
-              aria-label="What is FENNEC dB?">
+              aria-label={t("dbQueEsFennecDb")}>
               <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor">
                 <circle cx="8" cy="8" r="7.5" stroke="currentColor" strokeWidth="1" fill="none" />
                 <text x="8" y="12" textAnchor="middle" fontSize="10" fontWeight="700" fill="currentColor">i</text>
@@ -834,7 +837,7 @@ export default function Dashboard({
             <div>
               <div className="flex items-center gap-2 mb-1.5">
                 <p className="text-[8px] font-bold uppercase tracking-widest"
-                   style={{ color: `${cardColorScheme.accent}45` }}>Verified reach</p>
+                   style={{ color: `${cardColorScheme.accent}45` }}>{t("dbAlcanceVerificado")}</p>
                 <span className="text-[7px] font-bold px-1.5 py-0.5 rounded-full"
                       style={{ background: `${cardColorScheme.accent}15`, color: `${cardColorScheme.accent}70` }}>
                   streams &amp; credits · coming soon
@@ -860,10 +863,10 @@ export default function Dashboard({
       <div className="dash-rise" style={{ animationDelay: "0.26s" }}>
         <div className="flex items-center gap-2 mb-1.5 px-1">
           <div className="flex items-center gap-1.5 flex-shrink-0">
-            <p className="text-[8px] font-bold uppercase tracking-widest text-zinc-600">Your Numbers</p>
+            <p className="text-[8px] font-bold uppercase tracking-widest text-zinc-600">{t("dbTusNumeros")}</p>
             <button type="button" onClick={() => setShowSocialInfo((v) => !v)}
               className="text-zinc-600 hover:text-zinc-400 transition leading-none"
-              aria-label="How is it updated?">
+              aria-label={t("dbComoSeActualiza")}>
               <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
                 <circle cx="8" cy="8" r="7.5" stroke="currentColor" strokeWidth="1" fill="none" />
                 <text x="8" y="12" textAnchor="middle" fontSize="10" fontWeight="700" fill="currentColor">i</text>
