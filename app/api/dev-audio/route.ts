@@ -63,17 +63,48 @@ export async function GET(request: Request) {
 
   const tone = new URL(request.url).searchParams.get('tone') === '1';
   const wav = tone ? createToneWav(45) : createSilentWav(45);
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'audio/wav',
+    'Cache-Control': 'no-store',
+    // The tape's <audio> carries crossOrigin="anonymous" so the AnalyserNode
+    // can read samples. Without this header the browser still PLAYS the file
+    // but hands the analyser nothing but zeros — the VU needles and the
+    // audio-reactive background sat dead while the sound was clearly running
+    // (2026-08-05). Dev-only route: it 404s in production above.
+    'Access-Control-Allow-Origin': '*',
+    // Sin Accept-Ranges + 206, el navegador deja `audio.seekable` en [0,0] y
+    // se NIEGA a buscar: escribir currentTime no hace nada y el timeupdate
+    // siguiente lo devuelve a 0. Con eso, el harness no podia verificar el
+    // clic para navegar ni el rebobinado — parecian rotos estando bien
+    // (2026-08-10). Un fichero real de Supabase sí sirve rangos; esto solo
+    // pone al mock a la par.
+    'Accept-Ranges': 'bytes',
+  };
+
+  const range = request.headers.get('range');
+  const m = range?.match(/^bytes=(\d*)-(\d*)$/);
+  if (m) {
+    const start = m[1] ? parseInt(m[1], 10) : 0;
+    const end = m[2] ? Math.min(parseInt(m[2], 10), wav.length - 1) : wav.length - 1;
+    if (start >= wav.length || start > end) {
+      return new Response(null, {
+        status: 416,
+        headers: { ...headers, 'Content-Range': `bytes */${wav.length}` },
+      });
+    }
+    const trozo = wav.subarray(start, end + 1);
+    return new Response(Buffer.from(trozo), {
+      status: 206,
+      headers: {
+        ...headers,
+        'Content-Range': `bytes ${start}-${end}/${wav.length}`,
+        'Content-Length': trozo.length.toString(),
+      },
+    });
+  }
+
   return new Response(Buffer.from(wav), {
-    headers: {
-      'Content-Type': 'audio/wav',
-      'Content-Length': wav.length.toString(),
-      'Cache-Control': 'no-store',
-      // The tape's <audio> carries crossOrigin="anonymous" so the AnalyserNode
-      // can read samples. Without this header the browser still PLAYS the file
-      // but hands the analyser nothing but zeros — the VU needles and the
-      // audio-reactive background sat dead while the sound was clearly running
-      // (2026-08-05). Dev-only route: it 404s in production above.
-      'Access-Control-Allow-Origin': '*',
-    },
+    headers: { ...headers, 'Content-Length': wav.length.toString() },
   });
 }

@@ -11,7 +11,11 @@ const MOCK: ProjectReview = {
   category: "Missing Mix",
   audio_url: "/api/dev-audio?tone=1",
   artwork_url: null,
-  duration_seconds: 192,
+  /* 45, que es lo que dura el WAV de /api/dev-audio. Decia 192 y el harness
+     mentia: la regla del tiempo pintaba 3:12 mientras el audio se topaba a los
+     45s, asi que los topes de navegacion no coincidian y parecia un bug del
+     componente (2026-08-10). Un harness que miente cuesta diagnosticos. */
+  duration_seconds: 45,
   comment_count: 0,
   created_at: new Date().toISOString(),
   profile: { id: "dev", username: "torohumo", avatar_url: null },

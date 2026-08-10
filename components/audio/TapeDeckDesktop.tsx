@@ -409,30 +409,62 @@ export default function TapeDeckDesktop({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [track.id]);
 
-  // Pinch / ⌘-scroll over the tape = dynamic zoom. Trackpad pinch arrives as
-  // wheel+ctrlKey; non-passive so preventDefault stops the browser page-zoom.
-  // The head anchor is free: the rAF loop repositions the strip from
-  // cur * pxPerSecRef every frame, so the time under the needle stays put.
+  // La rueda sobre la cinta hace DOS cosas segun el modificador:
+  //
+  //   con ⌘/ctrl (o pellizco de trackpad, que llega como wheel+ctrlKey) → zoom
+  //   sin modificador                                                   → rebobinar
+  //
+  // Lo segundo es de Paco (2026-08-10): dos dedos sobre la cinta y la cinta
+  // corre, como agarrarla con la mano. La conversion es 1:1 con la escala
+  // visual (delta en px / pxPerSec = segundos), asi que la cinta se mueve
+  // exactamente los pixeles que arrastraste — cualquier otro factor rompe la
+  // ilusion de estar tocandola.
+  //
+  // Se toma el eje DOMINANTE: el trackpad manda deltaX al deslizar horizontal
+  // y una rueda de raton solo tiene deltaY, y las dos formas deben servir.
+  //
+  // preventDefault no es opcional aqui: sin el, el deslizamiento horizontal de
+  // dos dedos en macOS dispara el "atras" del navegador y te saca de la pista.
+  // Por eso el listener es non-passive.
   useEffect(() => {
     const vp = stripVpRef.current;
     if (!vp) return;
     const onWheel = (e: WheelEvent) => {
-      if (!(e.ctrlKey || e.metaKey)) return;
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        applyZoom(pxPerSecRef.current * Math.exp(-e.deltaY * 0.0025));
+        return;
+      }
+      const a = audioRef.current;
+      if (!a) return;
+      const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      if (!delta) return;
       e.preventDefault();
-      applyZoom(pxPerSecRef.current * Math.exp(-e.deltaY * 0.0025));
+      /* a.duration, no la `duration` del closure: este efecto corre una sola
+         vez y el estado de entonces era 0. */
+      const fin = Number.isFinite(a.duration) ? a.duration : Infinity;
+      const next = Math.min(fin, Math.max(0, a.currentTime + delta / pxPerSecRef.current));
+      a.currentTime = next;
+      setT(next);
     };
     vp.addEventListener("wheel", onWheel, { passive: false });
     return () => vp.removeEventListener("wheel", onWheel);
   }, []);
 
-  /** Click the tape to scrub: x-offset from the head = time offset. */
-  function seekFromClient(clientX: number) {
+  /** El segundo bajo el cursor. Offset en x desde el cabezal = offset en tiempo. */
+  function timeFromClient(clientX: number): number | null {
     const vp = stripVpRef.current;
-    const a = audioRef.current;
-    if (!vp || !a) return;
+    if (!vp) return null;
     const r = vp.getBoundingClientRect();
     const offset = (clientX - (r.left + r.width / 2)) / pxPerSecRef.current;
-    const time = Math.min(duration, Math.max(0, t + offset));
+    return Math.min(duration, Math.max(0, t + offset));
+  }
+
+  /** Click the tape to scrub: x-offset from the head = time offset. */
+  function seekFromClient(clientX: number) {
+    const a = audioRef.current;
+    const time = timeFromClient(clientX);
+    if (!a || time === null) return;
     a.currentTime = time;
     setT(time);
   }
@@ -674,6 +706,18 @@ export default function TapeDeckDesktop({
         <div
           ref={stripVpRef}
           onClick={(e) => { if (!marking) seekFromClient(e.clientX); }}
+          /* Doble clic = nota AQUI, en el segundo bajo el cursor (Paco
+             2026-08-10). El boton "Leave a note" marca donde este el cabezal,
+             asi que para comentar un punto concreto habia que llevar la cinta
+             hasta el y recien entonces pulsar: dos pasos para una idea que ya
+             tenias. El primer clic del doble ya deja el cabezal ahi, o sea que
+             el compositor abre mostrando el mismo segundo que ves. */
+          onDoubleClick={(e) => {
+            const time = timeFromClient(e.clientX);
+            if (time === null) return;
+            setMarkAt(time);
+            setMarking(true);
+          }}
           className="relative mt-7 h-[92px] cursor-pointer"
           /* Recorta SOLO a los lados, no por arriba y abajo.
              Antes era overflow-hidden, que recorta en los dos ejes: la cinta
@@ -735,9 +779,14 @@ export default function TapeDeckDesktop({
                       if (cl.items.length === 1) { seekTo(cl.at); setOpenCluster(null); }
                       else setOpenCluster(abierto ? null : cl.key);
                     }}
+                    /* Sin esto, dos clics seguidos sobre una nota que ya existe
+                       burbujean a la cinta y abren el compositor encima de
+                       ella: pedirias otra nota en el mismo segundo justo cuando
+                       querias leer la que hay. */
+                    onDoubleClick={(e) => e.stopPropagation()}
                     title={cl.items.length === 1
                       ? `@${cl.items[0].profile?.username ?? ""} · ${fmt(cl.at)}`
-                      : `${cl.items.length} notes · ${fmt(cl.at)}`}
+                      : tr("tdNotasEn", { count: cl.items.length, at: fmt(cl.at) })}
                     className="flex flex-col items-center outline-none"
                   >
                     {/* baraja: hasta tres caras solapadas, el resto como +N */}
@@ -863,7 +912,7 @@ export default function TapeDeckDesktop({
           />
           <button onClick={() => setMarking(false)} className="text-[12px] text-zinc-500 hover:text-white">{tr("mtCancel")}</button>
           <button onClick={submitMark} disabled={posting || !body.trim()} className="rounded-xl px-4 py-2 text-[12px] font-bold text-black transition disabled:opacity-40" style={{ background: `linear-gradient(180deg,${AMBER_HOT},${AMBER})` }}>
-            {posting ? "…" : "Send note"}
+            {posting ? "…" : tr("tdEnviarNota")}
           </button>
         </div>
       )}

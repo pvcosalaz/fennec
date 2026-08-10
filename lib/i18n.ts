@@ -350,17 +350,17 @@ i18n.addResourceBundle("es", "translation", {
 i18n.addResourceBundle("en", "translation", {
   tpHowItWorks: "How it works", tpViewProfile: "view profile",
   tpLeaveNote: "Leave a note", tpNext: "Next", tpMyTracks: "My tracks & notes", tpUpload: "Upload a track",
-  tpMarks: "{{count}} mark on this tape · click the tape to scrub, hit + to leave a note",
-  tpMarks_other: "{{count}} marks on this tape · click the tape to scrub, hit + to leave a note",
-  tpHelp: "SPACE play · CLICK scrub · ⌘scroll / pinch zoom · ＋ note",
+  tpMarks: "{{count}} mark on this tape · click to scrub, two fingers to rewind, double-click to leave a note",
+  tpMarks_other: "{{count}} marks on this tape · click to scrub, two fingers to rewind, double-click to leave a note",
+  tpHelp: "SPACE play · DOUBLE-CLICK note · 2 FINGERS rewind · ⌘scroll zoom",
   tpKarma: "karma",
 }, true, true);
 i18n.addResourceBundle("es", "translation", {
   tpHowItWorks: "Cómo funciona", tpViewProfile: "ver perfil",
   tpLeaveNote: "Dejar una nota", tpNext: "Siguiente", tpMyTracks: "Mis tracks y notas", tpUpload: "Subir un track",
-  tpMarks: "{{count}} marca en esta cinta · clic en la cinta para navegar, + para dejar nota",
-  tpMarks_other: "{{count}} marcas en esta cinta · clic en la cinta para navegar, + para dejar nota",
-  tpHelp: "ESPACIO reproducir · CLIC navegar · ⌘scroll / pellizco zoom · ＋ nota",
+  tpMarks: "{{count}} marca en esta cinta · clic para navegar, dos dedos para rebobinar, doble clic para dejar nota",
+  tpMarks_other: "{{count}} marcas en esta cinta · clic para navegar, dos dedos para rebobinar, doble clic para dejar nota",
+  tpHelp: "ESPACIO reproducir · DOBLE CLIC nota · 2 DEDOS rebobinar · ⌘scroll zoom",
   tpKarma: "karma",
 }, true, true);
 
@@ -1408,6 +1408,19 @@ i18n.addResourceBundle("es", "translation", {
   qpComoPagar: "Cómo pagar",
   upNoEncontrado: "Productor no encontrado", upNoExiste: "Este Fennec ID no existe.",
   upAbrirFennec: "Abre Fennec", upYEntra: " y entra para conectar.",
+}, true, true);
+
+/* La Cinta · gestos y compositor de notas (2026-08-10) */
+i18n.addResourceBundle("en", "translation", {
+  tdEnviarNota: "Send note",
+  tdNotasEn: "{{count}} note · {{at}}",
+  tdNotasEn_other: "{{count}} notes · {{at}}",
+}, true, true);
+
+i18n.addResourceBundle("es", "translation", {
+  tdEnviarNota: "Enviar nota",
+  tdNotasEn: "{{count}} nota · {{at}}",
+  tdNotasEn_other: "{{count}} notas · {{at}}",
 }, true, true);
 
 export default i18n;
