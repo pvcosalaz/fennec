@@ -494,7 +494,11 @@ export default function TapeDeckDesktop({
        el sobrante se sale por abajo y se come la fila de mandos (Paco
        2026-08-04, dos intentos). Con h-full el deck toma exactamente el alto
        que le da su contenedor, que es flex-1 y ya descuenta esa fila. */
-    <div className="relative flex h-full min-h-0 flex-col overflow-hidden" style={{ background: DECK }}>
+    /* isolation:isolate — obliga a este div a ser un stacking context propio.
+       Sin eso, el z-index:-1 de los hilos (abajo) se resolveria contra un
+       ancestro de mas arriba y los hilos desapareceria detras del fondo de
+       AQUEL, no del de aqui. Aisla el problema a esta caja. */
+    <div className="relative flex h-full min-h-0 flex-col overflow-hidden" style={{ background: DECK, isolation: "isolate" }}>
       {/* ── Ensayo: hilos WebGL al fondo del todo (React Bits · WebThreads) ──
           Va ANTES que el polvo y que el resplandor, o sea lo mas atras posible
           por puro orden del DOM. La amplitud la mueve el MISMO vuLevel que ya
@@ -502,7 +506,14 @@ export default function TapeDeckDesktop({
           segundo. Bajo de brillo a proposito — es el aire del cuarto, no un
           elemento de la interfaz. */}
       {fondoThreads && (
-        <div aria-hidden className="pointer-events-none absolute inset-0" style={{ opacity: 0.16 }}>
+        /* [2026-08-10] z-index:-1, no "primero en el DOM". Ir primero no basta:
+           el orden de pintado de CSS mete TODO lo `absolute` despues del
+           contenido en flujo normal, y los carretes viven en un contenedor sin
+           posicionar — asi que los hilos se pintaban ENCIMA de los discos y se
+           veian cruzarlos, por opaco que fuera el relleno del SVG. Con -1 caen
+           por debajo del contenido y por encima del fondo del deck, que es
+           donde tienen que estar. */
+        <div aria-hidden className="pointer-events-none absolute inset-0" style={{ opacity: 0.16, zIndex: -1 }}>
           <WebThreads
             levelRef={vuLevel}
             reactivity={1.1}
