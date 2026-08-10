@@ -109,6 +109,14 @@ function Reel({ plateRef, pancakeRef, edgeRef, r0 }: {
 }) {
   return (
     <svg viewBox="0 0 200 200" style={{ width: "min(28vh, 250px)", height: "auto", display: "block" }}>
+      {/* ── Cuerpo opaco del carrete ──
+          [2026-08-10] El aro iba con fill="none", asi que TODO el disco era
+          transparente salvo la cinta enrollada, y los hilos del fondo se veian
+          cruzando por dentro del carrete (Paco). Un carrete es un objeto
+          fisico: tapa lo que tiene detras. Del color del deck para que lea
+          como que ocluye el fondo, no como un parche gris encima de el. */}
+      <circle cx="100" cy="100" r="95" fill={DECK} />
+
       {/* structural rim — always there, whisper-quiet */}
       <circle cx="100" cy="100" r="95" fill="none" stroke="rgba(255,255,255,.08)" strokeWidth="1" />
 

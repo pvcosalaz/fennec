@@ -22,6 +22,7 @@ import ContentModule from "@/components/content/ContentModule";
 import BusinessHub from "@/components/business/BusinessHub";
 import Community from "@/components/community/Community";
 import IdeasModule from "@/components/ideas/IdeasModule";
+import MyTracksView from "@/components/audio/MyTracksView";
 import QuoteGenerator from "@/components/business/QuoteGenerator";
 import ActiveProjects from "@/components/business/ActiveProjects";
 import ClientsLeads from "@/components/business/ClientsLeads";
@@ -186,6 +187,10 @@ export default function ShellDevPage() {
         <ActiveProjects onBack={() => {}} userId={mockProfile.id} />
       ) : tool === "clients" ? (
         <ClientsLeads onBack={() => {}} userId={mockProfile.id} />
+      ) : tool === "mytracks" ? (
+        /* ?tool=mytracks · el overlay de My Tracks, que desde La Cinta del
+           harness no se puede abrir (onOpenMyTracks es no-op). 2026-08-10 */
+        <div className="mx-auto w-full max-w-2xl pt-6"><MyTracksView userId={mockProfile.id} isPro /></div>
       ) : tool === "melody" ? (
         /* ?tool=melody · Melody Bank, para revisar su traduccion (2026-08-07) */
         <IdeasModule onBack={() => {}} />

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { Upload, Trash2, ChevronDown, Zap } from "lucide-react";
+import { Upload, Trash2, ChevronDown, Zap, Music2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
   fetchUserReviews,
@@ -230,42 +230,87 @@ export default function MyTracksView({ userId, isPro }: Props) {
 
   return (
     <div className="space-y-4">
-      {/* ── karma header — the wallet ── */}
-      <div className="flex items-center gap-2 flex-wrap">
-        {karma !== null && (
-          <span className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold"
-            style={{ fontFamily: MONO_FONT, color: AMBER, border: "1px solid rgba(245,166,35,.35)", background: "rgba(245,166,35,.08)" }}>
-            <Zap className="h-3 w-3" /> {karma} {t("tpKarma")}
-          </span>
-        )}
-        {karma !== null && (
+      {/* ── El saldo, como LECTURA, no como boton ──
+          [2026-08-10] Antes eran tres pildoras del mismo peso en fila: el
+          saldo, el boton de comprar y la cuota Pro. Tres trabajos distintos
+          con la misma ropa, asi que ninguno mandaba (Paco). El karma es un
+          numero que se consulta, no una accion: se lee como los VU de la
+          cinta, en mono y alineado a la derecha. Comprar pasa a ser un enlace
+          discreto debajo, que es su jerarquia real. */}
+      {karma !== null && (
+        <div className="flex items-baseline justify-between gap-3">
+          <div className="flex items-baseline gap-1.5">
+            <Zap className="h-3 w-3 self-center" style={{ color: AMBER }} />
+            <span className="text-[19px] font-bold leading-none tabular-nums" style={{ fontFamily: MONO_FONT, color: AMBER }}>
+              {karma}
+            </span>
+            <span className="text-[10px] uppercase tracking-[0.18em]" style={{ fontFamily: MONO_FONT, color: "rgba(255,255,255,.34)" }}>
+              {t("tpKarma")}
+            </span>
+          </div>
           <button
             onClick={buyKarma}
             disabled={buying}
-            className="rounded-full px-3 py-1.5 text-[10px] font-bold transition active:scale-95 disabled:opacity-50 hover:border-amber-500/60"
-            style={{ fontFamily: MONO_FONT, color: "rgba(255,255,255,.6)", border: "1px solid rgba(255,255,255,.15)" }}
+            className="text-[11px] transition-colors duration-150 disabled:opacity-50"
+            style={{ fontFamily: MONO_FONT, color: "rgba(255,255,255,.42)" }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = AMBER; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255,255,255,.42)"; }}
           >
             {buying ? "…" : t("mtBuyKarmaPack", { karma: KARMA_PACK.karma, price: KARMA_PACK.label })}
           </button>
-        )}
-        {isPro && (
-          <span className="rounded-full px-3 py-1.5 text-[10px]"
-            style={{ fontFamily: MONO_FONT, color: "rgba(255,255,255,.55)", border: "1px solid rgba(255,255,255,.12)" }}>
-            {t("mtProFreeUploads", { left: proFreeLeft, total: PRO_FREE_PER_MONTH })}
-          </span>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Upload button */}
+      {/* ── Subir: la accion Y SU PRECIO en la misma superficie ──
+          El costo vivia escondido dentro del formulario, o sea que decidias
+          entrar sin saber cuanto costaba. Aqui la etiqueta de precio va en el
+          producto. Ademas admite que se le puede SOLTAR un archivo: esa
+          capacidad ya existia en el formulario pero la entrada no la anunciaba. */}
       {!showForm && (
         <button
           onClick={() => setShowForm(true)}
           disabled={tracks.length >= MAX_TRACKS}
-          className="w-full h-12 rounded-xl border border-dashed border-white/20 flex items-center justify-center gap-2 text-sm text-zinc-400 hover:border-amber-500/50 hover:text-amber-400 transition disabled:opacity-40 disabled:cursor-not-allowed"
+          className="group w-full rounded-2xl border border-dashed px-5 py-5 text-left transition disabled:cursor-not-allowed disabled:opacity-40"
+          style={{
+            borderColor: "rgba(255,255,255,.13)",
+            transitionProperty: "border-color, background-color, transform",
+            transitionDuration: "160ms",
+            transitionTimingFunction: "var(--ease-out, cubic-bezier(.23,1,.32,1))",
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(245,166,35,.42)"; e.currentTarget.style.background = "rgba(245,166,35,.03)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,.13)"; e.currentTarget.style.background = "transparent"; }}
+          onMouseDown={(e) => { e.currentTarget.style.transform = "scale(0.99)"; }}
+          onMouseUp={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
         >
-          <Upload className="h-4 w-4" />
-          {t("mtShareMusic")}
-          {tracks.length >= MAX_TRACKS && ` (${MAX_TRACKS}/${MAX_TRACKS})`}
+          <div className="flex items-start gap-3.5">
+            <span
+              className="mt-0.5 grid h-9 w-9 flex-shrink-0 place-items-center rounded-xl transition-colors duration-150"
+              style={{ background: "rgba(255,255,255,.05)", color: "rgba(255,255,255,.5)" }}
+            >
+              <Upload className="h-4 w-4 transition-transform duration-200 group-hover:-translate-y-0.5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[13.5px] font-semibold text-white">{t("mtShareMusic")}</p>
+              <p className="mt-0.5 text-[11px]" style={{ fontFamily: MONO_FONT, color: "rgba(255,255,255,.36)" }}>
+                {tracks.length >= MAX_TRACKS
+                  ? t("mtLimiteAlcanzado", { max: MAX_TRACKS })
+                  : t("mtSueltaOElige")}
+              </p>
+            </div>
+            {/* El precio, junto a la accion que cobra. */}
+            {tracks.length < MAX_TRACKS && (
+              <span
+                className="flex-shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold"
+                style={{
+                  fontFamily: MONO_FONT,
+                  color: uploadIsFree ? "rgba(255,255,255,.5)" : AMBER,
+                  background: uploadIsFree ? "rgba(255,255,255,.05)" : "rgba(245,166,35,.1)",
+                }}
+              >
+                {uploadIsFree ? t("mtGratisPro", { left: proFreeLeft }) : t("mtCuestaKarma", { cost: UPLOAD_COST })}
+              </span>
+            )}
+          </div>
         </button>
       )}
 
@@ -402,39 +447,71 @@ export default function MyTracksView({ userId, isPro }: Props) {
         const expanded = expandedId === track.id;
         const list = comments[track.id] ?? [];
         return (
-          <div key={track.id} className="rounded-2xl border border-white/10 bg-white/[0.03]">
+          <div
+            key={track.id}
+            className="group overflow-hidden rounded-2xl border transition-colors duration-150"
+            style={{ borderColor: expanded ? "rgba(245,166,35,.22)" : "rgba(255,255,255,.08)", background: "rgba(255,255,255,.02)" }}
+          >
             <div
-              className="flex items-center gap-3 px-4 py-3 cursor-pointer"
+              className="flex items-center gap-3.5 px-4 py-3.5 cursor-pointer"
               onClick={() => toggleExpand(track.id)}
             >
+              {/* La caratula deja el degradado morado: era el unico morado en
+                  una app ambar. Sin portada, la marca en vez de un emoji. */}
               <div
-                className="w-11 h-11 rounded-xl shrink-0 overflow-hidden flex items-center justify-center"
-                style={{ background: "linear-gradient(135deg, #1e1e2e, #2d1b69)" }}
+                className="h-10 w-10 shrink-0 overflow-hidden rounded-lg grid place-items-center"
+                style={{ background: "rgba(255,255,255,.05)" }}
               >
                 {track.artwork_url
-                  ? <img src={track.artwork_url} className="w-full h-full object-cover" alt="" />
-                  : <span className="text-lg">🎵</span>
+                  ? <img src={track.artwork_url} className="h-full w-full object-cover" alt="" />
+                  : <Music2 className="h-4 w-4" style={{ color: "rgba(255,255,255,.28)" }} />
                 }
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white truncate">{track.title}</p>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide ${CATEGORY_COLORS[track.category]}`}>
+
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[13.5px] font-semibold text-white">{track.title}</p>
+                <div className="mt-1 flex items-center gap-2">
+                  <span className={`rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide ${CATEGORY_COLORS[track.category]}`}>
                     {t(CATEGORY_KEYS[track.category])}
                   </span>
-                  <span className="text-[10px] text-zinc-600">{fmt(track.duration_seconds)}</span>
-                  <span className="text-[10px] text-zinc-600">· {t("mtMarksShort", { count: track.comment_count ?? 0 })}</span>
+                  <span className="text-[10.5px] tabular-nums" style={{ fontFamily: MONO_FONT, color: "rgba(255,255,255,.3)" }}>
+                    {fmt(track.duration_seconds)}
+                  </span>
                 </div>
               </div>
+
+              {/* ── Las marcas, como cifra ──
+                  Estaban en 10px gris al final de una linea de metadatos, y son
+                  la razon entera de esta pantalla: es la respuesta que viniste
+                  a ver. Ahora leen como los VU: numero en mono, etiqueta chica
+                  debajo. En cero se apagan en vez de gritar un 0 en ambar. */}
+              <div className="flex-shrink-0 text-right leading-none">
+                <p
+                  className="text-[17px] font-bold tabular-nums"
+                  style={{ fontFamily: MONO_FONT, color: (track.comment_count ?? 0) > 0 ? AMBER : "rgba(255,255,255,.22)" }}
+                >
+                  {track.comment_count ?? 0}
+                </p>
+                <p className="mt-1 text-[9px] uppercase tracking-[0.14em]" style={{ fontFamily: MONO_FONT, color: "rgba(255,255,255,.3)" }}>
+                  {t("mtMarcasEtiqueta", { count: track.comment_count ?? 0 })}
+                </p>
+              </div>
+
+              {/* Borrar aparece al pasar el mouse: es destructivo y permanente,
+                  no tiene por que estar compitiendo siempre por la atencion. */}
               <button
                 onClick={(e) => { e.stopPropagation(); handleDelete(track.id); }}
-                className="p-2 rounded-lg text-zinc-700 hover:text-red-400 transition"
+                aria-label={t("apEliminar")}
+                className="flex-shrink-0 rounded-lg p-1.5 text-zinc-700 opacity-0 transition hover:text-red-400 focus:opacity-100 group-hover:opacity-100"
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="h-3.5 w-3.5" />
               </button>
               <ChevronDown
-                className="h-4 w-4 text-zinc-600 transition-transform"
-                style={{ transform: expanded ? "rotate(180deg)" : "none" }}
+                className="h-4 w-4 flex-shrink-0 text-zinc-600"
+                style={{
+                  transform: expanded ? "rotate(180deg)" : "none",
+                  transition: "transform 200ms var(--ease-out, cubic-bezier(.23,1,.32,1))",
+                }}
               />
             </div>
 
