@@ -207,7 +207,7 @@ export default function CoachMarks({
           rectangulo intacto, que es el punto de señalar en vez de explicar. */}
       <button
         type="button"
-        aria-label="Skip tour"
+        aria-label={t("cmSaltarTour")}
         onClick={onDone}
         className="absolute inset-0 cursor-default"
         style={{

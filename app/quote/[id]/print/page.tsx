@@ -17,6 +17,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { getQuotes } from "@/lib/businessDb";
@@ -35,6 +36,7 @@ function quoteRef(q: Quote): string {
 }
 
 export default function QuotePrintPage() {
+  const { t } = useTranslation();
   const params = useParams();
   const id = String(params?.id ?? "");
   const [quote, setQuote] = useState<Quote | null>(null);
@@ -56,9 +58,9 @@ export default function QuotePrintPage() {
     })();
   }, [id]);
 
-  if (state === "loading") return <Shell><p className="muted">Loading…</p></Shell>;
-  if (state === "signedout") return <Shell><p className="muted">Sign in to view this quote.</p></Shell>;
-  if (state === "notfound" || !quote) return <Shell><p className="muted">Quote not found.</p></Shell>;
+  if (state === "loading") return <Shell><p className="muted">{t("qpCargando")}</p></Shell>;
+  if (state === "signedout") return <Shell><p className="muted">{t("qpEntraParaVer")}</p></Shell>;
+  if (state === "notfound" || !quote) return <Shell><p className="muted">{t("qpNoEncontrada")}</p></Shell>;
 
   const items = quoteItems(quote);
   const { subtotal, tax, total } = quoteTotals({ items, taxRate: quote.taxRate });
@@ -71,9 +73,9 @@ export default function QuotePrintPage() {
       {/* Screen-only toolbar — never printed */}
       <div className="toolbar no-print">
         <button type="button" onClick={() => window.print()} className="btn-print">
-          Download PDF
+          {t("qpDescargarPdf")}
         </button>
-        <span className="hint">Choose &ldquo;Save as PDF&rdquo; in the print dialog.</span>
+        <span className="hint">{t("qpElegirGuardarPdf")}</span>
       </div>
 
       <article className="sheet">
@@ -83,14 +85,14 @@ export default function QuotePrintPage() {
             {profile?.role && <p className="role">{profile.role}</p>}
           </div>
           <div className="meta">
-            <p className="doc-title">Quote {quoteRef(quote)}</p>
+            <p className="doc-title">{t("qpCotizacion")} {quoteRef(quote)}</p>
             <p>{fmtDate(quote.createdAt)}</p>
-            {quote.updatedAt && <p className="muted">Updated {fmtDate(quote.updatedAt)}</p>}
+            {quote.updatedAt && <p className="muted">{t("qpActualizada")} {fmtDate(quote.updatedAt)}</p>}
           </div>
         </header>
 
         <section className="parties">
-          <p className="label">For</p>
+          <p className="label">{t("qpPara")}</p>
           <p className="client">{quote.clientName}</p>
           {quote.clientEmail && <p className="muted">{quote.clientEmail}</p>}
           <p className="project">{quote.projectName}</p>
@@ -99,10 +101,10 @@ export default function QuotePrintPage() {
         <table className="items">
           <thead>
             <tr>
-              <th className="l">Concept</th>
-              <th className="c">Qty</th>
-              <th className="r">Unit</th>
-              <th className="r">Amount</th>
+              <th className="l">{t("qpConcepto")}</th>
+              <th className="c">{t("qgCantidad")}</th>
+              <th className="r">{t("qpUnitario")}</th>
+              <th className="r">{t("pdMonto")}</th>
             </tr>
           </thead>
           <tbody>
@@ -121,14 +123,14 @@ export default function QuotePrintPage() {
         </table>
 
         <section className="totals">
-          <div className="row"><span>Subtotal</span><span>{money(subtotal)}</span></div>
+          <div className="row"><span>{t("qgSubtotal")}</span><span>{money(subtotal)}</span></div>
           {quote.taxRate > 0 && (
             <div className="row">
-              <span>{quote.taxLabel || "Tax"} {Math.round(quote.taxRate * 100)}%</span>
+              <span>{quote.taxLabel || t("qpImpuesto")} {Math.round(quote.taxRate * 100)}%</span>
               <span>{money(tax)}</span>
             </div>
           )}
-          <div className="row total"><span>Total</span><span>{money(total)}</span></div>
+          <div className="row total"><span>{t("qpTotal")}</span><span>{money(total)}</span></div>
         </section>
 
         {/* How to pay, as its own block. It used to be a sentence inside the
@@ -136,7 +138,7 @@ export default function QuotePrintPage() {
             to pay it (Paco 2026-08-01). */}
         {quote.paymentMethods?.length > 0 && (
           <section className="pay">
-            <p className="label">How to pay</p>
+            <p className="label">{t("qpComoPagar")}</p>
             <table className="pay-table">
               <tbody>
                 {quote.paymentMethods.map((m) => (
@@ -152,7 +154,7 @@ export default function QuotePrintPage() {
 
         {quote.notes && (
           <section className="notes">
-            <p className="label">Notes &amp; terms</p>
+            <p className="label">{t("qgNotasTerminos")}</p>
             <p>{quote.notes}</p>
           </section>
         )}

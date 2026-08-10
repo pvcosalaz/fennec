@@ -231,8 +231,8 @@ export default function DashboardDesktop({
           <button
             type="button"
             onClick={onReplayTour}
-            aria-label="Show me around again"
-            title="Show me around again"
+            aria-label={t("replayTour")}
+            title={t("replayTour")}
             className="grid h-7 w-7 flex-shrink-0 place-items-center rounded-full border border-white/10 text-[11px] font-bold text-zinc-500 transition hover:border-accent/40 hover:text-accent active:scale-95"
           >
             ?
@@ -344,7 +344,7 @@ export default function DashboardDesktop({
           onClick={openCard}
           ref={cardRef}
           data-coach="id"
-          aria-label="Open my Fennec ID"
+          aria-label={t("ddAbrirFennecId")}
           className="group relative flex-shrink-0 text-left transition active:scale-[0.99]"
           style={{
             aspectRatio: "1.586 / 1",

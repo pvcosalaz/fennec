@@ -1,5 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import i18nInstance from "@/lib/i18n";
 import { openTrackInTape } from "@/lib/tapeNav";
 import { createPortal } from "react-dom";
 import { Bell, Mic, Calendar, Clock, Newspaper, X, CheckCheck } from "lucide-react";
@@ -9,11 +11,11 @@ import { fetchNotifications, markAllRead, markOneRead } from "@/lib/notification
 function relativeTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60_000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) return i18nInstance.t("nsAhora");
+  if (mins < 60) return i18nInstance.t("nsHaceMin", { n: mins });
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
+  if (hours < 24) return i18nInstance.t("nsHaceHr", { n: hours });
+  return i18nInstance.t("nsHaceDia", { n: Math.floor(hours / 24) });
 }
 
 const TYPE_ICONS: Record<NotificationType, React.ElementType> = {
@@ -42,6 +44,7 @@ type Props = {
 };
 
 export default function NotificationSheet({ userId, onClose, onRead, align = "left", anchor, ignoreRef }: Props) {
+  const { t } = useTranslation();
   const [items, setItems] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const ref = useRef<HTMLDivElement>(null);
@@ -101,7 +104,7 @@ export default function NotificationSheet({ userId, onClose, onRead, align = "le
       <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-white/8">
         <div className="flex items-center gap-2">
           <Bell className="h-4 w-4 text-amber-500" />
-          <span className="text-sm font-bold text-white">Notifications</span>
+          <span className="text-sm font-bold text-white">{t("stNotifications")}</span>
           {unreadCount > 0 && (
             <span className="text-xs bg-amber-500 text-black font-bold px-2 py-0.5 rounded-full">
               {unreadCount}
@@ -127,10 +130,10 @@ export default function NotificationSheet({ userId, onClose, onRead, align = "le
       {/* List */}
       <div className="max-h-80 overflow-y-auto px-2 py-2 space-y-1">
         {loading && (
-          <p className="text-xs text-zinc-600 text-center py-8">Loading...</p>
+          <p className="text-xs text-zinc-600 text-center py-8">{t("nsCargandoCorto")}</p>
         )}
         {!loading && items.length === 0 && (
-          <p className="text-xs text-zinc-600 text-center py-8">No notifications yet.</p>
+          <p className="text-xs text-zinc-600 text-center py-8">{t("nsSinNotificaciones")}</p>
         )}
         {items.map((n) => {
           const Icon = TYPE_ICONS[n.type];

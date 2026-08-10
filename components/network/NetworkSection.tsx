@@ -2,6 +2,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { QrCode } from "lucide-react";
 import NetworkCollection from "./NetworkCollection";
 import ScanSheet from "./ScanSheet";
@@ -13,6 +14,7 @@ type Props = {
 };
 
 export default function NetworkSection({ userId }: Props) {
+  const { t } = useTranslation();
   const [contacts, setContacts] = useState<Profile[]>([]);
   const [loadingContacts, setLoadingContacts] = useState(true);
   const [showScan, setShowScan] = useState(false);
@@ -30,8 +32,8 @@ export default function NetworkSection({ userId }: Props) {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs font-semibold tracking-[0.35em] text-zinc-400 uppercase">Your Network</p>
-          <p className="mt-1 text-xs text-zinc-600">Producers in your collection.</p>
+          <p className="text-xs font-semibold tracking-[0.35em] text-zinc-400 uppercase">{t("nsTuRed")}</p>
+          <p className="mt-1 text-xs text-zinc-600">{t("nsSubtitulo")}</p>
         </div>
         <button
           onClick={() => setShowScan(true)}
@@ -42,7 +44,7 @@ export default function NetworkSection({ userId }: Props) {
         </button>
       </div>
       {loadingContacts ? (
-        <p className="text-xs text-zinc-600">Loading network...</p>
+        <p className="text-xs text-zinc-600">{t("nsCargando")}</p>
       ) : (
         <NetworkCollection contacts={contacts} userId={userId} onScanClick={() => setShowScan(true)} />
       )}

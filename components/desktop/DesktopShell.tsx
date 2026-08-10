@@ -434,7 +434,7 @@ export default function DesktopShell({
             </div>
             {!compact && (
               <div className="mt-2 flex items-baseline gap-1.5 border-t pt-2" style={{ borderColor: "rgba(255,255,255,.06)" }}>
-                <span className="text-[8px] font-bold uppercase tracking-[0.16em] text-zinc-600">Fennec dB</span>
+                <span className="text-[8px] font-bold uppercase tracking-[0.16em] text-zinc-600">{t("dbFennecDb")}</span>
                 <b className="text-[16px] text-accent">{profile.fennec_db_score}</b>
               </div>
             )}
@@ -494,7 +494,7 @@ export default function DesktopShell({
               type="button"
               onClick={onOpenSettings}
               aria-label={t("dsCuentaAjustes", { name })}
-              title="Settings"
+              title={t("settings")}
               className="rounded-full transition hover:brightness-110"
             >
               {profile.avatar_url ? (
@@ -553,7 +553,7 @@ export default function DesktopShell({
         <button
           type="button"
           onClick={() => onNavigate("dashboard")}
-          aria-label="Leave The Tape"
+          aria-label={t("dsSalirCinta")}
           className="fixed left-5 top-5 z-[80] flex items-center gap-2 rounded-full border px-3.5 py-2 text-[12px] font-semibold transition hover:brightness-110"
           style={{ borderColor: "rgba(245,166,35,.35)", background: "rgba(17,16,20,.7)", color: "#f5a623", backdropFilter: "blur(8px)" }}
         >

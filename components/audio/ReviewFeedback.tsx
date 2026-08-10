@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { ReactNode } from "react";
 import { X, Send } from "lucide-react";
 
@@ -44,6 +45,7 @@ export function renderBodyWithTimestamps(
 }
 
 export default function ReviewFeedback({ onSubmit, onClose }: Props) {
+  const { t } = useTranslation();
   const [body, setBody]       = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState<string | null>(null);
@@ -58,7 +60,7 @@ export default function ReviewFeedback({ onSubmit, onClose }: Props) {
       await onSubmit(trimmed, ts);
       onClose();
     } catch {
-      setError("Failed to post. Please try again.");
+      setError(t("rfErrorPublicar"));
     } finally {
       setLoading(false);
     }
@@ -78,23 +80,23 @@ export default function ReviewFeedback({ onSubmit, onClose }: Props) {
           <button onClick={onClose}>
             <X className="h-5 w-5 text-zinc-500" />
           </button>
-          <p className="text-sm font-semibold text-white">Leave Feedback</p>
+          <p className="text-sm font-semibold text-white">{t("rfDejarFeedback")}</p>
           <button
             onClick={handleSubmit}
             disabled={!body.trim() || loading}
             className="text-sm font-semibold text-amber-400 disabled:opacity-30 transition"
           >
-            {loading ? "Posting…" : "Post"}
+            {loading ? t("rfPublicando") : t("rfPublicar")}
           </button>
         </div>
         <p className="text-xs text-zinc-600">
-          Mention a timestamp like <span className="text-amber-400">2:32</span> and it becomes a clickable link.
+          {t("rfTiempoAntes")}<span className="text-amber-400">2:32</span>{t("rfTiempoDespues")}
         </p>
         <textarea
           autoFocus
           value={body}
           onChange={(e) => setBody(e.target.value)}
-          placeholder="The drop at 1:20 could use more bass..."
+          placeholder={t("rfPlaceholder")}
           rows={4}
           className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-amber-500 resize-none"
         />

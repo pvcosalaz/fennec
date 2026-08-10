@@ -15,6 +15,8 @@
    ═══════════════════════════════════════════════════════════════ */
 
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import i18nInstance from "@/lib/i18n";
 import { ImagePlus, Loader2, X } from "lucide-react";
 import { prepareStudioPhoto, scrimOpacity } from "@/lib/studioPhoto";
 import { uploadStudioPhoto, discardUploadedImage, updateProfile } from "@/lib/communityDb";
@@ -39,7 +41,7 @@ function readError(e: unknown, step: "upload" | "save"): string {
     return "";
   })();
 
-  if (!raw) return step === "upload" ? "Couldn't upload the photo." : "Couldn't save the photo.";
+  if (!raw) return i18nInstance.t(step === "upload" ? "sbErrorSubir" : "sbErrorGuardar");
 
   /* La etiqueta la decide el PASO que falló, nunca el texto del error. La
      versión anterior clasificaba por regex y le ponía "Storage rejected the
@@ -49,13 +51,13 @@ function readError(e: unknown, step: "upload" | "save"): string {
      diagnósticos equivocados (2026-08-02). Si el mensaje no puede señalar el
      lugar correcto, es peor que no tener mensaje. */
   if (/schema cache/i.test(raw)) {
-    return "Supabase hasn't picked up the new columns yet. Reload its schema and retry.";
+    return i18nInstance.t("sbErrorEsquema");
   }
   if (/violates check constraint/i.test(raw)) {
-    return "That photo URL isn't one of ours. Try uploading again.";
+    return i18nInstance.t("sbErrorUrl");
   }
 
-  const where = step === "upload" ? "Upload failed" : "Saved the photo but couldn't update your profile";
+  const where = i18nInstance.t(step === "upload" ? "sbFalloSubida" : "sbFalloPerfil");
   return `${where} · ${raw}`;
 }
 
@@ -109,6 +111,7 @@ export function StudioPhotoControl({
   hasPhoto: boolean;
   onChange: (url: string | null, luma: number | null) => void;
 }) {
+  const { t } = useTranslation();
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -190,14 +193,14 @@ export function StudioPhotoControl({
         className="flex items-center gap-1.5 text-[11px] font-medium text-zinc-600 transition hover:text-accent disabled:opacity-50"
       >
         {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <ImagePlus className="h-3 w-3" />}
-        {busy ? "Uploading…" : hasPhoto ? "Change studio photo" : "Add your studio photo"}
+        {busy ? t("stUploading") : hasPhoto ? t("sbCambiarFoto") : t("addStudioPhoto")}
       </button>
 
       {hasPhoto && !busy && (
         <button
           type="button"
           onClick={() => void remove()}
-          aria-label="Remove studio photo"
+          aria-label={t("sbQuitarFoto")}
           className="text-zinc-700 transition hover:text-red-400"
         >
           <X className="h-3 w-3" />

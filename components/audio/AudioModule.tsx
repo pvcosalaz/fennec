@@ -241,7 +241,7 @@ function MyTracksSheet({
         )}
         <div className={`flex items-center justify-between px-4 pb-4 ${isDesktop ? "pt-5" : "pt-2"}`}>
           <span className="text-sm font-bold text-white">{t("tpMyTracks")}</span>
-          <button onClick={close} aria-label="Close" className="text-zinc-500 hover:text-white transition">
+          <button onClick={close} aria-label={t("amCerrar")} className="text-zinc-500 hover:text-white transition">
             <X className="h-5 w-5" />
           </button>
         </div>

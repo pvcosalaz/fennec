@@ -15,13 +15,15 @@
    the rail; repeating them here would be the same feed twice.
    ═══════════════════════════════════════════════════════════════ */
 
+import { useTranslation } from "react-i18next";
+import i18nInstance from "@/lib/i18n";
 import { Tile } from "@/components/desktop/ui";
 import type { Post } from "@/lib/communityTypes";
 
 /** "just now" / "12m" / "3h" / "2d" — the compact form a feed wants. */
 function ago(iso: string): string {
   const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60_000);
-  if (mins < 1) return "just now";
+  if (mins < 1) return i18nInstance.t("nsAhora");
   if (mins < 60) return `${mins}m`;
   const hours = Math.floor(mins / 60);
   if (hours < 24) return `${hours}h`;
@@ -73,6 +75,7 @@ export default function CommunityPulse({
   rows?: number;
   onOpen?: () => void;
 }) {
+  const { t } = useTranslation();
   const visible = (posts ?? []).slice(0, rows);
 
   return (
@@ -95,7 +98,7 @@ export default function CommunityPulse({
 
       {!loading && visible.length === 0 && (
         <div className="flex flex-col items-start gap-1 py-6">
-          <p className="text-[12.5px] text-zinc-500">Nothing from the community yet.</p>
+          <p className="text-[12.5px] text-zinc-500">{t("cpSinNada")}</p>
           <button
             type="button"
             onClick={onOpen}

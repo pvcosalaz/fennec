@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { NETWORK_ENABLED } from "@/lib/featureFlags";
 
 function useCountUp(target: number, duration = 1200) {
@@ -141,6 +142,7 @@ export default function FennecIdCard({
   smallDb = false,
   hideZeroDb = false,
 }: FennecIdCardProps) {
+  const { t } = useTranslation();
   const { accent, dark1, dark2, glowRgb, textOnAvatar } = colorScheme;
   const [showDbInfo, setShowDbInfo] = useState(false);
   const animatedDb = useCountUp(fennecDb, 1400);
@@ -340,7 +342,7 @@ export default function FennecIdCard({
               <button
                 onClick={() => setShowDbInfo((v) => !v)}
                 style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: `${accent}60`, lineHeight: 1 }}
-                aria-label="What is Fennec dB?"
+                aria-label={t("fcQueEsDb")}
               >
                 <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
                   <circle cx="8" cy="8" r="7.5" stroke="currentColor" strokeWidth="1" fill="none" />

@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Mic, Calendar, Clock, Newspaper, ArrowLeft } from "lucide-react";
 import type { NotificationPreferences } from "@/lib/notificationDb";
 import { fetchPreferences, upsertPreferences } from "@/lib/notificationDb";
@@ -19,31 +20,32 @@ type ToggleRow = {
 const ROWS: ToggleRow[] = [
   {
     key: "audio_feedback",
-    label: "Audio feedback",
-    description: "When someone comments on your track",
+    label: "npAudioFeedback",
+    description: "npAudioFeedbackSub",
     icon: Mic,
   },
   {
     key: "content_scheduled",
-    label: "Content reminders",
-    description: "Day-of reminders for scheduled posts",
+    label: "npRecordatorios",
+    description: "npRecordatoriosSub",
     icon: Calendar,
   },
   {
     key: "project_deadline",
-    label: "Project deadlines",
-    description: "24h before a project is due",
+    label: "npEntregas",
+    description: "npEntregasSub",
     icon: Clock,
   },
   {
     key: "industry_news",
-    label: "Industry news",
-    description: "When new music industry news drops",
+    label: "npNoticias",
+    description: "npNoticiasSub",
     icon: Newspaper,
   },
 ];
 
 export default function NotificationPreferences({ userId, onBack }: Props) {
+  const { t } = useTranslation();
   const [prefs, setPrefs] = useState<NotificationPreferences | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -73,12 +75,12 @@ export default function NotificationPreferences({ userId, onBack }: Props) {
         className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition mb-6"
       >
         <ArrowLeft className="h-4 w-4" />
-        Back
+        {t("swVolver")}
       </button>
-      <h2 className="text-sm font-bold text-white mb-4">Notification Preferences</h2>
+      <h2 className="text-sm font-bold text-white mb-4">{t("npTitulo")}</h2>
 
       {!prefs ? (
-        <p className="text-xs text-zinc-600 py-8 text-center">Loading...</p>
+        <p className="text-xs text-zinc-600 py-8 text-center">{t("nsCargandoCorto")}</p>
       ) : (
         <div className="space-y-1">
           {ROWS.map((row) => {
@@ -95,8 +97,8 @@ export default function NotificationPreferences({ userId, onBack }: Props) {
                   <Icon className="h-4 w-4" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white">{row.label}</p>
-                  <p className="text-xs text-zinc-500 mt-0.5">{row.description}</p>
+                  <p className="text-sm font-medium text-white">{t(row.label)}</p>
+                  <p className="text-xs text-zinc-500 mt-0.5">{t(row.description)}</p>
                 </div>
                 <div
                   className={`shrink-0 w-10 h-6 rounded-full transition-colors ${

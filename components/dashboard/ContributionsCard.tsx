@@ -7,11 +7,16 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import "@/lib/i18n";
+import i18nInstance from "@/lib/i18n";
 import { X, Flame } from "lucide-react";
 import { buildHeatmapGrid, buildYearGrid, type ContributionDays, type DayDetail } from "@/lib/contributions";
 
-const MESES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+/* [i18n 2026-08-10] Los rotulos del mapa salian de una lista fija en ingles,
+   asi que el año seguia diciendo "Jan Feb Mar" con la app en español. Se
+   derivan del locale: una sola fuente y no hay 12 llaves que mantener. */
+const locale = () => (i18nInstance.resolvedLanguage === "es" ? "es-MX" : "en-US");
+const mesCorto = (m: number) =>
+  new Date(2020, m, 1).toLocaleDateString(locale(), { month: "short" });
 
 /** Medidas del popover del dia. Se necesitan ANTES de dibujarlo para decidir si
  *  cabe arriba de la celda y para no dejarlo salirse por los lados. */
@@ -36,7 +41,7 @@ const NOMBRE: Record<string, [string, string]> = {
 function fechaLegible(key: string): string {
   const [y, m, d] = key.split("-").map(Number);
   const dt = new Date(y, m - 1, d);
-  return dt.toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short" });
+  return dt.toLocaleDateString(locale(), { weekday: "short", day: "numeric", month: "short" });
 }
 
 function resumen(det: DayDetail | undefined): string {
@@ -93,7 +98,7 @@ function Heatmap({ byDay, weeks, cellRadius = 2, cellSize, selected, onSelect }:
     const m = mesDeColumna(col);
     if (m == null) return null;
     const anterior = i > 0 ? mesDeColumna(grid[i - 1]) : null;
-    return m !== anterior ? MESES[m] : null;
+    return m !== anterior ? mesCorto(m) : null;
   });
 
   return (
@@ -271,7 +276,7 @@ export default function ContributionsCard({ data, accent, weeks = 17, cellSize }
                 debe oscurecer la tarjeta. */}
             <button
               type="button"
-              aria-label="Close"
+              aria-label={t("amCerrar")}
               onClick={cerrar}
               className="absolute inset-0 z-10 cursor-default"
             />
@@ -363,7 +368,7 @@ export default function ContributionsCard({ data, accent, weeks = 17, cellSize }
           >
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-sm font-extrabold text-white">Your year</p>
+                <p className="text-sm font-extrabold text-white">{t("ccTuAnio")}</p>
                 <p className="text-[11px] text-zinc-500 mt-0.5">
                   {data?.totalYear ?? 0} contributions · projects, quotes, clients, posts &amp; feedback
                 </p>
@@ -372,7 +377,7 @@ export default function ContributionsCard({ data, accent, weeks = 17, cellSize }
                 type="button"
                 onClick={() => setShowYear(false)}
                 className="h-8 w-8 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 hover:text-white transition"
-                aria-label="Close"
+                aria-label={t("amCerrar")}
               >
                 <X size={15} />
               </button>

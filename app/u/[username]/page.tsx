@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { NETWORK_ENABLED } from "@/lib/featureFlags";
 import { useParams } from "next/navigation";
 import { UserPlus, Check, Loader2 } from "lucide-react";
@@ -18,6 +19,7 @@ import type { Profile } from "@/lib/communityTypes";
 type RequestState = "idle" | "sending" | "sent" | "signed_out";
 
 export default function PublicProfilePage() {
+  const { t } = useTranslation();
   const params = useParams<{ username: string }>();
   const [profile, setProfile] = useState<Profile | null | undefined>(undefined); // undefined = loading
   const [requestState, setRequestState] = useState<RequestState>("idle");
@@ -47,8 +49,8 @@ export default function PublicProfilePage() {
   if (profile === null) {
     return (
       <main className="min-h-dvh flex flex-col items-center justify-center gap-2 px-6" style={{ background: "#0d0d0f" }}>
-        <p className="text-sm font-semibold text-white">Producer not found</p>
-        <p className="text-xs text-zinc-600">This Fennec ID doesn&rsquo;t exist.</p>
+        <p className="text-sm font-semibold text-white">{t("upNoEncontrado")}</p>
+        <p className="text-xs text-zinc-600">{t("upNoExiste")}</p>
       </main>
     );
   }
@@ -101,7 +103,7 @@ export default function PublicProfilePage() {
 
       {requestState === "signed_out" && (
         <p className="text-xs text-zinc-500 text-center">
-          <a href="https://app.fennec.audio" className="text-accent underline">Open Fennec</a> and sign in to connect.
+          <a href="https://app.fennec.audio" className="text-accent underline">{t("upAbrirFennec")}</a>{t("upYEntra")}
         </p>
       )}
 

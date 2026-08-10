@@ -152,7 +152,7 @@ export default function ContentHubDesktop({
           {monthName(viewMonth)} <span className="text-zinc-600">{viewYear}</span>
         </h1>
         <div className="flex items-center gap-0.5">
-          <button onClick={() => shiftMonth(-1)} aria-label="Previous month" className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-white/5 hover:text-white">
+          <button onClick={() => shiftMonth(-1)} aria-label={t("chdMesAnterior")} className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-white/5 hover:text-white">
             <ChevronLeft className="h-4 w-4" />
           </button>
           <button
@@ -161,7 +161,7 @@ export default function ContentHubDesktop({
           >
             {t("mkToday")}
           </button>
-          <button onClick={() => shiftMonth(1)} aria-label="Next month" className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-white/5 hover:text-white">
+          <button onClick={() => shiftMonth(1)} aria-label={t("chdMesSiguiente")} className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-white/5 hover:text-white">
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>
@@ -311,11 +311,11 @@ export default function ContentHubDesktop({
                     </button>
                     <div className="mt-0.5 flex flex-shrink-0 items-center gap-2">
                       {task.source === "scripts" && onEditScript && (
-                        <button onClick={() => onEditScript(task.title)} aria-label="Edit script" className="text-zinc-600 transition hover:text-accent">
+                        <button onClick={() => onEditScript(task.title)} aria-label={t("sdEditAria")} className="text-zinc-600 transition hover:text-accent">
                           <Pencil size={13} />
                         </button>
                       )}
-                      <button onClick={() => onDeleteTask(task.id)} aria-label="Delete task" className="text-sm leading-none text-zinc-600 transition hover:text-red-400">
+                      <button onClick={() => onDeleteTask(task.id)} aria-label={t("chBorrarTarea")} className="text-sm leading-none text-zinc-600 transition hover:text-red-400">
                         ✕
                       </button>
                     </div>

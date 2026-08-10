@@ -1,5 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import i18nInstance from "@/lib/i18n";
 import QRCode from "qrcode";
 import { Scanner } from "@yudiel/react-qr-scanner";
 import { mintConnectionToken, redeemConnectionToken } from "@/lib/networkDb";
@@ -19,6 +21,7 @@ export default function ScanSheet({
   onClose: () => void;
   onConnected: (peer: Profile) => void;
 }) {
+  const { t } = useTranslation();
   const { sheetRef, dismiss } = useSheetDismiss(onClose);
   const [qr, setQr] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
@@ -29,7 +32,7 @@ export default function ScanSheet({
     const mint = async () => {
       const token = await mintConnectionToken();
       if (!alive) return;
-      if (!token) { setStatus("Couldn't generate your code. Try again in a moment."); return; }
+      if (!token) { setStatus(t("scErrorCodigo")); return; }
       const dataUrl = await QRCode.toDataURL(token, { margin: 1, width: 220, color: { dark: "#111114", light: "#ffffff" } });
       if (alive) setQr(dataUrl);
     };
@@ -42,7 +45,7 @@ export default function ScanSheet({
     const raw = codes[0]?.rawValue?.trim();
     if (busyRef.current || !raw) return;
     busyRef.current = true;
-    setStatus("Connecting…");
+    setStatus(t("scConectando"));
 
     const res = await redeemConnectionToken(raw);
     if (res.ok) {
@@ -71,15 +74,15 @@ export default function ScanSheet({
           <div className="w-10 h-1 rounded-full bg-white/20" />
         </div>
 
-        <p className="text-center text-sm font-bold text-white mb-1">Trade cards</p>
+        <p className="text-center text-sm font-bold text-white mb-1">{t("scIntercambiar")}</p>
         <p className="text-center text-[11px] text-zinc-500 mb-5">
-          Scan each other in person — both cards join both decks at once.
+          {t("scEscaneense")}
         </p>
 
         {qr ? (
           <img
             src={qr}
-            alt="Your connect code. Have the other producer scan this."
+            alt={t("scAltQr")}
             className="mx-auto rounded-xl mb-5"
             width={180}
             height={180}
@@ -107,9 +110,9 @@ export default function ScanSheet({
 }
 
 function prettyReason(reason: string): string {
-  if (reason.includes("TOKEN_EXPIRED")) return "That code expired. Ask them to reopen Scan.";
-  if (reason.includes("TOKEN_USED")) return "Already connected.";
-  if (reason.includes("CANNOT_CONNECT_SELF")) return "That's your own code.";
-  if (reason.includes("TOKEN_NOT_FOUND")) return "Code not recognized. Try again.";
-  return "Couldn't connect. Try again.";
+  if (reason.includes("TOKEN_EXPIRED")) return i18nInstance.t("scCodigoExpiro");
+  if (reason.includes("TOKEN_USED")) return i18nInstance.t("scYaConectados");
+  if (reason.includes("CANNOT_CONNECT_SELF")) return i18nInstance.t("scTuPropioCodigo");
+  if (reason.includes("TOKEN_NOT_FOUND")) return i18nInstance.t("scCodigoNoReconocido");
+  return i18nInstance.t("scNoSeConecto");
 }

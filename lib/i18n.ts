@@ -1265,4 +1265,149 @@ i18n.addResourceBundle("es", "translation", {
   stGuionesIdeas: "Guiones e ideas", stPostsCalendario: "Posts del calendario",
 }, true, true);
 
+/* Cola de traduccion (2026-08-10): las 3-4 cadenas sueltas que quedaban en
+   Marketing escritorio, Red, el marco de escritorio, Contribuciones, la
+   bienvenida y las notificaciones. */
+i18n.addResourceBundle("en", "translation", {
+  chdMesAnterior: "Previous month", chdMesSiguiente: "Next month",
+  nsTuRed: "Your Network", nsSubtitulo: "Producers in your collection.",
+  nsCargando: "Loading network...",
+  dsSalirCinta: "Leave The Tape",
+  ddAbrirFennecId: "Open my Fennec ID",
+  ccTuAnio: "Your year",
+  wcTuFennecDb: "Your Fennec dB", wcPrimerosPasos: "Getting started",
+  wcTerminaConfig: "Finish setting up your Fennec",
+  nsCargandoCorto: "Loading...", nsSinNotificaciones: "No notifications yet.",
+  nsAhora: "just now", nsHaceMin: "{{n}}m ago", nsHaceHr: "{{n}}h ago",
+  nsHaceDia: "{{n}}d ago",
+}, true, true);
+
+i18n.addResourceBundle("es", "translation", {
+  chdMesAnterior: "Mes anterior", chdMesSiguiente: "Mes siguiente",
+  nsTuRed: "Tu red", nsSubtitulo: "Productores en tu colección.",
+  nsCargando: "Cargando red...",
+  dsSalirCinta: "Salir de La Cinta",
+  ddAbrirFennecId: "Abrir mi Fennec ID",
+  ccTuAnio: "Tu año",
+  wcTuFennecDb: "Tu Fennec dB", wcPrimerosPasos: "Primeros pasos",
+  wcTerminaConfig: "Termina de configurar tu Fennec",
+  nsCargandoCorto: "Cargando...", nsSinNotificaciones: "Aún no hay notificaciones.",
+  nsAhora: "ahora mismo", nsHaceMin: "hace {{n}}m", nsHaceHr: "hace {{n}}h",
+  nsHaceDia: "hace {{n}}d",
+}, true, true);
+
+/* Cola 2 (2026-08-10): intercambio de tarjetas, escritor de guiones,
+   preferencias de notificaciones, feedback de tracks y foto de estudio. */
+i18n.addResourceBundle("en", "translation", {
+  scIntercambiar: "Trade cards",
+  scEscaneense: "Scan each other in person — both cards join both decks at once.",
+  scAltQr: "Your connect code. Have the other producer scan this.",
+  scErrorCodigo: "Couldn't generate your code. Try again in a moment.",
+  scConectando: "Connecting…",
+  scCodigoExpiro: "That code expired. Ask them to reopen Scan.",
+  scYaConectados: "Already connected.",
+  scTuPropioCodigo: "That's your own code.",
+  scCodigoNoReconocido: "Code not recognized. Try again.",
+  scNoSeConecto: "Couldn't connect. Try again.",
+
+  swEscribirGuion: "Write script", swGuardar: "Save", swVolver: "Back",
+  swTuAngulo: "Your angle", swTuGuion: "Your script",
+  swTituloGancho: "Title / Hook", swGuionNotas: "Script / Notes",
+  swPlaceholderIdea: "What's your content idea?",
+  swPlaceholderGuion: "Use the angle above as your starting point.\n\nWrite your hook, structure, and key points here...",
+  swAbrirReferencia: "Open reference →",
+
+  npTitulo: "Notification Preferences",
+  npAudioFeedback: "Audio feedback", npAudioFeedbackSub: "When someone comments on your track",
+  npRecordatorios: "Content reminders", npRecordatoriosSub: "Day-of reminders for scheduled posts",
+  npEntregas: "Project deadlines", npEntregasSub: "24h before a project is due",
+  npNoticias: "Industry news", npNoticiasSub: "When new music industry news drops",
+
+  rfDejarFeedback: "Leave Feedback", rfPublicando: "Posting…", rfPublicar: "Post",
+  rfErrorPublicar: "Failed to post. Please try again.",
+  rfTiempoAntes: "Mention a timestamp like ",
+  rfTiempoDespues: " and it becomes a clickable link.",
+  rfPlaceholder: "The drop at 1:20 could use more bass...",
+
+  ncVerTodos: "View all producers in your network",
+  fcQueEsDb: "What is Fennec dB?",
+  cmSaltarTour: "Skip tour",
+  cpSinNada: "Nothing from the community yet.",
+
+  sbCambiarFoto: "Change studio photo", sbQuitarFoto: "Remove studio photo",
+  sbErrorSubir: "Couldn't upload the photo.", sbErrorGuardar: "Couldn't save the photo.",
+  sbErrorEsquema: "Supabase hasn't picked up the new columns yet. Reload its schema and retry.",
+  sbErrorUrl: "That photo URL isn't one of ours. Try uploading again.",
+  sbFalloSubida: "Upload failed",
+  sbFalloPerfil: "Saved the photo but couldn't update your profile",
+}, true, true);
+
+i18n.addResourceBundle("es", "translation", {
+  scIntercambiar: "Intercambiar tarjetas",
+  scEscaneense: "Escanéense en persona: las dos tarjetas entran a las dos colecciones al mismo tiempo.",
+  scAltQr: "Tu código de conexión. Que el otro productor escanee esto.",
+  scErrorCodigo: "No se pudo generar tu código. Inténtalo en un momento.",
+  scConectando: "Conectando…",
+  scCodigoExpiro: "Ese código expiró. Pídele que vuelva a abrir Escanear.",
+  scYaConectados: "Ya están conectados.",
+  scTuPropioCodigo: "Ese es tu propio código.",
+  scCodigoNoReconocido: "Código no reconocido. Intenta de nuevo.",
+  scNoSeConecto: "No se pudo conectar. Intenta de nuevo.",
+
+  swEscribirGuion: "Escribir guion", swGuardar: "Guardar", swVolver: "Volver",
+  swTuAngulo: "Tu ángulo", swTuGuion: "Tu guion",
+  swTituloGancho: "Título / Gancho", swGuionNotas: "Guion / Notas",
+  swPlaceholderIdea: "¿Cuál es tu idea de contenido?",
+  swPlaceholderGuion: "Usa el ángulo de arriba como punto de partida.\n\nEscribe aquí tu gancho, la estructura y los puntos clave...",
+  swAbrirReferencia: "Abrir referencia →",
+
+  npTitulo: "Preferencias de notificaciones",
+  npAudioFeedback: "Feedback de audio", npAudioFeedbackSub: "Cuando alguien comenta tu track",
+  npRecordatorios: "Recordatorios de contenido", npRecordatoriosSub: "Aviso el día del post programado",
+  npEntregas: "Entregas de proyectos", npEntregasSub: "24h antes de que venza un proyecto",
+  npNoticias: "Noticias de la industria", npNoticiasSub: "Cuando sale una noticia nueva de la industria",
+
+  rfDejarFeedback: "Dejar feedback", rfPublicando: "Publicando…", rfPublicar: "Publicar",
+  rfErrorPublicar: "No se pudo publicar. Intenta de nuevo.",
+  rfTiempoAntes: "Menciona un tiempo como ",
+  rfTiempoDespues: " y se convierte en un enlace en el que se puede hacer clic.",
+  rfPlaceholder: "El drop del 1:20 necesita más bajo...",
+
+  ncVerTodos: "Ver todos los productores de tu red",
+  fcQueEsDb: "¿Qué es el Fennec dB?",
+  cmSaltarTour: "Saltar el recorrido",
+  cpSinNada: "Todavía no hay nada de la comunidad.",
+
+  sbCambiarFoto: "Cambiar foto del estudio", sbQuitarFoto: "Quitar foto del estudio",
+  sbErrorSubir: "No se pudo subir la foto.", sbErrorGuardar: "No se pudo guardar la foto.",
+  sbErrorEsquema: "Supabase todavía no ve las columnas nuevas. Recarga su esquema e intenta otra vez.",
+  sbErrorUrl: "Esa URL de foto no es nuestra. Intenta subirla de nuevo.",
+  sbFalloSubida: "Falló la subida",
+  sbFalloPerfil: "Se guardó la foto pero no se pudo actualizar tu perfil",
+}, true, true);
+
+/* Cola 3 (2026-08-10): la hoja imprimible de la cotizacion (el documento que
+   ve el cliente) y el perfil publico /u/. */
+i18n.addResourceBundle("en", "translation", {
+  qpCargando: "Loading…", qpEntraParaVer: "Sign in to view this quote.",
+  qpNoEncontrada: "Quote not found.", qpDescargarPdf: "Download PDF",
+  qpElegirGuardarPdf: "Choose “Save as PDF” in the print dialog.",
+  qpCotizacion: "Quote", qpActualizada: "Updated", qpPara: "For",
+  qpConcepto: "Concept", qpUnitario: "Unit", qpImpuesto: "Tax", qpTotal: "Total",
+  qpComoPagar: "How to pay",
+  upNoEncontrado: "Producer not found", upNoExiste: "This Fennec ID doesn’t exist.",
+  upAbrirFennec: "Open Fennec", upYEntra: " and sign in to connect.",
+}, true, true);
+
+i18n.addResourceBundle("es", "translation", {
+  qpCargando: "Cargando…", qpEntraParaVer: "Entra para ver esta cotización.",
+  qpNoEncontrada: "Cotización no encontrada.", qpDescargarPdf: "Descargar PDF",
+  qpElegirGuardarPdf: "Elige “Guardar como PDF” en el diálogo de impresión.",
+  qpCotizacion: "Cotización", qpActualizada: "Actualizada", qpPara: "Para",
+  qpConcepto: "Concepto", qpUnitario: "Unitario", qpImpuesto: "Impuesto", qpTotal: "Total",
+  qpComoPagar: "Cómo pagar",
+  upNoEncontrado: "Productor no encontrado", upNoExiste: "Este Fennec ID no existe.",
+  upAbrirFennec: "Abre Fennec", upYEntra: " y entra para conectar.",
+}, true, true);
+
 export default i18n;

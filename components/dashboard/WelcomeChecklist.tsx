@@ -1,6 +1,7 @@
 "use client";
 
 import { Check } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import FennecFox from "@/components/dashboard/FennecFox";
 import { useSheetDismiss, SHEET_BOTTOM, SHEET_ENTER } from "@/components/ui/useSheetDismiss";
 import { useIsDesktop } from "@/lib/useIsDesktop";
@@ -26,6 +27,7 @@ export function WelcomeModal({
   /** Vuelve a lanzar el recorrido de globos. Solo en escritorio por ahora. */
   onReplayTour?: () => void;
 }) {
+  const { t } = useTranslation();
   const doneCount = items.filter((i) => i.done).length;
   const allDone = doneCount === items.length;
   const { sheetRef, dismiss } = useSheetDismiss(onClose);
@@ -72,7 +74,7 @@ export function WelcomeModal({
 
         {/* What the dB means — set the expectation before they see the number */}
         <div className="mb-4 rounded-2xl border border-accent/15 bg-accent/[0.06] px-4 py-3">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-accent/80">Your Fennec dB</p>
+          <p className="text-[11px] font-bold uppercase tracking-widest text-accent/80">{t("wcTuFennecDb")}</p>
           <p className="mt-1 text-xs leading-relaxed text-zinc-400">
             Your signal strength as a producer, measured like decibels. It grows with your real reach, so connect your socials to turn it up.
           </p>
@@ -181,6 +183,7 @@ export function ChecklistCard({
   items: ChecklistItem[];
   onOpen: () => void;
 }) {
+  const { t } = useTranslation();
   const doneCount = items.filter((i) => i.done).length;
   const pct = Math.round((doneCount / items.length) * 100);
 
@@ -190,8 +193,8 @@ export function ChecklistCard({
       className="w-full rounded-2xl border border-accent/20 bg-accent/[0.06] p-4 flex items-center gap-4 text-left transition hover:bg-accent/[0.1] active:scale-[0.99]"
     >
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-white">Getting started</p>
-        <p className="text-[11px] text-zinc-500 mt-0.5">Finish setting up your Fennec</p>
+        <p className="text-sm font-semibold text-white">{t("wcPrimerosPasos")}</p>
+        <p className="text-[11px] text-zinc-500 mt-0.5">{t("wcTerminaConfig")}</p>
         <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
           <div
             className="h-full rounded-full bg-accent transition-all duration-500"

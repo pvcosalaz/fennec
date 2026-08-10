@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Check } from "lucide-react";
 import ToolPage from "./ToolPage";
 
@@ -21,6 +22,7 @@ type Props = {
 };
 
 export default function ScriptWriterOverlay({ videoRef, onSave, onClose, isDesktop = false }: Props) {
+  const { t } = useTranslation();
   const [title,  setTitle]  = useState("");
   const [script, setScript] = useState("");
   const [saved,  setSaved]  = useState(false);
@@ -36,7 +38,7 @@ export default function ScriptWriterOverlay({ videoRef, onSave, onClose, isDeskt
   return (
     <ToolPage
       isDesktop={isDesktop}
-      eyebrow="Write script"
+      eyebrow={t("swEscribirGuion")}
       onBack={onClose}
       actions={saved ? (
         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent/20">
@@ -48,7 +50,7 @@ export default function ScriptWriterOverlay({ videoRef, onSave, onClose, isDeskt
           disabled={!title.trim()}
           className="rounded-xl bg-accent px-4 py-2 text-sm font-bold text-black transition disabled:opacity-30"
         >
-          Save
+          {t("swGuardar")}
         </button>
       )}
     >
@@ -81,7 +83,7 @@ export default function ScriptWriterOverlay({ videoRef, onSave, onClose, isDeskt
           {videoRef.angle?.trim() && (
             <div className="bg-amber-400/8 px-4 py-3 space-y-2 border-t border-amber-400/15">
               <p className="text-[10px] font-bold uppercase tracking-widest text-amber-400">
-                Your angle
+                {t("swTuAngulo")}
               </p>
               <p className="text-sm text-white leading-relaxed">{videoRef.angle}</p>
             </div>
@@ -91,18 +93,18 @@ export default function ScriptWriterOverlay({ videoRef, onSave, onClose, isDeskt
         {/* ── Divider ── */}
         <div className="flex items-center gap-3">
           <div className="flex-1 h-px bg-white/5" />
-          <p className="text-[10px] text-zinc-600 uppercase tracking-widest">Your script</p>
+          <p className="text-[10px] text-zinc-600 uppercase tracking-widest">{t("swTuGuion")}</p>
           <div className="flex-1 h-px bg-white/5" />
         </div>
 
         {/* ── Title field ── */}
         <div className="space-y-1.5">
-          <p className="text-xs text-zinc-500">Title / Hook</p>
+          <p className="text-xs text-zinc-500">{t("swTituloGancho")}</p>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="What's your content idea?"
+            placeholder={t("swPlaceholderIdea")}
             className="w-full h-12 rounded-2xl border border-white/10 bg-black/25 px-4 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-accent/50 transition"
             autoFocus
           />
@@ -110,11 +112,11 @@ export default function ScriptWriterOverlay({ videoRef, onSave, onClose, isDeskt
 
         {/* ── Script textarea ── */}
         <div className="space-y-1.5">
-          <p className="text-xs text-zinc-500">Script / Notes</p>
+          <p className="text-xs text-zinc-500">{t("swGuionNotas")}</p>
           <textarea
             value={script}
             onChange={(e) => setScript(e.target.value)}
-            placeholder={`Use the angle above as your starting point.\n\nWrite your hook, structure, and key points here...`}
+            placeholder={t("swPlaceholderGuion")}
             rows={10}
             className="w-full rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-sm text-white placeholder:text-zinc-500 outline-none focus:border-accent/50 transition resize-none leading-relaxed"
           />
@@ -130,7 +132,7 @@ export default function ScriptWriterOverlay({ videoRef, onSave, onClose, isDeskt
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 text-[10px] text-zinc-600 hover:text-zinc-400 transition"
           >
-            Open reference →
+            {t("swAbrirReferencia")}
           </a>
         )}
       </>

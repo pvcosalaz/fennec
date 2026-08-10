@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import FennecIdCard from "./FennecIdCard";
 import RadioFrequency from "./RadioFrequency";
 import { getColorScheme } from "@/lib/fennecIdPalette";
@@ -18,6 +19,7 @@ type Props = {
 };
 
 export default function NetworkCollection({ contacts, userId, onScanClick }: Props) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const [radioPeer, setRadioPeer] = useState<Profile | null>(null);
 
@@ -80,7 +82,7 @@ export default function NetworkCollection({ contacts, userId, onScanClick }: Pro
       {/* Collapsed: deck preview */}
       {!expanded && (
         <button
-          aria-label="View all producers in your network"
+          aria-label={t("ncVerTodos")}
           onClick={() => setExpanded(true)}
           style={{ width: "100%", background: "none", border: "none", cursor: "pointer", padding: 0 }}
         >
