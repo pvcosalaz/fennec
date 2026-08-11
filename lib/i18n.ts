@@ -1414,6 +1414,7 @@ i18n.addResourceBundle("es", "translation", {
 i18n.addResourceBundle("en", "translation", {
   tdEnviarNota: "Send note",
   tdEnterEnvia: "ENTER to send · ESC to cancel",
+  prMarcaEn: "✏ mark at {{at}}", prMarcarlo: "Mark it",
   tdNotasEn: "{{count}} note · {{at}}",
   tdNotasEn_other: "{{count}} notes · {{at}}",
 }, true, true);
@@ -1421,6 +1422,7 @@ i18n.addResourceBundle("en", "translation", {
 i18n.addResourceBundle("es", "translation", {
   tdEnviarNota: "Enviar nota",
   tdEnterEnvia: "ENTER para enviar · ESC para cancelar",
+  prMarcaEn: "✏ marca en {{at}}", prMarcarlo: "Marcarlo",
   tdNotasEn: "{{count}} nota · {{at}}",
   tdNotasEn_other: "{{count}} notas · {{at}}",
 }, true, true);

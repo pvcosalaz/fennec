@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import { notFound } from "next/navigation";
+import i18n from "@/lib/i18n";
 import ProjectReviewPlayer from "@/components/audio/ProjectReviewPlayer";
 import type { ProjectReview } from "@/lib/audioTypes";
 
@@ -44,6 +46,15 @@ const tracks: ProjectReview[] = [
 ];
 
 export default function DevAudioPreview() {
+  /* Restaurar el idioma guardado, como hace la app real. Sin esto el harness
+     pintaba siempre en ingles aunque la cuenta estuviera en español, o sea que
+     el español de La Cinta movil no se podia verificar aqui — el mismo tipo de
+     harness-que-miente que ya costo un diagnostico con la duracion del mock
+     (2026-08-11). Copiado de dev-ui/shell, que ya lo hacia. */
+  useEffect(() => {
+    const saved = localStorage.getItem("fennec-language");
+    if (saved === "es" || saved === "en") void i18n.changeLanguage(saved);
+  }, []);
   if (process.env.NODE_ENV === "production") notFound();
 
   return (

@@ -337,8 +337,19 @@ export default function ProjectReviewPlayer({
       if (!drag.current.moved && drag.current.active) {
         drag.current.active = false;
         const t = timeAtClientY(pressY);
-        if (audioRef.current) audioRef.current.volume = 0.4; // duck −6dB-ish
+        const a = audioRef.current;
         if (navigator.vibrate) navigator.vibrate(10);
+        /* [2026-08-11] Para y se coloca en el segundo marcado, en vez de solo
+           bajarle el volumen y seguir.
+           El globo cuelga de ese segundo DENTRO del feed, asi que con la cinta
+           corriendo se iria de la pantalla mientras escribes. Y al llevar la
+           reproduccion ahi, el segundo marcado queda en la linea de ahora
+           —el tercio superior—, que es la unica parte que el teclado no tapa.
+           Antes el compositor vivia clavado a la linea de ahora, asi que este
+           problema no existia; ahora que apunta al punto real, hay que llevarlo
+           al punto real. Mismo trato que en escritorio. */
+        if (a) { a.pause(); a.currentTime = t; a.volume = 1; }
+        setPlaying(false);
         setMarkAt(t);
       }
     }, LONG_PRESS_MS);
@@ -749,46 +760,91 @@ export default function ProjectReviewPlayer({
               </p>
             </div>
           )}
-        </div>
 
-        {/* inline composer — the writing slot */}
-        {markAt !== null && (
-          <div
-            className="absolute left-4 right-4 z-40 rounded-2xl p-3"
-            style={{
-              ...GLASS,
-              top: `${NOWLINE_FRAC * 100}%`, transform: "translateY(-30%)",
-              border: `1px solid rgba(245,166,35,.35)`,
-            }}
-            onPointerDown={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[9px] uppercase" style={{ fontFamily: MONO_FONT, letterSpacing: "0.18em", color: AMBER }}>
-                ✏ mark at {fmt(markAt)}
-              </span>
-              <button onClick={closeMark} className="text-[11px]" style={{ color: "rgba(255,255,255,.4)" }}>cancel</button>
+          {/* ── El globo para dejar una nota ──
+              Vive DENTRO del feed, colgado del segundo marcado, con el mismo
+              sitio y el mismo ancho que las tarjetas de las demas notas: tick
+              ambar en el espinazo y la caja a partir de SPINE_X + 20. Antes era
+              una franja clavada a la linea de ahora, que no decia a que segundo
+              pertenecia mas alla del rotulo (Paco 2026-08-11: el mismo globo que
+              en escritorio). Al hacer la pulsacion larga la reproduccion se va a
+              ese segundo, asi que el globo cae en la linea de ahora — arriba del
+              teclado — sin dejar de apuntar al punto de verdad.
+
+              El borde ambar se queda: distingue "esto lo estas escribiendo tu
+              ahora" de las notas ya publicadas, que van sin caja. */}
+          {markAt !== null && (
+            <div
+              className="absolute z-40"
+              style={{
+                left: SPINE_X + 20, right: 16, top: markAt * PX_PER_SEC - 14,
+                /* El origen es el RABITO (0, 14px), no el centro del costado:
+                   el globo tiene que brotar del punto que toca la linea. Con
+                   "left center" crecia desde la mitad de su propia altura, o
+                   sea desde un sitio donde no hay nada. */
+                transformOrigin: "0 14px",
+                animation: "notePop 280ms cubic-bezier(.23,1,.32,1) both",
+              }}
+              onPointerDown={(e) => e.stopPropagation()}
+            >
+              {/* El rabito mira al espinazo: es lo que ata la caja a su segundo. */}
+              <span
+                className="absolute"
+                style={{
+                  left: -5, top: 14, width: 10, height: 10,
+                  transform: "translateY(-50%) rotate(45deg)",
+                  background: "rgba(19,18,22,0.55)",
+                  backdropFilter: "blur(24px) saturate(160%)",
+                  WebkitBackdropFilter: "blur(24px) saturate(160%)",
+                  borderLeft: "1px solid rgba(245,166,35,.35)",
+                  borderBottom: "1px solid rgba(245,166,35,.35)",
+                }}
+              />
+              <div className="rounded-2xl p-3" style={{ ...GLASS, border: "1px solid rgba(245,166,35,.35)" }}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[9px] uppercase" style={{ fontFamily: MONO_FONT, letterSpacing: "0.18em", color: AMBER }}>
+                    {t("prMarcaEn", { at: fmt(markAt) })}
+                  </span>
+                  <button onClick={closeMark} className="text-[11px]" style={{ color: "rgba(255,255,255,.4)" }}>
+                    {t("mtCancel")}
+                  </button>
+                </div>
+                <textarea
+                  autoFocus
+                  value={markBody}
+                  onChange={(e) => setMarkBody(e.target.value)}
+                  placeholder={t("prQueEscuchas")}
+                  rows={2}
+                  className="w-full bg-transparent outline-none resize-none text-[14.5px] italic leading-relaxed"
+                  style={{ fontFamily: SERIF_FONT, color: "rgba(255,255,255,.92)", caretColor: AMBER }}
+                />
+                <div className="flex justify-end">
+                  <button
+                    onClick={submitMark}
+                    disabled={!markBody.trim() || posting}
+                    className="text-[11px] font-bold px-3 py-1.5 rounded-lg transition active:scale-[0.97] disabled:opacity-30"
+                    style={{ background: AMBER, color: "#111114" }}
+                  >
+                    {posting ? "…" : t("prMarcarlo")}
+                  </button>
+                </div>
+              </div>
             </div>
-            <textarea
-              autoFocus
-              value={markBody}
-              onChange={(e) => setMarkBody(e.target.value)}
-              placeholder={t("prQueEscuchas")}
-              rows={2}
-              className="w-full bg-transparent outline-none resize-none text-[14.5px] italic leading-relaxed"
-              style={{ fontFamily: SERIF_FONT, color: "rgba(255,255,255,.92)", caretColor: AMBER }}
+          )}
+
+          {/* El tick del globo, en el espinazo: la misma marca ambar que dejan
+              las notas publicadas, para que el segundo se lea en la linea aunque
+              la caja quede a un lado. */}
+          {markAt !== null && (
+            <span
+              className="absolute pointer-events-none z-40"
+              style={{
+                left: SPINE_X, top: markAt * PX_PER_SEC, width: 20, height: 2, borderRadius: 2,
+                background: AMBER_HOT, boxShadow: "0 0 10px rgba(255,200,97,.7)",
+              }}
             />
-            <div className="flex justify-end">
-              <button
-                onClick={submitMark}
-                disabled={!markBody.trim() || posting}
-                className="text-[11px] font-bold px-3 py-1.5 rounded-lg disabled:opacity-30 transition"
-                style={{ background: AMBER, color: "#111114" }}
-              >
-                {posting ? "…" : "Mark it"}
-              </button>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* session recap — the tape "prints" */}
         {ended && (
