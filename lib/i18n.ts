@@ -1413,12 +1413,14 @@ i18n.addResourceBundle("es", "translation", {
 /* La Cinta · gestos y compositor de notas (2026-08-10) */
 i18n.addResourceBundle("en", "translation", {
   tdEnviarNota: "Send note",
+  tdEnterEnvia: "ENTER to send · ESC to cancel",
   tdNotasEn: "{{count}} note · {{at}}",
   tdNotasEn_other: "{{count}} notes · {{at}}",
 }, true, true);
 
 i18n.addResourceBundle("es", "translation", {
   tdEnviarNota: "Enviar nota",
+  tdEnterEnvia: "ENTER para enviar · ESC para cancelar",
   tdNotasEn: "{{count}} nota · {{at}}",
   tdNotasEn_other: "{{count}} notas · {{at}}",
 }, true, true);

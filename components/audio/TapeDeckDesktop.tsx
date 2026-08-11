@@ -12,7 +12,7 @@ import TapeDust from "@/components/audio/TapeDust";
    componente necesita WebGL, que no existe en el servidor. */
 const WebThreads = dynamic(() => import("@/components/visuals/WebThreads"), { ssr: false });
 import { NOISE_URI } from "@/components/desktop/surfaces";
-import { Play, Pause, SkipForward, Plus, Upload, ZoomIn, ZoomOut, Volume2, VolumeX, AudioLines } from "lucide-react";
+import { Play, Pause, SkipForward, Plus, Upload, ZoomIn, ZoomOut, Volume2, VolumeX, AudioLines, X } from "lucide-react";
 import type { ProjectReview, ReviewComment } from "@/lib/audioTypes";
 import { fetchReviewComments, createReviewComment, fetchKarma } from "@/lib/audioDb";
 
@@ -254,6 +254,9 @@ export default function TapeDeckDesktop({
   const [comments, setComments] = useState<ReviewComment[]>([]);
   const [karma, setKarma]       = useState<number | null>(null);
   const [marking, setMarking]   = useState(false);
+  /** El globo de la nota. Lo consulta el listener de rueda para no llevarse
+   *  la cinta cuando estas escribiendo dentro. */
+  const globoRef = useRef<HTMLDivElement>(null);
   const [markAt, setMarkAt]     = useState(0);
   const [body, setBody]         = useState("");
   const [posting, setPosting]   = useState(false);
@@ -398,6 +401,19 @@ export default function TapeDeckDesktop({
     }
   }
 
+  /** Abre el globo de nota en un segundo concreto.
+   *
+   *  Pausa a proposito. El globo cuelga del segundo que estas comentando y
+   *  viaja con la cinta, asi que con la pista corriendo se te iria de la
+   *  pantalla mientras escribes. Ademas es lo que hace cualquiera al querer
+   *  anotar algo: para. */
+  function abrirNota(sec: number) {
+    const a = audioRef.current;
+    if (a && !a.paused) { a.pause(); setPlaying(false); }
+    setMarkAt(sec);
+    setMarking(true);
+  }
+
   // SPACE = play/pause (unless typing)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -430,6 +446,13 @@ export default function TapeDeckDesktop({
     const vp = stripVpRef.current;
     if (!vp) return;
     const onWheel = (e: WheelEvent) => {
+      /* El globo de la nota vive DENTRO de la cinta, asi que la rueda sobre el
+         burbujeaba hasta aqui: escribir y desplazar el texto se llevaba la
+         cinta —y al globo con ella— fuera de la pantalla. No sirve un
+         stopPropagation de React en el globo: React escucha en la raiz, o sea
+         DESPUES de que el evento ya paso por este listener nativo. Hay que
+         preguntarlo aqui. */
+      if (globoRef.current?.contains(e.target as Node)) return;
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
         applyZoom(pxPerSecRef.current * Math.exp(-e.deltaY * 0.0025));
@@ -714,9 +737,7 @@ export default function TapeDeckDesktop({
              el compositor abre mostrando el mismo segundo que ves. */
           onDoubleClick={(e) => {
             const time = timeFromClient(e.clientX);
-            if (time === null) return;
-            setMarkAt(time);
-            setMarking(true);
+            if (time !== null) abrirNota(time);
           }}
           className="relative mt-7 h-[92px] cursor-pointer"
           /* Recorta SOLO a los lados, no por arriba y abajo.
@@ -858,6 +879,104 @@ export default function TapeDeckDesktop({
                 </div>
               );
             })}
+
+            {/* ── El globo para dejar una nota ──
+                Cuelga del segundo que estas comentando, DENTRO de la cinta:
+                misma capa y misma matematica que las marcas (left = seg × px/s),
+                asi que apunta al punto exacto y se mueve con la cinta al hacer
+                zoom. Era una barra al ancho de la pantalla bajo el deck, que no
+                decia a que segundo pertenecia salvo por el sello (Paco
+                2026-08-10): "algo pequeño arriba de donde se esta fijando el
+                comentario".
+
+                Sube mas que las caras (72px contra 20) para no taparlas cuando
+                hay notas cerca, y el rabito baja a buscar la cinta. */}
+            {marking && (
+              <div
+                ref={globoRef}
+                className="absolute -translate-x-1/2"
+                /* La animacion va AQUI, no en cada pieza: globo, rabito y tallo
+                   crecen como un solo objeto desde la base, que es donde toca
+                   la cinta. Animandolos por separado, el pico escalaba desde su
+                   propio centro y llegaba desincronizado. */
+                style={{
+                  left: markAt * pxPerSec, bottom: "calc(50% + 72px)", zIndex: 40,
+                  transformOrigin: "bottom center",
+                  animation: "notePop 200ms cubic-bezier(.23,1,.32,1) both",
+                }}
+                /* La cinta de abajo escucha clic (navegar) y doble clic (nota).
+                   Sin cortar aqui, escribir dentro del globo movia la cinta y
+                   abria otro globo encima. */
+                onClick={(e) => e.stopPropagation()}
+                onDoubleClick={(e) => e.stopPropagation()}
+              >
+                <div
+                  className="w-[290px] rounded-2xl p-3"
+                  style={{
+                    background: "#211f26",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    boxShadow: "0 22px 50px -18px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.06)",
+                  }}
+                >
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="font-mono text-[11px] font-bold tabular-nums" style={{ color: AMBER }}>
+                      @ {fmt(markAt)}
+                    </span>
+                    <button onClick={() => setMarking(false)} aria-label={tr("mtCancel")} className="text-zinc-600 transition hover:text-white">
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+
+                  <textarea
+                    autoFocus value={body} onChange={(e) => setBody(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void submitMark(); }
+                      if (e.key === "Escape") setMarking(false);
+                    }}
+                    placeholder={tr("tdNotaPrecisa")}
+                    rows={2}
+                    className="w-full resize-none rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-[13px] leading-snug text-white outline-none transition placeholder:text-zinc-600 focus:border-accent/60"
+                  />
+
+                  <div className="mt-2 flex items-center justify-between">
+                    <span className="font-mono text-[9.5px] text-zinc-500">{tr("tdEnterEnvia")}</span>
+                    <button
+                      onClick={submitMark}
+                      disabled={posting || !body.trim()}
+                      className="rounded-lg px-3 py-1.5 text-[12px] font-bold text-black transition hover:brightness-110 active:scale-[0.97] disabled:opacity-40"
+                      style={{ background: `linear-gradient(180deg,${AMBER_HOT},${AMBER})` }}
+                    >
+                      {posting ? "…" : tr("tdEnviarNota")}
+                    </button>
+                  </div>
+                </div>
+
+                {/* El rabito: un cuadrado girado 45° con solo dos lados de borde,
+                    para que continue el contorno del globo en vez de dibujar una
+                    caja encima de el. */}
+                <span
+                  className="absolute left-1/2 top-full h-3 w-3 -translate-x-1/2 -translate-y-1/2 rotate-45"
+                  style={{
+                    background: "#211f26",
+                    borderRight: "1px solid rgba(255,255,255,0.1)",
+                    borderBottom: "1px solid rgba(255,255,255,0.1)",
+                  }}
+                />
+                {/* El tallo hasta la cinta, igual que el de las marcas: es lo que
+                    convierte al globo en algo clavado en un segundo.
+                    Arranca DEBAJO del rabito (9px) y no en el borde del globo:
+                    salia desde arriba, le pasaba por el centro al rabito y lo
+                    borraba — el globo perdia el pico y quedaba una tarjeta con
+                    un palo. Y mide 43px, que es exactamente lo que falta hasta
+                    la cinta: el globo va a 72px del centro, la cinta mide 40 y
+                    esta centrada (o sea, su borde esta a 20), 72-20-9 = 43.
+                    Con 58 se metia seis pixeles dentro de la cinta. */}
+                <span
+                  className="absolute left-1/2 -translate-x-1/2"
+                  style={{ top: "calc(100% + 9px)", width: 1.5, height: 43, background: `${AMBER}b3` }}
+                />
+              </div>
+            )}
           </div>
 
           {/* fixed head at center — a notch and a line, nothing pretending
@@ -899,23 +1018,6 @@ export default function TapeDeckDesktop({
           <p className="text-center font-mono text-[11px] text-zinc-700">{tr("tpMarks", { count: comments.length })}</p>
         )}
       </div>
-
-      {/* note composer */}
-      {marking && (
-        <div className="mx-8 mb-3 flex items-center gap-3 rounded-2xl border p-3" style={{ borderColor: `${AMBER}40`, background: "rgba(245,166,35,.05)" }}>
-          <span className="font-mono text-[11px]" style={{ color: AMBER }}>@ {fmt(markAt)}</span>
-          <input
-            autoFocus value={body} onChange={(e) => setBody(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || !e.shiftKey)) { e.preventDefault(); void submitMark(); } if (e.key === "Escape") setMarking(false); }}
-            placeholder={tr("tdNotaPrecisa")}
-            className="flex-1 bg-transparent text-[14px] text-white placeholder:text-zinc-600 outline-none"
-          />
-          <button onClick={() => setMarking(false)} className="text-[12px] text-zinc-500 hover:text-white">{tr("mtCancel")}</button>
-          <button onClick={submitMark} disabled={posting || !body.trim()} className="rounded-xl px-4 py-2 text-[12px] font-bold text-black transition disabled:opacity-40" style={{ background: `linear-gradient(180deg,${AMBER_HOT},${AMBER})` }}>
-            {posting ? "…" : tr("tdEnviarNota")}
-          </button>
-        </div>
-      )}
 
       {/* transport */}
       {/* ── Fila de mandos ──
@@ -1036,7 +1138,7 @@ export default function TapeDeckDesktop({
           )}
         </button>
         <div className="flex items-center justify-start gap-3">
-        <button onClick={() => { setMarkAt(t); setMarking(true); }} className="flex items-center gap-2 rounded-full border px-4 py-2.5 text-[13px] font-semibold transition hover:brightness-110" style={{ borderColor: `${AMBER}40`, color: AMBER }}>
+        <button onClick={() => abrirNota(t)} className="flex items-center gap-2 rounded-full border px-4 py-2.5 text-[13px] font-semibold transition hover:brightness-110" style={{ borderColor: `${AMBER}40`, color: AMBER }}>
           <Plus className="h-4 w-4" /> {tr("tpLeaveNote")}
         </button>
         <button onClick={onPass} className="flex items-center gap-1.5 rounded-full border border-white/10 px-4 py-2.5 text-[13px] text-zinc-400 transition hover:text-white">
