@@ -1,16 +1,9 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import dynamic from "next/dynamic";
 import { openCommunityProfile } from "@/lib/tapeNav";
-import { TAPE_THREADS_ENABLED } from "@/lib/featureFlags";
 import { useTranslation } from "react-i18next";
 import "@/lib/i18n";
 import TapeDust from "@/components/audio/TapeDust";
-/* Carga diferida a proposito: importado de forma estatica, `ogl` (700 KB en
-   disco) entraba en el bundle de TODOS aunque el ensayo estuviera apagado.
-   Asi el chunk solo baja cuando fondoThreads es true. ssr:false porque el
-   componente necesita WebGL, que no existe en el servidor. */
-const WebThreads = dynamic(() => import("@/components/visuals/WebThreads"), { ssr: false });
 import { NOISE_URI } from "@/components/desktop/surfaces";
 import { Play, Pause, SkipForward, Plus, Upload, ZoomIn, ZoomOut, Volume2, VolumeX, AudioLines, X } from "lucide-react";
 import type { ProjectReview, ReviewComment } from "@/lib/audioTypes";
@@ -171,17 +164,13 @@ function VuMeter({ needleRef, label }: { needleRef: React.Ref<HTMLDivElement>; l
 }
 
 export default function TapeDeckDesktop({
-  track, userId, onPass, onOpenMyTracks, onOpenIntro, fondoThreads = TAPE_THREADS_ENABLED,
+  track, userId, onPass, onOpenMyTracks, onOpenIntro,
 }: {
   track: ProjectReview;
   userId: string;
   onPass: () => void;
   onOpenMyTracks: () => void;
   onOpenIntro: () => void;
-  /** Fondo WebGL (React Bits · WebThreads) reaccionando al audio. Por defecto
-   *  toma TAPE_THREADS_ENABLED; el harness lo fuerza con ?threads=1 para poder
-   *  comparar encendido contra apagado sin tocar la bandera. */
-  fondoThreads?: boolean;
 }) {
   /* `tr`, no `t`: en este componente `t` ya es el TIEMPO de reproduccion. */
   const { t: tr } = useTranslation();
@@ -549,50 +538,7 @@ export default function TapeDeckDesktop({
        el sobrante se sale por abajo y se come la fila de mandos (Paco
        2026-08-04, dos intentos). Con h-full el deck toma exactamente el alto
        que le da su contenedor, que es flex-1 y ya descuenta esa fila. */
-    /* isolation:isolate — obliga a este div a ser un stacking context propio.
-       Sin eso, el z-index:-1 de los hilos (abajo) se resolveria contra un
-       ancestro de mas arriba y los hilos desapareceria detras del fondo de
-       AQUEL, no del de aqui. Aisla el problema a esta caja. */
-    <div className="relative flex h-full min-h-0 flex-col overflow-hidden" style={{ background: DECK, isolation: "isolate" }}>
-      {/* ── Ensayo: hilos WebGL al fondo del todo (React Bits · WebThreads) ──
-          Va ANTES que el polvo y que el resplandor, o sea lo mas atras posible
-          por puro orden del DOM. La amplitud la mueve el MISMO vuLevel que ya
-          alimenta las agujas, via ref: pasarlo por prop serian 60 renders por
-          segundo. Bajo de brillo a proposito — es el aire del cuarto, no un
-          elemento de la interfaz. */}
-      {fondoThreads && (
-        /* [2026-08-10] z-index:-1, no "primero en el DOM". Ir primero no basta:
-           el orden de pintado de CSS mete TODO lo `absolute` despues del
-           contenido en flujo normal, y los carretes viven en un contenedor sin
-           posicionar — asi que los hilos se pintaban ENCIMA de los discos y se
-           veian cruzarlos, por opaco que fuera el relleno del SVG. Con -1 caen
-           por debajo del contenido y por encima del fondo del deck, que es
-           donde tienen que estar. */
-        <div aria-hidden className="pointer-events-none absolute inset-0" style={{ opacity: 0.16, zIndex: -1 }}>
-          <WebThreads
-            levelRef={vuLevel}
-            reactivity={1.1}
-            /* Los tres tonos en ambar: con un core claro el brillo acumulado
-               los saturaba a BLANCO y se comian la interfaz. */
-            color1="#f5a623" color2="#c9701f" color3="#f5a623"
-            speed={0.05}
-            threadCount={5}
-            frequency={2.8}
-            spread={0.15}
-            taper={1.15}
-            position={0.46}
-            glow={0.008}
-            falloff={0.8}
-            thickness={0.55}
-            brightness={0.12}
-            opacity={0.42}
-            grain
-            grainIntensity={0.07}
-            mouseInteraction={false}
-          />
-        </div>
-      )}
-
+    <div className="relative flex h-full min-h-0 flex-col overflow-hidden" style={{ background: DECK }}>
       {/* El aire del cuarto. Va PRIMERO y sin z-index propio: todo lo demas se
           pinta despues y queda encima solo por orden del DOM, sin tener que
           subirle la capa a media interfaz. */}
@@ -902,7 +848,7 @@ export default function TapeDeckDesktop({
                 style={{
                   left: markAt * pxPerSec, bottom: "calc(50% + 72px)", zIndex: 40,
                   transformOrigin: "bottom center",
-                  animation: "notePop 200ms cubic-bezier(.23,1,.32,1) both",
+                  animation: "notePop 280ms cubic-bezier(.23,1,.32,1) both",
                 }}
                 /* La cinta de abajo escucha clic (navegar) y doble clic (nota).
                    Sin cortar aqui, escribir dentro del globo movia la cinta y

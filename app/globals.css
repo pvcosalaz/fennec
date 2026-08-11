@@ -163,12 +163,16 @@ button:where(:not([data-no-press])):active {
 
 /* El globo para dejar una nota. Sale del segundo exacto de la cinta, asi que
    el origen va abajo y en el centro (lo pone el componente) y ademas de
-   escalar sube 6px: se lee como que BROTA de la cinta, no como una tarjeta
-   que aparecio ahi. Mas amplio que tapePop (0.9 contra 0.97) porque esto es
-   una accion, no un menu — pero nunca desde 0: nada en el mundo real aparece
-   de la nada. */
+   escalar sube 8px: se lee como que BROTA de la cinta, no como una tarjeta
+   que aparecio ahi.
+   Arranca en 0.5, el mismo recorrido que composerPop —el panel del "+" de
+   Community—, porque Paco lo pidio explicitamente ("de cero a cien"): con 0.9
+   el gesto no se veia, solo aparecia (2026-08-10). Nunca desde 0, eso si:
+   nada en el mundo real aparece de la nada. La opacidad cierra al 60% para
+   que el globo se lea completo mientras todavia esta creciendo. */
 @keyframes notePop {
-  from { opacity: 0; transform: scale(0.9) translateY(6px); }
+  from { opacity: 0; transform: scale(0.5) translateY(8px); }
+  60%  { opacity: 1; }
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 @media (prefers-reduced-motion: reduce) {

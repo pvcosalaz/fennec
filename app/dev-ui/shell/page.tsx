@@ -215,8 +215,6 @@ export default function ShellDevPage() {
           onPass={() => {}}
           onOpenMyTracks={() => {}}
           onOpenIntro={() => {}}
-          /* ?tape=1&threads=1 · ensayo del fondo WebGL antes de tocar prod */
-          fondoThreads={params?.get("threads") === "1"}
         />
       ) : (
       <DashboardDesktop
