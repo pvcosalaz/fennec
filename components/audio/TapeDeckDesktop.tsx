@@ -246,6 +246,9 @@ export default function TapeDeckDesktop({
   /** El globo de la nota. Lo consulta el listener de rueda para no llevarse
    *  la cinta cuando estas escribiendo dentro. */
   const globoRef = useRef<HTMLDivElement>(null);
+  /** El deck completo. Se le engancha el pellizco para que no se le escape
+   *  al navegador — ver el efecto de onPinch. */
+  const deckRef = useRef<HTMLDivElement>(null);
   const [markAt, setMarkAt]     = useState(0);
   const [body, setBody]         = useState("");
   const [posting, setPosting]   = useState(false);
@@ -442,11 +445,10 @@ export default function TapeDeckDesktop({
          DESPUES de que el evento ya paso por este listener nativo. Hay que
          preguntarlo aqui. */
       if (globoRef.current?.contains(e.target as Node)) return;
-      if (e.ctrlKey || e.metaKey) {
-        e.preventDefault();
-        applyZoom(pxPerSecRef.current * Math.exp(-e.deltaY * 0.0025));
-        return;
-      }
+      /* El pellizco lo atiende el deck entero (efecto de abajo), no esta caja:
+         si lo hicieramos aqui tambien, el evento subiria y el zoom se aplicaria
+         DOS veces por gesto. */
+      if (e.ctrlKey || e.metaKey) return;
       const a = audioRef.current;
       if (!a) return;
       const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
@@ -461,6 +463,36 @@ export default function TapeDeckDesktop({
     };
     vp.addEventListener("wheel", onWheel, { passive: false });
     return () => vp.removeEventListener("wheel", onWheel);
+  }, []);
+
+  /* ── El pellizco se atiende en TODO el deck, no solo sobre la cinta ──
+     [2026-08-11] Este era el bug de "la app se movio de lugar" que reporto
+     Paco. La ayuda anuncia el pellizco como zoom, pero solo lo escuchaba el
+     strip: un pellizco sobre los carretes, los VU o el fondo se lo quedaba el
+     NAVEGADOR y hacia pinch-zoom del viewport visual. Y eso no es el zoom de
+     pagina —Arc sigue marcando 100%, por eso ⌘0 no lo arreglaba—: el contenido
+     se ve mas grande, todo lo `fixed` (el dock, la campana, el avatar) se sale
+     de la vista, y como html/body van en overflow:hidden por el bloqueo de
+     scroll de la PWA, no hay forma de recuperar lo que quedo arriba. El unico
+     modo de deshacerlo era el pellizco inverso.
+
+     Anunciamos el gesto, asi que el gesto es nuestro en toda esta pantalla:
+     preventDefault siempre, y aplicamos el zoom de la cinta. Solo aqui — fuera
+     de La Cinta el pinch del navegador sigue funcionando, que para eso esta.
+
+     Sobre el globo de la nota se previene igual (si no, el mismo estropicio)
+     pero no se toca la escala: ahi estas escribiendo, no midiendo. */
+  useEffect(() => {
+    const deck = deckRef.current;
+    if (!deck) return;
+    const onPinch = (e: WheelEvent) => {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      e.preventDefault();
+      if (globoRef.current?.contains(e.target as Node)) return;
+      applyZoom(pxPerSecRef.current * Math.exp(-e.deltaY * 0.0025));
+    };
+    deck.addEventListener("wheel", onPinch, { passive: false });
+    return () => deck.removeEventListener("wheel", onPinch);
   }, []);
 
   /** El segundo bajo el cursor. Offset en x desde el cabezal = offset en tiempo. */
@@ -538,7 +570,7 @@ export default function TapeDeckDesktop({
        el sobrante se sale por abajo y se come la fila de mandos (Paco
        2026-08-04, dos intentos). Con h-full el deck toma exactamente el alto
        que le da su contenedor, que es flex-1 y ya descuenta esa fila. */
-    <div className="relative flex h-full min-h-0 flex-col overflow-hidden" style={{ background: DECK }}>
+    <div ref={deckRef} className="relative flex h-full min-h-0 flex-col overflow-hidden" style={{ background: DECK }}>
       {/* El aire del cuarto. Va PRIMERO y sin z-index propio: todo lo demas se
           pinta despues y queda encima solo por orden del DOM, sin tener que
           subirle la capa a media interfaz. */}
