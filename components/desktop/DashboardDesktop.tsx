@@ -33,8 +33,42 @@ function fmtCount(n: number): string {
 // globals.css), just a taller set of bars for the bigger desktop hero.
 const EQ_HEIGHTS = [10, 18, 8, 22, 12, 26, 9, 16, 22, 11, 19, 8];
 
-/** Alto de la tarjeta en la rejilla. El ancho lo saca del aspecto 1.586. */
-const ID_CARD_H = 216;
+/* ── Tamaño de la tarjeta de identidad ──────────────────────────
+   [2026-08-11] La tarjeta media 343x195 en escritorio: EXACTAMENTE lo mismo
+   que en un telefono. En una ventana de 1440 eso no se lee como una tarjeta,
+   se lee como un sello — "muy compacta y apachurrada", dijo Paco. Y encima su
+   caja pedia 1.586:1 (la proporcion ISO de una tarjeta bancaria) mientras el
+   contenido mide 1.759:1, asi que sobraban 21px de hueco muerto dentro del
+   boton y la tarjeta ni siquiera llenaba su sitio.
+
+   Ahora la tarjeta se dibuja siempre a su tamaño natural —el mismo de la app
+   movil, que es la referencia que pidio Paco— y se ESCALA. Escalar en vez de
+   estirar es lo unico que conserva las proporciones internas: la tipografia,
+   los margenes, el zorro y la insignia estan en px fijos, asi que agrandar la
+   caja sin escalar dejaria el contenido pequeño arriba y aire debajo.
+
+   El alto sigue al alto de la ventana, con suelo en los 216 de antes: en 720px
+   —donde la rejilla iba justa de milimetros (ver el comentario de la rejilla)—
+   sale exactamente 216 y no se mueve nada. */
+const ID_BASE_W = 343;
+const ID_BASE_H = 195;
+const ID_RATIO = ID_BASE_W / ID_BASE_H;   // 1.759
+const ID_H_MIN = 216;
+const ID_H_MAX = 300;
+/** Parte de la fila que puede ocupar la tarjeta. El resto es del dB. */
+const ID_PARTE_FILA = 0.63;
+
+/* El tope sale de DOS lados, y hace falta mirar los dos: la tarjeta crece
+   1.76px de ancho por cada px de alto, asi que atada solo a la altura de la
+   ventana, en un monitor alto se comia la fila y dejaba al dB en 145px —el
+   numero casi tocando los bordes del panel—. Con el limite de ancho, el
+   reparto se queda donde se ve bien (63/37, que es lo que medimos a 800px de
+   ventana) sea cual sea la pantalla. */
+const altoTarjeta = (altoVentana: number, anchoFila: number) => {
+  const porAlto  = altoVentana * 0.3;
+  const porAncho = anchoFila > 0 ? (anchoFila * ID_PARTE_FILA) / ID_RATIO : Infinity;
+  return Math.round(Math.min(ID_H_MAX, Math.max(ID_H_MIN, Math.min(porAlto, porAncho))));
+};
 
 /* El mismo resorte que usa la app movil al abrir el Fennec ID: amortiguado a
    ζ=0.74, o sea que sube, se pasa apenas 3% y se acomoda. Se porta tal cual
@@ -119,6 +153,26 @@ export default function DashboardDesktop({
   // The producer's color lives ONLY on the FennecIdCard — it's the card's
   // identity, not the app's. All other accents stay on-brand amber.
   const { t } = useTranslation();
+
+  /* Arranca en el minimo y se ajusta DESPUES de montar, no durante el render:
+     leer window en el render es exactamente lo que rompio la hidratacion en el
+     harness el 2026-08-07. Servidor y primer pintado dicen 216; el efecto
+     corrige en el mismo frame. */
+  const [idH, setIdH] = useState(ID_H_MIN);
+  const filaIdRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const fila = filaIdRef.current;
+    if (!fila) return;
+    const medir = () => setIdH(altoTarjeta(window.innerHeight, fila.clientWidth));
+    medir();
+    /* ResizeObserver y no window.resize: la fila tambien cambia de ancho
+       cuando el dock se abre o se cierra, y eso no dispara resize. */
+    const ro = new ResizeObserver(medir);
+    ro.observe(fila);
+    window.addEventListener("resize", medir);
+    return () => { ro.disconnect(); window.removeEventListener("resize", medir); };
+  }, []);
+  const idEscala = idH / ID_BASE_H;
   const accent = "#f5a623";
   const nextPost = useNextPost();
 
@@ -331,7 +385,7 @@ export default function DashboardDesktop({
       >
 
       {/* ── Fila 1: quién eres, y la lectura que produce ── */}
-      <div className="dd-rise flex min-w-0 items-stretch gap-4" style={{ animationDelay: ".06s" }}>
+      <div ref={filaIdRef} className="dd-rise flex min-w-0 items-stretch gap-4" style={{ animationDelay: ".06s" }}>
         {/* PROPORCION DE IDENTIFICACION.
             La tarjeta ocupaba el ancho completo de la columna: 684x195, o sea
             3.5:1. Una identificacion real (ID-1, la de una tarjeta bancaria) es
@@ -347,28 +401,49 @@ export default function DashboardDesktop({
           aria-label={t("ddAbrirFennecId")}
           className="group relative flex-shrink-0 text-left transition active:scale-[0.99]"
           style={{
-            aspectRatio: "1.586 / 1",
-            height: ID_CARD_H,
+            /* Sin aspectRatio: el ancho SALE del contenido escalado, asi que la
+               caja mide exactamente lo que la tarjeta ocupa y no queda hueco. */
+            width: Math.round(ID_BASE_W * idEscala),
+            height: idH,
             opacity: cardOpen && !cardClosing ? 0 : 1,
             transition: cardClosing ? "opacity .32s ease" : "opacity .1s ease, transform .15s cubic-bezier(.16,1,.3,1)",
             pointerEvents: cardOpen ? "none" : "auto",
           }}
         >
-          <FennecIdCard
-            firstName={card.firstName} lastName={card.lastName}
-            role={card.role || "Producer"} country={card.country}
-            genres={card.genres} fennecDb={fennecDb} colorScheme={cardColorScheme}
-            initials={card.initials} avatarUrl={card.avatarUrl}
-            instagram={card.instagram} spotify={card.spotify} youtube={card.youtube}
-            collectionNumber={card.collectionNumber} smallDb
-          />
+          {/* La tarjeta se dibuja a su tamaño natural y se escala entera.
+              `absolute` pegada a la esquina: un <button> CENTRA su contenido, y
+              como el transform no cambia el alto de layout (el envoltorio sigue
+              midiendo 195), quedaba centrado en los 240 de la caja y al escalar
+              se desbordaba 23px por abajo — la tarjeta pisaba la fila
+              siguiente. Anclada al origen, escala hacia donde debe. */}
+          <div
+            style={{
+              position: "absolute", top: 0, left: 0,
+              width: ID_BASE_W, height: ID_BASE_H,
+              transform: `scale(${idEscala})`, transformOrigin: "top left",
+            }}
+          >
+            <FennecIdCard
+              firstName={card.firstName} lastName={card.lastName}
+              role={card.role || "Producer"} country={card.country}
+              genres={card.genres} fennecDb={fennecDb} colorScheme={cardColorScheme}
+              initials={card.initials} avatarUrl={card.avatarUrl}
+              instagram={card.instagram} spotify={card.spotify} youtube={card.youtube}
+              collectionNumber={card.collectionNumber} smallDb
+            />
+          </div>
         </button>
 
         <div className="min-w-0 flex-1" data-coach="db">
           <Instrument
             label="Fennec dB"
             value={String(fennecDb)}
-            size={88}
+            /* 0.30 del alto del panel, no 88 fijos. A 216 eran 88 —el 41% del
+               alto—, y junto a una tarjeta que no crecia el numero se comia la
+               fila entera (Paco 2026-08-11: "esta muy grande el Fennec dB").
+               Atado al alto, el instrumento crece con la fila sin volver a
+               dominarla. */
+            size={Math.round(idH * 0.3)}
             footer={
               <div className="relative flex items-end gap-[3px]" style={{ height: 16, marginTop: 6 }}>
                 {EQ_HEIGHTS.map((h, i) => (
