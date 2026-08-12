@@ -112,23 +112,29 @@ export function Tile({ label, children, action, className, padded = true }: {
 /** The hero instrument: one number that owns the screen. Same treatment
  *  as the dashboard's Fennec dB — solid accent, layered surface, light
  *  pooling from the floor rather than a halo around the glyph. */
-export function Instrument({ label, value, footer, size = 92 }: {
+export function Instrument({ label, value, footer, size = 92, sinCaja = false }: {
   label: string; value: string; footer?: React.ReactNode; size?: number;
+  /** Sin recuadro: solo el rotulo, el numero y el pie sobre el fondo. */
+  sinCaja?: boolean;
 }) {
   return (
     <div
-      className="relative flex h-full flex-col items-center overflow-hidden rounded-2xl p-5"
+      className={`relative flex h-full flex-col items-center overflow-hidden p-5${sinCaja ? "" : " rounded-2xl"}`}
       /* Mismo tratamiento que los Tile: con foto detrás pasa a vidrio. Si se
          quedaba con su gradiente opaco propio, era el único hueco sólido en
          una pantalla de paneles translúcidos y se leía como un parche. */
-      style={{
+      style={sinCaja ? undefined : {
         background: "var(--fx-tile-bg, linear-gradient(180deg,#151318,#100f13))",
         boxShadow: "var(--fx-tile-shadow, inset 0 1px 0 rgba(255,255,255,0.06), 0 16px 34px -18px rgba(0,0,0,0.7))",
         backdropFilter: "var(--fx-tile-blur, none)",
         WebkitBackdropFilter: "var(--fx-tile-blur, none)",
       }}
     >
-      <div className="pointer-events-none absolute inset-0" style={{ background: `radial-gradient(60% 42% at 50% 100%, ${ACCENT}12, transparent 72%)` }} />
+      {/* La luz del suelo pertenece a la caja: sale de su borde inferior. Sin
+          caja no hay suelo del que salir, y quedaba una mancha ambar flotando. */}
+      {!sinCaja && (
+        <div className="pointer-events-none absolute inset-0" style={{ background: `radial-gradient(60% 42% at 50% 100%, ${ACCENT}12, transparent 72%)` }} />
+      )}
       <span className="relative text-[9px] font-bold uppercase tracking-[0.35em] text-zinc-500">{label}</span>
       {/* El numero toma el alto sobrante y se centra dentro de el; el pie se
           queda abajo. Antes todo iba centrado en bloque, asi que al crecer la
