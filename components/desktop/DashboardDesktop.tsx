@@ -55,8 +55,11 @@ const ID_BASE_H = 195;
 const ID_RATIO = ID_BASE_W / ID_BASE_H;   // 1.759
 const ID_H_MIN = 216;
 const ID_H_MAX = 300;
-/** Parte de la fila que puede ocupar la tarjeta. El resto es del dB. */
-const ID_PARTE_FILA = 0.63;
+/** Parte de la fila que puede ocupar la tarjeta. El resto es del dB.
+ *  0.58 y no 0.63: con 0.63 la tarjeta seguia comiendose la fila y el dB
+ *  quedaba estrecho (Paco 2026-08-11, afinando). La tarjeta sigue muy por
+ *  encima de los 343x195 con los que empezo. */
+const ID_PARTE_FILA = 0.58;
 
 /* El tope sale de DOS lados, y hace falta mirar los dos: la tarjeta crece
    1.76px de ancho por cada px de alto, asi que atada solo a la altura de la
