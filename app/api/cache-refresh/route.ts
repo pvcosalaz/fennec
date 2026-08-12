@@ -58,13 +58,14 @@ async function handler(req: NextRequest) {
             type: "industry_news",
             title,
             body: item.headline,
+            db: getSupabaseAdmin(),
           });
         }
-        const allSubs = await fetchAllPushSubscriptions();
+        const allSubs = await fetchAllPushSubscriptions(getSupabaseAdmin());
         const enabledUserIds = new Set((users ?? []).map((u: { user_id: string }) => u.user_id));
         const subs = allSubs.filter((s) => enabledUserIds.has(s.user_id));
         await sendPushToMany(subs, { title, type: "industry_news" }, (endpoint) =>
-          deletePushSubscription(endpoint)
+          deletePushSubscription(endpoint, getSupabaseAdmin())
         );
       }
     } catch (err) {

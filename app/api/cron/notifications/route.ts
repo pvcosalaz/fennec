@@ -40,11 +40,12 @@ async function handler(req: NextRequest) {
       type: "project_deadline",
       title,
       body: project.name,
+      db: getSupabaseAdmin(),
     });
     if (notification) {
-      const subs = await fetchPushSubscriptionsForUser(project.user_id);
+      const subs = await fetchPushSubscriptionsForUser(project.user_id, getSupabaseAdmin());
       await sendPushToMany(subs, { title, type: "project_deadline" }, (endpoint) =>
-        deletePushSubscription(endpoint)
+        deletePushSubscription(endpoint, getSupabaseAdmin())
       );
       deadlineCount++;
     }
@@ -66,11 +67,12 @@ async function handler(req: NextRequest) {
       type: "content_scheduled",
       title,
       body: task.title,
+      db: getSupabaseAdmin(),
     });
     if (notification) {
-      const subs = await fetchPushSubscriptionsForUser(task.user_id);
+      const subs = await fetchPushSubscriptionsForUser(task.user_id, getSupabaseAdmin());
       await sendPushToMany(subs, { title, type: "content_scheduled" }, (endpoint) =>
-        deletePushSubscription(endpoint)
+        deletePushSubscription(endpoint, getSupabaseAdmin())
       );
       contentCount++;
     }

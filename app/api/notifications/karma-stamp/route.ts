@@ -59,12 +59,13 @@ export async function POST(req: NextRequest) {
       type: "audio_feedback",
       title,
       body: track.title,
+      db: admin,
     });
 
     if (notification) {
-      const subs = await fetchPushSubscriptionsForUser(comment.user_id);
+      const subs = await fetchPushSubscriptionsForUser(comment.user_id, admin);
       await sendPushToMany(subs, { title, type: "audio_feedback" }, (endpoint) =>
-        deletePushSubscription(endpoint)
+        deletePushSubscription(endpoint, admin)
       );
     }
 

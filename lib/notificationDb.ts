@@ -154,15 +154,25 @@ export async function upsertPreferences(prefs: NotificationPreferences): Promise
 
 // ── Push subscriptions ────────────────────────────────────────────
 
-export async function savePushSubscription(row: PushSubscriptionRow): Promise<void> {
-  const { error } = await supabase
+/* ── Ojo con el cliente en las tres de abajo ────────────────────────
+   `supabase` es el cliente del NAVEGADOR: lleva la anon key y actua como el
+   usuario de la sesion. En una ruta de servidor no hay sesion, asi que RLS
+   rechaza la escritura. Eso era el 500 de /api/push/subscribe: medido el
+   2026-08-11, el upsert con anon devuelve `42501: new row violates row-level
+   security policy for table "push_subscriptions"`, y el mismo upsert con el
+   service role pasa. Ninguna notificacion push se llego a registrar nunca.
+
+   Por eso el parametro `db`: desde el servidor SIEMPRE hay que pasar
+   getSupabaseAdmin(). Es el mismo patron que ya tenia createNotification. */
+export async function savePushSubscription(row: PushSubscriptionRow, db?: typeof supabase): Promise<void> {
+  const { error } = await (db ?? supabase)
     .from("push_subscriptions")
     .upsert(row, { onConflict: "endpoint" });
   if (error) throw error;
 }
 
-export async function deletePushSubscription(endpoint: string): Promise<void> {
-  const { error } = await supabase
+export async function deletePushSubscription(endpoint: string, db?: typeof supabase): Promise<void> {
+  const { error } = await (db ?? supabase)
     .from("push_subscriptions")
     .delete()
     .eq("endpoint", endpoint);
@@ -178,8 +188,8 @@ export async function fetchPushSubscriptionsForUser(userId: string, db?: typeof 
   return data ?? [];
 }
 
-export async function fetchAllPushSubscriptions(): Promise<PushSubscriptionRow[]> {
-  const { data, error } = await supabase
+export async function fetchAllPushSubscriptions(db?: typeof supabase): Promise<PushSubscriptionRow[]> {
+  const { data, error } = await (db ?? supabase)
     .from("push_subscriptions")
     .select("*");
   if (error) throw error;

@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { endpoint } = await req.json() as { endpoint: string };
-    await deletePushSubscription(endpoint);
+    await deletePushSubscription(endpoint, getSupabaseAdmin());
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[push/unsubscribe]", err);

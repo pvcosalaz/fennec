@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
       try {
         const subs = await fetchPushSubscriptionsForUser(trackOwnerId, getSupabaseAdmin());
         await sendPushToMany(subs, { title, type: "audio_feedback" }, (endpoint) =>
-          deletePushSubscription(endpoint)
+          deletePushSubscription(endpoint, getSupabaseAdmin())
         );
       } catch (err) {
         console.error("[notifications/audio-feedback] push failed (la notificacion SI quedo guardada)", err);

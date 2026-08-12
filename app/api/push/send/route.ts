@@ -1,5 +1,6 @@
 export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { fetchPushSubscriptionsForUser, deletePushSubscription } from "@/lib/notificationDb";
 import { sendPushToMany } from "@/lib/pushSend";
 
@@ -18,9 +19,9 @@ export async function POST(req: NextRequest) {
       type: string;
     };
 
-    const subs = await fetchPushSubscriptionsForUser(userId);
+    const subs = await fetchPushSubscriptionsForUser(userId, getSupabaseAdmin());
     await sendPushToMany(subs, { title, type }, (endpoint) =>
-      deletePushSubscription(endpoint)
+      deletePushSubscription(endpoint, getSupabaseAdmin())
     );
 
     return NextResponse.json({ ok: true });
