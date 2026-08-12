@@ -1,6 +1,7 @@
 "use client";
 
 import { TILE_BG, TILE_SHADOW } from "@/components/desktop/surfaces";
+import { getColorScheme } from "@/lib/fennecIdPalette";
 
 /* ═══════════════════════════════════════════════════════════════
    DESKTOP UI PRIMITIVES — one visual language for every module.
@@ -112,29 +113,55 @@ export function Tile({ label, children, action, className, padded = true }: {
 /** The hero instrument: one number that owns the screen. Same treatment
  *  as the dashboard's Fennec dB — solid accent, layered surface, light
  *  pooling from the floor rather than a halo around the glyph. */
-export function Instrument({ label, value, footer, size = 92, sinCaja = false }: {
+/* El tono ambar de la MISMA paleta con la que se pintan los Fennec ID. No son
+   hex copiados a mano: es la entrada "amber" del catalogo, asi que si la paleta
+   cambia, el dB cambia con ella. */
+const ID_AMBAR = getColorScheme("amber");
+
+export function Instrument({ label, value, footer, size = 92, variante = "panel" }: {
   label: string; value: string; footer?: React.ReactNode; size?: number;
-  /** Sin recuadro: solo el rotulo, el numero y el pie sobre el fondo. */
-  sinCaja?: boolean;
+  /** "identidad" lo viste como un Fennec ID en ambar, hermano de la tarjeta. */
+  variante?: "panel" | "identidad";
 }) {
+  const comoId = variante === "identidad";
   return (
     <div
-      className={`relative flex h-full flex-col items-center overflow-hidden p-5${sinCaja ? "" : " rounded-2xl"}`}
-      /* Mismo tratamiento que los Tile: con foto detrás pasa a vidrio. Si se
-         quedaba con su gradiente opaco propio, era el único hueco sólido en
-         una pantalla de paneles translúcidos y se leía como un parche. */
-      style={sinCaja ? undefined : {
+      className="relative flex h-full flex-col items-center overflow-hidden p-5"
+      /* Dos superficies distintas a proposito:
+         - "panel" es un Tile mas: con foto detras pasa a vidrio, porque un
+           gradiente opaco suelto entre paneles translucidos se lee como parche.
+         - "identidad" es la receta EXACTA de la tarjeta de ID (mismo angulo de
+           135deg, mismo borde al 21%, misma sombra de color, mismo destello en
+           la esquina) pero en el ambar de la marca, no en el color personal del
+           productor: ese vive solo en su tarjeta. Sin caja el dB se perdia
+           (Paco 2026-08-11), y con la caja gris competia con los demas bloques;
+           asi tiene fondo propio y contrasta con todo lo negro de alrededor.
+           Es solido tambien sobre la foto, igual que la tarjeta: los dos objetos
+           de esta fila son objetos, no paneles. */
+      style={comoId ? {
+        borderRadius: 18,
+        background: `linear-gradient(135deg, ${ID_AMBAR.dark1}, ${ID_AMBAR.dark2})`,
+        border: `1px solid ${ID_AMBAR.accent}35`,
+        boxShadow: `0 12px 40px rgba(${ID_AMBAR.glowRgb},0.15)`,
+      } : {
+        borderRadius: 16,
         background: "var(--fx-tile-bg, linear-gradient(180deg,#151318,#100f13))",
         boxShadow: "var(--fx-tile-shadow, inset 0 1px 0 rgba(255,255,255,0.06), 0 16px 34px -18px rgba(0,0,0,0.7))",
         backdropFilter: "var(--fx-tile-blur, none)",
         WebkitBackdropFilter: "var(--fx-tile-blur, none)",
       }}
     >
-      {/* La luz del suelo pertenece a la caja: sale de su borde inferior. Sin
-          caja no hay suelo del que salir, y quedaba una mancha ambar flotando. */}
-      {!sinCaja && (
-        <div className="pointer-events-none absolute inset-0" style={{ background: `radial-gradient(60% 42% at 50% 100%, ${ACCENT}12, transparent 72%)` }} />
-      )}
+      {/* El destello. En "identidad" cae en la esquina superior derecha, que es
+          de donde viene la luz en la tarjeta de ID; en "panel" sube desde el
+          suelo, que es de donde venia en el diseño original. */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background: comoId
+            ? `radial-gradient(ellipse at 85% 10%, rgba(${ID_AMBAR.glowRgb},0.12), transparent 55%)`
+            : `radial-gradient(60% 42% at 50% 100%, ${ACCENT}12, transparent 72%)`,
+        }}
+      />
       <span className="relative text-[9px] font-bold uppercase tracking-[0.35em] text-zinc-500">{label}</span>
       {/* El numero toma el alto sobrante y se centra dentro de el; el pie se
           queda abajo. Antes todo iba centrado en bloque, asi que al crecer la

@@ -387,10 +387,10 @@ export default function DashboardDesktop({
 
         <div className="min-w-0 flex-1" data-coach="db">
           <Instrument
-            /* Sin recuadro (Paco 2026-08-11): el dB es una lectura, no un
-               panel. Con caja competia con la tarjeta de al lado —dos bloques
-               del mismo peso en una fila que solo tiene un protagonista. */
-            sinCaja
+            /* Vestido como un Fennec ID en ambar (Paco 2026-08-11): con la caja
+               gris era un bloque mas entre bloques, y sin fondo se perdia. Asi
+               es el hermano de la tarjeta de al lado y contrasta con el resto. */
+            variante="identidad"
             label="Fennec dB"
             value={String(fennecDb)}
             /* 64 y no 88. A 88 el numero medía el 45% del alto del panel y se
