@@ -500,7 +500,8 @@ i18n.addResourceBundle("en", "translation", {
   tiStep2BodyMobile: "Press and hold anywhere on the tape to write a note at that second. Drag to scrub through time.",
   tiStep3Title: "Upload your own",
   tiStep3Body: "Share a track of yours and other producers will leave notes on it, exactly like you do here.",
-  tiFooter: "Bailing early on 4 tracks in a row pauses the queue — a real listen or a mark keeps it rolling.",
+  tiStep3Karma: "Each upload costs {{cost}} karma. You earn +{{reward}} every time an artist seals one of your notes.",
+  tiFooter: "Bailing early on 4 tracks in a row pauses the queue. A real listen or a mark keeps it rolling.",
   tiStartListening: "Start listening", tiUploadFirst: "Upload your first track",
 }, true, true);
 i18n.addResourceBundle("es", "translation", {
@@ -513,7 +514,8 @@ i18n.addResourceBundle("es", "translation", {
   tiStep2BodyMobile: "Mantén presionado en cualquier parte de la cinta para escribir una nota en ese segundo. Arrastra para navegar por el tiempo.",
   tiStep3Title: "Sube la tuya",
   tiStep3Body: "Comparte uno de tus tracks y otros productores dejarán notas en él, igual que tú haces aquí.",
-  tiFooter: "Salir temprano de 4 tracks seguidos pausa la cola — una escuchada real o una marca la mantiene rodando.",
+  tiStep3Karma: "Cada subida cuesta {{cost}} karma. Ganas +{{reward}} cada vez que un artista sella una de tus notas.",
+  tiFooter: "Salir temprano de 4 tracks seguidos pausa la cola. Una escuchada real o una marca la mantiene rodando.",
   tiStartListening: "Empezar a escuchar", tiUploadFirst: "Sube tu primer track",
 }, true, true);
 

@@ -1,6 +1,7 @@
 "use client";
 import { Upload } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { UPLOAD_COST, STAMP_REWARD } from "@/lib/karma";
 import { useSheetDismiss, SHEET_BOTTOM, SHEET_ENTER } from "@/components/ui/useSheetDismiss";
 
 /* First-visit intro for La Cinta Marcada (see DESIGN.md).
@@ -17,7 +18,10 @@ const MONO_FONT  = 'var(--font-tape-mono, "Space Mono", monospace)';
 /** Mobile: the reel runs vertically (hold-to-mark, drag-to-scrub).
  *  Desktop: it's a horizontal tape machine (click-to-scrub, "+" to mark) —
  *  same idea, different gesture, so the copy has to match what's on screen. */
-function getSteps(isDesktop: boolean, t: (key: string) => string): { title: string; body: string }[] {
+function getSteps(
+  isDesktop: boolean,
+  t: (key: string, opts?: Record<string, unknown>) => string,
+): { title: string; body: string; karma?: string }[] {
   return [
     {
       title: t("tiStep1Title"),
@@ -30,6 +34,10 @@ function getSteps(isDesktop: boolean, t: (key: string) => string): { title: stri
     {
       title: t("tiStep3Title"),
       body: t("tiStep3Body"),
+      // Subir cuesta karma y nadie debería enterarse hasta el momento de
+      // subir. Va en ámbar (Paco, 2026-08-17) y con los números vivos de
+      // lib/karma.ts, para que cambiar el precio no deje mintiendo al tutorial.
+      karma: t("tiStep3Karma", { cost: UPLOAD_COST, reward: STAMP_REWARD }),
     },
   ];
 }
@@ -109,6 +117,12 @@ export default function TapeIntro({
                   style={{ fontFamily: SERIF_FONT, color: "rgba(255,255,255,.62)" }}>
                   {s.body}
                 </p>
+                {s.karma && (
+                  <p className="text-[11px] leading-relaxed mt-1.5"
+                    style={{ fontFamily: MONO_FONT, color: AMBER }}>
+                    {s.karma}
+                  </p>
+                )}
               </div>
             ))}
           </div>
