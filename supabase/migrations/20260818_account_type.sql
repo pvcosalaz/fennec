@@ -6,14 +6,15 @@
 --
 -- Lo importante de como se modela:
 --
--- 1. Es NULL por defecto y no 'producer'. Null no significa "no sabemos que
---    es", significa "todavia no se lo hemos preguntado", que es justo lo que
---    dispara la pantalla de bienvenida. Si el default fuera 'producer', nadie
---    veria nunca esa pantalla y no habria forma de distinguir a quien eligio
---    productor de quien nunca eligio.
+-- 1. La columna es NULL por defecto, pero a las cuentas que YA existen se les
+--    siembra 'producer' (Paco 2026-08-18: "los ya existentes dejalos en
+--    producer"). Toda la base actual lo es, y asi sus tarjetas llevan el sello
+--    correcto desde el primer despliegue en vez de quedarse mudas.
 --
--- 2. La UI trata null como productor mientras tanto, asi que la base existente
---    no cambia de comportamiento con este despliegue.
+-- 2. Las cuentas NUEVAS siguen naciendo en null, que no significa "no sabemos
+--    que es" sino "todavia no se lo hemos preguntado". Esa diferencia es lo que
+--    algun dia disparara la pantalla de bienvenida: con un default 'producer' a
+--    nivel de columna nadie la veria nunca.
 --
 -- 3. NO es identidad publica. Eso ya lo lleva `role` (Composer, Producer, texto
 --    libre) que se edita en Ajustes y sale en la tarjeta. Este campo solo
@@ -29,6 +30,12 @@
 alter table public.profiles
   add column if not exists account_type text
   check (account_type in ('artist', 'producer'));
+
+-- La siembra: solo toca lo que ya existe. Es idempotente por el where, asi que
+-- correrla dos veces no pisa a nadie que haya elegido despues.
+update public.profiles
+   set account_type = 'producer'
+ where account_type is null;
 
 comment on column public.profiles.account_type is
   'Que modulo de negocio ve la cuenta: artist | producer. NULL = todavia no se le ha preguntado (dispara el onboarding). No es identidad publica, eso es profiles.role.';
