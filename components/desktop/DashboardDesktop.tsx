@@ -5,7 +5,8 @@ import { useTranslation } from "react-i18next";
 import "@/lib/i18n";
 import FennecIdCard from "@/components/network/FennecIdCard";
 import type { FennecIdColor } from "@/lib/fennecIdPalette";
-import type { Quote } from "@/lib/pricingData";
+import type { Project, Quote } from "@/lib/pricingData";
+import { buildSignals } from "@/lib/dashboardSignals";
 import type { Profile, Post } from "@/lib/communityTypes";
 import type { ContributionDays } from "@/lib/contributions";
 import { NETWORK_ENABLED } from "@/lib/featureFlags";
@@ -61,30 +62,6 @@ const ID_H = 195;
    deforma visiblemente. Escala uniforme + fundido nunca distorsiona. */
 const OPEN_SPRING = "linear(0, 0.0371, 0.1278, 0.2469, 0.3762, 0.5032, 0.6199, 0.7218, 0.8071, 0.8757, 0.9288, 0.9681, 0.9958, 1.014, 1.0249, 1.0302, 1.0315, 1.0302, 1.0273, 1.0235, 1.0194, 1.0154, 1.0118, 1.0086, 1.0059, 1.0038, 1.0022, 1.0009, 1.0001, 1)";
 
-type ContentTask = { title: string; date: string; status: "pending" | "done" };
-
-/** Next upcoming scheduled post from the Marketing module's local store. */
-function useNextPost(): ContentTask | null {
-  const [next, setNext] = useState<ContentTask | null>(null);
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("fennec-content-tasks-v1");
-      if (!raw) return;
-      const tasks = JSON.parse(raw) as ContentTask[];
-      const today = new Date().toISOString().slice(0, 10);
-      const upcoming = tasks
-        .filter((t) => t.status !== "done" && t.date >= today)
-        .sort((a, b) => a.date.localeCompare(b.date))[0];
-      setNext(upcoming ?? null);
-    } catch { /* ignore */ }
-  }, []);
-  return next;
-}
-
-function fmtDate(d: string): string {
-  const dt = new Date(d + "T00:00:00");
-  return dt.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }).toUpperCase();
-}
 
 
 
@@ -94,6 +71,8 @@ export default function DashboardDesktop({
   card, networkProfile, fennecDb, cardColorScheme,
   igFollowers, ttFollowers, ytSubs,
   activeProjects, totalProjects, activeValue = 0, quotesSentCount, quotesOutTotal, karma,
+  incomeMonth = 0, owedTotal = 0, scheduledWeek = 0,
+  projects = [], allQuotes = [], recentComments = [], scheduledPosts = [],
   sentQuotes, latestNote, contributions,
   communityPosts, communityLoading = false,
   studioPhotoUrl, studioPhotoLuma, userId, onStudioPhotoChange,
@@ -115,6 +94,16 @@ export default function DashboardDesktop({
   totalProjects: number;
   /** Suma de lo que valen los proyectos sin cobrar. */
   activeValue?: number;
+  /** Dinero que YA entro este mes, contado por fecha de pago. */
+  incomeMonth?: number;
+  /** Lo que te deben de lo ya vendido (precio menos cobrado, solo activos). */
+  owedTotal?: number;
+  /** Posts programados de aqui al domingo. */
+  scheduledWeek?: number;
+  projects?: Project[];
+  allQuotes?: Quote[];
+  recentComments?: { id: string; content: string; createdAt: string; username: string | null }[];
+  scheduledPosts?: { title: string; date: string; status: string }[];
   quotesSentCount: number;
   quotesOutTotal: number;
   karma: number | null;
@@ -139,7 +128,6 @@ export default function DashboardDesktop({
   const { t } = useTranslation();
 
   const accent = "#f5a623";
-  const nextPost = useNextPost();
 
   /* Abrir la tarjeta. `cardOpen` monta la copia grande, `cardIn` dispara la
      transicion en el frame SIGUIENTE (doble rAF) para que el navegador alcance
@@ -426,17 +414,35 @@ export default function DashboardDesktop({
           <div className="grid grid-cols-4">
             {/* El sub carga el DINERO, no solo el conteo: "1 activo" no dice si es
                 un jingle o un largometraje (Paco 2026-08-17). */}
+            {/* Los cuatro numeros que Paco mira al abrir (2026-08-17):
+                que traigo encima, que entro, cuanto karma, que sale esta
+                semana. Antes eran proyectos/cotizaciones-enviadas/por-cobrar,
+                dos de los cuales decian lo mismo con distinta cara. */}
             <MiniMetric
-              value={String(totalProjects)}
-              label={t("projects")}
-              sub={activeProjects > 0
-                ? (activeValue > 0 ? `${activeProjects} ${t("ddActivos")} · ${formatMoney(activeValue)}` : `${activeProjects} ${t("ddActivos")}`)
-                : undefined}
+              value={String(activeProjects)}
+              label={t("activeProjects")}
+              sub={activeValue > 0 ? formatMoney(activeValue) : undefined}
+              muted={activeProjects === 0}
               onClick={() => onNavigate?.("pricing")}
             />
-            <MiniMetric value={String(quotesSentCount)} label={t("quotesSent")} onClick={() => onNavigate?.("pricing")} />
-            <MiniMetric value={quotesOutTotal > 0 ? formatMoney(quotesOutTotal) : "—"} label={t("quotesOut")} muted={quotesOutTotal === 0} onClick={() => onNavigate?.("pricing")} />
+            {/* Ingresos = lo COBRADO este mes. Trabajando por anticipos,
+                "vendido" y "cobrado" son numeros distintos y este es el que
+                paga la renta. El sub dice lo que falta por cobrar. */}
+            <MiniMetric
+              value={incomeMonth > 0 ? formatMoney(incomeMonth) : "—"}
+              label={t("ddIngresos")}
+              sub={owedTotal > 0 ? t("ddPorCobrar", { amount: formatMoney(owedTotal) }) : (incomeMonth > 0 ? t("ddCobradoMes") : undefined)}
+              muted={incomeMonth === 0}
+              onClick={() => onNavigate?.("pricing")}
+            />
             <MiniMetric value={karma != null ? String(karma) : "—"} label={t("karma")} muted={karma == null} onClick={() => onNavigate?.("ideas")} />
+            <MiniMetric
+              value={scheduledWeek > 0 ? String(scheduledWeek) : "—"}
+              label={t("ddProgramados")}
+              sub={scheduledWeek > 0 ? t("ddEstaSemana") : undefined}
+              muted={scheduledWeek === 0}
+              onClick={() => onNavigate?.("contenido")}
+            />
           </div>
         </Tile>
       </div>
@@ -446,35 +452,38 @@ export default function DashboardDesktop({
           pasando ahora", y asi Contributions queda libre para ocupar el ancho. */}
       <div className="dd-rise flex min-h-0 flex-col" style={{ animationDelay: ".15s" }}>
         <Tile label={t("todayOnFennec")} className="h-full">
+          {/* [2026-08-17] Eran TRES renglones fijos que casi siempre decian que
+              no habia nada ("No open quotes · Nothing scheduled"). Ahora es una
+              lista priorizada de lo que de verdad pide tu atencion: dinero sin
+              cobrar arriba, novedades abajo. La logica vive en
+              lib/dashboardSignals.ts para que se pueda probar sin montar la UI. */}
           <div className="flex flex-col divide-y divide-white/[0.05]">
-            {/* "My tracks →" y no "Open →": cuando SI hay una nota, este renglon
-                es la puerta a tu sala de lectura, y decirle "Open" no dice a
-                donde. Paco tardo meses en encontrar esa vista porque nada la
-                nombraba (2026-08-04). */}
-            <button type="button" onClick={() => onNavigate?.("ideas")} className="group flex items-center justify-between gap-3 py-[5px] text-left transition first:pt-0">
-              <span className="min-w-0 truncate text-[12px] text-zinc-400">
-                {latestNote ? t("newNote") : t("noTrackFeedback")}
-              </span>
-              <span className="flex-shrink-0 text-[11px] font-semibold text-zinc-500 transition group-hover:text-accent">
-                {latestNote ? t("myTracksArrow") : t("uploadArrow")}
-              </span>
-            </button>
-            <button type="button" onClick={() => onNavigate?.("pricing")} className="group flex items-center justify-between gap-3 py-[5px] text-left">
-              <span className="min-w-0 truncate text-[12px] text-zinc-400">
-                {sentQuotes.length > 0 ? t("quotesAwaiting", { count: sentQuotes.length }) : t("noOpenQuotes")}
-              </span>
-              <span className="flex-shrink-0 text-[11px] font-semibold text-zinc-500 transition group-hover:text-accent">
-                {sentQuotes.length > 0 ? t("viewArrow") : t("sendArrow")}
-              </span>
-            </button>
-            <button type="button" onClick={() => onNavigate?.("contenido")} className="group flex items-center justify-between gap-3 py-[5px] text-left">
-              <span className="min-w-0 truncate text-[12px] text-zinc-400">
-                {nextPost ? `${t("nextPost")} · ${fmtDate(nextPost.date)}` : t("nothingScheduled")}
-              </span>
-              <span className="flex-shrink-0 text-[11px] font-semibold text-zinc-500 transition group-hover:text-accent">
-                {nextPost ? t("calendarArrow") : t("planArrow")}
-              </span>
-            </button>
+            {(() => {
+              const senales = buildSignals({
+                projects, quotes: allQuotes, latestNote,
+                scheduled: scheduledPosts, comments: recentComments,
+                t: t as (k: string, v?: Record<string, unknown>) => string,
+              }).slice(0, 4);
+              if (!senales.length) {
+                return (
+                  <button type="button" onClick={() => onNavigate?.("contenido")} className="group flex items-center justify-between gap-3 py-[5px] text-left">
+                    <span className="min-w-0 truncate text-[12px] text-zinc-500">{t("sgTodoAlDia")}</span>
+                    <span className="flex-shrink-0 text-[11px] font-semibold text-zinc-500 transition group-hover:text-accent">{t("sgTodoAlDiaAccion")}</span>
+                  </button>
+                );
+              }
+              return senales.map((sg) => (
+                <button
+                  key={sg.id}
+                  type="button"
+                  onClick={() => onNavigate?.(sg.tab === "community" ? "dashboard" : sg.tab)}
+                  className="group flex items-center justify-between gap-3 py-[5px] text-left first:pt-0"
+                >
+                  <span className={`min-w-0 truncate text-[12px] ${sg.alerta ? "text-accent/90" : "text-zinc-400"}`}>{sg.texto}</span>
+                  <span className="flex-shrink-0 text-[11px] font-semibold text-zinc-500 transition group-hover:text-accent">{sg.accion}</span>
+                </button>
+              ));
+            })()}
           </div>
         </Tile>
       </div>

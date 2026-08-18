@@ -312,3 +312,33 @@ export async function uploadImage(file: File): Promise<string> {
   const { data } = supabase.storage.from("community-images").getPublicUrl(path);
   return data.publicUrl;
 }
+
+/** Comentarios recientes de OTROS en tus posts. Para el panel de actividad del
+ *  dashboard: "@alguien comentó tu post". Se excluyen los propios (contestar tu
+ *  hilo no es una novedad para ti). Best-effort: si falla, devuelve vacio y el
+ *  panel simplemente no muestra esa señal. */
+export async function fetchRecentCommentsOnMyPosts(
+  userId: string,
+  limite = 5,
+): Promise<{ id: string; postId: string; content: string; createdAt: string; username: string | null }[]> {
+  try {
+    const { data: mios } = await supabase.from("posts").select("id").eq("user_id", userId).limit(50);
+    const ids = (mios ?? []).map((p) => p.id as string);
+    if (!ids.length) return [];
+    const { data, error } = await supabase
+      .from("comments")
+      .select("id, post_id, content, created_at, user_id, profile:profiles!comments_user_id_fkey(username)")
+      .in("post_id", ids)
+      .neq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(limite);
+    if (error || !data) return [];
+    return data.map((c) => ({
+      id: c.id as string,
+      postId: c.post_id as string,
+      content: (c.content as string) ?? "",
+      createdAt: c.created_at as string,
+      username: (c.profile as { username?: string } | null)?.username ?? null,
+    }));
+  } catch { return []; }
+}

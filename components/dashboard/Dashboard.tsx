@@ -16,6 +16,9 @@ import { ensureColorAssigned } from "@/lib/networkDb";
 import { WelcomeModal, ProgressChip, type ChecklistItem } from "@/components/dashboard/WelcomeChecklist";
 import CoachMarks from "@/components/dashboard/CoachMarks";
 import { computeFennecDb, reachDb as reachDbOf, totalReachAudience, FENNEC_DB_MODEL } from "@/lib/fennecDb";
+import { paymentsTotal, projectMoney } from "@/lib/pricingData";
+import { fetchRecentCommentsOnMyPosts } from "@/lib/communityDb";
+import { programadosEstaSemana } from "@/lib/dashboardSignals";
 import { fetchContributionDays, type ContributionDays } from "@/lib/contributions";
 import ContributionsCard from "@/components/dashboard/ContributionsCard";
 import { fetchKarma } from "@/lib/audioDb";
@@ -194,6 +197,10 @@ export default function Dashboard({
      `null` means "not known yet" so the card can show skeletons; `[]` means
      the community really is empty and the empty state is correct. */
   const [communityPosts, setCommunityPosts] = useState<Post[] | null>(null);
+  /* Actividad para el panel derecho: comentarios de otros en tus posts y los
+     posts que tienes programados. Los segundos viven en localStorage. */
+  const [comentarios, setComentarios] = useState<{ id: string; content: string; createdAt: string; username: string | null }[]>([]);
+  const [programados, setProgramados] = useState<{ title: string; date: string; status: string }[]>([]);
   /* The studio photo lives on the profile, but it's mirrored here so
      uploading repaints the dashboard immediately instead of after a refetch. */
   const [studioPhoto, setStudioPhoto] = useState<{ url: string | null; luma: number | null }>({
@@ -372,6 +379,16 @@ export default function Dashboard({
     fetchPosts(null, 0, userId)
       .then(setCommunityPosts)
       .catch(() => setCommunityPosts([]));
+    /* Actividad para el panel derecho. Best-effort las dos: si fallan, el panel
+       muestra menos señales, nunca se rompe. */
+    fetchRecentCommentsOnMyPosts(userId).then(setComentarios).catch(() => setComentarios([]));
+    try {
+      const crudo = localStorage.getItem("fennec-content-tasks-v1");
+      if (crudo) {
+        const filas = JSON.parse(crudo) as { title: string; date: string; status: string }[];
+        if (Array.isArray(filas)) setProgramados(filas);
+      }
+    } catch { /* ignore */ }
   }, [userId, isDesktop]);
 
   // Color for FennecIdCard
@@ -393,6 +410,18 @@ export default function Dashboard({
      cien mil pesos, y esa es justo la pregunta (Paco 2026-08-17). Cuenta todo
      lo que no esta pagado: en curso, en revision y entregado-sin-cobrar. */
   const activeValue     = projects.filter((p) => p.status !== "paid").reduce((sum, p) => sum + (p.price || 0), 0);
+  /* Ingresos = dinero que YA entro este mes, contado por FECHA DE PAGO. Paco
+     trabaja por anticipos, asi que "cobrado" y "vendido" son numeros distintos
+     y el que importa al abrir el dashboard es el primero (2026-08-17). */
+  const incomeMonth     = projects.reduce((sum, p) => {
+    const ahora = new Date();
+    return sum + (p.payments ?? [])
+      .filter((pay) => { const d = new Date(`${pay.date}T00:00:00`); return d.getMonth() === ahora.getMonth() && d.getFullYear() === ahora.getFullYear(); })
+      .reduce((n, pay) => n + (Number(pay.amount) || 0), 0);
+  }, 0);
+  /* Lo que te deben de lo que ya vendiste: precio menos cobrado, solo activos. */
+  const owedTotal       = projects.filter((p) => p.status !== "paid").reduce((sum, p) => sum + projectMoney(p).pending, 0);
+  const scheduledWeek   = programadosEstaSemana(programados);
   const closedCount     = projects.filter((p) => p.status === "paid").length;
   const quotesSent      = quotes.filter((q) => q.status === "sent").length;
   const quotesOutTotal  = quotes.filter((q) => q.status === "sent").reduce((sum, q) => sum + q.finalPrice, 0);
@@ -528,6 +557,13 @@ export default function Dashboard({
         contributions={contributions}
         quotesSentCount={quotesSent}
         activeValue={activeValue}
+        incomeMonth={incomeMonth}
+        owedTotal={owedTotal}
+        scheduledWeek={scheduledWeek}
+        projects={projects}
+        allQuotes={quotes}
+        recentComments={comentarios}
+        scheduledPosts={programados}
         quotesOutTotal={quotesOutTotal}
         karma={karma}
         sentQuotes={quotes.filter((q) => q.status === "sent")}
