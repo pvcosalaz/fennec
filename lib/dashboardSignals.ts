@@ -11,6 +11,7 @@
 
 import type { Project, Quote } from "@/lib/pricingData";
 import { projectMoney, paymentsTotal } from "@/lib/pricingData";
+import { dayKey } from "@/lib/contributions";
 
 export type SignalTab = "pricing" | "contenido" | "ideas" | "community";
 
@@ -141,7 +142,11 @@ export function buildSignals(i: SignalInputs): Signal[] {
   }
 
   // ── Post programado para hoy ──
-  const hoy = new Date().toISOString().slice(0, 10);
+  /* dayKey, no toISOString: a las 9pm en Monterrey el ISO ya dice mañana (es
+     UTC) y los posts de hoy caian fuera. Es exactamente la trampa que
+     lib/contributions.ts ya documentaba y que aqui se repitio (Paco vio "0
+     scheduled" con dos posts del dia, 2026-08-17). */
+  const hoy = dayKey(new Date());
   const deHoy = i.scheduled.filter((s) => s.status !== "done" && s.date === hoy);
   if (deHoy.length) {
     out.push({
@@ -156,12 +161,16 @@ export function buildSignals(i: SignalInputs): Signal[] {
   return out.sort((a, b) => (Number.isFinite(b.peso) ? b.peso : 0) - (Number.isFinite(a.peso) ? a.peso : 0));
 }
 
-/** Posts programados que caen de aquí al domingo. */
+/** Posts programados que caen de aquí al domingo, en hora LOCAL.
+ *  Las fechas de los posts se guardan como YYYY-MM-DD local, asi que los
+ *  extremos del rango tienen que calcularse igual o el dia de hoy se pierde
+ *  por la tarde. */
 export function programadosEstaSemana(posts: { date: string; status: string }[]): number {
   const hoy = new Date();
   const fin = new Date(hoy);
-  fin.setDate(fin.getDate() + (7 - hoy.getDay()));
-  const a = hoy.toISOString().slice(0, 10);
-  const b = fin.toISOString().slice(0, 10);
+  /* getDay(): 0 es domingo. Si hoy ES domingo, la semana termina hoy. */
+  fin.setDate(fin.getDate() + (hoy.getDay() === 0 ? 0 : 7 - hoy.getDay()));
+  const a = dayKey(hoy);
+  const b = dayKey(fin);
   return posts.filter((p) => p.status !== "done" && p.date >= a && p.date <= b).length;
 }
