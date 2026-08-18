@@ -5,13 +5,14 @@ import { useEffect, useState } from "react";
 import { openTrackInTape } from "@/lib/tapeNav";
 import { fetchUserReviews } from "@/lib/audioDb";
 import type { ProjectReview } from "@/lib/audioTypes";
-import { ChevronLeft, Pencil, MapPin } from "lucide-react";
+import { ChevronLeft, Pencil, MapPin, QrCode } from "lucide-react";
 import { SiInstagram, SiSpotify, SiYoutube, SiTiktok } from "react-icons/si";
 import { getProfile, fetchUserPosts } from "@/lib/communityDb";
 import type { Profile, Post } from "@/lib/communityTypes";
 import ProBadge from "./ProBadge";
 import PostCard from "./PostCard";
 import EditProfileSheet from "./EditProfileSheet";
+import FennecIdSheet from "@/components/network/FennecIdSheet";
 
 const AVATAR_COLORS = ["#6366f1","#f59e0b","#10b981","#ef4444","#8b5cf6","#3b82f6","#ec4899"];
 function avatarColor(username: string) {
@@ -31,6 +32,7 @@ type Props = {
 export default function UserProfilePage({ userId, currentProfile, onBack, onOpenThread, onOpenProfile }: Props) {
   const { t } = useTranslation();
   const [profile, setProfile]   = useState<Profile | null>(null);
+  const [verId, setVerId] = useState(false);
   const [posts, setPosts]       = useState<Post[]>([]);
   const [tracks, setTracks]     = useState<ProjectReview[]>([]);
   const [loading, setLoading]   = useState(true);
@@ -158,6 +160,21 @@ export default function UserProfilePage({ userId, currentProfile, onBack, onOpen
             </span>
           )}
         </div>
+        {/* El Fennec ID no se pinta en la pagina: se despliega desde aqui.
+            Puesto ahi abajo tal cual, el perfil enseñaba a la misma persona dos
+            veces (banner + avatar + dB arriba, y otra vez en la credencial).
+            Paco 2026-08-18: "no quiero dos presentaciones de Rico Beltran". */}
+        <button
+          type="button"
+          onClick={() => setVerId(true)}
+          className="mt-2.5 inline-flex items-center gap-2 rounded-full border border-white/[0.14] bg-white/[0.05] px-4 py-2
+                     font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-white
+                     transition hover:border-white/25 hover:bg-white/[0.09] active:scale-[0.97]"
+        >
+          <QrCode className="h-3 w-3" />
+          Fennec ID
+        </button>
+
         {/* Social links */}
         {(profile.instagram || profile.spotify || profile.youtube_url || profile.tiktok) && (
           <div className="flex items-center gap-4 mt-1">
@@ -294,6 +311,8 @@ export default function UserProfilePage({ userId, currentProfile, onBack, onOpen
           onSaved={(updated) => setProfile(updated)}
         />
       )}
+
+      <FennecIdSheet profile={profile} open={verId} onClose={() => setVerId(false)} />
     </div>
   );
 }

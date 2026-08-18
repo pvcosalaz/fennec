@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fennec ID · artista vs productor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0a08; --surface:#14120e; --line:rgba(255,255,255,.07);
+  --amber:#f5a623; --amber-hot:#ffc861; --glow:245,166,35;
+  --text:#fafafa; --mut:#9b9ba3; --dim:#55555c;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+  --sans:"Archivo",-apple-system,system-ui,sans-serif;
+  --serif:"Newsreader",Georgia,serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+
+/* chrome del prototipo */
+.bar{position:sticky;top:0;z-index:60;display:flex;gap:6px;align-items:center;
+  padding:11px 18px;background:rgba(11,10,8,.86);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.bar b{font-size:12.5px;font-weight:900;margin-right:auto}
+.bar b i{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--amber);margin-left:2px;box-shadow:0 0 8px rgba(var(--glow),.8)}
+.bar button{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  background:none;border:1px solid var(--line);color:var(--mut);padding:6px 11px;border-radius:7px;cursor:pointer;transition:.2s}
+.bar button:hover{color:var(--text)}
+.bar button[aria-pressed=true]{color:#0d0d0f;background:var(--amber);border-color:var(--amber)}
+.pane{display:none;padding:40px 20px 70px}
+.pane.on{display:block}
+.wrap{max-width:1180px;margin:0 auto}
+.lede{text-align:center;margin-bottom:38px}
+.lede h1{font-size:clamp(22px,3vw,32px);font-weight:900;letter-spacing:-.03em}
+.lede p{margin-top:9px;color:var(--mut);font-size:14px;max-width:56ch;margin-left:auto;margin-right:auto;line-height:1.6}
+
+.id-card {
+  --acc:#f5a623; --glow:245,166,35; --ava-tx:#000;
+  position:relative; border-radius:22px; overflow:hidden;
+  aspect-ratio:1.9/1; min-height:265px;
+  border:1px solid rgba(var(--glow),.32);
+  background:linear-gradient(135deg, #2e2214, #1a1209);
+  box-shadow:0 40px 100px rgba(0,0,0,.6), 0 0 80px rgba(var(--glow),.10);
+  transition:transform .5s cubic-bezier(.16,1,.3,1), border-color .4s ease, box-shadow .4s ease;
+  will-change:transform; display:flex; flex-direction:column;
+}
+.id-card:hover { transform:rotateY(0) rotateX(0); }
+.id-card::before { content:""; position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(ellipse at 85% 10%, rgba(var(--glow),.12), transparent 55%); }
+.id-card img.fox { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:68%; opacity:.06; filter:brightness(0) invert(1); pointer-events:none; }
+.id-card .top { display:flex; flex:1; position:relative; z-index:1; min-height:0; }
+.id-card .ava {
+  width:104px; height:104px; border-radius:50%; background:var(--acc); flex-shrink:0;
+  display:grid; place-items:center; margin:30px 18px 0 30px;
+  font-size:30px; font-weight:800; color:var(--ava-tx);
+  border:2.5px solid rgba(var(--glow),.5); box-shadow:0 6px 22px rgba(var(--glow),.5);
+  transition:background .4s ease, box-shadow .4s ease, border-color .4s ease;
+  overflow:hidden;
+}
+.id-card .ava img { width:100%; height:100%; object-fit:cover; display:block; }
+.id-card .role { font-family:var(--mono); font-size:10px; letter-spacing:.24em; color:rgba(var(--glow),.6); margin:42px 0 6px 0; text-transform:uppercase; }
+.id-card .nm { font-size:clamp(26px,3vw,38px); font-weight:900; letter-spacing:-.02em; line-height:1.02; text-transform:uppercase; }
+.id-card .nm .ln2 { display:block; padding-left:22px; }
+.id-card .tags { margin-top:12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.id-card .tags .gchip { font-family:var(--mono); font-size:10px; color:var(--acc); background:rgba(var(--glow),.08); border:1px solid rgba(var(--glow),.28); border-radius:99px; padding:4px 14px; transition:all .4s ease; }
+.id-card .tags .cty { font-family:var(--mono); font-size:10px; letter-spacing:.2em; color:rgba(255,255,255,.38); }
+.id-card .fid { position:absolute; top:26px; right:32px; font-weight:900; font-size:17px; letter-spacing:-.06em; z-index:2; }
+.id-card .fid sup { color:var(--acc); font-size:9px; font-weight:700; letter-spacing:.06em; }
+.id-card .qr { position:absolute; top:54px; right:32px; width:50px; height:50px; z-index:2; }
+.id-card .qr svg { width:100%; height:100%; display:block; filter:drop-shadow(0 3px 10px rgba(0,0,0,.4)); }
+.id-card .band { display:flex; align-items:flex-end; justify-content:space-between; padding:0 32px 22px; position:relative; z-index:1; }
+.id-card .band .lb { font-family:var(--mono); font-size:9px; letter-spacing:.2em; color:rgba(var(--glow),.6); font-weight:700; display:block; margin-bottom:5px; }
+.id-card .band .dbrow { display:flex; align-items:flex-end; gap:14px; }
+.id-card .band .vl { font-size:34px; font-weight:900; color:var(--acc); line-height:1; font-variant-numeric:tabular-nums; transition:color .4s ease; }
+.id-card .eq { display:flex; align-items:flex-end; gap:3px; height:24px; }
+.id-card .eq i { width:4px; border-radius:2px; background:var(--acc); animation:eq 1.2s ease-in-out infinite alternate; box-shadow:0 0 6px rgba(var(--glow),.5); transition:background .4s ease; }
+.id-card .socials { display:flex; gap:10px; }
+.id-card .socials i { width:15px; height:15px; border-radius:4px; }
+.id-card .socials i:nth-child(1){ background:#E1306C; } .id-card .socials i:nth-child(2){ background:#1DB954; border-radius:50%; } .id-card .socials i:nth-child(3){ background:#FF0000; }
+
+/* ── LA LEYENDA ──
+   Pildora con contorno, abajo a la derecha de la tarjeta, en la misma banda del
+   dB. Reusa la forma del chip de genero que ya existe arriba, para que sea
+   vocabulario de la tarjeta y no un elemento nuevo. El productor la lleva en su
+   acento; el artista en blanco hueso, que es lo unico que los separa sin tocar
+   el color personal de cada quien. */
+/* El sello: relleno y del MISMO color en todas las tarjetas (Paco 2026-08-18).
+   Es una marca de SISTEMA (que oficio eres), no de identidad, asi que tiene que
+   ser constante o deja de funcionar como señal.
+   Blanco y no ambar: el ambar (#f5a623) ES uno de los 12 colores personales, o
+   sea que en 1 de cada 12 tarjetas el sello se confundiria con el acento de la
+   persona. El blanco no esta en la paleta, asi que no choca con ninguna, ni con
+   las que se generen despues. */
+.kind{font-family:var(--mono);font-size:9px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;
+  padding:5px 14px;border-radius:99px;border:1px solid transparent;color:#14120e;
+  background:#fafafa;white-space:nowrap}
+.id-card .band{align-items:flex-end}
+.bandright{display:flex;flex-direction:column;align-items:flex-end;gap:11px}
+
+/* dos tarjetas para comparar */
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:start}
+.slot h2{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);
+  text-align:center;margin-bottom:14px}
+@media(max-width:1100px){ .pair{grid-template-columns:1fr;gap:26px} }
+
+/* ── el perfil de comunidad ── */
+.dosfones{display:flex;gap:40px;justify-content:center;flex-wrap:wrap}
+.cap2{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut);text-align:center;margin-bottom:12px}
+.phone{width:390px;margin:0 auto;border-radius:38px;padding:10px;background:#1c1a17;
+  box-shadow:0 30px 70px rgba(0,0,0,.6),inset 0 0 0 1px rgba(255,255,255,.06)}
+.screen{background:#0d0c0a;border-radius:29px;overflow:hidden;height:720px;overflow-y:auto}
+.screen::-webkit-scrollbar{width:0}
+.ptop{display:flex;align-items:center;gap:12px;padding:14px 16px 10px}
+.ptop .back{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.06);display:grid;place-items:center;color:var(--mut);font-size:15px}
+.ptop .t{font-size:13px;font-weight:700}
+.pbanner{position:relative;height:132px;background:linear-gradient(140deg,#241a10,#12100c)}
+.pbanner img{width:100%;height:100%;object-fit:cover;opacity:.55}
+.pava{position:absolute;left:50%;bottom:-34px;transform:translateX(-50%);width:76px;height:76px;border-radius:50%;
+  border:3px solid #0d0c0a;overflow:hidden;background:#3a2c1a}
+.pava img{width:100%;height:100%;object-fit:cover}
+.pinfo{padding:46px 18px 0;text-align:center}
+.pinfo .nm{font-size:16px;font-weight:700}
+.pinfo .row{display:flex;justify-content:center;align-items:center;gap:9px;margin-top:5px;font-size:13px}
+.pinfo .row .u{color:var(--mut)}
+.pinfo .row .db{color:var(--amber);font-weight:700}
+.pinfo .row .no{font-family:var(--mono);font-size:11px;color:#5a5a60}
+.pinfo .meta{margin-top:7px;font-size:12px;color:var(--mut)}
+.pbio{padding:14px 20px 0;font-size:13px;line-height:1.6;color:#c9c9cf;text-align:center}
+.pcard{padding:20px 16px 6px}
+.pair .id-card,.pcard .id-card{min-height:0;aspect-ratio:1.72/1}
+.pair .id-card .ava{width:64px;height:64px;margin:18px 12px 0 16px;border-width:2px}
+.pair .id-card .role{margin-top:22px;font-size:8px}
+.pair .id-card .nm{font-size:19px}
+.pair .id-card .nm .ln2{padding-left:7px}
+.pair .id-card .top > div:not(.ava){padding-right:56px}
+.pair .id-card .fid{top:16px;right:16px;font-size:12px}
+.pair .id-card .qr{top:36px;right:16px;width:36px;height:36px}
+.pair .id-card .band{padding:0 16px 14px}
+.pair .id-card .band .vl{font-size:23px}
+.pair .id-card .eq{height:16px}
+.pair .id-card .tags{margin-top:8px;gap:7px}
+.pair .kind{font-size:8px;padding:4px 11px;letter-spacing:.16em}
+.pcard .id-card{min-height:0;aspect-ratio:1.72/1}
+.pcard .id-card .ava{width:64px;height:64px;margin:18px 12px 0 16px;border-width:2px}
+.pcard .id-card .role{margin-top:22px;font-size:8px}
+.pcard .id-card .nm{font-size:19px}
+.pcard .id-card .nm .ln2{padding-left:7px}
+.pcard .id-card .top > div:not(.ava){padding-right:56px}
+.pcard .id-card .fid{top:16px;right:16px;font-size:12px}
+.pcard .id-card .qr{top:36px;right:16px;width:36px;height:36px}
+.pcard .id-card .band{padding:0 16px 14px}
+.pcard .id-card .band .vl{font-size:23px}
+.pcard .id-card .eq{height:16px}
+.pcard .id-card .tags{margin-top:8px;gap:7px}
+.pcard .kind{font-size:8px;padding:4px 11px;letter-spacing:.16em}
+.psec{font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);padding:16px 18px 8px}
+.ppost{margin:0 16px 10px;padding:13px 15px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid var(--line)}
+.ppost p{font-size:13px;line-height:1.55;color:#d5d5da}
+.ppost .mt{margin-top:9px;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:#5a5a60}
+.note{max-width:640px;margin:26px auto 0;padding:15px 18px;border-radius:14px;border:1px solid var(--line);
+  background:rgba(255,255,255,.02);color:var(--mut);font-size:13px;line-height:1.65}
+.note b{color:var(--text)}
+/* el toggle: discreto, en la fila de datos del perfil */
+.idbtn{margin-top:12px;display:inline-flex;align-items:center;gap:8px;cursor:pointer;
+  font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--text);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);
+  border-radius:99px;padding:8px 15px;transition:background .25s ease,border-color .25s ease,transform .12s ease}
+.idbtn:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.26)}
+.idbtn:active{transform:scale(.97)}
+.qrmini{width:11px;height:11px;border-radius:2px;background:
+  linear-gradient(#fafafa,#fafafa) 0 0/4px 4px no-repeat,
+  linear-gradient(#fafafa,#fafafa) 100% 0/4px 4px no-repeat,
+  linear-gradient(#fafafa,#fafafa) 0 100%/4px 4px no-repeat,
+  linear-gradient(#fafafa,#fafafa) 100% 100%/3px 3px no-repeat}
+
+/* ── el despliegue ── */
+.ovl{position:absolute;inset:0;z-index:99;pointer-events:none}
+.ovl.on{pointer-events:auto}
+.ovlbg{position:absolute;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);opacity:0;transition:opacity .3s ease}
+.ovl.on .ovlbg{opacity:1}
+.ovlcard{position:absolute;left:16px;right:16px;top:50%;
+  opacity:0;transform:translateY(calc(-50% + 14px)) scale(.92);transform-origin:center center;
+  transition:transform .26s cubic-bezier(.3,0,.66,1), opacity .2s ease-in;will-change:transform,opacity}
+/* la curva de apertura, copiada tal cual del Dashboard: es un muelle de verdad,
+   llega a 1.0315 y regresa. No es un ease cualquiera. */
+.ovl.on .ovlcard{opacity:1;transform:translateY(-50%) scale(1);
+  transition:transform .5s linear(0, 0.0371, 0.1278, 0.2469, 0.3762, 0.5032, 0.6199, 0.7218, 0.8071, 0.8757, 0.9288, 0.9681, 0.9958, 1.014, 1.0249, 1.0302, 1.0315, 1.0302, 1.0273, 1.0235, 1.0194, 1.0154, 1.0118, 1.0086, 1.0059, 1.0038, 1.0022, 1.0009, 1.0001, 1), opacity .28s ease-out}
+.ovlacts{display:flex;gap:9px;margin-top:12px;opacity:0;transform:translateY(8px);
+  transition:opacity .3s ease 0s,transform .3s cubic-bezier(.16,1,.3,1) 0s}
+.ovl.on .ovlacts{opacity:1;transform:translateY(0);transition-delay:.28s}
+.ovlacts button{flex:1;font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.12em;
+  text-transform:uppercase;padding:10px;border-radius:11px;border:0;cursor:pointer;
+  background:#fafafa;color:#14120e}
+.ovlacts .ghost{background:rgba(255,255,255,.08);color:var(--text)}
+.ovlcard .id-card{min-height:0;aspect-ratio:1.72/1}
+.ovlcard .id-card .ava{width:64px;height:64px;margin:18px 12px 0 16px;border-width:2px}
+.ovlcard .id-card .role{margin-top:22px;font-size:8px}
+.ovlcard .id-card .nm{font-size:19px}
+.ovlcard .id-card .nm .ln2{padding-left:7px}
+.ovlcard .id-card .top > div:not(.ava){padding-right:56px}
+.ovlcard .id-card .fid{top:16px;right:16px;font-size:12px}
+.ovlcard .id-card .qr{top:36px;right:16px;width:36px;height:36px}
+.ovlcard .id-card .band{padding:0 16px 14px}
+.ovlcard .id-card .band .vl{font-size:23px}
+.ovlcard .id-card .eq{height:16px}
+.ovlcard .id-card .tags{margin-top:8px;gap:7px}
+.ovlcard .kind{font-size:8px;padding:4px 11px;letter-spacing:.16em}
+.screen{position:relative}
+.note code{font-family:var(--mono);font-size:12px;color:var(--amber)}
+.psec2{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin:0 0 14px}
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:12px;margin-bottom:34px}
+.sw{border-radius:13px;padding:13px 12px 11px;border:1px solid rgba(255,255,255,.08);position:relative;overflow:hidden}
+.sw .dot2{width:26px;height:26px;border-radius:50%;margin-bottom:9px;box-shadow:0 0 14px currentColor}
+.sw .n{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--mut)}
+.sw .sello2{position:absolute;right:9px;top:11px;font-family:var(--mono);font-size:7px;font-weight:800;
+  letter-spacing:.12em;padding:3px 7px;border-radius:99px;background:#fafafa;color:#14120e}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <b>fennec<i></i></b>
+  <button data-go="p1" aria-pressed="true">las dos tarjetas</button>
+  <button data-go="p2" aria-pressed="false">perfil de community</button>
+  <button data-go="p3" aria-pressed="false">los colores</button>
+</div>
+
+<section class="pane on" id="p1">
+  <div class="wrap">
+    <div class="lede">
+      <h1>La misma credencial, distinto oficio</h1>
+      <p>Lo único que cambia es la leyenda de abajo. El color sigue siendo personal de cada quien, no del rol.</p>
+    </div>
+    <div class="pair">
+      <div class="slot">
+        <h2>Productor</h2>
+        <div class="id-card" data-kind="producer" id="idCard">
+        <img class="fox" src="fennec-icon-transparent.png" alt="">
+        <div class="top">
+          <div class="ava"><img id="idAvaImg" src="https://picsum.photos/seed/fennec-producer-face/240/240" alt=""></div>
+          <div>
+            <p class="role" >Producer</p>
+            <p class="nm"><span >PACO</span><span class="ln2" >SALAZ</span></p>
+            <div class="tags"><span class="gchip" >Cinematic</span><span class="cty" >MEXICO · #0001</span></div>
+          </div>
+        </div>
+        <span class="fid">fennec&nbsp;<sup>ID</sup></span>
+        <span class="qr"><svg viewBox="0 0 70 70"><rect width="70" height="70" rx="8" fill="#fff"/><rect x="9" y="9" width="17" height="17" rx="2" fill="#111"/><rect x="13.5" y="13.5" width="8" height="8" fill="#fff"/><rect x="44" y="9" width="17" height="17" rx="2" fill="#111"/><rect x="48.5" y="13.5" width="8" height="8" fill="#fff"/><rect x="9" y="44" width="17" height="17" rx="2" fill="#111"/><rect x="13.5" y="48.5" width="8" height="8" fill="#fff"/><rect x="32" y="9" width="6" height="6" fill="#111"/><rect x="32" y="22" width="6" height="12" fill="#111"/><rect x="44" y="44" width="6" height="6" fill="#111"/><rect x="55" y="44" width="6" height="6" fill="#111"/><rect x="49.5" y="49.5" width="6" height="6" fill="#111"/><rect x="44" y="55" width="11" height="6" fill="#111"/><rect x="32" y="44" width="6" height="17" fill="#111"/></svg></span>
+        <div class="band">
+          <div>
+            <span class="lb">FENNEC dB</span>
+            <div class="dbrow">
+              <span class="vl" >66</span>
+              <span class="eq" aria-hidden="true"><i style="height:14px;animation-delay:0s"></i><i style="height:25px;animation-delay:.15s"></i><i style="height:11px;animation-delay:.3s"></i><i style="height:21px;animation-delay:.45s"></i><i style="height:14px;animation-delay:.6s"></i><i style="height:31px;animation-delay:.75s"></i><i style="height:10px;animation-delay:.9s"></i><i style="height:18px;animation-delay:1.05s"></i><i style="height:25px;animation-delay:1.2s"></i><i style="height:13px;animation-delay:1.35s"></i></span>
+            </div>
+          </div>
+          <div class="bandright"><span class="kind">PRODUCER</span><div class="socials"><i></i><i></i><i></i></div></div>
+        </div>
+      </div>
+      </div>
+      <div class="slot">
+        <h2>Artista</h2>
+        <div class="id-card" data-kind="artist" id="idCard">
+        <img class="fox" src="fennec-icon-transparent.png" alt="">
+        <div class="top">
+          <div class="ava"><img id="idAvaImg" src="https://picsum.photos/seed/fennec-artist-face/240/240" alt=""></div>
+          <div>
+            <p class="role" >Singer</p>
+            <p class="nm"><span >RICO</span><span class="ln2" >BELTRÁN</span></p>
+            <div class="tags"><span class="gchip" >Corridos</span><span class="cty" >MEXICO · #0005</span></div>
+          </div>
+        </div>
+        <span class="fid">fennec&nbsp;<sup>ID</sup></span>
+        <span class="qr"><svg viewBox="0 0 70 70"><rect width="70" height="70" rx="8" fill="#fff"/><rect x="9" y="9" width="17" height="17" rx="2" fill="#111"/><rect x="13.5" y="13.5" width="8" height="8" fill="#fff"/><rect x="44" y="9" width="17" height="17" rx="2" fill="#111"/><rect x="48.5" y="13.5" width="8" height="8" fill="#fff"/><rect x="9" y="44" width="17" height="17" rx="2" fill="#111"/><rect x="13.5" y="48.5" width="8" height="8" fill="#fff"/><rect x="32" y="9" width="6" height="6" fill="#111"/><rect x="32" y="22" width="6" height="12" fill="#111"/><rect x="44" y="44" width="6" height="6" fill="#111"/><rect x="55" y="44" width="6" height="6" fill="#111"/><rect x="49.5" y="49.5" width="6" height="6" fill="#111"/><rect x="44" y="55" width="11" height="6" fill="#111"/><rect x="32" y="44" width="6" height="17" fill="#111"/></svg></span>
+        <div class="band">
+          <div>
+            <span class="lb">FENNEC dB</span>
+            <div class="dbrow">
+              <span class="vl" >76</span>
+              <span class="eq" aria-hidden="true"><i style="height:14px;animation-delay:0s"></i><i style="height:25px;animation-delay:.15s"></i><i style="height:11px;animation-delay:.3s"></i><i style="height:21px;animation-delay:.45s"></i><i style="height:14px;animation-delay:.6s"></i><i style="height:31px;animation-delay:.75s"></i><i style="height:10px;animation-delay:.9s"></i><i style="height:18px;animation-delay:1.05s"></i><i style="height:25px;animation-delay:1.2s"></i><i style="height:13px;animation-delay:1.35s"></i></span>
+            </div>
+          </div>
+          <div class="bandright"><span class="kind">ARTIST</span><div class="socials"><i></i><i></i><i></i></div></div>
+        </div>
+      </div>
+      </div>
+    </div>
+    <p class="note"><b>El sello va del mismo color en todas.</b> Es una marca de sistema (qué oficio eres),
+    no de identidad, así que tiene que ser constante o deja de funcionar como señal. Va en blanco y no en
+    ámbar porque <b>el ámbar es uno de los 12 colores personales</b>: en una de cada doce tarjetas el sello
+    se confundiría con el acento de la persona.</p>
+  </div>
+</section>
+
+<section class="pane" id="p2">
+  <div class="wrap">
+    <div class="lede">
+      <h1>El perfil, sin dos retratos de la misma persona</h1>
+      <p>La credencial no vive en la página: se despliega desde un botón, con la misma animación que ya usa el Dashboard.</p>
+    </div>
+    <div class="phone"><div class="screen" id="scr">
+      <div class="ptop"><span class="back">‹</span><span class="t">Perfil</span></div>
+      <div class="pbanner">
+        <img src="https://picsum.photos/seed/fennec-studio-night/780/264" alt="">
+        <span class="pava"><img src="https://picsum.photos/seed/fennec-artist-face/160/160" alt=""></span>
+      </div>
+      <div class="pinfo">
+        <p class="nm">Rico Beltrán</p>
+        <div class="row"><span class="u">@ricobeltran</span><span class="db">76 dB</span><span class="no">#0005</span></div>
+        <p class="meta">Artista · México</p>
+        <button class="idbtn" id="abrir">
+          <span class="qrmini" aria-hidden="true"></span>
+          Fennec ID
+        </button>
+      </div>
+      <p class="pbio">Corridos y banda. Escribo en la carretera y grabo en Monterrey.</p>
+      <p class="psec">Sus posts</p>
+      <div class="ppost"><p>Terminando el EP. Tres fechas cerradas para octubre y la de Guadalajara ya casi.</p><p class="mt">hace 2 h · 14 marcas</p></div>
+      <div class="ppost"><p>¿Alguien ha tocado en el Foro Puebla? Ando viendo producción para noviembre.</p><p class="mt">ayer · 8 marcas</p></div>
+      <div class="ppost"><p>Gracias Monterrey. Se sintió.</p><p class="mt">hace 3 días · 31 marcas</p></div>
+
+      <!-- el despliegue, con las curvas del Dashboard -->
+      <div class="ovl" id="ovl">
+        <div class="ovlbg" id="ovlbg"></div>
+        <div class="ovlcard" id="ovlcard">
+          <div class="id-card" data-kind="artist" id="idCard">
+        <img class="fox" src="fennec-icon-transparent.png" alt="">
+        <div class="top">
+          <div class="ava"><img id="idAvaImg" src="https://picsum.photos/seed/fennec-artist-face/240/240" alt=""></div>
+          <div>
+            <p class="role" >Singer</p>
+            <p class="nm"><span >RICO</span><span class="ln2" >BELTRÁN</span></p>
+            <div class="tags"><span class="gchip" >Corridos</span><span class="cty" >MEXICO · #0005</span></div>
+          </div>
+        </div>
+        <span class="fid">fennec&nbsp;<sup>ID</sup></span>
+        <span class="qr"><svg viewBox="0 0 70 70"><rect width="70" height="70" rx="8" fill="#fff"/><rect x="9" y="9" width="17" height="17" rx="2" fill="#111"/><rect x="13.5" y="13.5" width="8" height="8" fill="#fff"/><rect x="44" y="9" width="17" height="17" rx="2" fill="#111"/><rect x="48.5" y="13.5" width="8" height="8" fill="#fff"/><rect x="9" y="44" width="17" height="17" rx="2" fill="#111"/><rect x="13.5" y="48.5" width="8" height="8" fill="#fff"/><rect x="32" y="9" width="6" height="6" fill="#111"/><rect x="32" y="22" width="6" height="12" fill="#111"/><rect x="44" y="44" width="6" height="6" fill="#111"/><rect x="55" y="44" width="6" height="6" fill="#111"/><rect x="49.5" y="49.5" width="6" height="6" fill="#111"/><rect x="44" y="55" width="11" height="6" fill="#111"/><rect x="32" y="44" width="6" height="17" fill="#111"/></svg></span>
+        <div class="band">
+          <div>
+            <span class="lb">FENNEC dB</span>
+            <div class="dbrow">
+              <span class="vl" >76</span>
+              <span class="eq" aria-hidden="true"><i style="height:14px;animation-delay:0s"></i><i style="height:25px;animation-delay:.15s"></i><i style="height:11px;animation-delay:.3s"></i><i style="height:21px;animation-delay:.45s"></i><i style="height:14px;animation-delay:.6s"></i><i style="height:31px;animation-delay:.75s"></i><i style="height:10px;animation-delay:.9s"></i><i style="height:18px;animation-delay:1.05s"></i><i style="height:25px;animation-delay:1.2s"></i><i style="height:13px;animation-delay:1.35s"></i></span>
+            </div>
+          </div>
+          <div class="bandright"><span class="kind">ARTIST</span><div class="socials"><i></i><i></i><i></i></div></div>
+        </div>
+      </div>
+          <div class="ovlacts">
+            <button>Guardar en mi red</button>
+            <button class="ghost">Compartir</button>
+          </div>
+        </div>
+      </div>
+    </div></div>
+    
+  </div>
+    <p class="note"><b>La animación es la del Dashboard, no una nueva:</b> apertura de 0.5s con la misma
+    curva <code>linear()</code> de muelle (llega a 1.03 y regresa), cierre en 0.26s, y el fondo con
+    <code>blur(14px)</code>. La credencial entra desde <code>scale(0.92)</code> y 14px abajo, nunca
+    desde cero, y los botones aparecen 0.28s después, cuando ya aterrizó.</p>
+</section>
+
+
+<section class="pane" id="p3">
+  <div class="wrap">
+    <div class="lede">
+      <h1>De 12 colores al azar a infinitos, sin repetir</h1>
+      <p>Hoy hay 12 y se asignan por sorteo. Con 5 usuarios ya es más probable que se repita a que no; con 2,000 hay ~167 personas por color.</p>
+    </div>
+
+    <p class="psec2">Los 12 de hoy</p>
+    <div class="swatches" id="viejos"></div>
+
+    <p class="psec2">Generados por número de Fennec · los primeros 48</p>
+    <div class="swatches" id="nuevos"></div>
+
+    <p class="note"><b>Cómo funciona:</b> el tono sale de tu número (<code>hue = número × 137.508°</code>, el
+    ángulo áureo) y la luminosidad y el croma quedan fijos. Tres consecuencias: son <b>infinitos</b>; dos
+    números seguidos caen a 137° de distancia, o sea lo más separados que pueden estar; y como todos comparten
+    luminosidad y croma, <b>ninguno se ve más apagado o más chillón que otro</b>, cosa que hoy sí pasa (compara
+    el lima con el índigo de arriba). Además es <b>determinista</b>: el color se calcula, no se guarda, así que
+    no se puede perder ni cambiar solo.</p>
+
+    <p class="note"><b>Lo que se pierde, y hay que decidirlo:</b> con tonos continuos el color deja de
+    <b>identificarte</b>. Nadie dirá "el productor azul" si hay 400 azules. Se gana que tu tarjeta sea única,
+    se pierde que sea reconocible. Si prefieres conservar las dos cosas, el punto medio es <b>familia + tono</b>:
+    el hue cae en uno de 12 sectores con nombre (sigues siendo "de los azules") y dentro del sector tu tono es
+    tuyo.</p>
+  </div>
+</section>
+
+<script>
+// ── las muestras de color ──
+const PAL=[["blue","#4d96ff"],["green","#6bcb77"],["purple","#c77dff"],["red","#ff6b6b"],
+ ["amber","#f5a623"],["cyan","#00d4ff"],["pink","#ff6eb4"],["lime","#b5ff6b"],
+ ["indigo","#818cf8"],["orange","#ff9f43"],["teal","#2ed573"],["rose","#ff4757"]];
+const vie=document.getElementById("viejos");
+PAL.forEach(([id,hex])=>{
+  vie.insertAdjacentHTML("beforeend",
+   `<div class="sw" style="background:linear-gradient(140deg,${hex}22,#12100c)">
+      <div class="dot2" style="background:${hex};color:${hex}"></div>
+      <p class="n">${id}</p></div>`);
+});
+const nue=document.getElementById("nuevos");
+const PHI=137.50776405003785;
+for(let i=1;i<=48;i++){
+  const h=(i*PHI)%360;
+  // luminosidad y croma FIJOS: es lo que hace que ninguno destaque sobre otro
+  const c=`oklch(0.76 0.155 ${h.toFixed(1)})`;
+  const num="#"+String(i).padStart(4,"0");
+  nue.insertAdjacentHTML("beforeend",
+   `<div class="sw" style="background:linear-gradient(140deg,oklch(0.76 0.155 ${h.toFixed(1)} / .13),#12100c)">
+      ${i<=3?'<span class="sello2">ARTIST</span>':''}
+      <div class="dot2" style="background:${c};color:${c}"></div>
+      <p class="n">${num} · ${h.toFixed(0)}°</p></div>`);
+}
+
+// el despliegue de la credencial
+const ovl=document.getElementById("ovl");
+document.getElementById("abrir").addEventListener("click",()=>ovl.classList.add("on"));
+document.getElementById("ovlbg").addEventListener("click",()=>ovl.classList.remove("on"));
+addEventListener("keydown",e=>{ if(e.key==="Escape") ovl.classList.remove("on"); });
+
+document.querySelectorAll('.bar [data-go]').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.bar [data-go]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id===b.dataset.go));
+  scrollTo(0,0);
+}));
+</script>
+</body>
+</html>

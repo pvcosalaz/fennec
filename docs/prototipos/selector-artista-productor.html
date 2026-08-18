@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fennec · what are you (3 tratamientos)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0a08; --line:rgba(255,255,255,.07);
+  --amber:#f5a623; --glow:245,166,35;
+  --text:#fafafa; --mut:#9b9ba3; --dim:#55555c;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+  --sans:"Archivo",-apple-system,system-ui,sans-serif;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow:hidden}
+
+/* chrome del prototipo, no es parte del diseño */
+.bar{position:fixed;top:0;left:0;right:0;z-index:60;display:flex;gap:6px;align-items:center;
+  padding:11px 18px;background:rgba(11,10,8,.8);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.bar b{font-size:12.5px;font-weight:900;margin-right:auto;letter-spacing:-.02em}
+.bar b i{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--amber);margin-left:2px;
+  box-shadow:0 0 8px rgba(var(--glow),.8)}
+.bar button{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  background:none;border:1px solid var(--line);color:var(--mut);padding:6px 11px;border-radius:7px;cursor:pointer;
+  transition:color .2s,border-color .2s}
+.bar button:hover{color:var(--text)}
+.bar button[aria-pressed=true]{color:#0d0d0f;background:var(--amber);border-color:var(--amber)}
+
+.esc{display:none;position:fixed;inset:44px 0 0}
+.esc.on{display:block}
+
+/* la pregunta: chica, arriba, fuera del camino de las palabras */
+.q{position:absolute;left:50%;top:clamp(16px,4.5vh,42px);transform:translateX(-50%);z-index:5;
+  font-family:var(--mono);font-size:clamp(10px,1.15vw,12.5px);letter-spacing:.34em;text-transform:uppercase;
+  color:var(--mut);white-space:nowrap;pointer-events:none}
+
+/* ── la palabra ── */
+.side{position:absolute;border:0;background:none;padding:0;cursor:pointer;font:inherit;
+  display:grid;overflow:hidden;-webkit-tap-highlight-color:transparent}
+.side:focus-visible{outline:2px solid var(--amber);outline-offset:-8px}
+.side .w{position:relative;z-index:2;font-weight:900;font-stretch:118%;letter-spacing:-.045em;line-height:.84;
+  text-transform:uppercase;color:rgba(250,250,250,.55);
+  transition:color .45s var(--ease),transform .45s var(--ease),text-shadow .45s var(--ease)}
+.side .halo{position:absolute;inset:0;z-index:1;opacity:0;transition:opacity .5s ease;
+  background:radial-gradient(58% 52% at 50% 50%,rgba(var(--glow),.20),transparent 72%)}
+/* al entrar a la pantalla las dos bajan: el que se elige sube solo */
+.esc:hover .side .w{color:rgba(250,250,250,.38)}
+.side:hover .w,.side:focus-visible .w{color:#fff;transform:scale(1.045);text-shadow:0 0 46px rgba(var(--glow),.5)}
+.side:hover .halo,.side:focus-visible .halo{opacity:1}
+.side:active .w{transform:scale(1.012)}
+
+
+/* ── el zorro de fondo ──
+   Mismo tratamiento que en la app (.id-card img.fox): blanco por filtro y muy
+   bajo de opacidad. Va dentro de cada mitad y posicionado contra el viewport,
+   asi que las dos porciones casan y forman UN zorro; la division lo parte y al
+   elegir un lado esa mitad sube. Detras de las palabras y sin tocar eventos. */
+.fox{position:fixed;left:50%;top:52%;width:min(78vh,74vw);z-index:0;pointer-events:none;
+  transform:translate(-50%,-50%);opacity:.032;filter:brightness(0) invert(1);
+  transition:opacity .5s ease,transform .6s var(--ease)}
+.side:hover .fox,.side:focus-visible .fox,.esc.picked .side.win .fox{opacity:.075;transform:translate(-50%,-50%) scale(1.03)}
+.esc:hover .side .fox{opacity:.018}
+.esc.picked .side .fox{opacity:.014}
+.esc.picked .side.win .fox{opacity:.09}
+
+/* el punto de Fennec marca el cruce */
+.dot{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:6;
+  width:9px;height:9px;border-radius:50%;background:var(--amber);
+  box-shadow:0 0 16px rgba(var(--glow),.9);pointer-events:none}
+
+/* ═══ 1 · DIAGONAL ═══ */
+#t1 .side{inset:0}
+#t1 .a{clip-path:polygon(0 0,100% 0,0 100%)}
+#t1 .b{clip-path:polygon(100% 0,100% 100%,0 100%)}
+#t1 .w{font-size:clamp(44px,10.5vw,148px)}
+#t1 .a .w{place-self:start start;padding:11vh 0 0 4.5vw}
+#t1 .b .w{place-self:end end;padding:0 4.5vw 11vh 0}
+#t1 .cut{position:absolute;inset:0;z-index:4;pointer-events:none;width:100%;height:100%}
+#t1 .cut line{stroke:rgba(var(--glow),.5);stroke-width:1.4;filter:drop-shadow(0 0 8px rgba(var(--glow),.45))}
+
+/* ═══ 2 · APILADO ═══ */
+#t2 .a{inset:0 0 50% 0}
+#t2 .b{inset:50% 0 0 0}
+#t2 .w{font-size:clamp(46px,11.3vw,156px);place-self:center}
+#t2 .rule{position:absolute;left:0;right:0;top:50%;height:1px;z-index:4;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(var(--glow),.5) 22%,rgba(var(--glow),.5) 78%,transparent)}
+
+/* ═══ 3 · ENFRENTADO ═══ */
+#t3 .a{inset:0 50% 0 0}
+#t3 .b{inset:0 0 0 50%}
+#t3 .w{font-size:clamp(30px,5.5vw,80px)}
+#t3 .a .w{place-self:center end;padding-right:5vw;text-align:right}
+#t3 .b .w{place-self:center start;padding-left:5vw;text-align:left}
+#t3 .rule{position:absolute;top:0;bottom:0;left:50%;width:1px;z-index:4;pointer-events:none;
+  background:linear-gradient(180deg,transparent,rgba(var(--glow),.5) 24%,rgba(var(--glow),.5) 76%,transparent)}
+
+/* elegido */
+.done{position:fixed;inset:0;z-index:70;display:none;place-items:center;background:rgba(11,10,8,.94);
+  backdrop-filter:blur(12px);text-align:center;padding:22px}
+.done.on{display:grid}
+.done h2{font-size:clamp(30px,7vw,68px);font-weight:900;font-stretch:118%;letter-spacing:-.04em;text-transform:uppercase}
+.done p{margin-top:12px;color:var(--mut);font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase}
+.done button{margin-top:28px;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+  background:var(--amber);color:#0d0d0f;border:0;border-radius:99px;padding:12px 24px;font-weight:700;cursor:pointer}
+
+@media (max-width:720px){
+  /* t1 CONSERVA la diagonal en vertical: el corte va de esquina a esquina y
+     cada palabra vive en su triangulo. Es lo unico que lo distingue de t2, y
+     aplanarlo dejaba los tres tratamientos identicos en el telefono. */
+  #t1 .a{clip-path:polygon(0 0,100% 0,0 100%)}
+  #t1 .b{clip-path:polygon(100% 0,100% 100%,0 100%)}
+  #t1 .a .w{place-self:start start;padding:13vh 0 0 5vw;text-align:left;font-size:clamp(34px,11.4vw,104px)}
+  #t1 .b .w{place-self:end end;padding:0 5vw 13vh 0;text-align:right;font-size:clamp(34px,11.4vw,104px)}
+
+  /* t3 SI se aplana: dos palabras lado a lado no caben en 390px */
+  #t3 .a{inset:0 0 50% 0}
+  #t3 .b{inset:50% 0 0 0}
+  #t3 .a .w,#t3 .b .w{place-self:center;padding:0 14px;text-align:center;font-size:clamp(34px,11.6vw,104px)}
+  #t3 .rule{display:none}
+  #t3::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;z-index:4;
+    background:linear-gradient(90deg,transparent,rgba(var(--glow),.5) 22%,rgba(var(--glow),.5) 78%,transparent)}
+
+  #t2 .w{padding:0 14px;font-size:clamp(34px,11.6vw,104px)}
+  .q{letter-spacing:.24em}
+  /* El zorro llena el 99% del ancho de su PNG, asi que a 150vw se le cortaban
+     casi 200px por lado: se perdian cabeza y cola y solo quedaban trazos
+     sueltos. A 98vw entra COMPLETO (mide 384px de los 390 de un iPhone) y se
+     vuelve a leer como el zorro y no como una textura rota. El logo de la
+     marca partido no se ve intencional, se ve descuidado. */
+  .fox{width:98vw;top:50%}
+}
+
+/* ── Sin hover no hay efecto: en tactil el golpe ocurre AL TOCAR ──
+   Todo el juego de "una sube, la otra baja" es un estado de hover, y en el
+   telefono no existe: el dedo toca y ya elegiste. Asi que el mismo efecto se
+   dispara al tocar y hace de transicion de salida, que es lo que hace un
+   select screen de arcade: eliges, hay un golpe, y entras. */
+.esc.picked .side .w{color:rgba(250,250,250,.14)}  /* solo durante la salida, 520ms */
+.esc.picked .side.win .w{color:#fff;transform:scale(1.06);text-shadow:0 0 54px rgba(var(--glow),.65)}
+.esc.picked .side.win .halo{opacity:1}
+@media (hover:none){
+  .side .w{color:rgba(250,250,250,.82)}   /* sin hover, ambas se leen fuerte */
+}
+
+/* ── marco de telefono, solo para comparar ── */
+body.compare{overflow:auto;display:block}
+.rig{display:none;gap:clamp(14px,3vw,40px);justify-content:center;align-items:flex-start;
+  padding:74px 18px 40px;flex-wrap:wrap}
+body.compare .rig{display:flex}
+body.compare .esc{display:none!important}
+.phone{width:390px;max-width:calc(50vw - 40px);min-width:280px}
+.phone .cap{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--mut);text-align:center;margin-bottom:10px}
+.phone .body{position:relative;border-radius:38px;padding:10px;background:#1c1a17;
+  box-shadow:0 30px 70px rgba(0,0,0,.6),inset 0 0 0 1px rgba(255,255,255,.06)}
+.phone iframe{width:100%;aspect-ratio:390/800;border:0;border-radius:29px;display:block;background:var(--bg)}
+@media (max-width:900px){ .phone{max-width:100%} }
+@media (prefers-reduced-motion:reduce){ *{transition-duration:.01ms!important} }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <b>fennec<i></i></b>
+  <button data-go="t1" aria-pressed="true">1 · diagonal</button>
+  <button data-go="t2" aria-pressed="false">2 · apilado</button>
+  <button data-go="t3" aria-pressed="false">3 · enfrentado</button>
+  <button id="lang" aria-pressed="false">ES</button>
+  <button id="cmp" aria-pressed="false">móvil</button>
+</div>
+
+<div class="rig">
+  <div class="phone"><p class="cap">1 · diagonal</p><div class="body"><iframe src="?solo=t1" title="diagonal"></iframe></div></div>
+  <div class="phone"><p class="cap">2 · apilado</p><div class="body"><iframe src="?solo=t2" title="apilado"></iframe></div></div>
+  <div class="phone"><p class="cap">3 · enfrentado</p><div class="body"><iframe src="?solo=t3" title="enfrentado"></iframe></div></div>
+</div>
+
+<section class="esc on" id="t1">
+  <p class="q" data-i18n="q">What are you?</p>
+  <button class="side a" data-rol="artist"><img class="fox" src="fennec-icon-transparent.png" alt=""><span class="w" data-i18n="artist">Artist</span><span class="halo"></span></button>
+  <button class="side b" data-rol="producer"><img class="fox" src="fennec-icon-transparent.png" alt=""><span class="w" data-i18n="producer">Producer</span><span class="halo"></span></button>
+  <svg class="cut" preserveAspectRatio="none" viewBox="0 0 100 100" aria-hidden="true">
+    <line x1="100" y1="0" x2="0" y2="100" vector-effect="non-scaling-stroke"/>
+  </svg>
+  <span class="dot"></span>
+</section>
+
+<section class="esc" id="t2">
+  <p class="q" data-i18n="q">What are you?</p>
+  <button class="side a" data-rol="artist"><img class="fox" src="fennec-icon-transparent.png" alt=""><span class="w" data-i18n="artist">Artist</span><span class="halo"></span></button>
+  <button class="side b" data-rol="producer"><img class="fox" src="fennec-icon-transparent.png" alt=""><span class="w" data-i18n="producer">Producer</span><span class="halo"></span></button>
+  <span class="rule"></span><span class="dot"></span>
+</section>
+
+<section class="esc" id="t3">
+  <p class="q" data-i18n="q">What are you?</p>
+  <button class="side a" data-rol="artist"><img class="fox" src="fennec-icon-transparent.png" alt=""><span class="w" data-i18n="artist">Artist</span><span class="halo"></span></button>
+  <button class="side b" data-rol="producer"><img class="fox" src="fennec-icon-transparent.png" alt=""><span class="w" data-i18n="producer">Producer</span><span class="halo"></span></button>
+  <span class="rule"></span><span class="dot"></span>
+</section>
+
+<div class="done" id="done">
+  <div>
+    <h2 id="doneT"></h2>
+    <p id="doneP"></p>
+    <button id="doneB" data-i18n="again">Try again</button>
+  </div>
+</div>
+
+<script>
+const T={
+  en:{q:"What are you?",artist:"Artist",producer:"Producer",again:"Try again",
+      sub:{artist:"gigs · tours · venues",producer:"clients · quotes · deliveries"}},
+  es:{q:"¿Qué eres?",artist:"Artista",producer:"Productor",again:"Otra vez",
+      sub:{artist:"fechas · giras · venues",producer:"clientes · cotizaciones · entregas"}}
+};
+let lang="en";
+function paint(){
+  document.documentElement.lang=lang;
+  document.querySelectorAll("[data-i18n]").forEach(el=>{
+    const k=el.dataset.i18n; if(T[lang][k]) el.textContent=T[lang][k];
+  });
+}
+document.getElementById("lang").addEventListener("click",e=>{
+  lang = lang==="en" ? "es" : "en";
+  e.currentTarget.textContent = lang==="en" ? "ES" : "EN";
+  e.currentTarget.setAttribute("aria-pressed", String(lang==="es"));
+  paint();
+});
+document.querySelectorAll(".bar [data-go]").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".bar [data-go]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));
+  document.querySelectorAll(".esc").forEach(s=>s.classList.toggle("on",s.id===b.dataset.go));
+}));
+const done=document.getElementById("done");
+document.querySelectorAll("[data-rol]").forEach(el=>el.addEventListener("click",()=>{
+  const r=el.dataset.rol, sec=el.closest(".esc");
+  // el golpe primero, el resultado despues: en tactil esto ES el feedback
+  sec.querySelectorAll(".side").forEach(x=>x.classList.toggle("win",x===el));
+  sec.classList.add("picked");
+  setTimeout(()=>{
+    document.getElementById("doneT").textContent=T[lang][r];
+    document.getElementById("doneP").textContent=T[lang].sub[r];
+    done.classList.add("on");
+    sec.classList.remove("picked");
+    sec.querySelectorAll(".side").forEach(x=>x.classList.remove("win"));
+  },520);
+}));
+
+// un iframe del comparador: solo su tratamiento, sin el chrome
+const solo=new URLSearchParams(location.search).get("solo");
+if(solo){
+  document.querySelector(".bar").style.display="none";
+  document.querySelector(".rig").style.display="none";
+  document.querySelectorAll(".esc").forEach(x=>x.classList.toggle("on",x.id===solo));
+  document.querySelectorAll(".esc").forEach(x=>x.style.inset="0");
+}
+document.getElementById("cmp").addEventListener("click",e=>{
+  const on=document.body.classList.toggle("compare");
+  e.currentTarget.setAttribute("aria-pressed",String(on));
+});
+document.getElementById("doneB").addEventListener("click",()=>done.classList.remove("on"));
+addEventListener("keydown",e=>{ if(e.key==="Escape") done.classList.remove("on"); });
+paint();
+</script>
+</body>
+</html>
