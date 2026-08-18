@@ -626,8 +626,10 @@ export default function PricingCalculator() {
       const p = await getProfile(userId);
       // The dB is reach-driven now (see lib/fennecDb.ts). The Dashboard owns
       // computing + persisting it, since it has the social-follower data this
-      // load doesn't. Here we just show the stored value; the Dashboard
-      // recomputes on mount and updates it if it drifted.
+      // load doesn't. Aqui se pinta el valor guardado, que puede ser de la
+      // sesion pasada; en cuanto el Dashboard lo recalcula avisa por onDbScore
+      // y esta copia se actualiza. Sin ese aviso la barra lateral y la tarjeta
+      // enseñaban numeros distintos a la vez (Paco 2026-08-17).
       setProfile(p ?? null);
     } catch (err) {
       // A failed query must never trap the user on the splash screen.
@@ -1289,6 +1291,13 @@ export default function PricingCalculator() {
             networkProfile={profile}
             onColorAssigned={(colorId) =>
               setProfile((prev) => prev ? { ...prev, color_id: colorId } : prev)
+            }
+            /* El shell enseña el dB guardado y solo lo lee al entrar, asi que
+               sin esto la barra lateral se quedaba con el numero de la sesion
+               pasada mientras la tarjeta enseñaba el recien calculado. */
+            onDbScore={(score) =>
+              setProfile((prev) => prev && prev.fennec_db_score !== score
+                ? { ...prev, fennec_db_score: score } : prev)
             }
             onNavigate={(tab) => { setActiveTab(tab); setBusinessView("hub"); }}
             onOpenCalculator={() => { setActiveTab("pricing"); setBusinessView("calculator"); }}

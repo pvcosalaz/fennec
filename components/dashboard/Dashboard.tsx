@@ -164,7 +164,7 @@ function SocialChip({
 export default function Dashboard({
   avatarUrl, username, isPro, userId,
   onOpenSettings, onOpenProfileSettings,
-  networkProfile, onColorAssigned, onNavigate, onOpenCalculator, className,
+  networkProfile, onColorAssigned, onDbScore, onNavigate, onOpenCalculator, className,
 }: {
   avatarUrl?: string | null;
   username?: string | null;
@@ -174,6 +174,8 @@ export default function Dashboard({
   onOpenProfileSettings?: () => void;
   networkProfile?: Profile | null;
   onColorAssigned?: (colorId: string) => void;
+  /** El dB recien calculado, para que el shell no siga enseñando el guardado. */
+  onDbScore?: (score: number) => void;
   onNavigate?: (tab: "pricing" | "contenido" | "dashboard" | "ideas" | "noticias") => void;
   /** Jumps straight into the pricing calculator (not just the Business hub) —
    *  the checklist's "Set your rate" step needs to land there directly. */
@@ -395,6 +397,8 @@ export default function Dashboard({
   const [resolvedColorId, setResolvedColorId] = useState<string | null>(networkProfile?.color_id ?? null);
   const onColorAssignedRef = useRef(onColorAssigned);
   useEffect(() => { onColorAssignedRef.current = onColorAssigned; });
+  const onDbScoreRef = useRef(onDbScore);
+  useEffect(() => { onDbScoreRef.current = onDbScore; });
   useEffect(() => {
     if (!userId || !networkProfile) return;
     ensureColorAssigned(userId, networkProfile.color_id).then((colorId) => {
@@ -439,11 +443,24 @@ export default function Dashboard({
   const fennecDb  = computeFennecDb(dbInputs);
   const reachOnly = Math.round(reachDbOf(dbInputs));
   const activityBoost = fennecDb - reachOnly;
+  /* businessLoaded en el guard, no solo mounted (Paco 2026-08-17: "por que
+     tengo dos numeros diferentes, 61 y 66").
+     Los seguidores se siembran desde networkProfile, que ya esta en memoria, y
+     los proyectos/clientes/cotizaciones llegan por red. En esa ventana el dB
+     vale el alcance PELADO —con la audiencia de Paco, 61 exacto— y se estaba
+     escribiendo a la base tal cual. Dos problemas: queda un numero mas bajo que
+     el real donde lo lee TODO el mundo (barra lateral, Community, perfil
+     publico, Network), y como los dos updates salian casi juntos y sin orden
+     garantizado, a veces ganaba la carrera el equivocado.
+     Esperar a que la actividad este cargada elimina la ventana y la carrera:
+     ahora solo se escribe una vez, con el numero completo. */
   useEffect(() => {
-    if (!mounted) return;
+    if (!mounted || !businessLoaded) return;
     localStorage.setItem("fennec-db-score", String(fennecDb));
     if (userId) updateDbScore(userId, fennecDb);
-  }, [fennecDb, mounted, userId]);
+    // Y se lo decimos al shell, que solo tiene el valor que leyo al entrar.
+    onDbScoreRef.current?.(fennecDb);
+  }, [fennecDb, mounted, businessLoaded, userId]);
 
   // Refresh social stats via Apify
   async function refreshSocial() {
