@@ -246,6 +246,11 @@ export default function TapeDeckDesktop({
   /** El globo de la nota. Lo consulta el listener de rueda para no llevarse
    *  la cinta cuando estas escribiendo dentro. */
   const globoRef = useRef<HTMLDivElement>(null);
+  /** Espejo de `marking` para el listener de la rueda, que es nativo, se
+   *  registra una sola vez y por tanto no ve el estado. Se sincroniza en un
+   *  efecto y no a mano en cada sitio que abre o cierra: hay cuatro (enviar,
+   *  cancelar, Escape, cambio de pista) y olvidar uno deja el ref mintiendo. */
+  const markingRef = useRef(false);
   /** El deck completo. Se le engancha el pellizco para que no se le escape
    *  al navegador — ver el efecto de onPinch. */
   const deckRef = useRef<HTMLDivElement>(null);
@@ -406,6 +411,12 @@ export default function TapeDeckDesktop({
     setMarking(true);
   }
 
+  function cerrarNota() {
+    setMarking(false);
+  }
+
+  useEffect(() => { markingRef.current = marking; }, [marking]);
+
   // SPACE = play/pause (unless typing)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -460,6 +471,25 @@ export default function TapeDeckDesktop({
       const next = Math.min(fin, Math.max(0, a.currentTime + delta / pxPerSecRef.current));
       a.currentTime = next;
       setT(next);
+      /* Con el globo abierto, deslizar RE-ANCLA la nota (Paco 2026-08-17).
+         El globo cuelga del segundo (left = seg × px/s) DENTRO de la cinta, o
+         sea que sin esto se iba con ella y te dejaba escribiendo sobre un punto
+         que ya no ves. Moviendo markAt al mismo compas, el globo se queda en el
+         cabezal y lo que se desliza debajo es la cinta: ajustas el segundo
+         mirandolo.
+         Va SOLO en este gesto, no en el loop de reproduccion: si siguiera al
+         cabezal mientras suena, escribir 20 segundos dejaria la nota 20
+         segundos tarde. */
+      if (markingRef.current) {
+        setMarkAt(next);
+        /* Y ademas se escribe YA en el nodo. El transform de la cinta lo pinta
+           el loop de rAF y este `left` lo pinta React: si caen en cuadros
+           distintos, el globo salta los pixeles del gesto y vuelve — un
+           temblor justo en lo unico que estas mirando. Poniendolo aqui, los dos
+           valores salen del mismo `next` en el mismo evento; el render de React
+           llega despues con el mismo numero y no mueve nada. */
+        if (globoRef.current) globoRef.current.style.left = `${next * pxPerSecRef.current}px`;
+      }
     };
     vp.addEventListener("wheel", onWheel, { passive: false });
     return () => vp.removeEventListener("wheel", onWheel);
@@ -520,7 +550,7 @@ export default function TapeDeckDesktop({
       const c = await createReviewComment({ trackId: track.id, userId, body: body.trim(), timestampSeconds: Math.round(markAt) });
       setComments((prev) => [...prev, c].sort((a, b) => (a.timestamp_seconds ?? 0) - (b.timestamp_seconds ?? 0)));
       try { localStorage.setItem("fennec_has_left_note_v1", "1"); } catch { /* ignore */ }
-      setBody(""); setMarking(false);
+      setBody(""); cerrarNota();
     } catch { /* keep composer open on failure */ }
     setPosting(false);
   }
@@ -900,7 +930,7 @@ export default function TapeDeckDesktop({
                     <span className="font-mono text-[11px] font-bold tabular-nums" style={{ color: AMBER }}>
                       @ {fmt(markAt)}
                     </span>
-                    <button onClick={() => setMarking(false)} aria-label={tr("mtCancel")} className="text-zinc-600 transition hover:text-white">
+                    <button onClick={cerrarNota} aria-label={tr("mtCancel")} className="text-zinc-600 transition hover:text-white">
                       <X className="h-3.5 w-3.5" />
                     </button>
                   </div>
@@ -909,7 +939,7 @@ export default function TapeDeckDesktop({
                     autoFocus value={body} onChange={(e) => setBody(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void submitMark(); }
-                      if (e.key === "Escape") setMarking(false);
+                      if (e.key === "Escape") cerrarNota();
                     }}
                     placeholder={tr("tdNotaPrecisa")}
                     rows={2}

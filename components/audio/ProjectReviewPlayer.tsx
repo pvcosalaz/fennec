@@ -111,6 +111,15 @@ export default function ProjectReviewPlayer({
   // not as an upfront wall. Shown once, right after the very first mark.
   const [showKarmaIntro, setShowKarmaIntro] = useState(false);
 
+  /* El globo abierto, sus dos piezas y su rotulo. Al arrastrar con el globo
+     abierto se les escribe la posicion DIRECTO: el arrastre corre por refs
+     justamente para no renderizar por movimiento, y un setState por evento de
+     puntero tiraria los 60fps que cuida el loop. El estado se consolida una
+     sola vez al soltar. */
+  const globoMarcaRef  = useRef<HTMLDivElement>(null);
+  const tickMarcaRef   = useRef<HTMLSpanElement>(null);
+  const rotuloMarcaRef = useRef<HTMLSpanElement>(null);
+
   // Drag-to-scrub state (refs — no re-render per move)
   const drag = useRef<{ active: boolean; startY: number; startTime: number; moved: boolean; ghostTime: number; pressTimer: ReturnType<typeof setTimeout> | null }>({
     active: false, startY: 0, startTime: 0, moved: false, ghostTime: 0, pressTimer: null,
@@ -322,7 +331,7 @@ export default function ProjectReviewPlayer({
   }
 
   function onPointerDown(e: React.PointerEvent) {
-    if (markAt !== null || ended) return;
+    if (ended) return;
     const audio = audioRef.current;
     if (!audio) return;
     drag.current.active = true;
@@ -330,6 +339,11 @@ export default function ProjectReviewPlayer({
     drag.current.startY = e.clientY;
     drag.current.startTime = audio.currentTime;
     drag.current.ghostTime = audio.currentTime;
+
+    /* Con el globo ya abierto no hay marca nueva que abrir: el arrastre solo
+       re-ancla la que estas escribiendo (Paco 2026-08-17), asi que ni se arma
+       la pulsacion larga. */
+    if (markAt !== null) return;
 
     // long-press → grease-pencil mark at that moment
     const pressY = e.clientY;
@@ -369,6 +383,16 @@ export default function ProjectReviewPlayer({
       ghostRef.current.style.opacity = "1";
       ghostRef.current.textContent = fmt(drag.current.ghostTime);
     }
+    /* El globo cuelga del segundo DENTRO del feed, o sea que sin esto se iria
+       con el feed y te dejaria escribiendo sobre un punto que ya no ves. Yendo
+       al mismo segundo que el arrastre se queda en la linea de ahora —la unica
+       franja que el teclado no tapa— y lo que se desliza debajo es la cinta. */
+    if (markAt !== null) {
+      const g = drag.current.ghostTime;
+      if (globoMarcaRef.current)  globoMarcaRef.current.style.top  = `${g * PX_PER_SEC - 14}px`;
+      if (tickMarcaRef.current)   tickMarcaRef.current.style.top   = `${g * PX_PER_SEC}px`;
+      if (rotuloMarcaRef.current) rotuloMarcaRef.current.textContent = t("prMarcaEn", { at: fmt(g) });
+    }
   }
 
   function onPointerUp() {
@@ -380,6 +404,8 @@ export default function ProjectReviewPlayer({
     if (wasDrag) {
       const audio = audioRef.current;
       if (audio) audio.currentTime = drag.current.ghostTime;
+      // Un solo setState por gesto: durante el arrastre el globo se movio por DOM.
+      if (markAt !== null) setMarkAt(drag.current.ghostTime);
     }
   }
 
@@ -775,6 +801,7 @@ export default function ProjectReviewPlayer({
               ahora" de las notas ya publicadas, que van sin caja. */}
           {markAt !== null && (
             <div
+              ref={globoMarcaRef}
               className="absolute z-40"
               style={{
                 left: SPINE_X + 20, right: 16, top: markAt * PX_PER_SEC - 14,
@@ -802,7 +829,7 @@ export default function ProjectReviewPlayer({
               />
               <div className="rounded-2xl p-3" style={{ ...GLASS, border: "1px solid rgba(245,166,35,.35)" }}>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[9px] uppercase" style={{ fontFamily: MONO_FONT, letterSpacing: "0.18em", color: AMBER }}>
+                  <span ref={rotuloMarcaRef} className="text-[9px] uppercase" style={{ fontFamily: MONO_FONT, letterSpacing: "0.18em", color: AMBER }}>
                     {t("prMarcaEn", { at: fmt(markAt) })}
                   </span>
                   <button onClick={closeMark} className="text-[11px]" style={{ color: "rgba(255,255,255,.4)" }}>
@@ -837,6 +864,7 @@ export default function ProjectReviewPlayer({
               la caja quede a un lado. */}
           {markAt !== null && (
             <span
+              ref={tickMarcaRef}
               className="absolute pointer-events-none z-40"
               style={{
                 left: SPINE_X, top: markAt * PX_PER_SEC, width: 20, height: 2, borderRadius: 2,
