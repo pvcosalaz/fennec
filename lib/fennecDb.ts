@@ -17,6 +17,11 @@ export type FennecDbInputs = {
   spotifyFollowers?: number | null;
   instagramFollowers?: number | null;
   tiktokFollowers?: number | null;
+  /* Suscriptores, NO vistas, y eso nos salva del cambio de YouTube del
+     24-ago-2026 (viewCount pasa a contar desde el arranque del video, sin
+     minimo): el dB no se mueve un punto. Si algun dia entran vistas al modelo,
+     usar engagedViews de la Analytics API, no viewCount de la Data API, o la
+     escala se infla sola. */
   youtubeSubscribers?: number | null;
   /** Reserved: verified streams/credits (Muso.AI) — folds into reach later. */
   verifiedCredits?: number | null;

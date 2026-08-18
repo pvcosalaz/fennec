@@ -69,6 +69,11 @@ async function fetchYouTubeVideos(keyword: string, maxResults = 4) {
   return data.items ?? [];
 }
 
+/* [YOUTUBE 2026-08-17] Desde el 24-ago-2026 viewCount cuenta desde que el video
+   arranca, sin minimo. Las cifras que Inspire enseña van a subir para TODOS los
+   videos por igual, asi que el ranking (order=viewCount, relativo) sigue siendo
+   valido y no hay nada que arreglar. Lo unico que deja de tener sentido es
+   comparar un "1.2M vistas" capturado antes del 24 con uno de despues. */
 async function fetchVideoStats(videoIds: string[]) {
   const url = new URL("https://www.googleapis.com/youtube/v3/videos");
   url.searchParams.set("part", "statistics");

@@ -72,6 +72,16 @@ export async function GET(req: NextRequest) {
     if (!channel) return NextResponse.json({ connected: false });
 
     const subscribers = parseInt(channel.statistics?.subscriberCount ?? "0", 10);
+    /* [YOUTUBE 2026-08-17] A partir del 24-ago-2026 este viewCount cuenta una
+       vista en cuanto ARRANCA el video, sin tiempo minimo (la regla que Shorts
+       ya usaba, ahora para todo formato). O sea: el numero salta hacia arriba
+       ese dia sin que nadie haya visto mas. No se compara con datos de antes.
+       La metrica vieja sobrevive como "engagedViews", pero solo en las APIs de
+       Analytics/Reporting, no en Data API.
+       Hoy da igual: este campo se guarda y NO se usa en ninguna pantalla ni
+       calculo. Si algun dia se grafica, hay que cortar la serie en esa fecha o
+       migrar a engagedViews (tenemos refresh_token del canal, asi que se
+       puede). El Fennec dB no se toca: corre sobre SUSCRIPTORES. */
     const viewCount   = parseInt(channel.statistics?.viewCount ?? "0", 10);
     const videoCount  = parseInt(channel.statistics?.videoCount ?? "0", 10);
 
