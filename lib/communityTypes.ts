@@ -1,3 +1,5 @@
+export type AccountType = "artist" | "producer";
+
 export type PostCategory = "music" | "gear" | "sync" | "business" | "mindset" | "general";
 export type MediaType = "audio" | "image" | "gif" | "video-embed" | "link" | null;
 
@@ -28,6 +30,10 @@ export type Profile = {
   youtube_url: string | null;
   tiktok: string | null;
   color_id: string | null;
+  /** Que modulo de negocio ve la cuenta. NULL = todavia no se le ha preguntado,
+   *  que es lo que dispara la pantalla de bienvenida. NO es identidad publica:
+   *  eso lo lleva `role`. Ver supabase/migrations/20260818_account_type.sql */
+  account_type?: AccountType | null;
   // Social stats — synced via Apify
   ig_followers?: number | null;
   tiktok_followers?: number | null;

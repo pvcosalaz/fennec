@@ -5,6 +5,7 @@
 // poder mirarle la animacion y las medidas.
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { notFound } from "next/navigation";
 import FennecIdSheet from "@/components/network/FennecIdSheet";
 import type { Profile } from "@/lib/communityTypes";
@@ -24,8 +25,14 @@ const PERFIL = {
 
 export default function DevIdSheet() {
   if (process.env.NODE_ENV === "production") notFound();
-  const [abierto, setAbierto] = useState(false);
+  /* ?tipo=artist|producer|ninguno y ?abierto=1 para poder mirar un estado
+     concreto desde la carga, sin depender de hacer clic. */
+  const q = useSearchParams();
+  const qTipo = q?.get("tipo");
+  const inicial = qTipo === "artist" ? "artist" : qTipo === "ninguno" ? null : "producer";
+  const [abierto, setAbierto] = useState(q?.get("abierto") === "1");
   const [color, setColor] = useState("amber");
+  const [tipo, setTipo] = useState<"artist"|"producer"|null>(inicial as "artist"|"producer"|null);
 
   return (
     <main className="min-h-screen bg-[#0b0a08] p-8 text-white">
@@ -39,6 +46,14 @@ export default function DevIdSheet() {
               className={`rounded-lg border px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider transition ${
                 color === c ? "border-white/40 text-white" : "border-white/10 text-zinc-500"
               }`}>{c}</button>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {([["producer","Producer"],["artist","Artist"],[null,"sin preguntar"]] as const).map(([v,l]) => (
+            <button key={l} onClick={() => setTipo(v)}
+              className={`rounded-lg border px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider transition ${
+                tipo === v ? "border-white/40 text-white" : "border-white/10 text-zinc-500"
+              }`}>{l}</button>
           ))}
         </div>
         <button
@@ -57,7 +72,7 @@ export default function DevIdSheet() {
       </div>
 
       <FennecIdSheet
-        profile={{ ...PERFIL, color_id: color }}
+        profile={{ ...PERFIL, color_id: color, account_type: tipo }}
         open={abierto}
         onClose={() => setAbierto(false)}
       />

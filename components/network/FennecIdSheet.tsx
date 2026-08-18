@@ -135,6 +135,7 @@ export default function FennecIdSheet({
           spotify={profile.spotify}
           youtube={profile.youtube_url}
           hideZeroDb
+          accountType={profile.account_type}
         />
 
         <div

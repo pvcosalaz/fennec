@@ -120,6 +120,7 @@ export default function NetworkCollection({ contacts, userId, onScanClick }: Pro
                 country={topContact.country ?? ""}
                 genres={topContact.genres ?? []}
                 fennecDb={topContact.fennec_db_score}
+                accountType={topContact.account_type}
                 colorScheme={topScheme}
                 collectionNumber={topContact.fennec_number ?? undefined}
                 initials={topInitials}
@@ -159,6 +160,7 @@ export default function NetworkCollection({ contacts, userId, onScanClick }: Pro
                   country={contact.country ?? ""}
                   genres={contact.genres ?? []}
                   fennecDb={contact.fennec_db_score}
+                  accountType={contact.account_type}
                   colorScheme={scheme}
                   collectionNumber={contact.fennec_number ?? undefined}
                   initials={getInitials(contact)}

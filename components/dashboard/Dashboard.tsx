@@ -690,6 +690,7 @@ export default function Dashboard({
               country={networkProfile.country ?? ""}
               genres={networkProfile.genres ?? []}
               fennecDb={fennecDb} colorScheme={cardColorScheme}
+              accountType={networkProfile.account_type}
               collectionNumber={networkProfile.fennec_number ?? undefined}
               initials={cardInitials} avatarUrl={avatarUrl}
               instagram={networkProfile.instagram}
@@ -760,6 +761,7 @@ export default function Dashboard({
                 country={networkProfile.country ?? ""}
                 genres={networkProfile.genres ?? []}
                 fennecDb={fennecDb} colorScheme={cardColorScheme}
+                accountType={networkProfile.account_type}
                 collectionNumber={networkProfile.fennec_number ?? undefined}
                 initials={cardInitials} avatarUrl={avatarUrl}
                 instagram={networkProfile.instagram}

@@ -69,6 +69,10 @@ export type FennecIdCardProps = {
    * share to connect sells the producer short — clean beats empty.
    */
   hideZeroDb?: boolean;
+  /** Que oficio ejerce el dueño de la tarjeta. Se pinta como sello en la banda
+   *  de abajo. Sin valor no se pinta nada: una cuenta a la que todavia no se le
+   *  ha preguntado no lleva sello, en vez de llevar uno inventado. */
+  accountType?: "artist" | "producer" | null;
 };
 
 function pad4(n: number): string {
@@ -141,6 +145,7 @@ export default function FennecIdCard({
   youtube,
   smallDb = false,
   hideZeroDb = false,
+  accountType = null,
 }: FennecIdCardProps) {
   const { t } = useTranslation();
   const { accent, dark1, dark2, glowRgb, textOnAvatar } = colorScheme;
@@ -359,11 +364,33 @@ export default function FennecIdCard({
           </div>
         )}
 
-        {/* Right: social icons */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        {/* Right: el sello del oficio y los iconos sociales */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          {/* El sello va SIEMPRE del mismo color, no del acento de la persona
+              (Paco 2026-08-18). Es una marca de sistema (que oficio eres), no de
+              identidad, y una señal que cambia de color en cada tarjeta deja de
+              funcionar como señal.
+              Blanco y no ambar porque el ambar (#f5a623) ES uno de los colores
+              personales: en una de cada doce tarjetas el sello se confundiria
+              con el acento del dueño. */}
+          {accountType && (
+            <span
+              style={{
+                fontFamily: "var(--font-mono, ui-monospace), monospace",
+                fontSize: 8, fontWeight: 800, letterSpacing: "0.16em",
+                textTransform: "uppercase", whiteSpace: "nowrap",
+                padding: "4px 11px", borderRadius: 99,
+                background: "#fafafa", color: "#14120e",
+              }}
+            >
+              {accountType === "artist" ? "Artist" : "Producer"}
+            </span>
+          )}
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {instagram && <SiInstagram size={11} style={{ color: "#E1306C", opacity: 0.75 }} />}
           {spotify   && <SiSpotify   size={11} style={{ color: "#1DB954", opacity: 0.75 }} />}
           {youtube   && <SiYoutube   size={11} style={{ color: "#FF0000", opacity: 0.75 }} />}
+          </div>
         </div>
       </div>
 

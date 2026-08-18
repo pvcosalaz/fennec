@@ -368,6 +368,7 @@ export default function DashboardDesktop({
               firstName={card.firstName} lastName={card.lastName}
               role={card.role || "Producer"} country={card.country}
               genres={card.genres} fennecDb={fennecDb} colorScheme={cardColorScheme}
+              accountType={networkProfile?.account_type}
               initials={card.initials} avatarUrl={card.avatarUrl}
               instagram={card.instagram} spotify={card.spotify} youtube={card.youtube}
               collectionNumber={card.collectionNumber} smallDb
@@ -553,6 +554,7 @@ export default function DashboardDesktop({
               initials={card.initials} avatarUrl={card.avatarUrl}
               instagram={card.instagram} spotify={card.spotify} youtube={card.youtube}
               collectionNumber={card.collectionNumber}
+              accountType={networkProfile?.account_type}
             />
           </div>
         </>

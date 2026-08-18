@@ -68,6 +68,7 @@ export default function PublicProfilePage() {
           country={profile.country ?? ""}
           genres={profile.genres ?? []}
           fennecDb={profile.fennec_db_score}
+          accountType={profile.account_type}
           colorScheme={scheme}
           collectionNumber={profile.fennec_number ?? undefined}
           initials={getInitials(profile)}
