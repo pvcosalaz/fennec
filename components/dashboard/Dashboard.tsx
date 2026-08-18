@@ -389,6 +389,10 @@ export default function Dashboard({
   // FENNEC dB — reach-driven, logarithmic (see lib/fennecDb.ts). Reach is the
   // engine (every 10x of audience ≈ +12 dB); activity is a small capped booster.
   const activeCount     = projects.filter((p) => p.status !== "paid").length;
+  /* Lo que vale el trabajo que traes encima. "1 proyecto" no dice si son mil o
+     cien mil pesos, y esa es justo la pregunta (Paco 2026-08-17). Cuenta todo
+     lo que no esta pagado: en curso, en revision y entregado-sin-cobrar. */
+  const activeValue     = projects.filter((p) => p.status !== "paid").reduce((sum, p) => sum + (p.price || 0), 0);
   const closedCount     = projects.filter((p) => p.status === "paid").length;
   const quotesSent      = quotes.filter((q) => q.status === "sent").length;
   const quotesOutTotal  = quotes.filter((q) => q.status === "sent").reduce((sum, q) => sum + q.finalPrice, 0);
@@ -523,6 +527,7 @@ export default function Dashboard({
         totalProjects={projects.length}
         contributions={contributions}
         quotesSentCount={quotesSent}
+        activeValue={activeValue}
         quotesOutTotal={quotesOutTotal}
         karma={karma}
         sentQuotes={quotes.filter((q) => q.status === "sent")}

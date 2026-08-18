@@ -260,7 +260,7 @@ i18n.addResourceBundle("en", "translation", {
   noOpenQuotes: "No open quotes", quotesAwaiting: "{{count}} quote awaiting reply", quotesAwaiting_other: "{{count}} quotes awaiting reply",
   viewArrow: "View →", sendArrow: "Send →",
   nothingScheduled: "Nothing scheduled", nextPost: "Next post", calendarArrow: "Calendar →", planArrow: "Plan →",
-  contributions: "Contributions", contributionsSub: "work you logged · quotes, projects, tracks, feedback",
+  contributions: "Contributions", contributionsSub: "work you logged · quotes, projects, scripts, tracks, feedback",
   thisYear: "this year", pickADay: "pick a day", tapToCompare: "tap a day to compare",
   less: "Less", more: "More", nothingLogged: "Nothing logged this day.", contribution: "contribution", contribution_other: "contributions",
   industryToday: "Industry today", allNews: "All news →",
@@ -291,7 +291,7 @@ i18n.addResourceBundle("es", "translation", {
   noOpenQuotes: "Sin cotizaciones abiertas", quotesAwaiting: "{{count}} cotización sin respuesta", quotesAwaiting_other: "{{count}} cotizaciones sin respuesta",
   viewArrow: "Ver →", sendArrow: "Enviar →",
   nothingScheduled: "Nada agendado", nextPost: "Próximo post", calendarArrow: "Calendario →", planArrow: "Planear →",
-  contributions: "Contribuciones", contributionsSub: "tu trabajo registrado · cotizaciones, proyectos, tracks, notas",
+  contributions: "Contribuciones", contributionsSub: "tu trabajo registrado · cotizaciones, proyectos, guiones, tracks, notas",
   thisYear: "este año", pickADay: "elige un día", tapToCompare: "toca un día para comparar",
   less: "Menos", more: "Más", nothingLogged: "Nada registrado este día.", contribution: "contribución", contribution_other: "contribuciones",
   industryToday: "La industria hoy", allNews: "Todas las noticias →",
@@ -1413,6 +1413,7 @@ i18n.addResourceBundle("es", "translation", {
 /* La Cinta · gestos y compositor de notas (2026-08-10) */
 i18n.addResourceBundle("en", "translation", {
   tdEnviarNota: "Send note",
+  ddActivos: "active",
   tdEnterEnvia: "ENTER to send · ESC to cancel",
   prMarcaEn: "✏ mark at {{at}}", prMarcarlo: "Mark it",
   tdNotasEn: "{{count}} note · {{at}}",
@@ -1421,6 +1422,7 @@ i18n.addResourceBundle("en", "translation", {
 
 i18n.addResourceBundle("es", "translation", {
   tdEnviarNota: "Enviar nota",
+  ddActivos: "activos",
   tdEnterEnvia: "ENTER para enviar · ESC para cancelar",
   prMarcaEn: "✏ marca en {{at}}", prMarcarlo: "Marcarlo",
   tdNotasEn: "{{count}} nota · {{at}}",

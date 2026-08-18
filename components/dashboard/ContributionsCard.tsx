@@ -31,6 +31,8 @@ const NOMBRE: Record<string, [string, string]> = {
   quote:    ["quote", "quotes"],
   project:  ["project", "projects"],
   client:   ["client", "clients"],
+  script:   ["script", "scripts"],
+  idea:     ["idea", "ideas"],
   post:     ["post", "posts"],
   feedback: ["note given", "notes given"],
   track:    ["track uploaded", "tracks uploaded"],

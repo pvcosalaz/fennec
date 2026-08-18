@@ -93,7 +93,7 @@ function fmtDate(d: string): string {
 export default function DashboardDesktop({
   card, networkProfile, fennecDb, cardColorScheme,
   igFollowers, ttFollowers, ytSubs,
-  activeProjects, totalProjects, quotesSentCount, quotesOutTotal, karma,
+  activeProjects, totalProjects, activeValue = 0, quotesSentCount, quotesOutTotal, karma,
   sentQuotes, latestNote, contributions,
   communityPosts, communityLoading = false,
   studioPhotoUrl, studioPhotoLuma, userId, onStudioPhotoChange,
@@ -113,6 +113,8 @@ export default function DashboardDesktop({
   ytSubs: number | null;
   activeProjects: number;
   totalProjects: number;
+  /** Suma de lo que valen los proyectos sin cobrar. */
+  activeValue?: number;
   quotesSentCount: number;
   quotesOutTotal: number;
   karma: number | null;
@@ -422,7 +424,16 @@ export default function DashboardDesktop({
           {/* En fila, no en 2x2: aquí ya hay ancho de sobra y cuatro métricas
               alineadas se comparan de un vistazo. */}
           <div className="grid grid-cols-4">
-            <MiniMetric value={String(totalProjects)} label={t("projects")} sub={activeProjects > 0 ? `${activeProjects} active` : undefined} onClick={() => onNavigate?.("pricing")} />
+            {/* El sub carga el DINERO, no solo el conteo: "1 activo" no dice si es
+                un jingle o un largometraje (Paco 2026-08-17). */}
+            <MiniMetric
+              value={String(totalProjects)}
+              label={t("projects")}
+              sub={activeProjects > 0
+                ? (activeValue > 0 ? `${activeProjects} ${t("ddActivos")} · ${formatMoney(activeValue)}` : `${activeProjects} ${t("ddActivos")}`)
+                : undefined}
+              onClick={() => onNavigate?.("pricing")}
+            />
             <MiniMetric value={String(quotesSentCount)} label={t("quotesSent")} onClick={() => onNavigate?.("pricing")} />
             <MiniMetric value={quotesOutTotal > 0 ? formatMoney(quotesOutTotal) : "—"} label={t("quotesOut")} muted={quotesOutTotal === 0} onClick={() => onNavigate?.("pricing")} />
             <MiniMetric value={karma != null ? String(karma) : "—"} label={t("karma")} muted={karma == null} onClick={() => onNavigate?.("ideas")} />

@@ -1,8 +1,14 @@
 // Contributions — the GitHub-style activity graph on the dashboard.
 // A "contribution" is real work logged in Fennec: projects, quotes and clients
-// created in the Business hub, posts in Community, feedback given on other
-// people's tracks, and tracks uploaded for review. Deliberately NOT app-opens
-// or module views: the graph rewards output, not screen time.
+// created in the Business hub, scripts and ideas written in Marketing, posts in
+// Community, feedback given on other people's tracks, and tracks uploaded for
+// review. Deliberately NOT app-opens or module views: the graph rewards output,
+// not screen time.
+//
+// [2026-08-17] Marketing FALTABA. Paco escribio un guion y el dia salio vacio:
+// escribir un guion es exactamente el tipo de trabajo que este grafico dice
+// premiar. Los guiones y las ideas viven en localStorage (no en Supabase como
+// el resto), asi que se leen aparte — ver leerMarketingLocal.
 // (Decided with Paco 2026-07-22 — the dB narrative shifts to activity-as-engine,
 // reach as a bonus multiplier; this graph is the visual evidence.)
 
@@ -12,7 +18,7 @@ import type { Project, Quote, Client } from "@/lib/pricingData";
 /** De qué está hecha una contribución. El heatmap solo contaba, así que un
  *  cuadrito encendido no decía nada: "veo puros cuadritos que no sé qué
  *  representan" (Paco 2026-08-03). Guardando el tipo, un día se puede leer. */
-export type ContributionKind = "quote" | "project" | "client" | "post" | "feedback" | "track";
+export type ContributionKind = "quote" | "project" | "client" | "script" | "idea" | "post" | "feedback" | "track";
 
 /** Cuántas de cada tipo hubo ese día. */
 export type DayDetail = Partial<Record<ContributionKind, number>>;
@@ -52,6 +58,29 @@ function addTimestamp(
   detail.set(k, d);
 }
 
+/** Guiones e ideas del modulo de Marketing. Son los unicos tipos de trabajo que
+ *  no viven en la base: se guardan en localStorage, asi que hay que leerlos de
+ *  ahi. Si el navegador no deja (SSR, modo privado), devuelve vacio y el grafico
+ *  simplemente no muestra esos dias, nunca truena. */
+function leerMarketingLocal(): { ts: number; kind: ContributionKind }[] {
+  if (typeof window === "undefined") return [];
+  const salida: { ts: number; kind: ContributionKind }[] = [];
+  const fuentes: [string, ContributionKind][] = [
+    ["fennec-briefs-v1", "script"],
+    ["fennec-ideas-bank-v1", "idea"],
+  ];
+  for (const [clave, kind] of fuentes) {
+    try {
+      const crudo = localStorage.getItem(clave);
+      if (!crudo) continue;
+      const filas = JSON.parse(crudo) as { createdAt?: number }[];
+      if (!Array.isArray(filas)) continue;
+      for (const f of filas) if (typeof f?.createdAt === "number") salida.push({ ts: f.createdAt, kind });
+    } catch { /* best-effort, igual que las fuentes de Supabase */ }
+  }
+  return salida;
+}
+
 /**
  * Builds the day-bucketed contribution history for the past year.
  * Business rows come in pre-loaded (the Dashboard already fetches them);
@@ -69,6 +98,9 @@ export async function fetchContributionDays(
   const cutoffIso = new Date(cutoff).toISOString();
   const byDay = new Map<string, number>();
   const detail = new Map<string, DayDetail>();
+
+  // Marketing — vive en localStorage, no en Supabase
+  for (const { ts, kind } of leerMarketingLocal()) addTimestamp(byDay, detail, ts, cutoff, kind);
 
   // Business — already in memory
   for (const p of projects) addTimestamp(byDay, detail, p.createdAt, cutoff, "project");
