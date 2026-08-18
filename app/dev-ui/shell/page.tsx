@@ -232,8 +232,12 @@ export default function ShellDevPage() {
         igFollowers={37000}
         ttFollowers={83300}
         ytSubs={4800}
-        activeProjects={0}
-        totalProjects={0}
+        activeProjects={3}
+        totalProjects={4}
+        activeValue={95000}
+        incomeMonth={32000}
+        owedTotal={63000}
+        scheduledWeek={2}
         quotesSentCount={2}
         quotesOutTotal={139432}
         karma={5}
