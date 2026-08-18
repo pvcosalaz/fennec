@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import "@/lib/i18n";
 import TapeDust from "@/components/audio/TapeDust";
 import { NOISE_URI } from "@/components/desktop/surfaces";
-import { Play, Pause, SkipForward, Plus, Upload, ZoomIn, ZoomOut, Volume2, VolumeX, AudioLines, X } from "lucide-react";
+import { Play, Pause, SkipForward, Plus, Upload, ZoomIn, ZoomOut, Volume2, VolumeX, AudioLines, X, ChevronLeft, ChevronRight } from "lucide-react";
 import type { ProjectReview, ReviewComment } from "@/lib/audioTypes";
 import { fetchReviewComments, createReviewComment, fetchKarma } from "@/lib/audioDb";
 
@@ -246,6 +246,9 @@ export default function TapeDeckDesktop({
   /** El globo de la nota. Lo consulta el listener de rueda para no llevarse
    *  la cinta cuando estas escribiendo dentro. */
   const globoRef = useRef<HTMLDivElement>(null);
+  /** Espejo de `markAt` para el atajo de teclado, que se registra una vez y
+   *  se quedaria con el valor del primer render (0) si leyera el estado. */
+  const markAtRef = useRef(0);
   /** Espejo de `marking` para el listener de la rueda, que es nativo, se
    *  registra una sola vez y por tanto no ve el estado. Se sincroniza en un
    *  efecto y no a mano en cada sitio que abre o cierra: hay cuatro (enviar,
@@ -416,12 +419,45 @@ export default function TapeDeckDesktop({
   }
 
   useEffect(() => { markingRef.current = marking; }, [marking]);
+  useEffect(() => { markAtRef.current = markAt; }, [markAt]);
+
+  /** Corre la nota un segundo, y la cinta con ella.
+   *
+   *  Un segundo y no menos: el sello se guarda con Math.round, asi que por
+   *  debajo de eso no hay nada que ganar.
+   *
+   *  Mueve TAMBIEN el cabezal. Desde que deslizar re-ancla, el globo vive
+   *  sobre el cabezal; ajustar solo el segundo lo despegaria y volveriamos al
+   *  problema de estar comentando un punto que no ves. */
+  function ajustarNota(delta: number) {
+    const a = audioRef.current;
+    /* a.duration y no la `duration` del closure: esto lo llama un listener que
+       se registro una vez, cuando el estado todavia era 0. */
+    const fin = a && Number.isFinite(a.duration) ? a.duration : Infinity;
+    const next = Math.min(fin, Math.max(0, markAtRef.current + delta));
+    markAtRef.current = next;
+    setMarkAt(next);
+    if (a) a.currentTime = next;
+    setT(next);
+    if (globoRef.current) globoRef.current.style.left = `${next * pxPerSecRef.current}px`;
+  }
 
   // SPACE = play/pause (unless typing)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName;
       if (e.code === "Space" && tag !== "INPUT" && tag !== "TEXTAREA") { e.preventDefault(); toggle(); }
+      /* Ajuste fino con ⌥←/→ (Paco 2026-08-17).
+         Lleva ⌥ a proposito: el foco vive en el textarea del globo y ahi las
+         flechas solas son del texto — mover el cursor para corregir una palabra
+         es lo normal y robarlo seria peor que no tener el atajo. Lo que ⌥ si se
+         lleva es el salto por palabras dentro de una nota de dos renglones, que
+         es un cambio barato. Por eso ademas hay chevrones en el globo: un atajo
+         que nadie descubre no existe. */
+      if (markingRef.current && e.altKey && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+        e.preventDefault();
+        ajustarNota(e.key === "ArrowLeft" ? -1 : 1);
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -927,8 +963,29 @@ export default function TapeDeckDesktop({
                   }}
                 >
                   <div className="mb-2 flex items-center justify-between">
-                    <span className="font-mono text-[11px] font-bold tabular-nums" style={{ color: AMBER }}>
-                      @ {fmt(markAt)}
+                    <span className="flex items-center gap-1">
+                      {/* onMouseDown preventDefault: sin el, pulsar el chevron
+                          le roba el foco al textarea y hay que volver a hacer
+                          clic para seguir escribiendo. */}
+                      <button
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => ajustarNota(-1)}
+                        aria-label={tr("tdAtrasarNota")}
+                        className="text-zinc-600 transition hover:text-white"
+                      >
+                        <ChevronLeft className="h-3.5 w-3.5" />
+                      </button>
+                      <span className="font-mono text-[11px] font-bold tabular-nums" style={{ color: AMBER }}>
+                        @ {fmt(markAt)}
+                      </span>
+                      <button
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => ajustarNota(1)}
+                        aria-label={tr("tdAdelantarNota")}
+                        className="text-zinc-600 transition hover:text-white"
+                      >
+                        <ChevronRight className="h-3.5 w-3.5" />
+                      </button>
                     </span>
                     <button onClick={cerrarNota} aria-label={tr("mtCancel")} className="text-zinc-600 transition hover:text-white">
                       <X className="h-3.5 w-3.5" />
