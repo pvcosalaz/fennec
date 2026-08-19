@@ -109,9 +109,15 @@ type Props = {
   onSignOut?: () => void;
   userId: string;
   initialSection?: Section;
+  /** El modo recien elegido. Sin esto el shell se queda con su copia vieja del
+   *  perfil y el Business enseña el oficio equivocado: solo UNA de las ocho
+   *  salidas de Ajustes recarga el perfil (la flecha atras), y por el dock no
+   *  pasa por ahi (Paco 2026-08-19: "estoy en producer y me sale la
+   *  calculadora de artist"). */
+  onAccountModeChange?: (mode: "artist" | "producer") => void;
 };
 
-export default function SettingsModule({ onBack, language, onLanguageChange, avatarUrl, onAvatarChange, onSignOut, userId, initialSection }: Props) {
+export default function SettingsModule({ onBack, language, onLanguageChange, avatarUrl, onAvatarChange, onSignOut, userId, initialSection, onAccountModeChange }: Props) {
   const isDesktop = useIsDesktop();
 
   /* El contenedor de cada seccion.
@@ -184,6 +190,7 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
       .eq("id", userId);
     /* Si la base dijo no, la UI no puede quedarse presumiendo el cambio. */
     if (error) { console.error("cambiarModo:", error); setModo(previo); }
+    else onAccountModeChange?.(next);   // el shell se entera YA, no al salir
     setModoGuardando(false);
   }
 

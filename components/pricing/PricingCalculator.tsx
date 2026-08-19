@@ -809,6 +809,9 @@ export default function PricingCalculator() {
             onSignOut={async () => { await track("sign_out"); await supabase.auth.signOut(); }}
             userId={authUser.id}
             initialSection={settingsSection}
+            onAccountModeChange={(mode) =>
+              setProfile((p) => (p ? { ...p, account_type: mode } : p))
+            }
           />
         ) : activeTab === "pricing" && businessView === "hub" ? (
           <div className="flex-1 flex flex-col overflow-hidden">
