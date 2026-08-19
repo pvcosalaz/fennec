@@ -8,9 +8,6 @@ export type Profile = {
   username: string;
   avatar_url: string | null;
   is_pro: boolean;
-  /** Cuenta del equipo: ve herramientas de prueba (switch Producer/Artist en
-   *  Ajustes). Se otorga a mano por SQL, nunca desde la app. */
-  is_admin?: boolean;
   is_bot: boolean;
   fennec_db_score: number;
   /** Immutable global join number — order this producer joined Fennec (#0042). */

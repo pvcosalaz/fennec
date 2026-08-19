@@ -164,10 +164,12 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
   const [modoGuardando, setModoGuardando] = useState(false);
   useEffect(() => {
     if (!userId) return;
+    /* Quien es admin NO vive en profiles: julio lo movio a profiles_private
+       (service-role only) y lo expone la funcion definer public.is_admin().
+       Preguntarle a la columna era el bug: la columna no debe existir. */
+    void supabase.rpc("is_admin").then(({ data }) => setEsAdmin(data === true));
     fetchProfile(userId).then((p) => {
-      if (!p) return;
-      setEsAdmin(!!p.is_admin);
-      setModo(p.account_type ?? "producer");
+      if (p) setModo(p.account_type ?? "producer");
     }).catch(() => {});
   }, [userId]);
 
