@@ -115,6 +115,7 @@ import AudioModule from "@/components/audio/AudioModule";
 import SettingsModule, { type Section as SettingsSection } from "@/components/settings/SettingsModule";
 import Dashboard from "@/components/dashboard/Dashboard";
 import BusinessHub, { type BusinessView } from "@/components/business/BusinessHub";
+import ArtistBusinessHub from "@/components/artist/ArtistBusinessHub";
 import ClientsLeads from "@/components/business/ClientsLeads";
 import QuoteGenerator from "@/components/business/QuoteGenerator";
 import ActiveProjects from "@/components/business/ActiveProjects";
@@ -811,16 +812,26 @@ export default function PricingCalculator() {
           />
         ) : activeTab === "pricing" && businessView === "hub" ? (
           <div className="flex-1 flex flex-col overflow-hidden">
-            <BusinessHub
-              key={hubRefreshKey}
-              onOpenView={(view, opts) => {
-                // "New quote" carries the intent through, so the destination
-                // opens its form instead of asking for a second click.
-                setQuoteCreateIntent(!!opts?.create);
-                setBusinessView(view);
-              }}
-              userId={authUser.id}
-            />
+            {/* El gate del oficio: account_type intercambia SOLO este modulo.
+                Cinta, Community, dB y Fennec ID son los mismos para los dos
+                (spec: docs/SPEC-artist-business-v1-events.md). Null cae en
+                productor, que es lo que toda la base actual es. */}
+            {profile.account_type === "artist" ? (
+              <div className="flex-1 overflow-y-auto">
+                <ArtistBusinessHub userId={authUser.id} />
+              </div>
+            ) : (
+              <BusinessHub
+                key={hubRefreshKey}
+                onOpenView={(view, opts) => {
+                  // "New quote" carries the intent through, so the destination
+                  // opens its form instead of asking for a second click.
+                  setQuoteCreateIntent(!!opts?.create);
+                  setBusinessView(view);
+                }}
+                userId={authUser.id}
+              />
+            )}
           </div>
         ) : activeTab === "pricing" && businessView === "projects" ? (
           <ActiveProjects onBack={() => { setHubRefreshKey((k) => k + 1); setBusinessView("hub"); }} userId={authUser.id} />
