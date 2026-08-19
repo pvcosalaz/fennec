@@ -156,6 +156,35 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
   const [passwordCode,     setPasswordCode]     = useState("");
   const [passwordSaved,   setPasswordSaved]   = useState(false);
 
+  /* El switch de oficio, solo para cuentas del equipo. Se carga el perfil de
+     comunidad porque ahi viven is_admin y account_type; el UserProfile local de
+     esta pantalla es otra cosa (campos de formulario). */
+  const [esAdmin, setEsAdmin] = useState(false);
+  const [modo, setModo] = useState<"artist" | "producer" | null>(null);
+  const [modoGuardando, setModoGuardando] = useState(false);
+  useEffect(() => {
+    if (!userId) return;
+    fetchProfile(userId).then((p) => {
+      if (!p) return;
+      setEsAdmin(!!p.is_admin);
+      setModo(p.account_type ?? "producer");
+    }).catch(() => {});
+  }, [userId]);
+
+  async function cambiarModo(next: "artist" | "producer") {
+    if (!userId || modoGuardando || next === modo) return;
+    setModoGuardando(true);
+    const previo = modo;
+    setModo(next);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ account_type: next })
+      .eq("id", userId);
+    /* Si la base dijo no, la UI no puede quedarse presumiendo el cambio. */
+    if (error) { console.error("cambiarModo:", error); setModo(previo); }
+    setModoGuardando(false);
+  }
+
   // Permanent account deletion (App Store / Play Store requirement)
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting,      setDeleting]      = useState(false);
@@ -969,6 +998,40 @@ export default function SettingsModule({ onBack, language, onLanguageChange, ava
           );
         })}
       </div>
+
+      {/* Switch de oficio — SOLO cuentas del equipo (is_admin, otorgado por SQL).
+          Cambia profiles.account_type, que es lo unico que intercambia el
+          modulo de Business; el resto de la app es identico. El refresh llega
+          solo: onBack ya recarga el perfil al salir de Ajustes. */}
+      {esAdmin && (
+        <div className="rounded-2xl border border-accent/20 bg-accent/[0.04] px-5 py-4">
+          <div className="mb-3 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-white">{t("stAccountMode")}</p>
+              <p className="text-xs text-zinc-500">{t("stAccountModeSub")}</p>
+            </div>
+            <span className="font-mono text-[8px] font-bold uppercase tracking-[0.16em] text-accent/70 border border-accent/30 rounded-full px-2 py-0.5">
+              Admin
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {(["producer", "artist"] as const).map((m) => (
+              <button
+                key={m}
+                onClick={() => cambiarModo(m)}
+                disabled={modoGuardando}
+                className={`rounded-xl border py-2.5 font-mono text-[11px] font-bold uppercase tracking-[0.12em] transition active:scale-[0.98] ${
+                  modo === m
+                    ? "border-accent/50 bg-accent/10 text-accent"
+                    : "border-white/10 text-zinc-500 hover:text-white"
+                }`}
+              >
+                {m === "producer" ? t("stModeProducer") : t("stModeArtist")}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Suggest a feature — a CTA, distinct from the settings rows above */}
       <button

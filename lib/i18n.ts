@@ -1536,3 +1536,15 @@ i18n.addResourceBundle("es", "translation", {
   abNeed: "Necesitas al mes", abLiveCover: "El vivo debe cubrir", abNetShow: "Neto por show",
   abSetupDone: "Guardar mi tarifa",
 }, true, true);
+
+/* Ajustes · switch de oficio para cuentas admin (2026-08-18) */
+i18n.addResourceBundle("en", "translation", {
+  stAccountMode: "Account mode",
+  stAccountModeSub: "Swap your Business module to test both sides.",
+  stModeProducer: "Producer", stModeArtist: "Artist",
+}, true, true);
+i18n.addResourceBundle("es", "translation", {
+  stAccountMode: "Modo de cuenta",
+  stAccountModeSub: "Cambia tu módulo de Business para probar los dos lados.",
+  stModeProducer: "Productor", stModeArtist: "Artista",
+}, true, true);
