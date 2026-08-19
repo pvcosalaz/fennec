@@ -820,9 +820,7 @@ export default function PricingCalculator() {
                 (spec: docs/SPEC-artist-business-v1-events.md). Null cae en
                 productor, que es lo que toda la base actual es. */}
             {profile.account_type === "artist" ? (
-              <div className="flex-1 overflow-y-auto">
-                <ArtistBusinessHub userId={authUser.id} />
-              </div>
+              <ArtistBusinessHub userId={authUser.id} />
             ) : (
               <BusinessHub
                 key={hubRefreshKey}

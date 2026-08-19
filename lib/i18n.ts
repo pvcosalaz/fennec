@@ -1548,3 +1548,23 @@ i18n.addResourceBundle("es", "translation", {
   stAccountModeSub: "Cambia tu módulo de Business para probar los dos lados.",
   stModeProducer: "Productor", stModeArtist: "Artista",
 }, true, true);
+
+/* Artist Business · capa de escritorio (2026-08-19) */
+i18n.addResourceBundle("en", "translation", {
+  abColEvent: "Event",
+  abBookedAhead: "Booked ahead",
+  abShowsCount_one: "1 show", abShowsCount_other: "{{count}} shows",
+  abLogIt: "Log it",
+  abGigDesc: "A show that pays you",
+  abRecordingDesc: "Studio time you invest",
+  abReleaseDesc: "Music you put out",
+}, true, true);
+i18n.addResourceBundle("es", "translation", {
+  abColEvent: "Evento",
+  abBookedAhead: "Agendado",
+  abShowsCount_one: "1 fecha", abShowsCount_other: "{{count}} fechas",
+  abLogIt: "Regístralo",
+  abGigDesc: "Una tocada que te paga",
+  abRecordingDesc: "Estudio que inviertes",
+  abReleaseDesc: "Música que publicas",
+}, true, true);

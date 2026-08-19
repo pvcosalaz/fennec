@@ -12,6 +12,9 @@ import {
   type ArtistPricingState,
 } from "@/lib/artistBusiness";
 import ArtistRateSetup from "./ArtistRateSetup";
+import ArtistBusinessHubDesktop from "./ArtistBusinessHubDesktop";
+import { useIsDesktop } from "@/lib/useIsDesktop";
+import i18nInstance from "@/lib/i18n";
 
 /* El Business del artista: un timeline de carrera (fechas, grabaciones,
  * lanzamientos) con el dinero en dos direcciones — lo que un gig te paga y lo
@@ -179,8 +182,23 @@ function EventSheet({
 
 // ─── El hub ──────────────────────────────────────────────────────────────────
 
+/** Los ultimos n meses con su rotulo en el idioma activo (mismo criterio que
+ *  getLastNMonths del hub de productor). */
+function ultimosMeses(n: number) {
+  const now = new Date();
+  return Array.from({ length: n }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - (n - 1 - i), 1);
+    return {
+      y: d.getFullYear(), m: d.getMonth(),
+      label: d.toLocaleString(i18nInstance.resolvedLanguage ?? "en", { month: "short" }),
+      isCurrent: i === n - 1,
+    };
+  });
+}
+
 export default function ArtistBusinessHub({ userId }: { userId: string }) {
   const { t } = useTranslation();
+  const isDesktop = useIsDesktop();
   const currency = useCurrency();
   const [events, setEvents] = useState<ArtistEvent[]>([]);
   const [filtro, setFiltro] = useState<ArtistEventKind | "all">("all");
@@ -201,6 +219,20 @@ export default function ArtistBusinessHub({ userId }: { userId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [events],
   );
+
+  /* La grafica de escritorio: cobrado por mes, ultimos seis. */
+  const meses6 = useMemo(() => ultimosMeses(6), []);
+  const series = useMemo(
+    () => meses6.map(({ y, m }) => monthTotals(events, y, m).earned),
+    [events, meses6],
+  );
+
+  /* Agendado: fechas que aun no se tocan. Es el pipeline del artista. */
+  const agendadas = useMemo(
+    () => events.filter((e) => e.kind === "gig" && (e.status === "hold" || e.status === "confirmed")),
+    [events],
+  );
+  const agendadoTotal = agendadas.reduce((s, e) => s + e.fee, 0);
 
   const visibles = useMemo(
     () => (filtro === "all" ? events : events.filter((e) => e.kind === filtro)),
@@ -229,6 +261,50 @@ export default function ArtistBusinessHub({ userId }: { userId: string }) {
     const done = { ...e, status: next };
     setEvents((prev) => prev.map((x) => (x.id === e.id ? done : x)));
     void upsertArtistEvent(userId, done);
+  }
+
+  /* ── Escritorio ──
+     La tabuladora es una VISTA que sustituye al hub, como la calculadora del
+     productor: en pantalla grande un formulario de veinte campos metido en un
+     pop-up se siente de telefono (Paco 2026-08-19). */
+  if (isDesktop && setupAbierto) {
+    return (
+      <ArtistRateSetup
+        inline
+        onClose={() => setSetupAbierto(false)}
+        onSaved={setPricing}
+      />
+    );
+  }
+
+  if (isDesktop) {
+    return (
+      <>
+        <ArtistBusinessHubDesktop
+          events={events}
+          mes={mes}
+          months={meses6}
+          series={series}
+          minFee={rate.minFee}
+          rateReady={rate.isSetupComplete}
+          currency={currency}
+          upcoming={agendadas.length}
+          upcomingTotal={agendadoTotal}
+          onOpenSetup={() => setSetupAbierto(true)}
+          onAddEvent={(kind) => setHoja({ e: nuevoEvento(kind, currency), nuevo: true })}
+          onEditEvent={(e) => setHoja({ e, nuevo: false })}
+          onAdvance={avanzar}
+        />
+        {hoja && (
+          <EventSheet
+            inicial={hoja.e}
+            onClose={() => setHoja(null)}
+            onSave={guardar}
+            onDelete={hoja.nuevo ? null : borrar}
+          />
+        )}
+      </>
+    );
   }
 
   return (
