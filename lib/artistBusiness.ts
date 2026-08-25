@@ -119,7 +119,10 @@ export const defaultArtistPricing: ArtistPricingState = {
   setupCompleted: false,
   personalExpenses: Object.fromEntries(PERSONAL_FIELDS.map((k) => [k, ""])),
   projectExpenses: Object.fromEntries(PROJECT_FIELDS.map((k) => [k, ""])),
-  taxPercent: "19",
+  /* Vacio, no "19": un default de impuestos inventado inflaba la tarifa de
+     quien no factura, y un campo vacio invita a poner el porcentaje REAL
+     (Paco 2026-08-25). Vacio computa como cero. */
+  taxPercent: "",
   emergencyFund: "",
   liveSharePercent: "60",
   showsPerMonth: "3",

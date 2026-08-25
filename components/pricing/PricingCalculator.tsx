@@ -225,7 +225,9 @@ const defaultState: PricingState = {
   setupCompleted: false,
   personalExpenses: initialPersonal,
   studioExpenses: initialStudio,
-  taxPercent: "19",
+  // Vacio, no "19": mismo criterio que la calculadora de artista (Paco
+  // 2026-08-25). Un default inventado inflaba el precio de quien no factura.
+  taxPercent: "",
   reinvestmentPercent: "10",
   emergencyFund: "",
   hoursPerWeek: "30",
