@@ -43,13 +43,15 @@ function CampoNum({ label, value, onChange, suffix }: {
 const n = (v: string) => { const x = Number(v); return Number.isFinite(x) && x > 0 ? x : 0; };
 
 export default function ShowQuoteSheet({
-  gigs, onClose, onApplyFee,
+  gigs, onClose, onApplyFee, initialGigId,
 }: {
   /** Fechas abiertas (no pagadas), las proximas primero. */
   gigs: ArtistEvent[];
   onClose: () => void;
   /** Escribe el fee cotizado en el gig elegido. */
   onApplyFee: (gig: ArtistEvent, fee: number) => void;
+  /** La fecha que dispara la cotizacion (p.ej. la recien creada sin precio). */
+  initialGigId?: string;
 }) {
   const { t } = useTranslation();
   const currency = useCurrency();
@@ -57,7 +59,7 @@ export default function ShowQuoteSheet({
   const pricing = useMemo(() => loadArtistPricing(), []);
   const rate = useMemo(() => computeArtistRate(pricing), [pricing]);
 
-  const [gigId, setGigId] = useState<string>(gigs[0]?.id ?? "");
+  const [gigId, setGigId] = useState<string>(initialGigId ?? gigs[0]?.id ?? "");
   const gig = gigs.find((g) => g.id === gigId) ?? null;
 
   /* Arranca del minimo de tu tarifa. Si el gig ya trae un fee mayor, ese: una

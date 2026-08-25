@@ -84,6 +84,9 @@ function EventSheet({
   const { t } = useTranslation();
   const [e, setE] = useState<ArtistEvent>(inicial);
   const set = <K extends keyof ArtistEvent>(k: K, v: ArtistEvent[K]) => setE((p) => ({ ...p, [k]: v }));
+  /* Tu minimo, junto al campo del precio: la pregunta "¿cuanto cobro?" nace al
+     capturar la fecha, no en una herramienta aparte (Paco 2026-08-25). */
+  const tarifa = useMemo(() => computeArtistRate(loadArtistPricing()), []);
 
   /* Cambiar de kind re-ancla el status a su escalera: un "paid" no significa
      nada en una grabacion. Solo aplica al crear (editar no cambia de kind). */
@@ -130,6 +133,11 @@ function EventSheet({
                 <CampoNum label={t("abFee")} value={e.fee} onChange={(v) => set("fee", v)} />
                 <CampoNum label={t("abDeposit")} value={e.deposit} onChange={(v) => set("deposit", v)} />
               </div>
+              {tarifa.isSetupComplete && (
+                <p className="-mt-1 font-mono text-[10px] text-zinc-500">
+                  {t("aqYourMin", { min: formatMoney(Math.round(tarifa.minFee), e.currency) })}
+                </p>
+              )}
               <CampoNum label={t("abCost")} value={e.cost} onChange={(v) => set("cost", v)} />
             </>
           )}
@@ -199,6 +207,8 @@ export default function ArtistBusinessHub({ userId }: { userId: string }) {
   const [hoja, setHoja] = useState<{ e: ArtistEvent; nuevo: boolean } | null>(null);
   const [setupAbierto, setSetupAbierto] = useState(false);
   const [quoteAbierto, setQuoteAbierto] = useState(false);
+  /** La fecha que dispara la cotizacion (la recien creada sin precio). */
+  const [quoteGigId, setQuoteGigId] = useState<string | undefined>(undefined);
   const [pricing, setPricing] = useState<ArtistPricingState | null>(null);
 
   useEffect(() => {
@@ -288,14 +298,23 @@ export default function ArtistBusinessHub({ userId }: { userId: string }) {
         <EventSheet
           inicial={hoja.e}
           onClose={() => setHoja(null)}
-          onSave={guardar}
+          onSave={(e) => {
+            /* Una fecha nueva SIN precio encadena directo a cotizarla: la
+               pregunta "¿cuanto cobro?" nace aqui (Paco 2026-08-25). Si el fee
+               ya viene puesto, el trato esta hablado y no hay que interrumpir.
+               La herramienta suelta se queda para renegociar despues. */
+            const cotizarla = hoja.nuevo && e.kind === "gig" && e.fee <= 0;
+            guardar(e);
+            if (cotizarla) { setQuoteGigId(e.id); setQuoteAbierto(true); }
+          }}
           onDelete={hoja.nuevo ? null : borrar}
         />
       )}
       {quoteAbierto && (
         <ShowQuoteSheet
           gigs={gigsAbiertos}
-          onClose={() => setQuoteAbierto(false)}
+          initialGigId={quoteGigId}
+          onClose={() => { setQuoteAbierto(false); setQuoteGigId(undefined); }}
           onApplyFee={aplicarFee}
         />
       )}

@@ -1612,3 +1612,11 @@ i18n.addResourceBundle("es", "translation", {
   aqBelowMin: "Abajo de tu mínimo de {{min}}. Estarías pagando por tocar.",
   aqCopy: "Copiar cotización", aqCopied: "Copiada", aqApply: "Guardar en la fecha",
 }, true, true);
+
+/* Artist Business · el minimo junto al precio (2026-08-25) */
+i18n.addResourceBundle("en", "translation", {
+  aqYourMin: "Your minimum: {{min}}",
+}, true, true);
+i18n.addResourceBundle("es", "translation", {
+  aqYourMin: "Tu mínimo: {{min}}",
+}, true, true);

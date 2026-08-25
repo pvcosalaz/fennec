@@ -139,12 +139,11 @@ export default function ArtistBusinessHubDesktop({
     <div className="flex flex-col">
       <RiseStyle />
 
+      {/* Sin boton de alta aqui: agregar vive en los carriles (contextual, cada
+          + preseleccciona su tipo) y en el vacio de "Lo que sigue". Un tercer
+          boton generico era redundante y ademas ambiguo: ¿evento de que tipo? */}
       <div className="dd-rise mb-6 flex flex-shrink-0 items-center justify-between">
         <h1 className="text-[21px] font-bold tracking-tight text-white">{t("abKicker")}</h1>
-        <button type="button" onClick={() => onAddEvent("gig")}
-          className="rounded-full border border-accent/40 px-3.5 py-1.5 text-[11.5px] font-semibold text-accent transition hover:brightness-110">
-          {t("abAddEvent")}
-        </button>
       </div>
 
       <div className="flex flex-col gap-8">
