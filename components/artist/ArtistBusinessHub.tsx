@@ -13,6 +13,7 @@ import {
 } from "@/lib/artistBusiness";
 import ArtistRateSetup from "./ArtistRateSetup";
 import ArtistBusinessHubDesktop from "./ArtistBusinessHubDesktop";
+import ShowQuoteSheet from "./ShowQuoteSheet";
 import { useIsDesktop } from "@/lib/useIsDesktop";
 import i18nInstance from "@/lib/i18n";
 
@@ -182,18 +183,11 @@ function EventSheet({
 
 // ─── El hub ──────────────────────────────────────────────────────────────────
 
-/** Los ultimos n meses con su rotulo en el idioma activo (mismo criterio que
- *  getLastNMonths del hub de productor). */
-function ultimosMeses(n: number) {
-  const now = new Date();
-  return Array.from({ length: n }, (_, i) => {
-    const d = new Date(now.getFullYear(), now.getMonth() - (n - 1 - i), 1);
-    return {
-      y: d.getFullYear(), m: d.getMonth(),
-      label: d.toLocaleString(i18nInstance.resolvedLanguage ?? "en", { month: "short" }),
-      isCurrent: i === n - 1,
-    };
-  });
+/** El dia de hoy como YYYY-MM-DD LOCAL (nada de toISOString, que es UTC y ya
+ *  mordio una vez con el "0 scheduled" del dashboard). */
+function hoyKey(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 export default function ArtistBusinessHub({ userId }: { userId: string }) {
@@ -204,6 +198,7 @@ export default function ArtistBusinessHub({ userId }: { userId: string }) {
   const [filtro, setFiltro] = useState<ArtistEventKind | "all">("all");
   const [hoja, setHoja] = useState<{ e: ArtistEvent; nuevo: boolean } | null>(null);
   const [setupAbierto, setSetupAbierto] = useState(false);
+  const [quoteAbierto, setQuoteAbierto] = useState(false);
   const [pricing, setPricing] = useState<ArtistPricingState | null>(null);
 
   useEffect(() => {
@@ -220,19 +215,38 @@ export default function ArtistBusinessHub({ userId }: { userId: string }) {
     [events],
   );
 
-  /* La grafica de escritorio: cobrado por mes, ultimos seis. */
-  const meses6 = useMemo(() => ultimosMeses(6), []);
-  const series = useMemo(
-    () => meses6.map(({ y, m }) => monthTotals(events, y, m).earned),
-    [events, meses6],
+  /* La organizacion manda: que sigue, la agenda, y cada carril con lo proximo
+     primero y lo reciente despues. */
+  const hoy = hoyKey();
+  const proximos = useMemo(
+    () => events
+      .filter((e) => e.eventDate && e.eventDate >= hoy)
+      .sort((a, b) => (a.eventDate ?? "").localeCompare(b.eventDate ?? "")),
+    [events, hoy],
   );
+  const upNext = proximos[0] ?? null;
+  const daysAway = upNext?.eventDate
+    ? Math.round((new Date(`${upNext.eventDate}T00:00:00`).getTime() - new Date(`${hoy}T00:00:00`).getTime()) / 86400000)
+    : null;
+  const agenda = proximos.slice(0, 6);
 
-  /* Agendado: fechas que aun no se tocan. Es el pipeline del artista. */
-  const agendadas = useMemo(
-    () => events.filter((e) => e.kind === "gig" && (e.status === "hold" || e.status === "confirmed")),
-    [events],
+  const lanes = useMemo(() => {
+    const porKind = (k: ArtistEventKind) => {
+      const del = events.filter((e) => e.kind === k);
+      const fut = del.filter((e) => e.eventDate && e.eventDate >= hoy)
+        .sort((a, b) => (a.eventDate ?? "").localeCompare(b.eventDate ?? ""));
+      const resto = del.filter((e) => !e.eventDate || e.eventDate < hoy)
+        .sort((a, b) => (b.eventDate ?? "").localeCompare(a.eventDate ?? ""));
+      return [...fut, ...resto];
+    };
+    return { gig: porKind("gig"), recording: porKind("recording"), release: porKind("release") };
+  }, [events, hoy]);
+
+  /* Fechas cotizables: gigs vivos (no pagados), las proximas primero. */
+  const gigsAbiertos = useMemo(
+    () => [...lanes.gig].filter((e) => e.status !== "paid"),
+    [lanes.gig],
   );
-  const agendadoTotal = agendadas.reduce((s, e) => s + e.fee, 0);
 
   const visibles = useMemo(
     () => (filtro === "all" ? events : events.filter((e) => e.kind === filtro)),
@@ -263,10 +277,33 @@ export default function ArtistBusinessHub({ userId }: { userId: string }) {
     void upsertArtistEvent(userId, done);
   }
 
-  /* ── Escritorio ──
-     La tabuladora es una VISTA que sustituye al hub, como la calculadora del
-     productor: en pantalla grande un formulario de veinte campos metido en un
-     pop-up se siente de telefono (Paco 2026-08-19). */
+  /* La cotizacion no es un documento aparte: es el numero que el gig promete. */
+  function aplicarFee(gig: ArtistEvent, fee: number) {
+    guardar({ ...gig, fee });
+  }
+
+  const hojas = (
+    <>
+      {hoja && (
+        <EventSheet
+          inicial={hoja.e}
+          onClose={() => setHoja(null)}
+          onSave={guardar}
+          onDelete={hoja.nuevo ? null : borrar}
+        />
+      )}
+      {quoteAbierto && (
+        <ShowQuoteSheet
+          gigs={gigsAbiertos}
+          onClose={() => setQuoteAbierto(false)}
+          onApplyFee={aplicarFee}
+        />
+      )}
+    </>
+  );
+
+  /* ── Escritorio: la tabuladora es una VISTA, como la calculadora del
+     productor (Paco 2026-08-19). ── */
   if (isDesktop && setupAbierto) {
     return (
       <ArtistRateSetup
@@ -282,75 +319,54 @@ export default function ArtistBusinessHub({ userId }: { userId: string }) {
       <>
         <ArtistBusinessHubDesktop
           events={events}
+          lanes={lanes}
+          upNext={upNext}
+          daysAway={daysAway}
+          agenda={agenda}
           mes={mes}
-          months={meses6}
-          series={series}
           minFee={rate.minFee}
           rateReady={rate.isSetupComplete}
           currency={currency}
-          upcoming={agendadas.length}
-          upcomingTotal={agendadoTotal}
+          lang={i18nInstance.resolvedLanguage ?? "en"}
           onOpenSetup={() => setSetupAbierto(true)}
+          onOpenQuote={() => setQuoteAbierto(true)}
           onAddEvent={(kind) => setHoja({ e: nuevoEvento(kind, currency), nuevo: true })}
           onEditEvent={(e) => setHoja({ e, nuevo: false })}
           onAdvance={avanzar}
         />
-        {hoja && (
-          <EventSheet
-            inicial={hoja.e}
-            onClose={() => setHoja(null)}
-            onSave={guardar}
-            onDelete={hoja.nuevo ? null : borrar}
-          />
-        )}
+        {hojas}
       </>
     );
   }
 
+  /* ── Telefono: mismo orden de prioridades — que sigue, la lista, y el
+     dinero con sus herramientas hasta abajo. ── */
   return (
     <div className="mx-auto w-full max-w-2xl px-5 pb-28 pt-4">
       <p className="font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-accent">{t("abKicker")}</p>
       <h1 className="mt-1 text-[22px] font-bold text-white">{t("abTitle")}</h1>
 
-      {/* El mes, en dos direcciones. Neto en ambar solo si es positivo: un mes
-          en rojo no se decora. */}
-      <div className="mt-4 grid grid-cols-3 gap-3">
-        {[
-          { label: t("abEarned"), v: mes.earned, cls: "text-white" },
-          { label: t("abInvested"), v: mes.invested, cls: "text-white" },
-          { label: t("abNet"), v: mes.net, cls: mes.net >= 0 ? "text-accent" : "text-red-400" },
-        ].map((c) => (
-          <div key={c.label} className="rounded-2xl border border-white/[0.06] bg-white/[0.03] px-4 py-3">
-            <p className="font-mono text-[9px] font-bold uppercase tracking-[0.16em] text-zinc-500">
-              {c.label} · {t("abThisMonth")}
-            </p>
-            <p className={`mt-1 text-[18px] font-black tabular-nums ${c.cls}`}>{formatMoney(c.v, currency)}</p>
-          </div>
-        ))}
-      </div>
-      {mes.pending > 0 && (
-        <p className="mt-2 font-mono text-[10px] text-zinc-500">
-          {formatMoney(mes.pending, currency)} {t("abPending")}
+      {/* Que sigue */}
+      {upNext ? (
+        <button
+          type="button"
+          onClick={() => setHoja({ e: upNext, nuevo: false })}
+          className="mt-4 w-full rounded-2xl border border-accent/20 bg-accent/[0.05] px-4 py-3.5 text-left transition active:scale-[0.99]"
+        >
+          <p className="font-mono text-[9px] font-bold uppercase tracking-[0.16em] text-accent/70">
+            {t("aqUpNext")}{daysAway !== null && <> · {daysAway === 0 ? t("aqToday") : t("aqInDays", { count: daysAway })}</>}
+          </p>
+          <p className="mt-1 truncate text-[16px] font-bold text-white">{upNext.title}</p>
+          <p className="mt-0.5 truncate text-[11.5px] text-zinc-500">
+            {upNext.eventDate}
+            {upNext.kind === "gig" && (upNext.venue || upNext.city) && <> · {[upNext.venue, upNext.city].filter(Boolean).join(", ")}</>}
+          </p>
+        </button>
+      ) : (
+        <p className="mt-4 rounded-2xl border border-dashed border-white/10 px-4 py-3.5 text-center text-[12.5px] text-zinc-500">
+          {t("aqNothingBooked")}
         </p>
       )}
-
-      {/* La tarifa */}
-      <div className="mt-4 flex items-center justify-between rounded-2xl border border-accent/20 bg-accent/[0.06] px-4 py-3.5">
-        <div>
-          <p className="font-mono text-[9px] font-bold uppercase tracking-[0.16em] text-accent/70">{t("abRate")}</p>
-          {rate.isSetupComplete ? (
-            <p className="mt-0.5 text-[20px] font-black text-accent tabular-nums">{formatMoney(rate.minFee, currency)}</p>
-          ) : (
-            <p className="mt-0.5 max-w-[26ch] text-[11px] leading-snug text-zinc-400">{t("abRateHint")}</p>
-          )}
-        </div>
-        <button
-          onClick={() => setSetupAbierto(true)}
-          className="rounded-full border border-accent/40 px-4 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-accent transition hover:bg-accent/10 active:scale-[0.97]"
-        >
-          {rate.isSetupComplete ? t("abRateEdit") : t("abRateSetup")}
-        </button>
-      </div>
 
       {/* Filtros + alta */}
       <div className="mt-5 flex items-center gap-2">
@@ -403,8 +419,6 @@ export default function ArtistBusinessHub({ userId }: { userId: string }) {
                     : <>−{formatMoney(e.cost, e.currency)}{e.recouped > 0 && <span className="text-accent/80"> · +{formatMoney(e.recouped, e.currency)}</span>}</>}
                 </p>
               </button>
-              {/* El status avanza tocandolo: hold->confirmed->played->paid.
-                  En el ultimo peldaño se vuelve inerte, no desaparece. */}
               <button
                 onClick={() => avanzar(e)}
                 disabled={!next}
@@ -422,14 +436,45 @@ export default function ArtistBusinessHub({ userId }: { userId: string }) {
         })}
       </div>
 
-      {hoja && (
-        <EventSheet
-          inicial={hoja.e}
-          onClose={() => setHoja(null)}
-          onSave={guardar}
-          onDelete={hoja.nuevo ? null : borrar}
-        />
+      {/* El dinero, hasta abajo: herramientas con nombre y el mes compacto */}
+      <div className="mt-6 grid grid-cols-2 gap-2.5">
+        <button
+          onClick={() => setSetupAbierto(true)}
+          className="rounded-2xl border border-accent/25 bg-accent/[0.06] px-4 py-3 text-left transition active:scale-[0.98]"
+        >
+          <p className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-accent/70">{t("abRate")}</p>
+          <p className="mt-1 text-[15px] font-black tabular-nums text-accent">
+            {rate.isSetupComplete ? formatMoney(rate.minFee, currency) : t("abRateSetup")}
+          </p>
+        </button>
+        <button
+          onClick={() => setQuoteAbierto(true)}
+          className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-left transition active:scale-[0.98]"
+        >
+          <p className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-zinc-500">{t("aqQuoteTool")}</p>
+          <p className="mt-1 text-[12px] leading-snug text-zinc-400">{t("aqQuoteToolDesc")}</p>
+        </button>
+      </div>
+
+      <div className="mt-2.5 flex items-baseline justify-between rounded-2xl border border-white/[0.06] bg-white/[0.03] px-4 py-3">
+        {[
+          { l: t("abEarned"), v: mes.earned, cls: "text-white" },
+          { l: t("abInvested"), v: mes.invested, cls: "text-white" },
+          { l: t("abNet"), v: mes.net, cls: mes.net >= 0 ? "text-accent" : "text-red-400" },
+        ].map((c) => (
+          <div key={c.l} className="min-w-0">
+            <p className="font-mono text-[8.5px] font-bold uppercase tracking-[0.14em] text-zinc-600">{c.l}</p>
+            <p className={`mt-0.5 truncate text-[15px] font-black tabular-nums ${c.cls}`}>{formatMoney(c.v, currency)}</p>
+          </div>
+        ))}
+      </div>
+      {mes.pending > 0 && (
+        <p className="mt-2 font-mono text-[10px] text-zinc-500">
+          {formatMoney(mes.pending, currency)} {t("abPending")}
+        </p>
       )}
+
+      {hojas}
       {setupAbierto && (
         <ArtistRateSetup
           onClose={() => setSetupAbierto(false)}

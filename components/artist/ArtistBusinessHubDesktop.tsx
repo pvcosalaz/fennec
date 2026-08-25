@@ -4,25 +4,25 @@ import { formatMoney, type Currency } from "@/lib/currency";
 import {
   type ArtistEvent, type ArtistEventKind, eventMoney, nextStatus,
 } from "@/lib/artistBusiness";
-import { RiseStyle, Tile, Instrument, Cols, Col } from "@/components/desktop/ui";
+import { RiseStyle, Tile } from "@/components/desktop/ui";
 
 /* ═══════════════════════════════════════════════════════════════
-   ARTIST BUSINESS — contenido de escritorio. Espejo deliberado de
-   BusinessHubDesktop (registro enterprise: instrumento + grafica,
-   banda de pipeline, tabla + carril de herramientas), porque los dos
-   oficios son el MISMO producto con otro eje. Presentacion pura: los
-   datos llegan calculados del contenedor (ArtistBusinessHub).
-   El primer intento era el layout movil centrado a lo ancho del
-   escritorio (Paco 2026-08-19: "siento que esta en modo celular").
-   ═══════════════════════════════════════════════════════════════ */
+   ARTIST BUSINESS — escritorio, segunda iteracion.
 
-const STATUS_STYLE: Record<string, string> = {
-  paid: "bg-emerald-400/10 text-emerald-400",
-  played: "bg-accent/15 text-accent",
-  confirmed: "bg-accent/15 text-accent",
-  released: "bg-emerald-400/10 text-emerald-400",
-  done: "bg-emerald-400/10 text-emerald-400",
-};
+   La primera era un espejo del hub de productor (heroe de dinero,
+   grafica, tabla) y Paco lo rechazo con razon (2026-08-19): "no tanto
+   el dinero, sino la organizacion de fechas, grabaciones y
+   lanzamientos". La vida del artista se organiza por CALENDARIO, no
+   por estado de cuenta.
+
+   Asi que el modulo ahora lee de arriba a abajo como la semana de un
+   artista: QUE SIGUE (el proximo evento, en grande, con su cuenta
+   regresiva) → la agenda → los tres carriles (fechas / grabaciones /
+   lanzamientos, cada uno con su lista y su alta) → y hasta ABAJO el
+   dinero: el mes compacto y las dos herramientas con nombre propio,
+   la calculadora de tarifa y COTIZAR UN SHOW, que era lo que no se
+   encontraba cuando la calculadora vivia en un boton del header.
+   ═══════════════════════════════════════════════════════════════ */
 
 const STATUS_KEY: Record<string, string> = {
   hold: "abStHold", confirmed: "abStConfirmed", played: "abStPlayed", paid: "abStPaid",
@@ -34,7 +34,6 @@ const KIND_KEY: Record<ArtistEventKind, string> = {
   gig: "abKindGig", recording: "abKindRecording", release: "abKindRelease",
 };
 
-/* Iconos del carril, hermanos visuales de los del hub de productor. */
 const AMBER = "#f5a623";
 const STROKE = "rgba(255,255,255,0.68)";
 function GigIcon() {
@@ -62,29 +61,79 @@ function ReleaseIcon() {
     </svg>
   );
 }
+function CalcIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style={{ transform: "rotate(-6deg)" }}>
+      <path d="M12.59 2.59A2 2 0 0 0 11.17 2H4a2 2 0 0 0-2 2v7.17a2 2 0 0 0 .59 1.42l8.7 8.7a2.43 2.43 0 0 0 3.42 0l6.58-6.58a2.43 2.43 0 0 0 0-3.42z" stroke={STROKE} strokeWidth="1.5" strokeLinejoin="round" />
+      <circle cx="7.2" cy="7.2" r="1.4" fill={AMBER} />
+      <text x="12.6" y="15.6" fontSize="7.5" fontWeight="700" fill={AMBER} fontFamily="-apple-system, system-ui, sans-serif" textAnchor="middle">$</text>
+    </svg>
+  );
+}
+function QuoteIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <path d="M7 3h7l4 4v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke={STROKE} strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M14 3v4h4" stroke={STROKE} strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M9.5 13h5M9.5 16.5h3" stroke={AMBER} strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** "Aug 30" en el idioma activo, sin pelearse con timezones. */
+function fechaCorta(iso: string, lang: string) {
+  const d = new Date(`${iso}T00:00:00`);
+  return d.toLocaleDateString(lang, { month: "short", day: "numeric" });
+}
+
+function StatusChip({ e, onAdvance }: { e: ArtistEvent; onAdvance: (e: ArtistEvent) => void }) {
+  const { t } = useTranslation();
+  const next = nextStatus(e);
+  const done = e.status === "paid" || e.status === "done" || e.status === "released";
+  return (
+    <button
+      type="button"
+      onClick={(ev) => { ev.stopPropagation(); onAdvance(e); }}
+      disabled={!next}
+      title={next ? t(STATUS_KEY[next]) : undefined}
+      className={`shrink-0 rounded-md px-2 py-0.5 text-[9.5px] font-bold uppercase transition ${
+        done ? "bg-emerald-400/10 text-emerald-400" : "bg-white/[0.06] text-zinc-400"
+      } ${next ? "hover:bg-accent/15 hover:text-accent active:scale-[0.96]" : "cursor-default"}`}
+    >
+      {t(STATUS_KEY[e.status])}
+    </button>
+  );
+}
 
 export default function ArtistBusinessHubDesktop({
-  events, mes, months, series, minFee, rateReady, currency, upcoming, upcomingTotal,
-  onOpenSetup, onAddEvent, onEditEvent, onAdvance,
+  events, lanes, upNext, daysAway, agenda, mes, minFee, rateReady, currency, lang,
+  onOpenSetup, onOpenQuote, onAddEvent, onEditEvent, onAdvance,
 }: {
   events: ArtistEvent[];
+  /** Por tipo, ya ordenados: lo que viene primero, luego lo reciente. */
+  lanes: Record<ArtistEventKind, ArtistEvent[]>;
+  upNext: ArtistEvent | null;
+  daysAway: number | null;
+  /** Los proximos, cronologicos, todos los tipos revueltos. */
+  agenda: ArtistEvent[];
   mes: { earned: number; invested: number; net: number; pending: number };
-  months: { label: string; isCurrent: boolean }[];
-  /** Cobrado por mes, ultimos 6 — misma grafica de barras que el de productor. */
-  series: number[];
   minFee: number;
   rateReady: boolean;
   currency: Currency;
-  upcoming: number;
-  upcomingTotal: number;
+  lang: string;
   onOpenSetup: () => void;
+  onOpenQuote: () => void;
   onAddEvent: (kind: ArtistEventKind) => void;
   onEditEvent: (e: ArtistEvent) => void;
   onAdvance: (e: ArtistEvent) => void;
 }) {
   const { t } = useTranslation();
-  const maxRev = Math.max(...series, 1);
-  const recent = events.slice(0, 7);
+
+  const LANES: { k: ArtistEventKind; icon: React.ReactNode; titleKey: string }[] = [
+    { k: "gig",       icon: <GigIcon />,       titleKey: "abGigs" },
+    { k: "recording", icon: <RecordingIcon />, titleKey: "abRecordings" },
+    { k: "release",   icon: <ReleaseIcon />,   titleKey: "abReleases" },
+  ];
 
   return (
     <div className="flex flex-col">
@@ -92,155 +141,163 @@ export default function ArtistBusinessHubDesktop({
 
       <div className="dd-rise mb-6 flex flex-shrink-0 items-center justify-between">
         <h1 className="text-[21px] font-bold tracking-tight text-white">{t("abKicker")}</h1>
-        <div className="flex items-center gap-2.5">
-          <button type="button" onClick={onOpenSetup}
-            className="rounded-full border border-white/10 px-3.5 py-1.5 text-[11.5px] text-zinc-400 transition hover:text-white">
-            {rateReady ? t("abRateEdit") : t("abRateSetup")}
-          </button>
-          <button type="button" onClick={() => onAddEvent("gig")}
-            className="rounded-full border border-accent/40 px-3.5 py-1.5 text-[11.5px] font-semibold text-accent transition hover:brightness-110">
-            {t("abAddEvent")}
-          </button>
-        </div>
+        <button type="button" onClick={() => onAddEvent("gig")}
+          className="rounded-full border border-accent/40 px-3.5 py-1.5 text-[11.5px] font-semibold text-accent transition hover:brightness-110">
+          {t("abAddEvent")}
+        </button>
       </div>
 
-      <div className="flex flex-col gap-10">
-        {/* Heroe: lo cobrado del mes, con lo invertido y el neto al pie —
-            el numero uno de un modulo de negocio es el dinero que entro. */}
-        <div className="dd-rise grid items-stretch gap-4" style={{ gridTemplateColumns: ".85fr 1.35fr", animationDelay: ".06s" }}>
-          <Instrument
-            label={`${t("abEarned")} · ${t("abThisMonth")}`}
-            value={formatMoney(mes.earned, currency)}
-            size={64}
-            footer={
-              <span className="relative mt-2 block text-[10px] text-zinc-500">
-                {t("abInvested")} <b className="text-zinc-300">{formatMoney(mes.invested, currency)}</b>
-                {" · "}{t("abNet")}{" "}
-                <b className={mes.net >= 0 ? "text-accent" : "text-red-400"}>{formatMoney(mes.net, currency)}</b>
-                {mes.pending > 0 && (
-                  <span className="mt-0.5 block text-zinc-600">
-                    {formatMoney(mes.pending, currency)} {t("abPending")}
+      <div className="flex flex-col gap-8">
+        {/* ── QUE SIGUE: el proximo evento manda, no el dinero ── */}
+        <div className="dd-rise grid items-stretch gap-4" style={{ gridTemplateColumns: ".95fr 1.25fr", animationDelay: ".06s" }}>
+          <Tile label={t("aqUpNext")} className="flex flex-col justify-center">
+            {upNext ? (
+              <button type="button" onClick={() => onEditEvent(upNext)} className="group text-left">
+                <div className="flex items-baseline gap-3">
+                  <span className="text-[40px] font-black leading-none tracking-tight text-accent">
+                    {upNext.eventDate ? fechaCorta(upNext.eventDate, lang) : "—"}
                   </span>
-                )}
-              </span>
-            }
-          />
-          <Tile label={t("bzLast6")}>
-            {series.every((r) => r === 0) ? (
-              <div className="flex h-[168px] flex-col items-center justify-center gap-1">
-                <p className="text-[12.5px] text-zinc-600">{t("abEmpty")}</p>
-              </div>
+                  {daysAway !== null && (
+                    <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-zinc-500">
+                      {daysAway === 0 ? t("aqToday") : t("aqInDays", { count: daysAway })}
+                    </span>
+                  )}
+                </div>
+                <p className="mt-2.5 truncate text-[17px] font-bold text-white transition group-hover:text-accent">
+                  {upNext.title}
+                </p>
+                <p className="mt-0.5 text-[12px] text-zinc-500">
+                  <span className="mr-1.5 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-zinc-600">{t(KIND_KEY[upNext.kind])}</span>
+                  {upNext.kind === "gig" && [upNext.venue, upNext.city].filter(Boolean).join(", ")}
+                </p>
+                <div className="mt-3 flex items-center gap-2.5">
+                  <StatusChip e={upNext} onAdvance={onAdvance} />
+                  {upNext.kind === "gig" && upNext.fee > 0 && (
+                    <span className="font-mono text-[11px] tabular-nums text-zinc-500">{formatMoney(upNext.fee, upNext.currency)}</span>
+                  )}
+                </div>
+              </button>
             ) : (
-              <div className="mt-3 flex h-[168px] items-end gap-2.5">
-                {months.map((m, i) => {
-                  const pct = series[i] > 0 ? Math.max((series[i] / maxRev) * 100, 6) : 3;
-                  return (
-                    <div key={i} className="flex-1 rounded-t-[4px] transition-all duration-500"
-                      style={{ height: `${pct}%`, background: m.isCurrent ? AMBER : "rgba(255,255,255,.08)" }} />
-                  );
-                })}
+              <div className="py-6 text-center">
+                <p className="text-[13px] text-zinc-500">{t("aqNothingBooked")}</p>
+                <button type="button" onClick={() => onAddEvent("gig")}
+                  className="mt-3 rounded-full border border-accent/40 px-4 py-1.5 text-[11.5px] font-semibold text-accent transition hover:bg-accent/10">
+                  {t("abAddEvent")}
+                </button>
               </div>
             )}
-            <div className="mt-2 flex gap-2.5">
-              {months.map((m, i) => (
-                <span key={i} className={`flex-1 text-center font-mono text-[9.5px] ${m.isCurrent ? "text-accent" : "text-zinc-600"}`}>{m.label}</span>
-              ))}
-            </div>
           </Tile>
-        </div>
 
-        {/* La banda: tarifa → agendado → por cobrar. El viaje del dinero del
-            artista, como la banda del productor traza el suyo. */}
-        <div className="dd-rise" style={{ animationDelay: ".12s" }}>
-          <Tile label={t("bdPipeline")} className="py-1">
-            <Cols>
-              <Col
-                value={rateReady ? formatMoney(minFee, currency) : "—"}
-                label={t("abMinFee")}
-                muted={!rateReady}
-                sub={rateReady ? t("abRateHint") : t("abRateSetup")}
-                onClick={onOpenSetup}
-              />
-              <Col
-                value={upcoming > 0 ? formatMoney(upcomingTotal, currency) : "—"}
-                label={t("abBookedAhead")}
-                muted={upcoming === 0}
-                sub={upcoming > 0 ? t("abShowsCount", { count: upcoming }) : undefined}
-              />
-              <Col
-                value={mes.pending > 0 ? formatMoney(mes.pending, currency) : "—"}
-                label={t("abPending")}
-                muted={mes.pending === 0}
-              />
-            </Cols>
-          </Tile>
-        </div>
-
-        {/* Tabla de eventos + carril de altas, espejo de cotizaciones + herramientas. */}
-        <div className="dd-rise grid gap-4" style={{ gridTemplateColumns: "1.55fr 1fr", animationDelay: ".18s" }}>
-          <Tile padded={false} className="flex flex-col">
-            <div className="flex flex-shrink-0 items-center justify-between px-5 py-3.5">
-              <b className="text-[13.5px] font-bold text-white">{t("abTitle")}</b>
-            </div>
-            {recent.length === 0 ? (
-              <div className="px-5 pb-10 pt-4 text-center text-[12.5px] text-zinc-600">{t("abEmpty")}</div>
+          <Tile label={t("aqAgenda")} padded={false}>
+            {agenda.length === 0 ? (
+              <p className="px-5 py-8 text-center text-[12.5px] text-zinc-600">{t("abEmpty")}</p>
             ) : (
-              <table className="w-full border-collapse text-[12.5px]">
-                <thead>
-                  <tr>
-                    {["abDate", "abColEvent", "bdColMonto", "bdColEstado"].map((k) => (
-                      <th key={k} className="border-y border-white/[0.06] px-5 py-2.5 text-left text-[9.5px] font-semibold uppercase tracking-[0.16em] text-zinc-600">{t(k)}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {recent.map((e) => {
+              <div className="flex flex-col divide-y divide-white/[0.04] px-2 py-1">
+                {agenda.map((e) => (
+                  <button key={e.id} type="button" onClick={() => onEditEvent(e)}
+                    className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition hover:bg-white/[0.02]">
+                    <span className="w-14 shrink-0 font-mono text-[10.5px] tabular-nums text-zinc-500">
+                      {e.eventDate ? fechaCorta(e.eventDate, lang) : "—"}
+                    </span>
+                    <span className="shrink-0 font-mono text-[8.5px] font-bold uppercase tracking-[0.14em] text-zinc-600">{t(KIND_KEY[e.kind])}</span>
+                    <span className="min-w-0 flex-1 truncate text-[13px] text-zinc-300">{e.title}</span>
+                    <StatusChip e={e} onAdvance={onAdvance} />
+                  </button>
+                ))}
+              </div>
+            )}
+          </Tile>
+        </div>
+
+        {/* ── LOS TRES CARRILES: la organizacion es el modulo ── */}
+        <div className="dd-rise grid gap-4" style={{ gridTemplateColumns: "1fr 1fr 1fr", animationDelay: ".12s" }}>
+          {LANES.map(({ k, icon, titleKey }) => (
+            <Tile
+              key={k}
+              padded={false}
+              className="flex flex-col"
+              label={undefined}
+            >
+              <div className="flex items-center justify-between px-4 pb-1 pt-3.5">
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: "rgba(255,255,255,.045)" }}>{icon}</span>
+                  <div>
+                    <b className="block text-[13px] font-bold text-white">{t(titleKey)}</b>
+                    <span className="font-mono text-[9.5px] text-zinc-600">{lanes[k].length}</span>
+                  </div>
+                </div>
+                <button type="button" onClick={() => onAddEvent(k)} aria-label={`${t("abAddEvent")} · ${t(titleKey)}`}
+                  className="flex h-7 w-7 items-center justify-center rounded-full border border-white/10 text-zinc-500 transition hover:border-accent/40 hover:text-accent active:scale-[0.94]">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+                </button>
+              </div>
+              {lanes[k].length === 0 ? (
+                <p className="px-4 pb-5 pt-3 text-[11.5px] leading-snug text-zinc-600">{t(`abLaneEmpty_${k}`)}</p>
+              ) : (
+                <div className="flex flex-col divide-y divide-white/[0.04] px-2 pb-2 pt-1">
+                  {lanes[k].slice(0, 4).map((e) => {
                     const m = eventMoney(e);
                     return (
-                      <tr key={e.id} className="cursor-pointer transition hover:bg-white/[0.02]" onClick={() => onEditEvent(e)}>
-                        <td className="border-b border-white/[0.04] px-5 py-3 font-mono text-[11px] tabular-nums text-zinc-500">{e.eventDate ?? "—"}</td>
-                        <td className="border-b border-white/[0.04] px-5 py-3 text-zinc-300">
-                          <span className="mr-2 font-mono text-[8.5px] font-bold uppercase tracking-[0.14em] text-zinc-600">{t(KIND_KEY[e.kind])}</span>
-                          {e.title}
-                          {e.kind === "gig" && (e.venue || e.city) && (
-                            <span className="text-zinc-600"> · {[e.venue, e.city].filter(Boolean).join(", ")}</span>
-                          )}
-                        </td>
-                        <td className="border-b border-white/[0.04] px-5 py-3 font-semibold tabular-nums text-white">
-                          {e.kind === "gig" ? formatMoney(e.fee, e.currency) : `−${formatMoney(e.cost, e.currency)}`}
-                          {e.kind === "gig" && m.pending > 0 && (
-                            <span className="ml-1.5 font-normal text-zinc-600">· {formatMoney(m.pending, e.currency)} {t("abPending")}</span>
-                          )}
-                        </td>
-                        <td className="border-b border-white/[0.04] px-5 py-3">
-                          {/* Avanza AQUI, sin abrir el editor: el chip es el
-                              mismo gesto que en movil. stopPropagation porque
-                              la fila entera abre el evento. */}
-                          <button
-                            type="button"
-                            onClick={(ev) => { ev.stopPropagation(); onAdvance(e); }}
-                            disabled={!nextStatus(e)}
-                            className={`rounded-md px-2 py-0.5 text-[10px] font-bold uppercase transition ${STATUS_STYLE[e.status] ?? "bg-white/[0.06] text-zinc-400"} ${nextStatus(e) ? "hover:brightness-125 active:scale-[0.96]" : "cursor-default"}`}
-                          >
-                            {t(STATUS_KEY[e.status])}
-                          </button>
-                        </td>
-                      </tr>
+                      <button key={e.id} type="button" onClick={() => onEditEvent(e)}
+                        className="flex items-center gap-2.5 rounded-lg px-2 py-2.5 text-left transition hover:bg-white/[0.02]">
+                        <span className="w-12 shrink-0 font-mono text-[10px] tabular-nums text-zinc-500">
+                          {e.eventDate ? fechaCorta(e.eventDate, lang) : "—"}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-[12.5px] text-zinc-300">{e.title}</span>
+                          <span className="block truncate font-mono text-[9.5px] tabular-nums text-zinc-600">
+                            {k === "gig"
+                              ? <>{e.fee > 0 && formatMoney(e.fee, e.currency)}{m.pending > 0 && ` · ${formatMoney(m.pending, e.currency)} ${t("abPending")}`}</>
+                              : <>{e.cost > 0 && `−${formatMoney(e.cost, e.currency)}`}{e.recouped > 0 && ` · +${formatMoney(e.recouped, e.currency)}`}</>}
+                          </span>
+                        </span>
+                        <StatusChip e={e} onAdvance={onAdvance} />
+                      </button>
                     );
                   })}
-                </tbody>
-              </table>
+                </div>
+              )}
+            </Tile>
+          ))}
+        </div>
+
+        {/* ── ABAJO, EL DINERO: el mes compacto y las dos herramientas ── */}
+        <div className="dd-rise grid gap-4" style={{ gridTemplateColumns: "1fr 1.35fr", animationDelay: ".18s" }}>
+          <Tile label={t("abThisMonth")} className="flex flex-col justify-center">
+            <div className="flex items-baseline justify-between gap-4">
+              {[
+                { l: t("abEarned"), v: mes.earned, cls: "text-white" },
+                { l: t("abInvested"), v: mes.invested, cls: "text-white" },
+                { l: t("abNet"), v: mes.net, cls: mes.net >= 0 ? "text-accent" : "text-red-400" },
+              ].map((c) => (
+                <div key={c.l} className="min-w-0">
+                  <p className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-zinc-600">{c.l}</p>
+                  <p className={`mt-1 truncate text-[19px] font-black tabular-nums ${c.cls}`}>{formatMoney(c.v, currency)}</p>
+                </div>
+              ))}
+            </div>
+            {mes.pending > 0 && (
+              <p className="mt-2.5 font-mono text-[10px] text-zinc-600">
+                {formatMoney(mes.pending, currency)} {t("abPending")}
+              </p>
             )}
           </Tile>
 
-          <Tile label={t("abLogIt")} className="self-start">
+          <Tile label={t("bdHerramientas")}>
             <div className="flex flex-col divide-y divide-white/[0.05]">
-              {([
-                { k: "gig" as const,       titulo: t("abKindGig"),       d: t("abGigDesc"),       icon: <GigIcon /> },
-                { k: "recording" as const, titulo: t("abKindRecording"), d: t("abRecordingDesc"), icon: <RecordingIcon /> },
-                { k: "release" as const,   titulo: t("abKindRelease"),   d: t("abReleaseDesc"),   icon: <ReleaseIcon /> },
-              ]).map(({ k, titulo, d, icon }) => (
-                <button key={k} type="button" onClick={() => onAddEvent(k)}
+              {[
+                {
+                  icon: <CalcIcon />, titulo: t("abRate"),
+                  d: rateReady ? `${t("abMinFee")}: ${formatMoney(minFee, currency)}` : t("abRateHint"),
+                  onClick: onOpenSetup,
+                },
+                {
+                  icon: <QuoteIcon />, titulo: t("aqQuoteTool"),
+                  d: t("aqQuoteToolDesc"),
+                  onClick: onOpenQuote,
+                },
+              ].map(({ icon, titulo, d, onClick }) => (
+                <button key={titulo} type="button" onClick={onClick}
                   className="group flex items-center gap-3.5 py-3.5 text-left transition first:pt-2 hover:bg-white/[0.02]">
                   <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl transition group-hover:bg-accent/10" style={{ background: "rgba(255,255,255,.045)" }}>{icon}</div>
                   <div className="min-w-0 flex-1">

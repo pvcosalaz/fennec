@@ -77,3 +77,26 @@ registran por evento).
 - **Regalías automáticas** (Spotify API etc.): `recouped` manual mientras.
 - **Cotizaciones/contratos de show**: el equivalente a Quotes para fechas.
 - La pantalla "What are you?" sigue EN PAUSA hasta que Paco la despierte.
+
+---
+
+## v1.1 · Reestructura organización-primero (2026-08-19, mismo día)
+
+La v1 era un espejo del hub de productor (héroe de dinero, gráfica, tabla) y Paco la
+rechazó: "no tanto el dinero, sino la organización de fechas, grabaciones y
+lanzamientos... y sí tener la calculadora y generar cotizaciones". El módulo ahora lee:
+
+1. **Qué sigue** — el próximo evento en grande con cuenta regresiva, junto a la agenda
+   cronológica. La vida del artista se organiza por calendario, no por estado de cuenta.
+2. **Tres carriles** — Fechas / Grabaciones / Lanzamientos, cada uno con su lista (lo
+   próximo primero) y su alta propia.
+3. **Abajo, el dinero** — el mes compacto y las dos herramientas con nombre:
+   la calculadora de tarifa y **Cotizar un show**.
+
+**Cotizar un show** (nuevo): toma un gig de la agenda, arranca del mínimo de la tarifa
+(nunca de lo que ofrezca el venue; avisa si escribes menos: "estarías pagando por
+tocar"), arma fee + anticipo para confirmar (default 50%) + resto el día del show, y
+enseña aparte tu neto tras costos y comisión. Se entrega **copiada como texto** (los
+tratos de fechas se cierran por WhatsApp, no por PDF) y "guardar" escribe el fee en el
+gig: la cotización del artista no es un documento aparte, es el número que su evento
+promete. Sin tabla nueva.
