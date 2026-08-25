@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { X, Copy, Check } from "lucide-react";
 import { formatMoney, useCurrency } from "@/lib/currency";
 import {
-  type ArtistEvent, computeArtistRate, loadArtistPricing,
+  type ArtistEvent, computeArtistRate, loadArtistPricing, SHOW_TYPES,
 } from "@/lib/artistBusiness";
 
 /* Cotizar un show: la respuesta a "¿cuanto cobro por esta fecha?".
@@ -62,20 +62,35 @@ export default function ShowQuoteSheet({
   const [gigId, setGigId] = useState<string>(initialGigId ?? gigs[0]?.id ?? "");
   const gig = gigs.find((g) => g.id === gigId) ?? null;
 
-  /* Arranca del minimo de tu tarifa. Si el gig ya trae un fee mayor, ese: una
-     cotizacion nunca deberia sugerir cobrar MENOS de lo que ya pediste. */
-  const feeInicial = Math.round(Math.max(rate.minFee, gig?.fee ?? 0)) || "";
+  /* La magnitud del evento escala la base: mismo patron que los tipos de
+     proyecto de la calculadora de produccion. */
+  const [tipo, setTipo] = useState(SHOW_TYPES[0]);
+  const minTipo = Math.round(rate.minFee * tipo.mult);
+
+  /* Arranca del minimo de tu tarifa YA escalado por el tipo. Si el gig trae un
+     fee mayor, ese: una cotizacion nunca sugiere cobrar MENOS de lo pedido. */
+  const feeInicial = Math.round(Math.max(rate.minFee * tipo.mult, gig?.fee ?? 0)) || "";
   const [fee, setFee] = useState<string>(String(feeInicial));
   const [depositPct, setDepositPct] = useState("50");
   const [showCost, setShowCost] = useState<string>(gig?.cost ? String(gig.cost) : (pricing.avgShowCost || ""));
+  /* Viaticos: un termino del trato, no un numero. El costo real de viajar ya
+     vive en el costo del show; esto solo fija QUIEN lo paga en la cotizacion. */
+  const [viaticosCubiertos, setViaticosCubiertos] = useState(false);
   const [copiado, setCopiado] = useState(false);
+
+  function cambiarTipo(t2: (typeof SHOW_TYPES)[number]) {
+    setTipo(t2);
+    setFee(String(Math.round(Math.max(rate.minFee * t2.mult, gig?.fee ?? 0)) || ""));
+  }
 
   const F = n(fee);
   const anticipo = Math.round(F * Math.min(100, n(depositPct)) / 100);
   const resto = F - anticipo;
   const comision = Math.round(F * Math.min(60, n(pricing.commissionPercent)) / 100);
   const neto = F - n(showCost) - comision;
-  const bajoMinimo = rate.isSetupComplete && F > 0 && F < Math.round(rate.minFee);
+  /* El piso del aviso es el minimo DEL TIPO: cobrar 0.7x en un escolar esta
+     bien; cobrarlo en un festival es malbaratarse. */
+  const bajoMinimo = rate.isSetupComplete && F > 0 && F < minTipo;
 
   function textoCotizacion(): string {
     const lineas = [
@@ -86,6 +101,7 @@ export default function ShowQuoteSheet({
       `${t("aqTxFee")}: ${formatMoney(F, currency)}`,
       `${t("aqTxDeposit", { pct: n(depositPct) })}: ${formatMoney(anticipo, currency)}`,
       `${t("aqTxBalance")}: ${formatMoney(resto, currency)}`,
+      viaticosCubiertos ? `+ ${t("aqTxTravel")}` : null,
     ].filter((l): l is string => l !== null);
     return lineas.join("\n");
   }
@@ -121,7 +137,7 @@ export default function ShowQuoteSheet({
                 onChange={(e) => {
                   setGigId(e.target.value);
                   const g = gigs.find((x) => x.id === e.target.value);
-                  setFee(String(Math.round(Math.max(rate.minFee, g?.fee ?? 0)) || ""));
+                  setFee(String(Math.round(Math.max(rate.minFee * tipo.mult, g?.fee ?? 0)) || ""));
                   if (g?.cost) setShowCost(String(g.cost));
                 }}
                 className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-[14px] text-white outline-none [color-scheme:dark] focus:border-accent/60"
@@ -139,15 +155,37 @@ export default function ShowQuoteSheet({
             </p>
           )}
 
+          <label className="block">
+            <span className="mb-1 block text-[11px] font-medium text-zinc-400">{t("aqShowType")}</span>
+            <div className="flex flex-wrap gap-2">
+              {SHOW_TYPES.map((t2) => (
+                <button key={t2.id} type="button" onClick={() => cambiarTipo(t2)}
+                  className={`rounded-full border px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider transition active:scale-[0.97] ${
+                    tipo.id === t2.id ? "border-accent/50 bg-accent/10 text-accent" : "border-white/10 text-zinc-500 hover:text-white"
+                  }`}>
+                  {t(t2.labelKey)}
+                  <span className={tipo.id === t2.id ? "ml-1.5 text-accent/70" : "ml-1.5 text-zinc-600"}>×{t2.mult}</span>
+                </button>
+              ))}
+            </div>
+          </label>
+
           <div className="grid grid-cols-2 gap-3">
             <CampoNum label={t("abFee")} value={fee} onChange={setFee} />
             <CampoNum label={t("aqDepositPct")} value={depositPct} onChange={setDepositPct} suffix="%" />
           </div>
+
+          <label className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3">
+            <input type="checkbox" checked={viaticosCubiertos}
+              onChange={(e) => setViaticosCubiertos(e.target.checked)}
+              className="h-4 w-4 accent-[#f5a623]" />
+            <span className="text-[12.5px] text-zinc-300">{t("aqTravelCovered")}</span>
+          </label>
           <CampoNum label={t("abFldShowCost")} value={showCost} onChange={setShowCost} />
 
           {bajoMinimo && (
             <p className="rounded-xl border border-red-400/20 bg-red-400/[0.06] px-4 py-2.5 text-[11.5px] leading-snug text-red-300">
-              {t("aqBelowMin", { min: formatMoney(Math.round(rate.minFee), currency) })}
+              {t("aqBelowMin", { min: formatMoney(minTipo, currency) })}
             </p>
           )}
 
@@ -158,6 +196,9 @@ export default function ShowQuoteSheet({
               <div className="flex justify-between"><span className="text-zinc-400">{t("aqTxFee")}</span><b className="tabular-nums text-white">{formatMoney(F, currency)}</b></div>
               <div className="flex justify-between"><span className="text-zinc-400">{t("aqTxDeposit", { pct: n(depositPct) })}</span><b className="tabular-nums text-accent">{formatMoney(anticipo, currency)}</b></div>
               <div className="flex justify-between"><span className="text-zinc-400">{t("aqTxBalance")}</span><b className="tabular-nums text-white">{formatMoney(resto, currency)}</b></div>
+              {viaticosCubiertos && (
+                <p className="pt-1 text-[11px] text-zinc-500">+ {t("aqTxTravel")}</p>
+              )}
             </div>
           </div>
 

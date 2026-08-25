@@ -1620,3 +1620,21 @@ i18n.addResourceBundle("en", "translation", {
 i18n.addResourceBundle("es", "translation", {
   aqYourMin: "Tu mínimo: {{min}}",
 }, true, true);
+
+/* Artist Business · tipos de show en la cotizacion (2026-08-25) */
+i18n.addResourceBundle("en", "translation", {
+  aqShowType: "What kind of show?",
+  aqTypeLocal: "Local / bar", aqTypeSchool: "School / community",
+  aqTypeOpening: "Opening slot", aqTypeFestival: "Festival",
+  aqTypePrivate: "Private / corporate",
+  aqTravelCovered: "Promoter covers travel & lodging",
+  aqTxTravel: "Travel & lodging covered by promoter",
+}, true, true);
+i18n.addResourceBundle("es", "translation", {
+  aqShowType: "¿Qué tipo de evento?",
+  aqTypeLocal: "Local / bar", aqTypeSchool: "Escolar / comunitario",
+  aqTypeOpening: "Telonero", aqTypeFestival: "Festival",
+  aqTypePrivate: "Privado / corporativo",
+  aqTravelCovered: "El promotor cubre viáticos y hospedaje",
+  aqTxTravel: "Viáticos y hospedaje por cuenta del promotor",
+}, true, true);

@@ -100,3 +100,15 @@ enseña aparte tu neto tras costos y comisión. Se entrega **copiada como texto*
 tratos de fechas se cierran por WhatsApp, no por PDF) y "guardar" escribe el fee en el
 gig: la cotización del artista no es un documento aparte, es el número que su evento
 promete. Sin tabla nueva.
+
+## v1.2 · La magnitud del evento escala la tarifa (2026-08-25)
+
+Pedido de Paco: tabular por tipo e interés del evento, como los tipos de proyecto de la
+calculadora de producción. `SHOW_TYPES` en `lib/artistBusiness.ts`:
+local/bar ×1 · escolar/comunitario ×0.7 · telonero ×0.7 · festival ×1.5 ·
+privado/corporativo ×2. El multiplicador escala el fee sugerido en "Cotizar una fecha" y
+también **el piso del aviso** "estarías pagando por tocar": cobrar 0.7× en un escolar está
+bien, cobrarlo en un festival es malbaratarse. Viáticos: un checkbox que fija QUIÉN los
+paga como término de la cotización (el costo real de viajar ya vive en el costo del show;
+no se duplica en la matemática). El tipo no se persiste en el evento: es una decisión del
+momento de cotizar.

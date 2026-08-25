@@ -164,6 +164,25 @@ export function computeArtistRate(s: ArtistPricingState): {
   };
 }
 
+// ─── Tipos de show: la magnitud del evento escala la tarifa ──────────────────
+//
+// Mismo patron que los projectTypes de la calculadora de produccion (corto
+// estudiantil 0.5x ... largometraje grande 4x): tu minimo es la BASE y el tipo
+// de evento lo multiplica. Un privado/corporativo paga el doble que un bar; un
+// escolar o telonero, menos. El multiplicador ajusta tambien el piso del aviso
+// "estarias pagando por tocar": cobrar 0.7x en un escolar no es malbaratarse,
+// cobrarlo en un festival si (Paco 2026-08-25).
+
+export type ShowType = { id: string; labelKey: string; mult: number };
+
+export const SHOW_TYPES: ShowType[] = [
+  { id: "local",    labelKey: "aqTypeLocal",    mult: 1 },
+  { id: "school",   labelKey: "aqTypeSchool",   mult: 0.7 },
+  { id: "opening",  labelKey: "aqTypeOpening",  mult: 0.7 },
+  { id: "festival", labelKey: "aqTypeFestival", mult: 1.5 },
+  { id: "private",  labelKey: "aqTypePrivate",  mult: 2 },
+];
+
 // ─── Ajustes: localStorage + espejo en nube (patron del pricing de productor) ─
 
 export function loadArtistPricing(): ArtistPricingState {
