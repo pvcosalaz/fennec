@@ -76,6 +76,7 @@ export default function ShowQuoteSheet({
   /* Viaticos: un termino del trato, no un numero. El costo real de viajar ya
      vive en el costo del show; esto solo fija QUIEN lo paga en la cotizacion. */
   const [viaticosCubiertos, setViaticosCubiertos] = useState(false);
+  const [verInfoTipos, setVerInfoTipos] = useState(false);
   const [copiado, setCopiado] = useState(false);
 
   function cambiarTipo(t2: (typeof SHOW_TYPES)[number]) {
@@ -155,8 +156,26 @@ export default function ShowQuoteSheet({
             </p>
           )}
 
-          <label className="block">
-            <span className="mb-1 block text-[11px] font-medium text-zinc-400">{t("aqShowType")}</span>
+          <div>
+            <div className="mb-1 flex items-center gap-1.5">
+              <span className="text-[11px] font-medium text-zinc-400">{t("aqShowType")}</span>
+              {/* Los multiplicadores no se enseñan (Paco 2026-08-25: "ruido
+                  visual, la mayoria ni lo va a entender"): el factor es cocina
+                  interna. La "i" cuenta en palabras que se esta considerando. */}
+              <button type="button" onClick={() => setVerInfoTipos((v) => !v)}
+                aria-label={t("aqTypeInfoAria")} aria-expanded={verInfoTipos}
+                className={`transition ${verInfoTipos ? "text-accent" : "text-zinc-600 hover:text-zinc-400"}`}>
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+                  <circle cx="8" cy="8" r="7.5" stroke="currentColor" strokeWidth="1" fill="none" />
+                  <text x="8" y="11.5" textAnchor="middle" fontSize="9.5" fontWeight="700" fill="currentColor">i</text>
+                </svg>
+              </button>
+            </div>
+            {verInfoTipos && (
+              <p className="mb-2 rounded-xl border border-white/[0.07] bg-white/[0.03] px-3.5 py-2.5 text-[11px] leading-relaxed text-zinc-400">
+                {t("aqTypeInfo")}
+              </p>
+            )}
             <div className="flex flex-wrap gap-2">
               {SHOW_TYPES.map((t2) => (
                 <button key={t2.id} type="button" onClick={() => cambiarTipo(t2)}
@@ -164,11 +183,10 @@ export default function ShowQuoteSheet({
                     tipo.id === t2.id ? "border-accent/50 bg-accent/10 text-accent" : "border-white/10 text-zinc-500 hover:text-white"
                   }`}>
                   {t(t2.labelKey)}
-                  <span className={tipo.id === t2.id ? "ml-1.5 text-accent/70" : "ml-1.5 text-zinc-600"}>×{t2.mult}</span>
                 </button>
               ))}
             </div>
-          </label>
+          </div>
 
           <div className="grid grid-cols-2 gap-3">
             <CampoNum label={t("abFee")} value={fee} onChange={setFee} />

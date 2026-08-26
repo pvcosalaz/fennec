@@ -1638,3 +1638,13 @@ i18n.addResourceBundle("es", "translation", {
   aqTravelCovered: "El promotor cubre viáticos y hospedaje",
   aqTxTravel: "Viáticos y hospedaje por cuenta del promotor",
 }, true, true);
+
+/* Artist Business · la "i" de los tipos de evento (2026-08-25) */
+i18n.addResourceBundle("en", "translation", {
+  aqTypeInfoAria: "About event types",
+  aqTypeInfo: "The type adjusts your suggested fee. Private and corporate events pay the most, festivals sit above your base rate, and school shows or opening slots usually run below it. The low-price warning adjusts to the type too.",
+}, true, true);
+i18n.addResourceBundle("es", "translation", {
+  aqTypeInfoAria: "Sobre los tipos de evento",
+  aqTypeInfo: "El tipo ajusta el precio sugerido. Los eventos privados y corporativos pagan más, los festivales van arriba de tu base, y los escolares o de telonero suelen ir abajo. El aviso de precio bajo también se ajusta al tipo.",
+}, true, true);
