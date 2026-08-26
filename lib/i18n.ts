@@ -1656,3 +1656,11 @@ i18n.addResourceBundle("en", "translation", {
 i18n.addResourceBundle("es", "translation", {
   aqViewCalendar: "Calendario", aqViewList: "Lista",
 }, true, true);
+
+/* Artist Business · Google Calendar (2026-08-25) */
+i18n.addResourceBundle("en", "translation", {
+  aqGcalConnect: "Connect Google Calendar",
+}, true, true);
+i18n.addResourceBundle("es", "translation", {
+  aqGcalConnect: "Conectar Google Calendar",
+}, true, true);

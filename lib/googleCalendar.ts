@@ -1,7 +1,12 @@
 // Google Calendar OAuth + token helpers. Mirrors the Spotify integration:
 // tokens live in user_integrations (platform "google_calendar"), refreshed on
-// demand. Read-only scope — Fennec shows your Google events inside its content
-// calendar, it never writes to Google.
+// demand.
+//
+// El scope es calendar.events (leer Y escribir eventos) desde 2026-08-25: el
+// modulo de artista empuja sus fechas al calendario del usuario, ademas de
+// leer los eventos de Google para pintarlos en la agenda. Antes era readonly;
+// nadie alcanzo a conectar bajo ese scope (las credenciales nunca se crearon),
+// asi que el cambio no obliga a nadie a reconectar.
 //
 // Requires (env, server-side unless noted):
 //   NEXT_PUBLIC_GOOGLE_CLIENT_ID   — also the flag that reveals the Connect UI
@@ -11,7 +16,7 @@
 
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
-export const GCAL_SCOPE = "https://www.googleapis.com/auth/calendar.readonly";
+export const GCAL_SCOPE = "https://www.googleapis.com/auth/calendar.events";
 export const GCAL_PLATFORM = "google_calendar";
 
 export const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "";
@@ -146,4 +151,48 @@ export async function fetchEvents(
     const time = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
     return { id: e.id, title: e.summary ?? "(no title)", day, time, allDay: false };
   });
+}
+
+/* ── Escritura: el espejo de los eventos del artista ─────────────────────────
+   Eventos de DIA COMPLETO en el calendario primario. Google pide end.date
+   EXCLUSIVO para all-day: un evento del 4 de septiembre va start 09-04,
+   end 09-05, o Google lo pinta de cero dias. */
+
+function diaSiguiente(day: string): string {
+  const d = new Date(`${day}T00:00:00`);
+  d.setDate(d.getDate() + 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/** Crea o actualiza el espejo. Devuelve el id de Google, o null si fallo. */
+export async function upsertGcalEvent(
+  accessToken: string,
+  ev: { gcalId?: string | null; title: string; day: string; description?: string },
+): Promise<string | null> {
+  const body = JSON.stringify({
+    summary: ev.title,
+    description: ev.description ?? "Fennec",
+    start: { date: ev.day },
+    end: { date: diaSiguiente(ev.day) },
+  });
+  const base = "https://www.googleapis.com/calendar/v3/calendars/primary/events";
+  const res = await fetch(ev.gcalId ? `${base}/${encodeURIComponent(ev.gcalId)}` : base, {
+    method: ev.gcalId ? "PATCH" : "POST",
+    headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+    body,
+  });
+  /* Un PATCH a un evento que el usuario borro en Google da 404: se recrea. */
+  if (res.status === 404 && ev.gcalId) {
+    return upsertGcalEvent(accessToken, { ...ev, gcalId: null });
+  }
+  if (!res.ok) return null;
+  const data = (await res.json()) as { id?: string };
+  return data.id ?? null;
+}
+
+export async function deleteGcalEvent(accessToken: string, gcalId: string): Promise<void> {
+  await fetch(
+    `https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(gcalId)}`,
+    { method: "DELETE", headers: { Authorization: `Bearer ${accessToken}` } },
+  ).catch(() => {});
 }

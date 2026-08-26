@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CalendarDays, List } from "lucide-react";
 import ArtistCalendar from "./ArtistCalendar";
+import type { GCalEvent } from "@/lib/googleCalendar";
 import { formatMoney, type Currency } from "@/lib/currency";
 import {
   type ArtistEvent, type ArtistEventKind, eventMoney, nextStatus,
@@ -108,9 +109,25 @@ function StatusChip({ e, onAdvance }: { e: ArtistEvent; onAdvance: (e: ArtistEve
   );
 }
 
+/* Las filas de evento envuelven al StatusChip, que ya es <button>; un boton
+   dentro de otro es HTML invalido y tiraba la hidratacion completa de la
+   pagina (visto 2026-08-25). Div con rol de boton y teclado equivalente. */
+function FilaEvento({ onOpen, className, children }: {
+  onOpen: () => void; className: string; children: React.ReactNode;
+}) {
+  return (
+    <div role="button" tabIndex={0} onClick={onOpen}
+      onKeyDown={(ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); onOpen(); } }}
+      className={`cursor-pointer ${className}`}>
+      {children}
+    </div>
+  );
+}
+
 export default function ArtistBusinessHubDesktop({
   events, lanes, upNext, daysAway, agenda, mes, minFee, rateReady, currency, lang,
   onOpenSetup, onOpenQuote, onAddEvent, onEditEvent, onAdvance,
+  googleEvents = [], gcalFooter,
 }: {
   events: ArtistEvent[];
   /** Por tipo, ya ordenados: lo que viene primero, luego lo reciente. */
@@ -129,6 +146,8 @@ export default function ArtistBusinessHubDesktop({
   onAddEvent: (kind: ArtistEventKind) => void;
   onEditEvent: (e: ArtistEvent) => void;
   onAdvance: (e: ArtistEvent) => void;
+  googleEvents?: GCalEvent[];
+  gcalFooter?: React.ReactNode;
 }) {
   const { t } = useTranslation();
   /* La agenda alterna lista ↔ mes completo. El calendario enseña TODO,
@@ -157,7 +176,7 @@ export default function ArtistBusinessHubDesktop({
         <div className="dd-rise grid items-stretch gap-4" style={{ gridTemplateColumns: ".95fr 1.25fr", animationDelay: ".06s" }}>
           <Tile label={t("aqUpNext")} className="flex flex-col justify-center">
             {upNext ? (
-              <button type="button" onClick={() => onEditEvent(upNext)} className="group text-left">
+              <FilaEvento onOpen={() => onEditEvent(upNext)} className="group text-left">
                 <div className="flex items-baseline gap-3">
                   <span className="text-[40px] font-black leading-none tracking-tight text-accent">
                     {upNext.eventDate ? fechaCorta(upNext.eventDate, lang) : "—"}
@@ -181,7 +200,7 @@ export default function ArtistBusinessHubDesktop({
                     <span className="font-mono text-[11px] tabular-nums text-zinc-500">{formatMoney(upNext.fee, upNext.currency)}</span>
                   )}
                 </div>
-              </button>
+              </FilaEvento>
             ) : (
               <div className="py-6 text-center">
                 <p className="text-[13px] text-zinc-500">{t("aqNothingBooked")}</p>
@@ -205,13 +224,14 @@ export default function ArtistBusinessHubDesktop({
             }
           >
             {verCal ? (
-              <ArtistCalendar events={events} lang={lang} onPick={onEditEvent} />
+              <ArtistCalendar events={events} lang={lang} onPick={onEditEvent}
+                googleEvents={googleEvents} footer={gcalFooter} />
             ) : agenda.length === 0 ? (
               <p className="px-5 py-8 text-center text-[12.5px] text-zinc-600">{t("abEmpty")}</p>
             ) : (
               <div className="flex flex-col divide-y divide-white/[0.04] px-2 py-1">
                 {agenda.map((e) => (
-                  <button key={e.id} type="button" onClick={() => onEditEvent(e)}
+                  <FilaEvento key={e.id} onOpen={() => onEditEvent(e)}
                     className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition hover:bg-white/[0.02]">
                     <span className="w-14 shrink-0 font-mono text-[10.5px] tabular-nums text-zinc-500">
                       {e.eventDate ? fechaCorta(e.eventDate, lang) : "—"}
@@ -219,7 +239,7 @@ export default function ArtistBusinessHubDesktop({
                     <span className="shrink-0 font-mono text-[8.5px] font-bold uppercase tracking-[0.14em] text-zinc-600">{t(KIND_KEY[e.kind])}</span>
                     <span className="min-w-0 flex-1 truncate text-[13px] text-zinc-300">{e.title}</span>
                     <StatusChip e={e} onAdvance={onAdvance} />
-                  </button>
+                  </FilaEvento>
                 ))}
               </div>
             )}
@@ -255,7 +275,7 @@ export default function ArtistBusinessHubDesktop({
                   {lanes[k].slice(0, 4).map((e) => {
                     const m = eventMoney(e);
                     return (
-                      <button key={e.id} type="button" onClick={() => onEditEvent(e)}
+                      <FilaEvento key={e.id} onOpen={() => onEditEvent(e)}
                         className="flex items-center gap-2.5 rounded-lg px-2 py-2.5 text-left transition hover:bg-white/[0.02]">
                         <span className="w-12 shrink-0 font-mono text-[10px] tabular-nums text-zinc-500">
                           {e.eventDate ? fechaCorta(e.eventDate, lang) : "—"}
@@ -269,7 +289,7 @@ export default function ArtistBusinessHubDesktop({
                           </span>
                         </span>
                         <StatusChip e={e} onAdvance={onAdvance} />
-                      </button>
+                      </FilaEvento>
                     );
                   })}
                 </div>

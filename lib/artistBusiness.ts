@@ -40,6 +40,8 @@ export type ArtistEvent = {
   releaseType: ReleaseType | null;
   notes: string;
   createdAt: number;
+  /** El id del espejo en Google Calendar; null = nunca empujado o sin conexion. */
+  gcalEventId?: string | null;
 };
 
 export function nextStatus(e: Pick<ArtistEvent, "kind" | "status">): string | null {
@@ -221,6 +223,7 @@ type Row = {
   status: string; fee: number; deposit: number; cost: number; recouped: number;
   currency: Currency; venue: string | null; city: string | null;
   release_type: ReleaseType | null; notes: string | null; created_at: string;
+  gcal_event_id: string | null;
 };
 
 function fromRow(r: Row): ArtistEvent {
@@ -232,6 +235,7 @@ function fromRow(r: Row): ArtistEvent {
     currency: r.currency, venue: r.venue ?? "", city: r.city ?? "",
     releaseType: r.release_type, notes: r.notes ?? "",
     createdAt: new Date(r.created_at).getTime(),
+    gcalEventId: r.gcal_event_id,
   };
 }
 
@@ -253,6 +257,7 @@ export async function upsertArtistEvent(userId: string, e: ArtistEvent): Promise
     currency: e.currency, venue: e.venue || null, city: e.city || null,
     release_type: e.releaseType, notes: e.notes || null,
     created_at: new Date(e.createdAt).toISOString(),
+    gcal_event_id: e.gcalEventId ?? null,
   });
   if (error) console.error("upsertArtistEvent:", error);
 }

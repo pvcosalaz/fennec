@@ -15,6 +15,8 @@ import ArtistRateSetup from "./ArtistRateSetup";
 import ArtistBusinessHubDesktop from "./ArtistBusinessHubDesktop";
 import ShowQuoteSheet from "./ShowQuoteSheet";
 import ArtistCalendar from "./ArtistCalendar";
+import { GCAL_ENABLED, connectGoogleCalendar, fetchGCalEvents, syncEventToGcal } from "@/lib/gcalClient";
+import type { GCalEvent } from "@/lib/googleCalendar";
 import { useIsDesktop } from "@/lib/useIsDesktop";
 import i18nInstance from "@/lib/i18n";
 
@@ -209,6 +211,10 @@ export default function ArtistBusinessHub({ userId }: { userId: string }) {
   const [setupAbierto, setSetupAbierto] = useState(false);
   const [quoteAbierto, setQuoteAbierto] = useState(false);
   const [verCal, setVerCal] = useState(false);
+  /* Google Calendar: fantasmas para el calendario y estado de conexion. El
+     boton de conectar solo existe cuando el OAuth esta configurado
+     (GCAL_ENABLED); antes de eso, nada de botones muertos. */
+  const [gcal, setGcal] = useState<{ connected: boolean; events: GCalEvent[] }>({ connected: false, events: [] });
   /** La fecha que dispara la cotizacion (la recien creada sin precio). */
   const [quoteGigId, setQuoteGigId] = useState<string | undefined>(undefined);
   const [pricing, setPricing] = useState<ArtistPricingState | null>(null);
@@ -216,6 +222,17 @@ export default function ArtistBusinessHub({ userId }: { userId: string }) {
   useEffect(() => {
     getArtistEvents(userId).then(setEvents).catch(() => {});
     void syncArtistPricingFromCloud().then(() => setPricing(loadArtistPricing()));
+  }, [userId]);
+
+  useEffect(() => {
+    if (!GCAL_ENABLED || !userId) return;
+    /* Ventana ancha fija (mes pasado a +120 dias) en vez de por-mes navegado:
+       una llamada cubre lo que el calendario enseña casi siempre. */
+    const min = new Date(); min.setMonth(min.getMonth() - 1); min.setDate(1);
+    const max = new Date(); max.setDate(max.getDate() + 120);
+    fetchGCalEvents(userId, min.toISOString(), max.toISOString())
+      .then(setGcal)
+      .catch(() => {});
   }, [userId]);
 
   const rate = useMemo(() => computeArtistRate(pricing ?? loadArtistPricing()), [pricing]);
@@ -265,6 +282,33 @@ export default function ArtistBusinessHub({ userId }: { userId: string }) {
     [events, filtro],
   );
 
+  /* El espejo en Google: fire-and-forget, una via. Sin conexion no pasa nada.
+     Si Google devuelve un id nuevo, se persiste en el evento para poder
+     actualizar o retirar el espejo despues. */
+  function espejar(e: ArtistEvent) {
+    if (!GCAL_ENABLED) return;
+    if (!e.eventDate) {
+      if (e.gcalEventId) {
+        void syncEventToGcal({ action: "delete", gcalId: e.gcalEventId });
+        const sinEspejo = { ...e, gcalEventId: null };
+        setEvents((prev) => prev.map((x) => (x.id === e.id ? sinEspejo : x)));
+        void upsertArtistEvent(userId, sinEspejo);
+      }
+      return;
+    }
+    const titulo = e.kind === "gig"
+      ? [e.title, [e.venue, e.city].filter(Boolean).join(", ")].filter(Boolean).join(" · ")
+      : e.title;
+    void syncEventToGcal({ action: "upsert", gcalId: e.gcalEventId, title: titulo, day: e.eventDate })
+      .then((r) => {
+        if (r.connected && r.gcalId && r.gcalId !== e.gcalEventId) {
+          const conEspejo = { ...e, gcalEventId: r.gcalId };
+          setEvents((prev) => prev.map((x) => (x.id === e.id ? conEspejo : x)));
+          void upsertArtistEvent(userId, conEspejo);
+        }
+      });
+  }
+
   function guardar(e: ArtistEvent) {
     setEvents((prev) => {
       const i = prev.findIndex((x) => x.id === e.id);
@@ -272,10 +316,13 @@ export default function ArtistBusinessHub({ userId }: { userId: string }) {
       return [...next].sort((a, b) => (b.eventDate ?? "").localeCompare(a.eventDate ?? ""));
     });
     void upsertArtistEvent(userId, e);
+    espejar(e);
     setHoja(null);
   }
 
   function borrar(id: string) {
+    const ev = events.find((x) => x.id === id);
+    if (ev?.gcalEventId) void syncEventToGcal({ action: "delete", gcalId: ev.gcalEventId });
     setEvents((prev) => prev.filter((x) => x.id !== id));
     void deleteArtistEvent(userId, id);
     setHoja(null);
@@ -293,6 +340,16 @@ export default function ArtistBusinessHub({ userId }: { userId: string }) {
   function aplicarFee(gig: ArtistEvent, fee: number) {
     guardar({ ...gig, fee });
   }
+
+  const pieGcal = GCAL_ENABLED && !gcal.connected ? (
+    <div className="border-t border-white/[0.05] px-4 py-2.5 text-center">
+      <button type="button"
+        onClick={() => { void connectGoogleCalendar(); }}
+        className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500 transition hover:text-accent">
+        {t("aqGcalConnect")}
+      </button>
+    </div>
+  ) : null;
 
   const hojas = (
     <>
@@ -354,6 +411,8 @@ export default function ArtistBusinessHub({ userId }: { userId: string }) {
           onAddEvent={(kind) => setHoja({ e: nuevoEvento(kind, currency), nuevo: true })}
           onEditEvent={(e) => setHoja({ e, nuevo: false })}
           onAdvance={avanzar}
+          googleEvents={gcal.events}
+          gcalFooter={pieGcal}
         />
         {hojas}
       </>
@@ -422,6 +481,8 @@ export default function ArtistBusinessHub({ userId }: { userId: string }) {
             events={filtro === "all" ? events : visibles}
             lang={i18nInstance.resolvedLanguage ?? "en"}
             onPick={(e) => setHoja({ e, nuevo: false })}
+            googleEvents={gcal.events}
+            footer={pieGcal}
           />
         </div>
       ) : (

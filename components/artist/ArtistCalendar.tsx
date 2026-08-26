@@ -2,6 +2,7 @@
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { ArtistEvent, ArtistEventKind } from "@/lib/artistBusiness";
+import type { GCalEvent } from "@/lib/googleCalendar";
 
 /* El calendario del artista: el mes completo con TODOS los eventos, pasados y
  * futuros. Nace porque la agenda de lista solo enseña lo que viene, y con dos
@@ -21,11 +22,14 @@ const KIND_DOT: Record<ArtistEventKind, string> = {
 const pad = (n: number) => String(n).padStart(2, "0");
 
 export default function ArtistCalendar({
-  events, lang, onPick,
+  events, lang, onPick, googleEvents = [], footer,
 }: {
   events: ArtistEvent[];
   lang: string;
   onPick: (e: ArtistEvent) => void;
+  /** Eventos de Google, fantasmas: se ven, no se tocan. Sync una via. */
+  googleEvents?: GCalEvent[];
+  footer?: React.ReactNode;
 }) {
   const hoy = new Date();
   const [vista, setVista] = useState({ y: hoy.getFullYear(), m: hoy.getMonth() });
@@ -40,6 +44,16 @@ export default function ArtistCalendar({
     }
     return m;
   }, [events]);
+
+  const porDiaG = useMemo(() => {
+    const m = new Map<string, GCalEvent[]>();
+    for (const g of googleEvents) {
+      const arr = m.get(g.day) ?? [];
+      arr.push(g);
+      m.set(g.day, arr);
+    }
+    return m;
+  }, [googleEvents]);
 
   /* Semana que arranca en lunes: (getDay()+6)%7 corre el domingo al final. */
   const offset = (new Date(vista.y, vista.m, 1).getDay() + 6) % 7;
@@ -85,7 +99,12 @@ export default function ArtistCalendar({
         ))}
         {celdas.map((d, i) => {
           if (d === null) return <div key={`v${i}`} />;
-          const delDia = porDia.get(`${vista.y}-${pad(vista.m + 1)}-${pad(d)}`) ?? [];
+          const clave = `${vista.y}-${pad(vista.m + 1)}-${pad(d)}`;
+          const delDia = porDia.get(clave) ?? [];
+          const deGoogle = porDiaG.get(clave) ?? [];
+          /* Dos fichas por celda; los tuyos primero, Google rellena. */
+          const gVisibles = deGoogle.slice(0, Math.max(0, 2 - delDia.length));
+          const ocultos = Math.max(0, delDia.length - 2) + (deGoogle.length - gVisibles.length);
           return (
             <div key={d}
               className={`min-h-[52px] rounded-lg border px-1 pb-1 pt-0.5 ${
@@ -100,14 +119,23 @@ export default function ArtistCalendar({
                     <span className="truncate text-[8.5px] leading-tight text-zinc-300">{e.title}</span>
                   </button>
                 ))}
-                {delDia.length > 2 && (
-                  <p className="px-1 font-mono text-[8px] text-zinc-600">+{delDia.length - 2}</p>
+                {gVisibles.map((g) => (
+                  /* Fantasma: se ve, no se toca. Editarlo es cosa de Google. */
+                  <div key={g.id} title={g.title}
+                    className="flex w-full items-center gap-1 rounded border border-dashed border-white/[0.12] px-1 py-0.5">
+                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-white/25" />
+                    <span className="truncate text-[8.5px] leading-tight text-zinc-500">{g.title}</span>
+                  </div>
+                ))}
+                {ocultos > 0 && (
+                  <p className="px-1 font-mono text-[8px] text-zinc-600">+{ocultos}</p>
                 )}
               </div>
             </div>
           );
         })}
       </div>
+      {footer}
     </div>
   );
 }

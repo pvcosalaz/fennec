@@ -56,3 +56,21 @@ export async function fetchGCalEvents(
   if (!res.ok) return { connected: false, events: [] };
   return (await res.json()) as { connected: boolean; events: GCalEvent[] };
 }
+
+/** Empuja (o retira) el espejo de un evento del artista. Fire-and-forget desde
+ *  la UI: sin conexion devuelve {connected:false} y no pasa nada. */
+export async function syncEventToGcal(
+  body:
+    | { action: "upsert"; gcalId?: string | null; title: string; day: string; description?: string }
+    | { action: "delete"; gcalId: string },
+): Promise<{ connected: boolean; gcalId?: string | null }> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return { connected: false };
+  const res = await fetch("/api/gcal/sync", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) return { connected: false };
+  return (await res.json()) as { connected: boolean; gcalId?: string | null };
+}

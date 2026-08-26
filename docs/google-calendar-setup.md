@@ -16,8 +16,10 @@ Es tu cuenta de Google, por eso no lo puedo hacer yo.
 4. Menú → **APIs & Services → OAuth consent screen**:
    - User type: **External**. Create.
    - App name: `Fennec`. User support email: el tuyo. Developer contact: el tuyo.
-   - **Scopes**: agrega `.../auth/calendar.readonly` (solo lectura, no escribe
-     en tu Google).
+   - **Scopes**: agrega `.../auth/calendar.events` (leer y escribir EVENTOS).
+     Antes pedíamos readonly; desde 2026-08-25 el módulo de artista también
+     empuja tus fechas/grabaciones/lanzamientos a tu calendario, y eso pide
+     escritura de eventos. No da acceso a correo ni a nada más.
    - **Test users**: agrega tu propio correo (mientras esté en "Testing", solo
      los test users pueden conectar; para abrirlo a todos hay que publicar la
      app, que puede pedir verificación de Google si crece).
