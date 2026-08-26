@@ -23,6 +23,7 @@ import ScriptDetailOverlay from "./ScriptDetailOverlay";
 import MusicContentLab from "./MusicContentLab";
 import { useIsDesktop } from "@/lib/useIsDesktop";
 import { supabase } from "@/lib/supabase";
+import { GCAL_ENABLED, syncEventToGcal } from "@/lib/gcalClient";
 
 import { useCloudArray } from "@/lib/useCloudArray";
 
@@ -38,6 +39,9 @@ type ContentTask = {
   source: "manual" | "inspire" | "ideas" | "scripts";
   status: "pending" | "done";
   createdAt: number;
+  /** Id del espejo en Google Calendar; ausente = nunca empujado o sin conexion.
+   *  Vive en el objeto mismo (localStorage + nube), no hay tabla que migrar. */
+  gcalEventId?: string;
 };
 
 type VideoRef = {
@@ -749,7 +753,11 @@ function TrendingView({ isPro, onBack, onUseAsReference, onRequestSchedule, onUp
 
 // ─── Main module ──────────────────────────────────────────────────────────────
 
-export default function ContentModule({ isPro = false, onUpgrade, genres = [], onToolOpenChange, userId }: { isPro?: boolean; onUpgrade?: () => void; genres?: string[]; onToolOpenChange?: (open: boolean) => void; userId?: string }) {
+export default function ContentModule({ isPro = false, onUpgrade, genres = [], onToolOpenChange, userId, initialTaskId }: { isPro?: boolean; onUpgrade?: () => void; genres?: string[]; onToolOpenChange?: (open: boolean) => void; userId?: string;
+  /** Deep link (?go=content&task=...): al montar, abre el guion de esa tarea.
+   *  Viene de los eventos espejados en Google Calendar. */
+  initialTaskId?: string;
+}) {
   const { t } = useTranslation();
   const [ideas,  setIdeas]  = useState<Idea[]>([]);
   const [briefs, setBriefs] = useState<Brief[]>([]);
@@ -814,6 +822,22 @@ export default function ContentModule({ isPro = false, onUpgrade, genres = [], o
   useCloudArray(BRIEFS_KEY,     briefs, setBriefs);
   useCloudArray(TASKS_KEY,      tasks,  setTasks);
 
+  // ── Deep link: llegar desde el evento de Google directo al guion ──
+  // tasks y briefs llegan asincronos (localStorage al montar, nube despues),
+  // asi que se espera a que aparezcan; el ref evita reabrir en cada sync.
+  const deepLinkListo = useRef(false);
+  useEffect(() => {
+    if (!initialTaskId || deepLinkListo.current) return;
+    const tk = tasks.find((t) => t.id === initialTaskId);
+    if (!tk) return;
+    if (tk.source === "scripts" || tk.source === "inspire" || tk.source === "ideas") {
+      const b = briefs.find((x) => x.title === tk.title);
+      if (b) { deepLinkListo.current = true; setDetailBrief(b); return; }
+      if (tk.source === "scripts") return; // el guion puede seguir bajando de la nube
+    }
+    deepLinkListo.current = true; // sin guion: el calendario del hub ya es el destino
+  }, [initialTaskId, tasks, briefs]);
+
   // ── Report tool-open state so the shell can hide the bottom nav ──
   // A tool "owns the screen" when a sheet, the script writer, or the detail
   // view is open; the nav collides with those UIs otherwise.
@@ -824,11 +848,29 @@ export default function ContentModule({ isPro = false, onUpgrade, genres = [], o
   }, [toolOpen, onToolOpenChange]);
 
   // ── Task handlers ──
+
+  /* El espejo en Google Calendar: fire-and-forget, UNA via (Fennec -> Google).
+     La descripcion del evento lleva el deep link de vuelta a la tarea: desde
+     el calendario del telefono brincas directo al guion que toca grabar
+     (Paco 2026-08-25). Sin conexion o sin OAuth configurado, no pasa nada. */
+  function espejarTask(tk: ContentTask) {
+    if (!GCAL_ENABLED) return;
+    const link = `${window.location.origin}/?go=content&task=${tk.id}`;
+    const description = [`Open in Fennec: ${link}`, tk.notes].filter(Boolean).join("\n\n");
+    void syncEventToGcal({ action: "upsert", gcalId: tk.gcalEventId, title: tk.title, day: tk.date, description })
+      .then((r) => {
+        if (r.connected && r.gcalId && r.gcalId !== tk.gcalEventId) {
+          setTasks((prev) => prev.map((x) => (x.id === tk.id ? { ...x, gcalEventId: r.gcalId ?? undefined } : x)));
+        }
+      });
+  }
+
   function addTask(title: string, date: string, source: ContentTask["source"], notes?: string) {
     const t: ContentTask = {
       id: uid(), title, date, notes, source, status: "pending", createdAt: Date.now(),
     };
     setTasks((prev) => [...prev, t]);
+    espejarTask(t);
   }
 
   function toggleDone(id: string) {
@@ -838,6 +880,8 @@ export default function ContentModule({ isPro = false, onUpgrade, genres = [], o
   }
 
   function deleteTask(id: string) {
+    const tk = tasks.find((t) => t.id === id);
+    if (tk?.gcalEventId) void syncEventToGcal({ action: "delete", gcalId: tk.gcalEventId });
     setTasks((prev) => prev.filter((t) => t.id !== id));
   }
 
@@ -957,6 +1001,7 @@ export default function ContentModule({ isPro = false, onUpgrade, genres = [], o
           const existing = tasks.find((t) => t.source === "scripts" && t.title === detailBrief.title);
           if (existing) {
             setTasks((prev) => prev.map((t) => t.id === existing.id ? { ...t, title, date: newDate } : t));
+            espejarTask({ ...existing, title, date: newDate, notes: script || existing.notes });
           } else {
             addTask(title, newDate, "scripts", script || undefined);
           }
@@ -1021,6 +1066,7 @@ export default function ContentModule({ isPro = false, onUpgrade, genres = [], o
           </div>
         ) : (
           <ContentHubDesktop
+            userId={userId}
             tasks={tasks}
             isPro={isPro}
             onUpgrade={onUpgrade}

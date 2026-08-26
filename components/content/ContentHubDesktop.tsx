@@ -2,12 +2,14 @@
 import { useTranslation } from "react-i18next";
 import i18nInstance from "@/lib/i18n";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ChevronLeft, ChevronRight, Check, Pencil, Lock, Plus,
   Zap, Sparkles, FlaskConical, FileText,
 } from "lucide-react";
 import { RiseStyle, SURFACE } from "@/components/desktop/ui";
+import { GCAL_ENABLED, connectGoogleCalendar, fetchGCalEvents } from "@/lib/gcalClient";
+import type { GCalEvent } from "@/lib/googleCalendar";
 
 /* ═══════════════════════════════════════════════════════════════
    MARKETING — desktop. The mobile hub is a week strip + big tool
@@ -20,6 +22,7 @@ import { RiseStyle, SURFACE } from "@/components/desktop/ui";
 
 type ContentTask = {
   id: string;
+  /* gcalEventId vive en el objeto real (ver ContentModule); aqui no se lee. */
   title: string;
   date: string; // "YYYY-MM-DD"
   notes?: string;
@@ -45,6 +48,7 @@ type Props = {
   scriptsCount?: number;
   isPro?: boolean;
   onUpgrade?: () => void;
+  userId?: string;
 };
 
 // Same YMD convention as CalendarHub so chips land on the same days.
@@ -82,7 +86,7 @@ function fmtLong(ymd: string): string {
 export default function ContentHubDesktop({
   tasks, onOpenSheet, onToggleDone, onDeleteTask, onEditScript, onAddTask, onOpenTask,
   ideasCount = 0, scriptsCount = 0,
-  isPro = false, onUpgrade,
+  isPro = false, onUpgrade, userId,
 }: Props) {
   const { t } = useTranslation();
   const today = new Date();
@@ -90,6 +94,25 @@ export default function ContentHubDesktop({
 
   const [viewYear, setViewYear]   = useState(today.getFullYear());
   const [viewMonth, setViewMonth] = useState(today.getMonth());
+
+  /* Google Calendar como en el movil (CalendarHub): fantasmas solo-lectura y
+     boton de conectar. Solo existe cuando el OAuth esta configurado. */
+  const gcalOn = GCAL_ENABLED && !!userId;
+  const [gcal, setGcal] = useState<{ connected: boolean; events: GCalEvent[] }>({ connected: false, events: [] });
+  useEffect(() => {
+    if (!gcalOn || !userId) return;
+    const min = new Date(viewYear, viewMonth, 1); min.setDate(min.getDate() - 7);
+    const max = new Date(viewYear, viewMonth + 1, 0); max.setDate(max.getDate() + 7);
+    let alive = true;
+    fetchGCalEvents(userId, min.toISOString(), max.toISOString())
+      .then((r) => { if (alive) setGcal(r); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [gcalOn, userId, viewYear, viewMonth]);
+  const gcalByDate = gcal.events.reduce<Record<string, GCalEvent[]>>((acc, g) => {
+    (acc[g.day] ??= []).push(g);
+    return acc;
+  }, {});
   const [selectedDay, setSelectedDay] = useState(todayYMD);
   const [draft, setDraft] = useState("");
 
@@ -152,6 +175,14 @@ export default function ContentHubDesktop({
           {monthName(viewMonth)} <span className="text-zinc-600">{viewYear}</span>
         </h1>
         <div className="flex items-center gap-0.5">
+          {gcalOn && !gcal.connected && (
+            <button
+              onClick={() => { void connectGoogleCalendar(); }}
+              className="mr-2 rounded-lg border border-white/10 px-2.5 py-1 text-[11px] font-semibold text-zinc-400 transition hover:border-accent/40 hover:text-white"
+            >
+              {t("aqGcalConnect")}
+            </button>
+          )}
           <button onClick={() => shiftMonth(-1)} aria-label={t("chdMesAnterior")} className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-white/5 hover:text-white">
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -214,6 +245,11 @@ export default function ContentHubDesktop({
               const isToday = ymd === todayYMD;
               const isSelected = ymd === selectedDay;
               const dayTasks = tasksByDate[ymd] ?? [];
+              const dayGcal = gcalByDate[ymd] ?? [];
+              /* Dos fichas por celda: las tuyas primero, Google rellena.
+                 Fantasma = punteado, no clickeable (sync una via). */
+              const gVisibles = dayGcal.slice(0, Math.max(0, 2 - dayTasks.length));
+              const ocultos = Math.max(0, dayTasks.length - 2) + (dayGcal.length - gVisibles.length);
               return (
                 <button
                   key={i}
@@ -243,8 +279,18 @@ export default function ContentHubDesktop({
                       <span className="truncate">{t.title}</span>
                     </span>
                   ))}
-                  {dayTasks.length > 2 && (
-                    <span className="px-1.5 text-[9.5px] font-semibold text-zinc-600">+{dayTasks.length - 2} more</span>
+                  {gVisibles.map((g) => (
+                    <span
+                      key={g.id}
+                      title={g.title}
+                      className="flex items-center gap-1 truncate rounded-md border border-dashed border-white/[0.12] px-1.5 py-[3px] text-[10px] font-medium text-zinc-500"
+                    >
+                      <i className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-white/25" />
+                      <span className="truncate">{g.title}</span>
+                    </span>
+                  ))}
+                  {ocultos > 0 && (
+                    <span className="px-1.5 text-[9.5px] font-semibold text-zinc-600">+{ocultos} more</span>
                   )}
                 </button>
               );

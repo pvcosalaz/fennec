@@ -379,6 +379,8 @@ function CurrencyInput({
 export default function PricingCalculator() {
   const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState<ModuleTab>("dashboard");
+  /* Tarea destino de un deep link (?go=content&task=...) — ver init(). */
+  const [deepContentTask, setDeepContentTask] = useState<string | null>(null);
   useEffect(() => {
     localStorage.setItem("fennec_active_tab", activeTab);
     if (activeTab === "contenido") localStorage.setItem("fennec_visited_marketing_v1", "1");
@@ -586,6 +588,15 @@ export default function PricingCalculator() {
     // Handle OAuth redirect: if there's a ?code= in the URL, exchange it for a session
     async function init() {
       const params = new URLSearchParams(window.location.search);
+      /* Deep link desde Google Calendar (?go=content&task=...): aterrizar en
+         Marketing y abrir esa tarea. Se limpia la URL igual que el code de
+         OAuth para que un refresh no lo repita. */
+      if (params.get("go") === "content") {
+        setActiveTab("contenido");
+        const tk = params.get("task");
+        if (tk) setDeepContentTask(tk);
+        window.history.replaceState({}, "", window.location.pathname);
+      }
       const code = params.get("code");
       if (code) {
         try {
@@ -1323,7 +1334,7 @@ export default function PricingCalculator() {
           // quien scrollea ahí es el frame del shell. ContentModule ya hace
           // esta misma distinción en su raíz.
           <div className={isDesktop ? "" : "flex-1 flex flex-col overflow-hidden"}>
-            <ContentModule isPro={profile?.is_pro ?? false} onUpgrade={() => openUpgrade("content")} genres={profile?.genres ?? []} onToolOpenChange={setContentToolOpen} userId={authUser.id} />
+            <ContentModule isPro={profile?.is_pro ?? false} onUpgrade={() => openUpgrade("content")} genres={profile?.genres ?? []} onToolOpenChange={setContentToolOpen} userId={authUser.id} initialTaskId={deepContentTask ?? undefined} />
           </div>
         ) : activeTab === "ideas" ? (
           <AudioModule userId={authUser.id} isPro={profile?.is_pro ?? false} onSheetChange={setNavHidden} />
