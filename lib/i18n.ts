@@ -1648,3 +1648,11 @@ i18n.addResourceBundle("es", "translation", {
   aqTypeInfoAria: "Sobre los tipos de evento",
   aqTypeInfo: "El tipo ajusta el precio sugerido. Los eventos privados y corporativos pagan más, los festivales van arriba de tu base, y los escolares o de telonero suelen ir abajo. El aviso de precio bajo también se ajusta al tipo.",
 }, true, true);
+
+/* Artist Business · calendario en la agenda (2026-08-25) */
+i18n.addResourceBundle("en", "translation", {
+  aqViewCalendar: "Calendar", aqViewList: "List",
+}, true, true);
+i18n.addResourceBundle("es", "translation", {
+  aqViewCalendar: "Calendario", aqViewList: "Lista",
+}, true, true);

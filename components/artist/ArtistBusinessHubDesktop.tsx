@@ -1,5 +1,8 @@
 "use client";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { CalendarDays, List } from "lucide-react";
+import ArtistCalendar from "./ArtistCalendar";
 import { formatMoney, type Currency } from "@/lib/currency";
 import {
   type ArtistEvent, type ArtistEventKind, eventMoney, nextStatus,
@@ -128,6 +131,9 @@ export default function ArtistBusinessHubDesktop({
   onAdvance: (e: ArtistEvent) => void;
 }) {
   const { t } = useTranslation();
+  /* La agenda alterna lista ↔ mes completo. El calendario enseña TODO,
+     pasado incluido; la lista solo lo que viene (Paco 2026-08-25). */
+  const [verCal, setVerCal] = useState(false);
 
   const LANES: { k: ArtistEventKind; icon: React.ReactNode; titleKey: string }[] = [
     { k: "gig",       icon: <GigIcon />,       titleKey: "abGigs" },
@@ -187,8 +193,20 @@ export default function ArtistBusinessHubDesktop({
             )}
           </Tile>
 
-          <Tile label={t("aqAgenda")} padded={false}>
-            {agenda.length === 0 ? (
+          <Tile
+            label={t("aqAgenda")}
+            padded={false}
+            action={
+              <button type="button" onClick={() => setVerCal((v) => !v)}
+                aria-label={verCal ? t("aqViewList") : t("aqViewCalendar")}
+                className="flex h-7 w-7 items-center justify-center rounded-full text-zinc-500 transition hover:text-accent active:scale-[0.92]">
+                {verCal ? <List className="h-3.5 w-3.5" /> : <CalendarDays className="h-3.5 w-3.5" />}
+              </button>
+            }
+          >
+            {verCal ? (
+              <ArtistCalendar events={events} lang={lang} onPick={onEditEvent} />
+            ) : agenda.length === 0 ? (
               <p className="px-5 py-8 text-center text-[12.5px] text-zinc-600">{t("abEmpty")}</p>
             ) : (
               <div className="flex flex-col divide-y divide-white/[0.04] px-2 py-1">

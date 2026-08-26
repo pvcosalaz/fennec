@@ -2,7 +2,7 @@
 import { useTranslation } from "react-i18next";
 import "@/lib/i18n";
 import { useEffect, useMemo, useState } from "react";
-import { Plus, X, Trash2 } from "lucide-react";
+import { Plus, X, Trash2, CalendarDays, List } from "lucide-react";
 import { formatMoney, useCurrency } from "@/lib/currency";
 import {
   type ArtistEvent, type ArtistEventKind, type ReleaseType,
@@ -14,6 +14,7 @@ import {
 import ArtistRateSetup from "./ArtistRateSetup";
 import ArtistBusinessHubDesktop from "./ArtistBusinessHubDesktop";
 import ShowQuoteSheet from "./ShowQuoteSheet";
+import ArtistCalendar from "./ArtistCalendar";
 import { useIsDesktop } from "@/lib/useIsDesktop";
 import i18nInstance from "@/lib/i18n";
 
@@ -207,6 +208,7 @@ export default function ArtistBusinessHub({ userId }: { userId: string }) {
   const [hoja, setHoja] = useState<{ e: ArtistEvent; nuevo: boolean } | null>(null);
   const [setupAbierto, setSetupAbierto] = useState(false);
   const [quoteAbierto, setQuoteAbierto] = useState(false);
+  const [verCal, setVerCal] = useState(false);
   /** La fecha que dispara la cotizacion (la recien creada sin precio). */
   const [quoteGigId, setQuoteGigId] = useState<string | undefined>(undefined);
   const [pricing, setPricing] = useState<ArtistPricingState | null>(null);
@@ -396,15 +398,33 @@ export default function ArtistBusinessHub({ userId }: { userId: string }) {
             }`}>{t(key)}</button>
         ))}
         <button
+          onClick={() => setVerCal((v) => !v)}
+          aria-label={verCal ? t("aqViewList") : t("aqViewCalendar")}
+          className={`ml-auto flex h-9 w-9 items-center justify-center rounded-full border transition active:scale-[0.94] ${
+            verCal ? "border-accent/50 text-accent" : "border-white/10 text-zinc-500 hover:text-white"
+          }`}
+        >
+          {verCal ? <List className="h-4 w-4" /> : <CalendarDays className="h-4 w-4" />}
+        </button>
+        <button
           onClick={() => setHoja({ e: nuevoEvento(filtro === "all" ? "gig" : filtro, currency), nuevo: true })}
-          className="ml-auto flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-[12px] font-bold text-black transition hover:brightness-110 active:scale-[0.97]"
+          className="flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-[12px] font-bold text-black transition hover:brightness-110 active:scale-[0.97]"
         >
           <Plus className="h-3.5 w-3.5" />
           {t("abAddEvent")}
         </button>
       </div>
 
-      {/* El timeline */}
+      {/* El timeline, o el mes completo */}
+      {verCal ? (
+        <div className="mt-3 rounded-2xl border border-white/[0.06] bg-white/[0.03]">
+          <ArtistCalendar
+            events={filtro === "all" ? events : visibles}
+            lang={i18nInstance.resolvedLanguage ?? "en"}
+            onPick={(e) => setHoja({ e, nuevo: false })}
+          />
+        </div>
+      ) : (
       <div className="mt-4 space-y-2.5">
         {visibles.length === 0 && (
           <p className="rounded-2xl border border-dashed border-white/10 px-5 py-8 text-center text-[13px] text-zinc-500">
@@ -454,6 +474,8 @@ export default function ArtistBusinessHub({ userId }: { userId: string }) {
           );
         })}
       </div>
+
+      )}
 
       {/* El dinero, hasta abajo: herramientas con nombre y el mes compacto */}
       <div className="mt-6 grid grid-cols-2 gap-2.5">
