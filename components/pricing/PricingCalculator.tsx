@@ -129,6 +129,7 @@ import { track, trackSessionStart } from "@/lib/track";
 import { getProfile } from "@/lib/communityDb";
 import type { Profile } from "@/lib/communityTypes";
 import AuthGate from "@/components/community/AuthGate";
+import DockNav from "@/components/ui/DockNav";
 import UsernameSetup from "@/components/community/UsernameSetup";
 import Select from "@/components/ui/Select";
 import { CurrencySelect } from "@/components/ui/CurrencySelect";
@@ -1520,65 +1521,15 @@ export default function PricingCalculator() {
         {/* +18px on top of the inset: iOS underreports safe-area-inset-bottom in
             standalone on some versions, leaving the icons kissing the home bar.
             Tuned by eye on Paco's iPhone ("un pelito más"). */}
-        <div className="mx-auto flex w-full max-w-2xl items-center px-2 pt-2" style={{ paddingBottom: "max(calc(env(safe-area-inset-bottom) + 18px), 28px)" }}>
-          {moduleTabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            const isHome   = tab.id === "dashboard";
-
-            /* ── Home — elevated center button (Meta-style 3D lift) ── */
-            if (isHome) {
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => { setActiveTab(tab.id); setBusinessView("hub"); setShowSettings(false); setSettingsSection("main"); }}
-                  className="flex flex-1 flex-col items-center justify-center py-3 transition"
-                  style={{ WebkitTapHighlightColor: "transparent" }}
-                >
-                  <div
-                    className="flex h-16 w-16 items-center justify-center rounded-full transition-transform duration-200 active:scale-95"
-                    style={{
-                      marginTop: -26,
-                      background: isActive
-                        ? "linear-gradient(160deg, #ffc14d 0%, var(--accent, #f5a623) 55%, #e0822a 100%)"
-                        : "linear-gradient(160deg, #2a2a2e 0%, #1c1c20 100%)",
-                      boxShadow: isActive
-                        ? "inset 0 1px 0 rgba(255,255,255,0.35), 0 0 0 6px rgba(10,9,8,0.94)"
-                        : "inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 6px rgba(10,9,8,0.94)",
-                    }}
-                  >
-                    <img
-                      src="/fennec-icon-transparent.png"
-                      alt={t("tabs.dashboard")}
-                      style={{
-                        width: 38, height: 38, objectFit: "contain",
-                        filter: isActive ? "brightness(0)" : "brightness(0) invert(1)",
-                        opacity: isActive ? 1 : 0.55,
-                        transition: "opacity 0.25s ease, filter 0.25s ease",
-                      }}
-                    />
-                  </div>
-                </button>
-              );
-            }
-
-            /* ── Regular tabs ───────────────────────────── */
-            return (
-              <button
-                key={tab.id}
-                onClick={() => { setActiveTab(tab.id); setBusinessView("hub"); }}
-                aria-label={t(tab.labelKey)}
-                aria-current={isActive ? "page" : undefined}
-                className={`flex flex-1 flex-col items-center justify-center py-3 transition ${
-                  isActive ? "text-accent" : "text-zinc-500"
-                }`}
-              >
-                <Icon className="h-6 w-6" />
-                {isActive && <div className="mt-1.5 h-0.5 w-4 rounded-full bg-accent" />}
-              </button>
-            );
-          })}
-        </div>
+        <DockNav
+          tabs={moduleTabs.map((tb) => ({ id: tb.id, label: t(tb.labelKey), icon: tb.icon }))}
+          activeTab={activeTab}
+          onSelect={(id) => {
+            setActiveTab(id as ModuleTab);
+            setBusinessView("hub");
+            if (id === "dashboard") { setShowSettings(false); setSettingsSection("main"); }
+          }}
+        />
       </nav>
 
       {upgradeSheet}
