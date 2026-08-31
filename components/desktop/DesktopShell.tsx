@@ -68,7 +68,10 @@ function RailIcon({ mouseY, children }: { mouseY: MotionValue<number>; children:
     const r = ref.current?.getBoundingClientRect();
     return r ? v - (r.y + r.height / 2) : Infinity;
   });
-  const target = useTransform(dist, [-96, 0, 96], [1, 1.5, 1]);
+  /* Radio APRETADO (44px, menos que una fila): solo el icono bajo el cursor
+     crece; los vecinos apenas rozan 1.07. El radio ancho estilo macOS movia
+     toda la columna y se sentia inquieto (Paco 2026-08-31). */
+  const target = useTransform(dist, [-44, 0, 44], [1, 1.5, 1]);
   const scale = useSpring(target, { mass: 0.1, stiffness: 150, damping: 12 });
   return (
     <motion.span ref={ref} className="grid place-items-center" style={{ scale }}>
