@@ -22,11 +22,14 @@
    quiere comer").** La revelación completa del Fennec ID ocurre ANTES del registro.
    El signup se llama "Save your Fennec ID": no pagas un peaje, proteges algo que ya
    es tuyo. Efecto dotación aplicado.
-4. **La tarjeta que ves es la tarjeta que te quedas.** El tono golden-angle se fija en
-   el momento de la revelación y se persiste tal cual al crear la cuenta. Si el color
-   se asignara al crear la fila del perfil, la tarjeta podría cambiar después del
-   registro y se rompe la magia. Regla dura: la revelación usa el COMPONENTE real de
-   la tarjeta (`FennecIdCard`), nunca un video ni una réplica.
+4. **La tarjeta que ves es la tarjeta que te quedas.** El color se fija en el momento
+   de la revelación y se persiste tal cual al crear la cuenta. En producción el color
+   es `profiles.color_id` sobre la paleta de 12 (`lib/fennecIdPalette.ts`; hoy lo
+   asigna perezosamente `ensureColorAssigned` al abrir el dashboard): el onboarding
+   elige `color_id` en el paso 4 y lo siembra idéntico al registrarse. Si se dejara a
+   la asignación perezosa, la tarjeta podría cambiar después del registro y se rompe
+   la magia. Regla dura: la revelación usa el COMPONENTE real de la tarjeta
+   (`FennecIdCard`), nunca un video ni una réplica.
 
 ## El flujo (8 pasos)
 
