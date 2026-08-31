@@ -28,13 +28,14 @@
    registro y se rompe la magia. Regla dura: la revelación usa el COMPONENTE real de
    la tarjeta (`FennecIdCard`), nunca un video ni una réplica.
 
-## El flujo (7 pasos)
+## El flujo (8 pasos)
 
 | # | Pantalla | Qué pasa |
 |---|---|---|
+| 0 | **Language** | EN / ES como primera decisión (pedido de Paco 2026-08-30): el resto del onboarding se muestra en el idioma elegido desde el primer segundo. Es la MISMA preferencia que vive en Settings → Language, solo que nace aquí. Primera aparición del zorro. |
 | 1 | **What are you?** | El selector Capcom: ARTIST vs PRODUCER gigantes, zorro al fondo (opacidad ~.032). Cero texto explicativo. |
-| 2 | **What do you make? / What do you play?** | El rol, adaptado al paso 1. Chips grandes: Beatmaker, Mixing/Master, Composer, Songwriter (producer) · Solo artist, Band, DJ, Cantautor (artist). Hoy `role` es un campo muerto de Settings; aquí cobra vida. |
-| 3 | **Genres** | El catálogo compartido `lib/genres.ts` (el mismo del waitlist de /join) como chips interactivos multi-select. |
+| 2 | **What kind of producer are you? / What kind of artist are you?** | El rol como subclase de lo que elegiste en 1 (progresión de personaje). Chips grandes: Beatmaker, Mixing/Master, Composer, Songwriter (producer) · Solo artist, Band, DJ, Cantautor (artist). Hoy `role` es un campo muerto de Settings; aquí cobra vida. Nota: Paco vetó "What do you make" para este paso. |
+| 3 | **What do you produce? / What do you play?** | Los géneros (título pedido por Paco: "What do you produce" es la pregunta del género, no del rol). Catálogo compartido `lib/genres.ts` (el mismo del waitlist de /join) como chips interactivos multi-select. |
 | 4 | **What should we call you?** | Nombre artístico. Mientras escribe, su Fennec ID se asoma en vivo abajo: su color único con su nombre puesto, sello si es artista. El gancho. |
 | 5 | **LA REVELACIÓN** | Animación espectacular del Fennec ID materializándose, a pantalla completa. El momento de producción del flujo. |
 | 6 | **Save your Fennec ID** | Signup con Apple/Google/email. Copy de protección, no de alta. Handle sugerido desde el nombre artístico, con ajuste inline si está tomado. |
@@ -47,7 +48,7 @@
 ## Datos y tubería
 
 - **Borrador local** `fennec-onboarding-draft-v1` en localStorage mientras no hay
-  cuenta: `{ accountType, role, genres[], displayName, idHue, step }`. Cerrar y volver
+  cuenta: `{ language, accountType, role, genres[], displayName, idHue, step }`. Cerrar y volver
   te regresa donde ibas.
 - **Al registrarse**, el borrador se siembra de un jalón en `profiles`
   (`account_type`, `role`, `genres`, nombre, y el tono del ID) y el borrador se borra.
