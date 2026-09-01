@@ -2,7 +2,12 @@
 
 // /admin — Fennec CRM. Registered-user metrics: who they are, how they
 // explore the app (navigation history), activity and churn signals.
-// Access requires profiles.is_admin (migration 20260610_user_events).
+// Acceso: profiles_private.is_admin, verificado EN EL SERVIDOR por
+// lib/adminAuth.ts (la pagina solo pinta el 401/403 que le responde la API).
+// [SEGURIDAD 2026-08-31] Este comentario decia "profiles.is_admin": esa
+// columna se elimino en julio (20260709_move_sensitive_columns.sql) porque
+// dejaba ver con la anon key quien es admin. Si alguien revive la columna
+// siguiendo un texto viejo, revive la fuga.
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -190,9 +195,11 @@ export default function AdminPage() {
           <div className="rounded-2xl border border-[#f5a623]/30 bg-[#f5a623]/[0.04] p-8 max-w-2xl">
             <h2 className="text-lg font-bold mb-2">Setup required</h2>
             <p className="text-sm text-zinc-400 leading-relaxed">
-              Your account isn&apos;t flagged as admin yet — or the migration hasn&apos;t run.
-              In Supabase → SQL Editor, run <span className="mono text-[#f5a623]">supabase/migrations/20260610_user_events.sql</span>.
-              It creates the <span className="mono">user_events</span> table and sets <span className="mono">is_admin = true</span> for @pvcosalaz.
+              Your account isn&apos;t flagged as admin yet. Admin lives in{" "}
+              <span className="mono text-[#f5a623]">profiles_private</span> (service-role only,
+              never in <span className="mono">profiles</span>), so it is granted by hand in
+              Supabase → SQL Editor:{" "}
+              <span className="mono text-[#f5a623]">update profiles_private set is_admin = true where id = &apos;&lt;tu-user-id&gt;&apos;;</span>
             </p>
           </div>
         )}

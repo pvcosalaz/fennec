@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
+import { allowPublic } from "@/lib/publicRateLimit";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { waitlistWelcomeEmail } from "@/lib/waitlistEmail";
 
@@ -31,6 +32,12 @@ export async function OPTIONS(req: Request) {
 
 export async function POST(req: Request) {
   const cors = corsHeaders(req.headers.get("origin"));
+
+  /* Ruta publica: sin freno se podia llenar la waitlist de basura
+     (auditoria 2026-08-31). Un alta legitima manda UNA peticion. */
+  if (!(await allowPublic("waitlist_signup", req, 8))) {
+    return NextResponse.json({ error: "too many requests" }, { status: 429, headers: cors });
+  }
 
   let body: { email?: string; name?: string | null; genre?: string | null; lang?: string | null; source?: string | null };
   try {

@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
+import { allowPublic } from "@/lib/publicRateLimit";
 import { waitlistWelcomeEmail } from "@/lib/waitlistEmail";
 
 /* Sends the branded welcome email to a waitlist signup via Resend.
@@ -10,6 +11,14 @@ import { waitlistWelcomeEmail } from "@/lib/waitlistEmail";
    once fennec.audio is verified in Resend to send to everyone. */
 
 export async function POST(req: Request) {
+  /* La ruta MAS abusable de la app: manda correo con Resend y no pedia nada
+     (auditoria 2026-08-31). Sin freno, cualquiera quema la cuota o la usa
+     para spam a terceros. Cuatro por hora por IP: de sobra para un alta y
+     un reintento, insuficiente para una campaña. */
+  if (!(await allowPublic("waitlist_welcome", req, 4))) {
+    return NextResponse.json({ error: "too many requests" }, { status: 429 });
+  }
+
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: "email not configured" }, { status: 503 });

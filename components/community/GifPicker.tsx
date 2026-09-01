@@ -20,29 +20,13 @@ export default function GifPicker({ onSelect, onClose }: Props) {
 
   async function fetchGifs(q: string) {
     setLoading(true);
-    const apiKey = process.env.NEXT_PUBLIC_GIPHY_API_KEY;
-    if (!apiKey) {
-      setGifs([]);
-      setLoading(false);
-      return;
-    }
-    const endpoint = q.trim()
-      ? `https://api.giphy.com/v1/gifs/search?api_key=${apiKey}&q=${encodeURIComponent(q)}&limit=20&rating=g`
-      : `https://api.giphy.com/v1/gifs/trending?api_key=${apiKey}&limit=20&rating=g`;
+    /* [SEGURIDAD 2026-08-31] Se pide a /api/giphy/search, no a Giphy directo:
+       la llave vivia en el bundle del navegador y cualquiera podia gastarse
+       la cuota. Ahora se queda en el servidor. */
     try {
-      const res = await fetch(endpoint);
-      const data = await res.json();
-      setGifs((data.data ?? []).map((g: {
-        id: string;
-        images: {
-          fixed_height_small: { url: string };
-          preview_gif: { url: string };
-        };
-      }) => ({
-        id: g.id,
-        url: g.images.fixed_height_small.url,
-        preview: g.images.preview_gif.url,
-      })));
+      const res = await fetch(`/api/giphy/search?q=${encodeURIComponent(q.trim())}`);
+      const data = await res.json() as { gifs?: GifResult[] };
+      setGifs(data.gifs ?? []);
     } catch {
       setGifs([]);
     } finally {
@@ -91,7 +75,9 @@ export default function GifPicker({ onSelect, onClose }: Props) {
           ))}
           {!loading && gifs.length === 0 && (
             <div className="col-span-3 text-center py-8 text-zinc-600 text-sm">
-              {process.env.NEXT_PUBLIC_GIPHY_API_KEY ? "No hay GIFs" : "Configura NEXT_PUBLIC_GIPHY_API_KEY para usar GIFs"}
+              {/* El cliente ya no sabe si hay llave configurada, y esa es
+                  justo la idea: la llave es asunto del servidor. */}
+              No hay GIFs
             </div>
           )}
           {!loading && gifs.map((gif) => (
