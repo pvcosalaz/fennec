@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { motion, useMotionValue, useSpring, useTransform, type MotionValue } from "motion/react";
 import { Home, Briefcase, Camera, Users, Settings, AudioWaveform, UserPlus, ChevronRight } from "lucide-react";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import { getColorScheme } from "@/lib/fennecIdPalette";
@@ -56,29 +55,6 @@ const DOCK_INSET = 12;
    ancho del dock cerrado, y un respiro para que el contenido no lo roce. */
 const CONTENT_GUTTER = DOCK_INSET + SIDEBAR_MINI + 10;
 const HAIR = "rgba(255,255,255,.06)";
-
-/* Magnificacion macOS del dock (Paco 2026-08-31, fisica del Dock de
-   react-bits en vertical): cada icono crece segun la cercania del cursor en Y,
-   con spring de `motion`. Solo escala el icono dentro de su slot fijo de 42px,
-   asi que NO hay reflow: se respeta el trabajo de 2026-08-03 de que nada
-   salte al abrir/cerrar el rail. */
-function RailIcon({ mouseY, children }: { mouseY: MotionValue<number>; children: React.ReactNode }) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const dist = useTransform(mouseY, (v: number) => {
-    const r = ref.current?.getBoundingClientRect();
-    return r ? v - (r.y + r.height / 2) : Infinity;
-  });
-  /* Radio APRETADO (44px, menos que una fila): solo el icono bajo el cursor
-     crece; los vecinos apenas rozan 1.07. El radio ancho estilo macOS movia
-     toda la columna y se sentia inquieto (Paco 2026-08-31). */
-  const target = useTransform(dist, [-44, 0, 44], [1, 1.5, 1]);
-  const scale = useSpring(target, { mass: 0.1, stiffness: 150, damping: 12 });
-  return (
-    <motion.span ref={ref} className="grid place-items-center" style={{ scale }}>
-      {children}
-    </motion.span>
-  );
-}
 
 /* The tape's heartbeat in the sidebar: 24 amber bars breathing. Heights are
    fixed (not random) so SSR/CSR match; the stagger makes them feel alive. */
@@ -147,8 +123,6 @@ export default function DesktopShell({
   const GIVE_UP_AFTER = 260;  // si nunca frena, abre igual y no lo dejamos colgado
   const CLOSE_DELAY = 140;
 
-  /* Cursor en Y para la magnificacion; Infinity = sin puntero encima. */
-  const railY = useMotionValue(Infinity);
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastMove = useRef<{ x: number; y: number; t: number } | null>(null);
 
@@ -267,8 +241,8 @@ export default function DesktopShell({
            desbordar, scrollea por dentro. */
         className="fixed z-40 flex flex-col overflow-hidden"
         onMouseEnter={onRailEnter}
-        onMouseMove={(e) => { railY.set(e.clientY); onRailMove(e); }}
-        onMouseLeave={() => { railY.set(Infinity); onRailLeave(); }}
+        onMouseMove={onRailMove}
+        onMouseLeave={onRailLeave}
         onFocusCapture={() => setRailNow(true)}
         onBlurCapture={(e) => {
           // Only collapse once focus has genuinely left the rail, not while
@@ -373,7 +347,7 @@ export default function DesktopShell({
                      su objetivo ya no existia (Paco 2026-08-05). */
                   data-coach={id === "ideas" ? "tape" : undefined}
                 >
-                  <RailIcon mouseY={railY}><Icon className="h-4 w-4" /></RailIcon>
+                  <Icon className="h-4 w-4" />
                   {/* El latido de La Cinta.
                       Al quitar el bloque duplicado del dock se perdio el pulso
                       animado, que era lo unico vivo aqui (Paco 2026-08-04). En
