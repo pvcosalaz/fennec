@@ -95,13 +95,17 @@ function normalizeUrl(url: string): string {
 // ─── Money ────────────────────────────────────────────────────────────────────
 
 function MoneySection({
-  project, currency, onChange,
+  project, currency, onChange, startAdding = false,
 }: {
   project: Project; currency: Currency; onChange: (p: Project) => void;
+  /** El proyecto llego desde el boton "Registrar pago" de la tarjeta: se abre
+   *  el formulario ya desplegado en vez de que el usuario lo tenga que
+   *  encontrar de nuevo (Paco 2026-09-06). */
+  startAdding?: boolean;
 }) {
   const { t } = useTranslation();
   const { price, collected, pending } = projectMoney(project);
-  const [adding, setAdding] = useState(false);
+  const [adding, setAdding] = useState(startAdding);
   const [amount, setAmount] = useState("");
   const [label, setLabel]   = useState("");
   const [date, setDate]     = useState(() => new Date().toISOString().slice(0, 10));
@@ -561,7 +565,7 @@ function BriefSection({
 
 export default function ProjectDetail({
   project, statusMeta, onBack, onChange, onAdvance, onRevert, onSetStatus,
-  nextLabel, prevLabel,
+  nextLabel, prevLabel, autoOpenPayment = false,
 }: {
   project: Project;
   statusMeta: { label: string; color: string; bg: string; icon: React.ComponentType<{ className?: string }> };
@@ -572,6 +576,7 @@ export default function ProjectDetail({
   onSetStatus: (s: Project["status"]) => void;
   nextLabel: string | null;
   prevLabel: string | null;
+  autoOpenPayment?: boolean;
 }) {
   const { t } = useTranslation();
   const currency = (project.currency ?? getCurrency()) as Currency;
@@ -641,7 +646,7 @@ export default function ProjectDetail({
         />
       </div>
 
-      <MoneySection project={project} currency={currency} onChange={onChange} />
+      <MoneySection project={project} currency={currency} onChange={onChange} startAdding={autoOpenPayment} />
       <DeliverablesSection project={project} onChange={onChange} />
       <BriefSection project={project} onChange={onChange} />
 

@@ -858,7 +858,7 @@ i18n.addResourceBundle("en", "translation", {
   bdCotizacionesFuera: "{{count}} quote out", bdCotizacionesFuera_other: "{{count}} quotes out",
   bdEnCurso: "In progress",
   bdProyectosCuenta: "{{count}} project", bdProyectosCuenta_other: "{{count}} projects",
-  bdTeDeben: "Owed to you",
+  bdTeDeben: "To be collected",
   bdSinAnticipo: "{{count}} without deposit", bdSinAnticipo_other: "{{count}} without deposit",
   bdVerTodas: "View all →",
   bdSinCotizaciones: "No quotes yet. Turn a calculated rate into a client-ready quote.",
@@ -882,7 +882,7 @@ i18n.addResourceBundle("es", "translation", {
   bdCotizacionesFuera: "{{count}} cotización enviada", bdCotizacionesFuera_other: "{{count}} cotizaciones enviadas",
   bdEnCurso: "En curso",
   bdProyectosCuenta: "{{count}} proyecto", bdProyectosCuenta_other: "{{count}} proyectos",
-  bdTeDeben: "Te deben",
+  bdTeDeben: "Por cobrar",
   bdSinAnticipo: "{{count}} sin anticipo", bdSinAnticipo_other: "{{count}} sin anticipo",
   bdVerTodas: "Ver todas →",
   bdSinCotizaciones: "Aún no hay cotizaciones. Convierte una tarifa calculada en una cotización lista para el cliente.",
@@ -916,6 +916,7 @@ i18n.addResourceBundle("en", "translation", {
   apGuardarProyecto: "Save project", apEliminar: "Delete", apNuevo: "New",
   apCobradoTotal: "Collected", apPendienteTotal: "Pending",
   apCerrados: "{{count}} closed", apCerrados_other: "{{count}} closed",
+  apPorCobrarSub: "to be collected",
 }, true, true);
 i18n.addResourceBundle("es", "translation", {
   apEstEnCurso: "En curso", apEstRevision: "En revisión",
@@ -936,6 +937,7 @@ i18n.addResourceBundle("es", "translation", {
   apGuardarProyecto: "Guardar proyecto", apEliminar: "Eliminar", apNuevo: "Nuevo",
   apCobradoTotal: "Cobrado", apPendienteTotal: "Pendiente",
   apCerrados: "{{count}} cerrado", apCerrados_other: "{{count}} cerrados",
+  apPorCobrarSub: "por cobrar",
 }, true, true);
 
 /* Business — clientes y embudo de etapas (2026-08-06) */

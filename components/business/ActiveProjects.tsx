@@ -247,12 +247,17 @@ function ProjectForm({
 function ProjectCard({
   project,
   onOpen,
+  onLogPayment,
   onAdvance,
   onRevert,
   onDelete,
 }: {
   project: Project;
   onOpen: () => void;
+  /** Abre el proyecto directo con el formulario de "Registrar pago" ya abierto
+   *  (Paco 2026-09-06: "esa funcion deberia poder accesar desde aqui" — antes
+   *  solo vivia adentro del detalle completo). */
+  onLogPayment: () => void;
   onAdvance: () => void;
   onRevert: () => void;
   onDelete: () => void;
@@ -379,6 +384,15 @@ function ProjectCard({
         </div>
         {!isPaid && (
           <div className="flex items-center gap-2">
+            {project.price > 0 && (
+              <button
+                onClick={onLogPayment}
+                className="flex items-center gap-1.5 rounded-xl border border-emerald-500/25 px-3 py-1.5 text-xs font-medium text-emerald-400 transition hover:border-emerald-500/50 hover:bg-emerald-500/10"
+              >
+                <Banknote className="h-3 w-3" />
+                {t("pdRegistrarPago")}
+              </button>
+            )}
             {prevStatus(project.status) !== null && project.status !== "in_progress" && (
               <button
                 onClick={onRevert}
@@ -415,6 +429,9 @@ export default function ActiveProjects({ onBack, userId }: { onBack: () => void;
   const [loading, setLoading]   = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  /** true solo cuando se entro por el boton "Registrar pago" de la tarjeta;
+   *  se resetea al volver o al abrir un proyecto por su nombre normal. */
+  const [autoOpenPayment, setAutoOpenPayment] = useState(false);
   /** Timestamp of the last edit made on THIS device — see the realtime guard. */
   const lastLocalEdit = useRef(0);
   const writeTimer    = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -583,7 +600,8 @@ export default function ActiveProjects({ onBack, userId }: { onBack: () => void;
       <ProjectDetail
         project={selected}
         statusMeta={STATUS_META[selected.status]}
-        onBack={() => { flushWrite(); setSelectedId(null); }}
+        autoOpenPayment={autoOpenPayment}
+        onBack={() => { flushWrite(); setSelectedId(null); setAutoOpenPayment(false); }}
         onChange={handleUpdate}
         onAdvance={() => handleAdvance(selected.id)}
         onRevert={() => handleRevert(selected.id)}
@@ -661,7 +679,7 @@ export default function ActiveProjects({ onBack, userId }: { onBack: () => void;
                 {formatCurrencyTotals(totalPending, appCurrency).extra}
               </p>
             ) : (
-              <p className="mt-0.5 text-xs text-zinc-500">owed to you</p>
+              <p className="mt-0.5 text-xs text-zinc-500">{t("apPorCobrarSub")}</p>
             )}
           </div>
         </div>
@@ -687,7 +705,8 @@ export default function ActiveProjects({ onBack, userId }: { onBack: () => void;
             <ProjectCard
               key={p.id}
               project={p}
-              onOpen={() => setSelectedId(p.id)}
+              onOpen={() => { setAutoOpenPayment(false); setSelectedId(p.id); }}
+              onLogPayment={() => { setAutoOpenPayment(true); setSelectedId(p.id); }}
               onAdvance={() => handleAdvance(p.id)}
               onRevert={() => handleRevert(p.id)}
               onDelete={() => handleDelete(p.id)}
@@ -704,7 +723,8 @@ export default function ActiveProjects({ onBack, userId }: { onBack: () => void;
             <ProjectCard
               key={p.id}
               project={p}
-              onOpen={() => setSelectedId(p.id)}
+              onOpen={() => { setAutoOpenPayment(false); setSelectedId(p.id); }}
+              onLogPayment={() => { setAutoOpenPayment(true); setSelectedId(p.id); }}
               onAdvance={() => handleAdvance(p.id)}
               onRevert={() => handleRevert(p.id)}
               onDelete={() => handleDelete(p.id)}
